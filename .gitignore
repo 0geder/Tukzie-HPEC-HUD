@@ -39,6 +39,9 @@
 # Debug files
 *.dSYM/
 *.su
+
+# PlatformIO build output
+.pio/
 *.idb
 *.pdb
 
