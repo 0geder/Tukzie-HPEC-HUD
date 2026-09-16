@@ -1,0 +1,224 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[lining,tabular]{carlito}
+  \renewcommand{\familydefault}{\sfdefault}
+  \newcommand{\headingfont}{\fontfamily{ptm}\selectfont}
+\else
+  \usepackage{fontspec}
+  \setmainfont{Carlito}
+  \newfontfamily\headingfont{Times New Roman}
+\fi
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{eso-pic}
+\pagestyle{empty}
+\frenchspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\unitlength}{1bp}
+\newcommand{\Text}[3]{\put(#1,#2){\makebox(0,0)[lb]{\smash{#3}}}}
+\newcommand{\Justified}[4]{\Text{#1}{#2}{{\spaceskip=\fontdimen2\font plus 1fil minus 1pt\relax\makebox[#3bp][s]{#4}}}}
+\newcommand{\Rule}[4]{\put(#1,#2){\rule{#3bp}{#4bp}}}
+\newcommand{\ResponseFrame}[2]{%
+  \Rule{71.76}{#1}{0.48}{\fpeval{#2-#1}}%
+  \Rule{539.52}{#1}{0.48}{\fpeval{#2-#1}}%
+  \Rule{71.76}{#1}{468.24}{0.48}%
+  \Rule{71.76}{\fpeval{#2-0.96}}{468.72}{0.96}}
+\newcommand{\Divider}[1]{\Rule{71.76}{#1}{468.24}{0.48}}
+\newcommand{\Bullet}[1]{\Text{90}{#1}{\textbullet}}
+\newcommand{\FormPage}[2]{%
+  \null
+  \AddToShipoutPictureFG*{\AtPageLowerLeft{%
+    \setlength{\unitlength}{1bp}%
+    \fontsize{10.98bp}{14.5bp}\selectfont
+    \begin{picture}(0,0)
+      #2
+      \Text{303.2}{51.72}{#1}
+    \end{picture}}}
+  \newpage}
+
+\begin{document}
+
+\FormPage{1}{
+  \put(79.9,620.82){\includegraphics[width=97.6bp]{prism-uploads/uctLogo (1).png}}
+  \Rule{196.28}{620.8}{0.96}{99.2}
+  \Rule{71.28}{611.26}{468.54}{0.96}
+  \Text{213.8}{705.06}{{\headingfont\fontsize{16.02bp}{26.4bp}\selectfont UNIVERSITY OF CAPE TOWN}}
+  \Text{213.8}{678.66}{{\headingfont\fontsize{16.02bp}{26.4bp}\selectfont Department of Electrical Engineering}}
+  \Text{213.8}{652.24}{{\headingfont\fontsize{16.02bp}{26.4bp}\selectfont EEE4022F/S - Final Year Project}}
+  \Text{213.8}{625.84}{{\headingfont\fontsize{16.02bp}{26.4bp}\selectfont Graduate Attribute Tracking Form}}
+
+  \Text{77.4}{576.52}{Student name:}
+  \Text{312.62}{576.52}{DP Awarded? [Y/N]}
+  \Text{77.4}{558.52}{Student no:}
+  \Text{312.62}{558.52}{Supervisor name:}
+  \Text{77.4}{540.52}{Date:}
+  \Text{312.62}{540.52}{Date:}
+  \Text{77.4}{509.74}{Student signature:}
+  \Text{312.62}{516.46}{Supervisor}
+  \Text{312.62}{503.08}{signature:}
+  \Rule{165.5}{570.82}{127.56}{0.96}
+  \Rule{412.12}{570.82}{127.58}{0.96}
+  \Rule{165.5}{552.82}{127.56}{0.96}
+  \Rule{412.12}{552.82}{127.58}{0.96}
+  \Rule{165.5}{534.82}{127.56}{0.96}
+  \Rule{412.12}{534.82}{127.58}{0.96}
+  \Rule{164.78}{491.26}{128.28}{0.96}
+  \Rule{411.4}{491.26}{128.3}{0.96}
+
+  \Text{72}{458.32}{\textbf{Instructions:}}
+  \Justified{72}{435.82}{468.011}{Students must explain in this document what they \textbf{have already done} and what they \textbf{plan to do} to satisfy}
+  \Justified{72}{421.3}{467.912}{each Graduate Attribute. Descriptions of each GA is provided at the end of the document. Supervisors}
+  \Justified{72}{406.84}{467.748}{respond to the student\textquotesingle s plans and current progress, providing additional comments or advice as they see}
+  \Justified{72}{392.32}{467.506}{fit. Once the student\textquotesingle s progress is deemed sufficient (a few weeks before submission at the due date for}
+  \Text{72}{377.84}{this form), supervisors indicate that DP can be awarded.}
+  \Text{72}{355.34}{\textcolor{red}{\textbf{VERY IMPORTANT: Receiving DP for the course does NOT imply that all GA’s have been met in the}}}
+  \Text{72}{340.82}{\textcolor{red}{\textbf{course. Assessment of GA’s only happen in the final marking of the project report.}}}
+
+  \Text{255.2}{318.38}{\textbf{GA 1: Problem Solving}}
+  \ResponseFrame{83.04}{311.84}
+  \Divider{168.62}
+  \Text{77.4}{300.38}{Student Response:}
+  \put(77.4,293){\parbox[t]{462bp}{\fontsize{8.3bp}{10bp}\selectfont
+  Formulated the core research question around measurable vehicle dynamic response rather than subjective ride comfort, deliberately rejecting a driver-comfort framing in favour of an objective construct suited to signal-processing analysis. Root-caused several engineering faults from first principles: a GPIO pin conflict resolved by consulting the manufacturer\textquotesingle s schematic rather than assumption; a BLE characteristic-lookup failure diagnosed from GATT service-discovery semantics and confirmed against an independent reference implementation. The project\textquotesingle s motivation is grounded in sustainable-development considerations from the literature review (urbanisation trends, cost-per-km data for electric tricycles in comparable African contexts).}}
+  \Text{77.4}{158.12}{Supervisor Response:}
+}
+
+\FormPage{2}{
+  \Text{185.84}{709.5}{\textbf{GA 4: Investigations, Experiments, and Data Analysis}}
+  \ResponseFrame{474.16}{703.02}
+  \Divider{559.72}
+  \Text{77.4}{691.5}{Student Response:}
+  \put(77.4,684){\parbox[t]{462bp}{\fontsize{8.3bp}{10bp}\selectfont
+  Conducted hypothesis-test-conclusion investigations throughout: the GNSS field-count assumption (hypothesised 13 fields, tested live, found 9, corrected); the BMS service-UUID assumption (tested against a powered pack, found wrong, corrected, then cross-validated byte-for-byte against an independent parser); the camera/sync-pulse timing offset (quantified via a lens-cover calibration test, bounded to under one second). Acquisition-integrity instrumentation (jitter, dropped samples) was built to support later on-vehicle data analysis. A structured audit of an inherited vacation-work codebase was conducted as prior-art investigation before building new functionality.}}
+  \Text{77.4}{549.22}{Supervisor Response:}
+
+  \Text{236.12}{441.22}{\textbf{GA 5: Use of Engineering Tools}}
+  \ResponseFrame{205.88}{434.68}
+  \Divider{291.44}
+  \Text{77.4}{423.22}{Student Response:}
+  \put(77.4,416){\parbox[t]{462bp}{\fontsize{8.3bp}{10bp}\selectfont
+  Applied and recognised limitations of: PlatformIO/Arduino/FreeRTOS for embedded development; \texttt{esptool} and serial diagnostics for hardware verification; and Python automation (\texttt{paramiko} for remote diagnostics, \texttt{PyMuPDF} for schematic verification, \texttt{PIL} for quantitative frame-brightness analysis, \texttt{ffmpeg} for frame extraction) built specifically to support this project\textquotesingle s testing. Tool limitations were explicitly reasoned about rather than assumed away --- for example, not claiming a BMS checksum formula is correct merely because a library accepts it, since no vendor datasheet was available to confirm it independently.}}
+  \Text{77.4}{280.94}{Supervisor Response:}
+
+  \Text{194.18}{172.88}{\textbf{GA 6: Professional and Technical Communication}}
+  \ResponseFrame{108.2}{166.4}
+  \Text{77.4}{154.88}{Student Response:}
+  \put(77.4,148){\parbox[t]{462bp}{\fontsize{7.6bp}{9bp}\selectfont
+  Maintained a continuously-updated Methodology chapter documenting engineering work honestly, including faults found and their resolution. Communicated professionally in writing with the Controls Lab custodian to negotiate shared vehicle access.}}
+}
+
+\FormPage{3}{
+  \Rule{71.76}{676.5}{0.48}{43.5}
+  \Rule{539.52}{676.5}{0.48}{43.5}
+  \Divider{719.52}
+  \Divider{676.5}
+  \Text{77.4}{709.02}{Supervisor Response:}
+
+  \Text{248.9}{643.48}{\textbf{GA 8: Individual Working}}
+  \ResponseFrame{578.32}{637}
+  \Rule{71.52}{534.76}{0.96}{44.52}
+  \Rule{539.28}{534.76}{0.96}{44.52}
+  \Rule{71.52}{534.76}{468.72}{0.96}
+  \Rule{71.52}{578.32}{468.72}{0.96}
+  \Text{77.4}{625.48}{Student Response:}
+  \put(77.4,619){\parbox[t]{462bp}{\fontsize{7.6bp}{9bp}\selectfont
+  Took full individual responsibility for hardware bring-up, firmware debugging, and report authorship. Respected shared-resource constraints: avoided modifying the inherited dashboard\textquotesingle s SD card and an existing vehicle-access schedule reserved for another team.}}
+  \Text{77.4}{567.82}{Supervisor Response:}
+
+  \Text{225.86}{501.82}{\textbf{GA 9: Independent Learning Ability}}
+  \ResponseFrame{294.8}{495.28}
+  \Divider{380.42}
+  \Text{77.4}{483.82}{Student Response:}
+  \put(77.4,476){\parbox[t]{462bp}{\fontsize{8.3bp}{10bp}\selectfont
+  Repeatedly corrected my own assumptions on independently-gathered evidence: verified GPIO pin assignments against a primary-source schematic after a placeholder proved wrong; corrected a vehicle-identity error after independently checking dashboard constants, a user manual, and another team\textquotesingle s documentation; persisted through infrastructure failures (network provisioning, BLE connectivity, physical wiring faults) by isolating variables systematically. Proactively read an inherited team\textquotesingle s full codebase without instruction, to avoid duplicating existing work.}}
+  \Text{77.4}{369.92}{Supervisor Response:}
+
+  \Text{72}{261.86}{\textbf{GA 1: Problem Solving}}
+  \Justified{72}{239.36}{409.203}{Identify, formulate, research literature and analyse complex engineering problems reaching}
+  \Justified{72}{224.84}{431.749}{substantiated conclusions using first principles of mathematics, natural sciences and engineering}
+  \Justified{72}{210.38}{295.087}{sciences with holistic considerations for sustainable development.}
+  \Bullet{195.32}
+  \Justified{108.02}{195.32}{413.655}{A systematic, theory-based understanding of the natural sciences applicable to the discipline}
+  \Text{108.02}{180.8}{and awareness of relevant social sciences.}
+  \Bullet{165.74}
+  \Justified{108.02}{165.74}{429.076}{Conceptually based mathematics, numerical analysis, data analysis, statistics and formal aspects}
+  \Justified{108.02}{151.22}{417.482}{of computer and information science to support detailed analysis and modelling applicable to}
+  \Text{108.02}{136.76}{the discipline.}
+  \Bullet{121.7}
+  \Justified{108.02}{121.7}{377.300}{A systematic, theory-based formulation of engineering fundamentals required in the}
+  \Text{108.02}{107.18}{engineering discipline.}
+}
+
+\FormPage{4}{
+  \Bullet{708.96}
+  \Justified{108.02}{708.96}{431.075}{Engineering specialist knowledge that provides theoretical frameworks and bodies of knowledge}
+  \Justified{108.02}{694.44}{430.592}{for the accepted practice areas in the engineering discipline, much of which is at the forefront of}
+  \Text{108.02}{679.92}{the discipline.}
+
+  \Text{72}{650.92}{\textbf{GA 4: Investigations, Experiments and Data Analysis}}
+  \Justified{72}{628.42}{467.952}{Demonstrate competence to conduct investigations of complex engineering problems using research}
+  \Justified{72}{613.96}{467.904}{methods, including research-based knowledge, design of experiments, analysis and interpretation of data,}
+  \Justified{72}{599.44}{256.971}{and synthesis of information to provide valid conclusions.}
+  \Justified{72}{570.46}{467.910}{Engagement with selected knowledge in the current research literature of the discipline, awareness of}
+  \Justified{72}{556}{370.343}{the power of critical thinking and creative approaches to evaluate emerging issues.}
+  \Justified{72}{527.02}{467.660}{The balance of investigation and experiment should be appropriate to the discipline. Research}
+  \Justified{72}{512.5}{467.671}{methodology to be applied in research or investigation where the student engages with selected}
+  \Text{72}{498.04}{knowledge in the research literature of the discipline.}
+  \Justified{72}{469.06}{467.660}{Note: An investigation differs from a design in that the objective is to produce knowledge and}
+  \Justified{72}{454.54}{467.594}{understanding of a phenomenon and a recommended course of action rather than specifying how an}
+  \Text{72}{440.08}{artefact could be produced.}
+
+  \Text{72}{403.06}{\textbf{GA 5: Use of engineering tools}}
+  \Justified{72}{380.54}{418.865}{Demonstrate competence to create, select and apply and recognise limitations of appropriate}
+  \Justified{72}{366.08}{440.107}{techniques, resources and modern engineering and IT tools, including prediction and modelling, to}
+  \Text{72}{351.56}{complex engineering problems.}
+  \Bullet{336.56}
+  \Justified{108.02}{336.56}{429.076}{Conceptually based mathematics, numerical analysis, data analysis, statistics and formal aspects}
+  \Justified{108.02}{322.04}{417.482}{of computer and information science to support detailed analysis and modelling applicable to}
+  \Text{108.02}{307.52}{the discipline.}
+  \Bullet{292.52}
+  \Justified{108.02}{292.52}{390.515}{Knowledge of engineering practice (technology) in the practice areas in the engineering}
+  \Text{108.02}{277.94}{discipline}
+  \Justified{72}{263.48}{451.492}{A range of techniques, resources and modern engineering and IT tools appropriate to the disciplinary}
+  \Text{72}{248.96}{designation of the programme.}
+
+  \Text{72}{212}{\textbf{GA 6: Professional and Technical Communication}}
+  \Justified{72}{189.5}{467.671}{Demonstrate competence to communicate effectively, both orally and in writing, with engineering}
+  \Justified{72}{175.04}{460.607}{audiences and the community at large, taking into account cultural, language, and learning differences.}
+  \Justified{72}{152.54}{467.572}{This course evaluates the long report component of this outcome at exit level.\ \ Material to be}
+  \Justified{72}{138.02}{467.572}{communicated is in an academic or simulated professional context. Audiences range from engineering}
+  \Justified{72}{123.56}{467.925}{peers, management and lay persons, using appropriate academic or professional discourse. Written}
+  \Justified{72}{109.04}{467.965}{reports (10 000 to 15 000 words plus tables, diagrams and appendices) should cover material at exit-level.}
+  \Justified{72}{94.56}{467.638}{Methods of providing information include the conventional methods of the discipline, for example}
+  \Justified{72}{80.04}{259.948}{engineering drawings, as well as subject-specific methods.}
+}
+
+\FormPage{5}{
+  \Text{72}{687}{\textbf{GA 8: Individual, Team and Multidisciplinary Working}}
+  \Justified{72}{664.5}{467.660}{Demonstrate competence to work effectively as an individual, in teams and in multidisciplinary}
+  \Justified{72}{650.02}{467.851}{environments. This course evaluates the \textbf{individual} working component of this learning outcome at exit}
+  \Text{72}{635.5}{level.}
+  \Justified{72}{613}{378.085}{Knowledge of professional ethics, responsibilities and norms of engineering practice.}
+
+  \Text{72}{584.02}{\textbf{GA 9: Independent Learning Ability}}
+  \Justified{72}{561.58}{446.886}{Demonstrate competence to engage in independent learning through well developed learning skills.}
+  \Justified{72}{532.6}{467.910}{Engagement with selected knowledge in the current research literature of the discipline, awareness of}
+  \Justified{72}{518.08}{370.343}{the power of critical thinking and creative approaches to evaluate emerging issues.}
+  \Justified{72}{489.1}{467.723}{Operate independently in complex, ill-defined contexts requiring personal responsibility and initiative,}
+  \Justified{72}{474.58}{467.662}{accurately self-evaluate and take responsibility for learning requirements; be aware of social and ethical}
+  \Justified{72}{460.12}{257.207}{implications of applying knowledge in particular contexts.}
+  \Bullet{430.6}
+  \Justified{108.02}{430.6}{431.591}{Openness to constructive feedback, awareness of own limitations, ability to cope with the}
+  \Justified{108.02}{416.08}{431.646}{discomfort of uncertainty and having access to a range of approaches, reflective selfevaluation,}
+  \Justified{108.02}{401.56}{431.959}{curiosity and proactive engagement, resilience, confidence to ask for help and draw from a broad}
+  \Text{108.02}{387.1}{range of stakeholders.}
+  \Bullet{372.02}
+  \Justified{108.02}{372.02}{431.784}{Reflection of self-learning to begin to recognise if what has been covered meets the needs of the}
+  \Text{108.02}{357.5}{activity or task.}
+}
+
+\end{document}
