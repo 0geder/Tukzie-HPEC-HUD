@@ -248,6 +248,8 @@ volatile uint32_t bmsChecksumFailures = 0;
 volatile uint32_t bmsDisconnectCount = 0;
 volatile uint32_t bmsReconnectCount = 0;
 volatile uint32_t bmsDropped = 0;
+volatile BmsSample latestBmsSample = {};
+volatile GnssFix latestGnssFix = {};
 
 static ImuTaskConfig imu1Config;
 static ImuTaskConfig imu2Config;
@@ -617,6 +619,23 @@ void parseBmsData(const uint8_t* packet, uint8_t dataLen, bool checksumOk) {
     bmsDropped++;
   }
 
+  // Field-by-field, not a whole-struct assignment: see the identical note
+  // in RideCharacterizationTask - the compiler-generated struct operator=
+  // is not volatile-qualified.
+  latestBmsSample.timestamp_us = sample.timestamp_us;
+  latestBmsSample.checksum_ok = sample.checksum_ok;
+  latestBmsSample.plausible = sample.plausible;
+  latestBmsSample.pack_voltage_v = sample.pack_voltage_v;
+  latestBmsSample.current_a = sample.current_a;
+  latestBmsSample.remaining_ah = sample.remaining_ah;
+  latestBmsSample.nominal_ah = sample.nominal_ah;
+  latestBmsSample.soc_pct = sample.soc_pct;
+  latestBmsSample.protection_flags = sample.protection_flags;
+  latestBmsSample.mos_temp_c = sample.mos_temp_c;
+  latestBmsSample.t1_temp_c = sample.t1_temp_c;
+  latestBmsSample.t2_temp_c = sample.t2_temp_c;
+  latestBmsSample.ntc_count = sample.ntc_count;
+
   Serial.printf("[BMS] V=%.2fV I=%.2fA SOC=%d%% cap=%.2f/%.2fAh flags=0x%04X "
                 "mos=%.1fC t1=%.1fC t2=%.1fC%s\n",
                 sample.pack_voltage_v, sample.current_a, sample.soc_pct,
@@ -922,6 +941,14 @@ void pollAndParseGnss() {
       Serial.printf("[GNSS] no fix yet (mode=%d)\n", fix.fix_mode);
     }
 
+    latestGnssFix.timestamp_us = fix.timestamp_us;
+    latestGnssFix.valid = fix.valid;
+    latestGnssFix.fix_mode = fix.fix_mode;
+    latestGnssFix.latitude_deg = fix.latitude_deg;
+    latestGnssFix.longitude_deg = fix.longitude_deg;
+    latestGnssFix.altitude_m = fix.altitude_m;
+    latestGnssFix.speed_reported = fix.speed_reported;
+
     // Queue is not expected to fill at a 3 s poll rate, but don't block
     // the modem task if it somehow does.
     if (xQueueSend(gnssQueue, &fix, 0) != pdTRUE) {
@@ -957,6 +984,180 @@ void sendGnssCommand(const char* command) {
   Serial.print(response);
 }
 
+// ============================================================
+// MQTT over cellular, using the A7670X's native AT+CMQTT command set
+// (the same family as SIMCom's other modems, e.g. SIM7600/SIM7070). This
+// avoids needing a TCP/IP socket library on the ESP32 side - the modem
+// itself handles the MQTT session once told to.
+//
+// PLACEHOLDER credentials/broker: deliberately NOT the existing Tukzie
+// vac-work team's Mosquitto broker credentials, even though this project
+// has read access to that team's documentation. That document explicitly
+// states its credentials must not be shared with an LLM, so they are not
+// embedded here. Replace MQTT_BROKER_HOST (and the username/password
+// fields, if the target broker requires them) with a real broker before
+// relying on this - either the student's own test broker, or the real
+// Tukzie broker details obtained directly (not through this codebase) if
+// integrating with that existing backend is the intended target.
+//
+// Runs entirely inside ModemTask, not a separate task: Serial1 (the
+// modem UART) is only ever touched from ModemTask elsewhere in this file
+// (GNSS polling, the AT pass-through loop), and a second task sending AT
+// commands on the same UART concurrently would interleave and corrupt
+// both command streams. Keeping MQTT in the same task avoids that.
+// ============================================================
+#define MQTT_CLIENT_INDEX 0
+#define MQTT_BROKER_HOST "CHANGE_ME_broker_host_or_ip"
+#define MQTT_BROKER_PORT 1883
+#define MQTT_CLIENT_ID "sw7-esp32-telemetry"
+#define MQTT_USERNAME ""  // leave empty if the broker does not require auth
+#define MQTT_PASSWORD ""
+#define MQTT_TOPIC "sw7/telemetry"
+#define MQTT_KEEPALIVE_S 60
+#define MQTT_PUBLISH_INTERVAL_MS 10000
+
+volatile bool mqttConnected = false;
+volatile uint32_t mqttPublishCount = 0;
+volatile uint32_t mqttPublishFailures = 0;
+
+// Sends one AT command and waits up to timeoutMs for a line containing
+// expectSubstring. Returns the full accumulated response via outResponse
+// (may be nullptr if not needed) and true/false for whether expectSubstring
+// was seen. Mirrors the existing busy-wait style already used by
+// pollAndParseGnss()/sendGnssCommand() elsewhere in this file, kept as a
+// separate function rather than refactoring those (which already work and
+// are validated) to share it.
+bool mqttSendCommand(const String& command, const char* expectSubstring, unsigned long timeoutMs, String* outResponse = nullptr) {
+  Serial1.println(command);
+
+  String response;
+  unsigned long startWait = millis();
+  bool found = false;
+  while (millis() - startWait < timeoutMs) {
+    while (Serial1.available()) {
+      response += static_cast<char>(Serial1.read());
+    }
+    if (response.indexOf(expectSubstring) >= 0) {
+      found = true;
+      break;
+    }
+    if (response.indexOf("ERROR") >= 0) {
+      break;
+    }
+    vTaskDelay(pdMS_TO_TICKS(1));
+  }
+
+  if (outResponse != nullptr) *outResponse = response;
+  return found;
+}
+
+// Runs the CMQTTSTART/ACCQ/CONNECT sequence once. Returns false (and
+// leaves mqttConnected false) on the first step that fails, logging which
+// step failed rather than failing silently.
+bool mqttConnect() {
+  String resp;
+
+  if (!mqttSendCommand("AT+CMQTTSTART", "OK", 5000, &resp)) {
+    Serial.print("[MQTT] CMQTTSTART failed: ");
+    Serial.println(resp);
+    return false;
+  }
+
+  String acqCmd = String("AT+CMQTTACCQ=") + MQTT_CLIENT_INDEX + ",\"" + MQTT_CLIENT_ID + "\"";
+  if (!mqttSendCommand(acqCmd, "OK", 5000, &resp)) {
+    Serial.print("[MQTT] CMQTTACCQ failed: ");
+    Serial.println(resp);
+    return false;
+  }
+
+  String connCmd = String("AT+CMQTTCONNECT=") + MQTT_CLIENT_INDEX + ",\"tcp://" +
+                    MQTT_BROKER_HOST + ":" + MQTT_BROKER_PORT + "\"," +
+                    MQTT_KEEPALIVE_S + ",1";
+  if (strlen(MQTT_USERNAME) > 0) {
+    connCmd += String(",\"") + MQTT_USERNAME + "\",\"" + MQTT_PASSWORD + "\"";
+  }
+  if (!mqttSendCommand(connCmd, "OK", 10000, &resp)) {
+    Serial.print("[MQTT] CMQTTCONNECT failed (is MQTT_BROKER_HOST still a placeholder?): ");
+    Serial.println(resp);
+    return false;
+  }
+
+  Serial.println("[MQTT] Connected.");
+  mqttConnected = true;
+  return true;
+}
+
+// Publishes one payload to MQTT_TOPIC. Each of CMQTTTOPIC/CMQTTPAYLOAD
+// expects the raw bytes to follow the command, not as a quoted argument -
+// this is the standard SIMCom CMQTT pattern, distinct from the simple
+// single-line AT commands used elsewhere in this file.
+bool mqttPublish(const String& payload) {
+  if (!mqttConnected) return false;
+
+  String resp;
+  String topicCmd = String("AT+CMQTTTOPIC=") + MQTT_CLIENT_INDEX + "," + String(strlen(MQTT_TOPIC));
+  if (!mqttSendCommand(topicCmd, ">", 3000, &resp)) {
+    Serial.println("[MQTT] CMQTTTOPIC did not prompt for data");
+    return false;
+  }
+  Serial1.print(MQTT_TOPIC);
+  if (!mqttSendCommand("", "OK", 3000, &resp)) {
+    Serial.print("[MQTT] topic write failed: ");
+    Serial.println(resp);
+    return false;
+  }
+
+  String payloadCmd = String("AT+CMQTTPAYLOAD=") + MQTT_CLIENT_INDEX + "," + String(payload.length());
+  if (!mqttSendCommand(payloadCmd, ">", 3000, &resp)) {
+    Serial.println("[MQTT] CMQTTPAYLOAD did not prompt for data");
+    return false;
+  }
+  Serial1.print(payload);
+  if (!mqttSendCommand("", "OK", 3000, &resp)) {
+    Serial.print("[MQTT] payload write failed: ");
+    Serial.println(resp);
+    return false;
+  }
+
+  String pubCmd = String("AT+CMQTTPUB=") + MQTT_CLIENT_INDEX + ",1,60";
+  if (!mqttSendCommand(pubCmd, "OK", 10000, &resp)) {
+    Serial.print("[MQTT] CMQTTPUB failed: ");
+    Serial.println(resp);
+    mqttPublishFailures++;
+    return false;
+  }
+
+  mqttPublishCount++;
+  return true;
+}
+
+// Compact JSON combining the latest known state from every subsystem
+// this project owns. Deliberately does NOT match the vac-work Cyber
+// Security team's own JSON schema (their broker/credentials are not used
+// here, per the note above) - this is this project's own telemetry
+// payload, to whatever broker MQTT_BROKER_HOST is actually pointed at.
+String buildTelemetryJson() {
+  char buf[512];
+  snprintf(buf, sizeof(buf),
+           "{"
+           "\"imu1\":{\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"crest\":%.3f,\"jerk\":%.3f,\"crossings\":%u},"
+           "\"imu2\":{\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"crest\":%.3f,\"jerk\":%.3f,\"crossings\":%u},"
+           "\"bms\":{\"v\":%.2f,\"i\":%.2f,\"soc\":%u,\"checksum_ok\":%s},"
+           "\"gnss\":{\"valid\":%s,\"lat\":%.6f,\"lon\":%.6f,\"speed\":%.1f}"
+           "}",
+           latestRideFeatures1.rms_mps2, latestRideFeatures1.std_mps2,
+           latestRideFeatures1.peak_to_peak_mps2, latestRideFeatures1.crest_factor,
+           latestRideFeatures1.mean_abs_jerk_mps3, (unsigned)latestRideFeatures1.threshold_crossings,
+           latestRideFeatures2.rms_mps2, latestRideFeatures2.std_mps2,
+           latestRideFeatures2.peak_to_peak_mps2, latestRideFeatures2.crest_factor,
+           latestRideFeatures2.mean_abs_jerk_mps3, (unsigned)latestRideFeatures2.threshold_crossings,
+           latestBmsSample.pack_voltage_v, latestBmsSample.current_a,
+           (unsigned)latestBmsSample.soc_pct, latestBmsSample.checksum_ok ? "true" : "false",
+           latestGnssFix.valid ? "true" : "false", latestGnssFix.latitude_deg,
+           latestGnssFix.longitude_deg, latestGnssFix.speed_reported);
+  return String(buf);
+}
+
 void ModemTask(void* pvParameters) {
   Serial1.begin(MODEM_BAUD, SERIAL_8N1, A7670X_RX_PIN, A7670X_TX_PIN);
 
@@ -990,11 +1191,18 @@ void ModemTask(void* pvParameters) {
   sendGnssCommand("AT+CGNSSPWR=1");
   Serial.println("GNSS engine enabled; waiting for navigation data.");
 
+  Serial.println("---> Connecting MQTT...");
+  if (!mqttConnect()) {
+    Serial.println("[MQTT] Initial connect failed - will not retry automatically this run. "
+                    "Check MQTT_BROKER_HOST/port/credentials in main.cpp.");
+  }
+
   Serial.println("==============================");
   Serial.println("Sequence complete. Entering pass-through mode.");
   Serial.println("Type AT commands below freely:");
 
   unsigned long lastGnssPoll = millis() - 3000;
+  unsigned long lastMqttPublish = millis() - MQTT_PUBLISH_INTERVAL_MS;
   for (;;) {
     while (Serial.available()) {
       Serial1.write(static_cast<uint8_t>(Serial.read()));
@@ -1002,6 +1210,13 @@ void ModemTask(void* pvParameters) {
     if (millis() - lastGnssPoll >= 3000) {
       lastGnssPoll = millis();
       pollAndParseGnss();
+    }
+    if (mqttConnected && millis() - lastMqttPublish >= MQTT_PUBLISH_INTERVAL_MS) {
+      lastMqttPublish = millis();
+      String payload = buildTelemetryJson();
+      if (!mqttPublish(payload)) {
+        Serial.println("[MQTT] publish failed");
+      }
     }
     while (Serial1.available()) {
       Serial.write(static_cast<uint8_t>(Serial1.read()));
