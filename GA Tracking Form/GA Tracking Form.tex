@@ -83,7 +83,7 @@
   \Divider{168.62}
   \Text{77.4}{300.38}{Student Response:}
   \put(77.4,293){\parbox[t]{462bp}{\fontsize{8.3bp}{10bp}\selectfont
-  Formulated the core research question around measurable vehicle dynamic response rather than subjective ride comfort, deliberately rejecting a driver-comfort framing in favour of an objective construct suited to signal-processing analysis. Root-caused several engineering faults from first principles: a GPIO pin conflict resolved by consulting the manufacturer\textquotesingle s schematic rather than assumption; a BLE characteristic-lookup failure diagnosed from GATT service-discovery semantics and confirmed against an independent reference implementation. The project\textquotesingle s motivation is grounded in sustainable-development considerations from the literature review (urbanisation trends, cost-per-km data for electric tricycles in comparable African contexts).}}
+  Formulated the core research question around measurable vehicle dynamic response rather than subjective ride comfort, rejecting a driver-comfort framing for one suited to signal-processing analysis. Root-caused several faults from first principles: a GPIO conflict resolved via the manufacturer\textquotesingle s schematic; a BLE service-discovery failure confirmed against an independent reference implementation. Conducted a competitive-landscape and literature audit (industry case studies and the TUKZIE platform\textquotesingle s own stated mission) to formulate a specific, evidenced research gap: synchronised multi-sensor vehicle-dynamics characterisation for a three-wheeled cargo vehicle, distinct from existing four-wheel/motorcycle telemetry work and existing commercial telematics-plus-HUD products, grounded in the platform\textquotesingle s own affordability and local-serviceability mission rather than generic autonomy claims.}}
   \Text{77.4}{158.12}{Supervisor Response:}
 }
 
@@ -93,7 +93,7 @@
   \Divider{559.72}
   \Text{77.4}{691.5}{Student Response:}
   \put(77.4,684){\parbox[t]{462bp}{\fontsize{8.3bp}{10bp}\selectfont
-  Conducted hypothesis-test-conclusion investigations throughout: the GNSS field-count assumption (hypothesised 13 fields, tested live, found 9, corrected); the BMS service-UUID assumption (tested against a powered pack, found wrong, corrected, then cross-validated byte-for-byte against an independent parser); the camera/sync-pulse timing offset (quantified via a lens-cover calibration test, bounded to under one second). Acquisition-integrity instrumentation (jitter, dropped samples) was built to support later on-vehicle data analysis. A structured audit of an inherited vacation-work codebase was conducted as prior-art investigation before building new functionality.}}
+  Conducted hypothesis-test-conclusion investigations throughout: the GNSS field-count assumption (hypothesised 13 fields, tested live, found 9, corrected); the BMS service-UUID assumption (tested against a powered pack, found wrong, corrected, then cross-validated against an independent parser); the sync-pulse timing offset (quantified via a lens-cover test, bounded to under one second). Designed and ran a controlled experiment for the new ride-characterisation feature: a synthetic sine wave of known amplitude, with analytically-known expected RMS/peak-to-peak/crest-factor values, validated the feature-computation code independently of sensor hardware before trusting it against real IMU data. A structured audit of an inherited codebase was conducted as prior-art investigation before building new functionality.}}
   \Text{77.4}{549.22}{Supervisor Response:}
 
   \Text{236.12}{441.22}{\textbf{GA 5: Use of Engineering Tools}}
@@ -134,7 +134,7 @@
   \Divider{380.42}
   \Text{77.4}{483.82}{Student Response:}
   \put(77.4,476){\parbox[t]{462bp}{\fontsize{8.3bp}{10bp}\selectfont
-  Repeatedly corrected my own assumptions on independently-gathered evidence: verified GPIO pin assignments against a primary-source schematic after a placeholder proved wrong; corrected a vehicle-identity error after independently checking dashboard constants, a user manual, and another team\textquotesingle s documentation; persisted through infrastructure failures (network provisioning, BLE connectivity, physical wiring faults) by isolating variables systematically. Proactively read an inherited team\textquotesingle s full codebase without instruction, to avoid duplicating existing work.}}
+  Repeatedly corrected my own assumptions on independently-gathered evidence: verified GPIO pin assignments against a primary-source schematic after a placeholder proved wrong; corrected a vehicle-identity error after independently checking dashboard constants, a user manual, and another team\textquotesingle s documentation; persisted through infrastructure failures by isolating variables systematically. After commissioning a competitive-landscape audit, narrowed my own novelty claim once real prior art was found (an existing commercial telematics-plus-HUD product for auto-rickshaws), rather than retaining an inflated claim - a deliberate act of self-evaluation against new evidence.}}
   \Text{77.4}{369.92}{Supervisor Response:}
 
   \Text{72}{261.86}{\textbf{GA 1: Problem Solving}}
