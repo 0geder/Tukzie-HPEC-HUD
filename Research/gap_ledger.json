@@ -27,6 +27,16 @@
       ],
       "original_claim": "Existing low-cost vehicle telematics work does not address local buffering and recovery of telemetry when the cellular uplink is intermittent, which is the normal condition in the target deployment environment.",
       "narrowed_at": "2026-09-19T01:38:12+00:00"
+    },
+    {
+      "id": "G4",
+      "claim": "No HUD driven by on-board vehicle telemetry has been published or built for a three-wheeled auto-rickshaw-class vehicle. Existing three-wheeler instrumentation is head-down cluster only; existing maker motorcycle HUDs are phone/GPS-fed rather than fed by on-board sensing.",
+      "related_rqs": [
+        "RQ4",
+        "RQ2"
+      ],
+      "added_at": "2026-09-19T02:05:00+00:00",
+      "review_note": "Supported by a targeted market and prior-art search (2026-09-19) covering academic literature, the Indian/Asian three-wheeler market, and open-source maker projects. Reviewed examples: Montra Electric Super Auto and Infineon LEV cluster reference designs (head-down clusters, not HUDs); github.com/ilp0/motorcycle-hud, Youn-Perron/Motorcycle_HUD_Project and alexanderlavrushko/BLE-HUD-navigation-ESP32 (motorcycle HUDs, all phone or GPS fed, none three-wheeler). Claim is about application and integration, NOT about HUD optics, which are long established."
     }
   ],
   "evidence": [
