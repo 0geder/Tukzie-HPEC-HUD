@@ -106,9 +106,32 @@ struct RideFeatures {
   uint32_t threshold_crossings;  // samples above (mean + 2*std) - adaptive,
                                   // provisional: no field data yet exists to
                                   // set a fixed physical threshold instead.
+  // Speed-normalised roughness index: mean-square acceleration divided by
+  // vehicle speed. The transfer function from road profile to measured
+  // acceleration is speed dependent, so a raw RMS conflates how rough the
+  // road is with how fast the vehicle was driven - the same defect produces
+  // a larger response at higher speed. Dividing the mean square by speed is
+  // the normalisation used by Shock and Vibration 2018 (10.1155/2018/5131434)
+  // for exactly this reason.
+  //
+  // NaN whenever it cannot be computed honestly: no GNSS fix, or a speed at
+  // or below RIDE_MIN_SPEED_FOR_NORM (below which the quotient explodes and
+  // means nothing - a stationary vehicle on a rough road is not experiencing
+  // roughness). Consumers must check for NaN rather than assume a number.
+  float speed_norm_index;
+  float speed_used;           // the speed the index was divided by, for audit
 };
 
 #define RIDE_WINDOW_SAMPLES IMU_SAMPLE_RATE_HZ  // 1 s window at 200 Hz
+
+// Below this speed the speed-normalised roughness index is not computed.
+// Dividing by a near-zero speed produces an arbitrarily large number that
+// says nothing about the road. Units are whatever the GNSS <speed> field
+// reports - see parseGnssInfo(), which notes the units are not yet confirmed
+// (knots vs km/h). CONFIRM AGAINST A REAL FIX before quoting the index
+// quantitatively: drive at a known speed and compare. Until then the index
+// is valid for relative comparison within one dataset, not as an absolute.
+#define RIDE_MIN_SPEED_FOR_NORM 1.0f
 #define RIDE_CHAR_QUEUE_LENGTH (RIDE_WINDOW_SAMPLES * 2)
 
 struct RideCharTaskConfig {
@@ -561,6 +584,19 @@ void RideCharacterizationTask(void* pvParameters) {
       if (count >= RIDE_WINDOW_SAMPLES) {
         RideFeatures f = computeRideFeatures(window, count, samplePeriodS);
         f.window_end_timestamp_us = sample.timestamp_us;
+
+        // Speed-normalise against the most recent GNSS fix. Deliberately
+        // yields NaN rather than a misleading number when there is no fix or
+        // the vehicle is too slow for the quotient to mean anything.
+        const bool fixValid = latestGnssFix.valid;
+        const float v = latestGnssFix.speed_reported;
+        if (fixValid && !isnan(v) && v >= RIDE_MIN_SPEED_FOR_NORM) {
+          f.speed_norm_index = (f.rms_mps2 * f.rms_mps2) / v;  // mean square / speed
+          f.speed_used = v;
+        } else {
+          f.speed_norm_index = NAN;
+          f.speed_used = NAN;
+        }
         // Field-by-field, not *(cfg->result) = f: the compiler-generated
         // struct operator= is not volatile-qualified, so whole-struct
         // assignment through a volatile pointer does not compile.
@@ -572,11 +608,22 @@ void RideCharacterizationTask(void* pvParameters) {
         cfg->result->crest_factor = f.crest_factor;
         cfg->result->mean_abs_jerk_mps3 = f.mean_abs_jerk_mps3;
         cfg->result->threshold_crossings = f.threshold_crossings;
+        cfg->result->speed_norm_index = f.speed_norm_index;
+        cfg->result->speed_used = f.speed_used;
 
-        Serial.printf("[RIDE%d] n=%lu rms=%.3f std=%.3f p2p=%.3f crest=%.3f jerk=%.3f crossings=%lu\n",
-                      cfg->sensor_id + 1, (unsigned long)f.sample_count, f.rms_mps2, f.std_mps2,
-                      f.peak_to_peak_mps2, f.crest_factor, f.mean_abs_jerk_mps3,
-                      (unsigned long)f.threshold_crossings);
+        if (isnan(f.speed_norm_index)) {
+          Serial.printf("[RIDE%d] n=%lu rms=%.3f std=%.3f p2p=%.3f crest=%.3f jerk=%.3f "
+                        "crossings=%lu norm=n/a\n",
+                        cfg->sensor_id + 1, (unsigned long)f.sample_count, f.rms_mps2, f.std_mps2,
+                        f.peak_to_peak_mps2, f.crest_factor, f.mean_abs_jerk_mps3,
+                        (unsigned long)f.threshold_crossings);
+        } else {
+          Serial.printf("[RIDE%d] n=%lu rms=%.3f std=%.3f p2p=%.3f crest=%.3f jerk=%.3f "
+                        "crossings=%lu norm=%.4f v=%.2f\n",
+                        cfg->sensor_id + 1, (unsigned long)f.sample_count, f.rms_mps2, f.std_mps2,
+                        f.peak_to_peak_mps2, f.crest_factor, f.mean_abs_jerk_mps3,
+                        (unsigned long)f.threshold_crossings, f.speed_norm_index, f.speed_used);
+        }
         count = 0;
       }
     }
