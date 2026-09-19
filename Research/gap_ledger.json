@@ -5,7 +5,8 @@
       "claim": "No published system combines spatially-separated dual-IMU ride characterisation (ride quality, ISO 2631 sense) with cellular telemetry on a three-wheeled cargo/passenger electric vehicle. Narrowed 2026-09-19: open-architecture embedded IMU+GNSS+cellular telemetry units are established prior art on two-wheeled racing platforms (Electronics 2026, doi 10.3390/electronics15122604); the remaining distinctions are the dual spatially-separated IMUs, the ride-quality rather than performance framing, and the vehicle class.",
       "related_rqs": [
         "RQ1",
-        "RQ2"
+        "RQ2",
+        "RQ6"
       ],
       "original_claim": "No published system combines synchronised dual-IMU ride characterisation with cellular telemetry on a three-wheeled cargo/passenger electric vehicle.",
       "narrowed_at": "2026-09-19T01:38:12+00:00"
@@ -127,6 +128,27 @@
       "flagged_at": "2026-09-19T01:22:55+00:00",
       "reviewed_at": "2026-09-19T01:38:38+00:00",
       "reviewed_from": "abstract"
+    },
+    {
+      "claim_id": "G1",
+      "source_id": 577,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:45:30+00:00"
+    },
+    {
+      "claim_id": "G1",
+      "source_id": 525,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:45:30+00:00"
+    },
+    {
+      "claim_id": "G1",
+      "source_id": 667,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:45:30+00:00"
     }
   ]
 }

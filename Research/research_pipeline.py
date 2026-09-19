@@ -111,6 +111,38 @@ RESEARCH_QUESTIONS = {
             "state of charge estimation light electric vehicle BMS data",
         ],
     },
+    # RQ6 added 2026-09-19. After gap claim G1 was narrowed, its remaining
+    # novelty rests specifically on spatially-separated dual-IMU sensing -
+    # which was the least-searched part of the whole scope. If distributed
+    # multi-accelerometer vehicle sensing is an established field, G1 has to
+    # narrow again, and it is better to find that here than in an exam.
+    "RQ6": {
+        "title": "Spatially-distributed multi-IMU / multi-accelerometer sensing on vehicles",
+        "keywords": ["multiple imu", "dual imu", "multi-sensor array", "distributed",
+                     "accelerometer array", "sensor placement", "redundant",
+                     "spatially", "chassis", "axle", "sprung", "unsprung",
+                     "synchronis", "synchroniz"],
+        "queries": [
+            "multiple accelerometers distributed vehicle chassis vibration measurement",
+            "dual IMU sensor placement vehicle body axle ride analysis",
+            "sprung unsprung mass acceleration measurement vehicle suspension sensors",
+            "synchronised multi sensor inertial array vehicle dynamics",
+        ],
+    },
+    # RQ7 added 2026-09-19. Serves the experimental design of the outstanding
+    # field test: the report has to justify its protocol by reference to
+    # established practice rather than inventing one.
+    "RQ7": {
+        "title": "Field-test methodology and calibration practice for vehicle ride measurement",
+        "keywords": ["field test", "test protocol", "repeatability", "test track",
+                     "calibration", "bias", "scale factor", "allan variance",
+                     "experimental design", "road test", "speed", "statistical"],
+        "queries": [
+            "vehicle ride comfort field test protocol repeatability road test procedure",
+            "MEMS accelerometer calibration bias scale factor procedure",
+            "experimental design road roughness measurement vehicle speed effect",
+        ],
+    },
 }
 
 # Gap claims are stated as propositions that can be challenged by evidence.
