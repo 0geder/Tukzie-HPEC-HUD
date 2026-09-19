@@ -2,11 +2,13 @@
   "claims": [
     {
       "id": "G1",
-      "claim": "No published system combines synchronised dual-IMU ride characterisation with cellular telemetry on a three-wheeled cargo/passenger electric vehicle.",
+      "claim": "No published system combines spatially-separated dual-IMU ride characterisation (ride quality, ISO 2631 sense) with cellular telemetry on a three-wheeled cargo/passenger electric vehicle. Narrowed 2026-09-19: open-architecture embedded IMU+GNSS+cellular telemetry units are established prior art on two-wheeled racing platforms (Electronics 2026, doi 10.3390/electronics15122604); the remaining distinctions are the dual spatially-separated IMUs, the ride-quality rather than performance framing, and the vehicle class.",
       "related_rqs": [
         "RQ1",
         "RQ2"
-      ]
+      ],
+      "original_claim": "No published system combines synchronised dual-IMU ride characterisation with cellular telemetry on a three-wheeled cargo/passenger electric vehicle.",
+      "narrowed_at": "2026-09-19T01:38:12+00:00"
     },
     {
       "id": "G2",
@@ -18,89 +20,113 @@
     },
     {
       "id": "G3",
-      "claim": "Existing low-cost vehicle telematics work does not address local buffering and recovery of telemetry when the cellular uplink is intermittent, which is the normal condition in the target deployment environment.",
+      "claim": "Existing low-cost vehicle telematics work does not experimentally characterise local buffering and recovery of telemetry when the cellular uplink is intermittent. Narrowed 2026-09-19: the mechanism (local logging alongside a cellular uplink, or alternative-radio fallback) does appear in prior work, but uplink reliability is typically taken from manufacturer specifications rather than measured.",
       "related_rqs": [
         "RQ2"
-      ]
+      ],
+      "original_claim": "Existing low-cost vehicle telematics work does not address local buffering and recovery of telemetry when the cellular uplink is intermittent, which is the normal condition in the target deployment environment.",
+      "narrowed_at": "2026-09-19T01:38:12+00:00"
     }
   ],
   "evidence": [
     {
       "claim_id": "G1",
       "source_id": 243,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "challenges",
+      "note": "Open-architecture motorcycle telemetry unit (STM32H745) combining a 9-DoF IMU with on-chip fusion, RTK-GNSS, CAN-FD powertrain acquisition and a SIM7600E-H 4G/LTE uplink, with deterministic dual-core task partitioning and a 3D-printed vibration-resistant enclosure. This is architecturally very close to SW-7 and defeats any broad claim that an open embedded IMU+GNSS+cellular telemetry unit is itself novel. It does NOT disprove G1 as worded: it is a two-wheeled racing platform, uses a single fused IMU rather than spatially-separated dual IMUs, and targets performance optimisation rather than ride-quality characterisation. G1 must narrow to those distinctions. ACTION: read the full text before finalising the narrowed wording.",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:12+00:00",
+      "reviewed_from": "abstract"
     },
     {
       "claim_id": "G1",
       "source_id": 167,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "neutral",
+      "note": "IoT public-safety alerting (gas/flame/vibration/biometric sensors, MQTT over TLS). Different domain and purpose; no vehicle-dynamics characterisation. Does not bear on G1.",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:12+00:00",
+      "reviewed_from": "abstract"
     },
     {
       "claim_id": "G1",
       "source_id": 94,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "neutral",
+      "note": "AgroGuardian ATV crash detection: IMU attitude estimation + GPS + satellite modem. Event-triggered crash detection on a single IMU, not continuous ride characterisation, and not a three-wheeled passenger/cargo platform. Does not bear on G1 directly, but is relevant prior art for G3 (see separate entry).",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:12+00:00",
+      "reviewed_from": "abstract"
     },
     {
       "claim_id": "G1",
       "source_id": 245,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "neutral",
+      "note": "Structural health monitoring of buildings with synchronised low-cost MEMS accelerometers and on-board filtering. Different domain, but a useful methodological precedent for synchronising multiple cheap MEMS accelerometers - worth citing in the methodology rather than as a challenge to the gap.",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:12+00:00",
+      "reviewed_from": "abstract"
     },
     {
       "claim_id": "G2",
       "source_id": 356,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "neutral",
+      "note": "EKF fusion of monocular vision and IMU for indoor mobile-robot pose estimation. The sensors overlap with SW-7 but the purpose does not: localisation, not hazard awareness, and no telemetry or road vehicle. Useful background on camera/IMU fusion; does not challenge G2.",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:12+00:00",
+      "reviewed_from": "abstract"
     },
     {
       "claim_id": "G2",
       "source_id": 167,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "neutral",
+      "note": "No camera-based hazard detection and no vehicle-dynamics telemetry. Does not bear on G2.",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:12+00:00",
+      "reviewed_from": "abstract"
     },
     {
       "claim_id": "G3",
       "source_id": 243,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "challenges",
+      "note": "Partially challenges G3: the design does pair microSD logging with the 4G uplink, which is the mechanism G3 says is missing. However the paper explicitly states that 4G-uplink reliability is characterised from manufacturer specifications rather than experimentally, so intermittent-uplink behaviour is still not empirically established. G3 should narrow from 'does not address' to 'does not experimentally characterise'.",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:12+00:00",
+      "reviewed_from": "abstract"
     },
     {
       "claim_id": "G3",
       "source_id": 167,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "challenges",
+      "note": "Implements LoRa fallback explicitly for rural/low-connectivity environments, i.e. degraded-connectivity handling is addressed in adjacent IoT literature. Different mechanism from store-and-forward buffering, but enough that G3 cannot claim the problem is unrecognised - only that vehicle-telemetry store-and-forward recovery is uncharacterised.",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:12+00:00",
+      "reviewed_from": "abstract"
     },
     {
       "claim_id": "G3",
       "source_id": 168,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "neutral",
+      "note": "Generic IoT/IIoT/Industry 4.0 review with no abstract stored and no specific bearing on vehicle telemetry under intermittent connectivity.",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:12+00:00",
+      "reviewed_from": "abstract"
     },
     {
       "claim_id": "G3",
       "source_id": 242,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "neutral",
+      "note": "Generic embedded-AI review. Useful background for the edge camera/hazard-detection side (RQ3), but says nothing about telemetry behaviour under intermittent cellular uplink. Does not bear on G3.",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:38+00:00",
+      "reviewed_from": "abstract"
     },
     {
       "claim_id": "G3",
       "source_id": 183,
-      "stance": "unreviewed",
-      "note": "auto-surfaced as potentially relevant; needs human review",
-      "flagged_at": "2026-09-19T01:22:55+00:00"
+      "stance": "neutral",
+      "note": "TD-MQTT addresses broker-side topology and transparent subscriber-to-broker discovery in distributed deployments. That is a different layer from a vehicle-side client buffering and replaying telemetry when its own uplink drops. Relevant background for the MQTT design, not a challenge to G3.",
+      "flagged_at": "2026-09-19T01:22:55+00:00",
+      "reviewed_at": "2026-09-19T01:38:38+00:00",
+      "reviewed_from": "abstract"
     }
   ]
 }
