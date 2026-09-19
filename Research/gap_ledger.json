@@ -1,0 +1,106 @@
+{
+  "claims": [
+    {
+      "id": "G1",
+      "claim": "No published system combines synchronised dual-IMU ride characterisation with cellular telemetry on a three-wheeled cargo/passenger electric vehicle.",
+      "related_rqs": [
+        "RQ1",
+        "RQ2"
+      ]
+    },
+    {
+      "id": "G2",
+      "claim": "Camera-based hazard awareness has not been integrated with vehicle-dynamics telemetry on auto-rickshaw-class vehicles in the published or open-source literature.",
+      "related_rqs": [
+        "RQ1",
+        "RQ3"
+      ]
+    },
+    {
+      "id": "G3",
+      "claim": "Existing low-cost vehicle telematics work does not address local buffering and recovery of telemetry when the cellular uplink is intermittent, which is the normal condition in the target deployment environment.",
+      "related_rqs": [
+        "RQ2"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "claim_id": "G1",
+      "source_id": 243,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    },
+    {
+      "claim_id": "G1",
+      "source_id": 167,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    },
+    {
+      "claim_id": "G1",
+      "source_id": 94,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    },
+    {
+      "claim_id": "G1",
+      "source_id": 245,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    },
+    {
+      "claim_id": "G2",
+      "source_id": 356,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    },
+    {
+      "claim_id": "G2",
+      "source_id": 167,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    },
+    {
+      "claim_id": "G3",
+      "source_id": 243,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    },
+    {
+      "claim_id": "G3",
+      "source_id": 167,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    },
+    {
+      "claim_id": "G3",
+      "source_id": 168,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    },
+    {
+      "claim_id": "G3",
+      "source_id": 242,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    },
+    {
+      "claim_id": "G3",
+      "source_id": 183,
+      "stance": "unreviewed",
+      "note": "auto-surfaced as potentially relevant; needs human review",
+      "flagged_at": "2026-09-19T01:22:55+00:00"
+    }
+  ]
+}
