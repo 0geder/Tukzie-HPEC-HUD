@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Virtual Tukzie — SW-7 Walkthrough</title>
+<style>
+  :root {
+    --bg: #05080c;
+    --panel: rgba(11, 19, 26, 0.82);
+    --panel-border: #16303a;
+    --accent: #35f0c9;
+    --warn: #ffb020;
+    --danger: #ff4d5e;
+    --text: #d9f5ee;
+    --text-dim: #6f9c93;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: var(--bg); color: var(--text);
+    font-family: "Consolas", "SF Mono", "Cascadia Code", monospace;
+  }
+
+  /* ---- Full-bleed stage ---- */
+  #stage { position: fixed; inset: 0; background: #000; }
+  #splatContainer { position: absolute; inset: 0; z-index: 1; }
+  #splatContainer canvas { display: block; width: 100% !important; height: 100% !important; }
+  #photoLayer { position: absolute; inset: 0; z-index: 2; display: none; }
+  #stage.photos-mode #photoLayer { display: block; }
+  #stage.photos-mode #splatContainer { visibility: hidden; }
+  #photoLayer img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: contain; opacity: 0; transition: opacity 0.5s ease;
+  }
+  #photoLayer img.active { opacity: 1; }
+
+  #splatStatus {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 5; font-size: 0.8rem; color: var(--accent); letter-spacing: 0.06em;
+    text-align: center; padding: 0 24px; max-width: 520px; line-height: 1.7;
+  }
+  #splatStatus.hidden { display: none; }
+
+  /* ---- HUD frame accents ---- */
+  .corner {
+    position: fixed; width: 26px; height: 26px; border: 2px solid var(--accent);
+    opacity: 0.45; z-index: 20; pointer-events: none;
+  }
+  .corner.tl { top: 14px; left: 14px; border-right: none; border-bottom: none; }
+  .corner.tr { top: 14px; right: 14px; border-left: none; border-bottom: none; }
+  .corner.bl { bottom: 14px; left: 14px; border-right: none; border-top: none; }
+  .corner.br { bottom: 14px; right: 14px; border-left: none; border-top: none; }
+
+  /* ---- Overlays ---- */
+  .hud {
+    position: fixed; z-index: 30;
+    background: var(--panel); border: 1px solid var(--panel-border);
+    border-radius: 5px; backdrop-filter: blur(8px);
+  }
+  #topbar {
+    top: 0; left: 0; right: 0; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 12px 46px;
+    background: linear-gradient(180deg, rgba(5,8,12,0.92), rgba(5,8,12,0));
+    border: none; backdrop-filter: none;
+  }
+  #topbar h1 {
+    margin: 0; font-size: 0.95rem; letter-spacing: 0.16em;
+    color: var(--accent); text-transform: uppercase;
+  }
+  #topbar .sub { color: var(--text-dim); font-size: 0.66rem; letter-spacing: 0.05em; margin-top: 3px; }
+
+  button.hudbtn {
+    background: rgba(5,8,12,0.6); border: 1px solid var(--panel-border);
+    color: var(--text-dim); font-family: inherit; font-size: 0.64rem;
+    padding: 7px 11px; cursor: pointer; letter-spacing: 0.08em;
+    text-transform: uppercase; border-radius: 3px; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  button.hudbtn:hover { border-color: var(--accent); color: var(--accent); }
+  button.hudbtn.active { border-color: var(--accent); color: var(--accent); background: rgba(53,240,201,0.08); }
+  #connBtn { border-color: var(--accent); color: var(--accent); }
+  #connBtn.connected { border-color: var(--danger); color: var(--danger); }
+
+  /* Left rail: view + walkthrough controls */
+  #controlRail {
+    top: 84px; left: 46px; padding: 12px; width: 178px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .rail-group { display: flex; flex-direction: column; gap: 5px; }
+  .rail-label {
+    font-size: 0.56rem; letter-spacing: 0.16em; color: var(--text-dim);
+    text-transform: uppercase; margin-bottom: 2px;
+  }
+
+  /* Telemetry HUD, bottom-left */
+  #telemetryHud { bottom: 46px; left: 46px; padding: 12px 14px; width: 250px; }
+  .imu-block + .imu-block { margin-top: 12px; border-top: 1px solid var(--panel-border); padding-top: 10px; }
+  .imu-block .label { font-size: 0.6rem; letter-spacing: 0.14em; color: var(--text-dim); text-transform: uppercase; }
+  .imu-block .status { margin-top: 5px; font-size: 0.85rem; font-weight: bold; letter-spacing: 0.02em; }
+  .status.quiescent { color: var(--accent); }
+  .status.moderate { color: var(--warn); }
+  .status.sharp, .status.sustained { color: var(--danger); }
+  .status.idle { color: var(--text-dim); }
+  .metrics {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px;
+    margin-top: 7px; font-size: 0.65rem; color: var(--text-dim);
+  }
+  .metrics span.val { color: var(--text); }
+
+  /* Event log, bottom-right */
+  #logHud { bottom: 46px; right: 46px; padding: 12px 14px; width: 310px; }
+  #logHud .rail-label { margin-bottom: 7px; }
+  #log { height: 128px; overflow-y: auto; font-size: 0.62rem; line-height: 1.65; color: var(--text-dim); }
+  #log .entry.sharp, #log .entry.sustained { color: var(--danger); }
+  #log .entry.moderate { color: var(--warn); }
+
+  /* Footnote */
+  #footnote {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    z-index: 25; font-size: 0.58rem; color: var(--text-dim);
+    letter-spacing: 0.04em; text-align: center; pointer-events: none;
+    max-width: 46vw; line-height: 1.6;
+  }
+
+  /* ---- Hotspot markers (DOM, projected from 3D each frame) ---- */
+  #hotspotLayer { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+  .hotspot {
+    position: absolute; transform: translate(-50%, -50%);
+    pointer-events: auto; cursor: pointer;
+  }
+  .hotspot .dot {
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 2px solid var(--accent); background: rgba(53,240,201,0.25);
+    box-shadow: 0 0 12px var(--accent); animation: pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1); opacity: 0.95; } 50% { transform: scale(1.35); opacity: 0.6; } }
+  .hotspot.moderate .dot { border-color: var(--warn); background: rgba(255,176,32,0.25); box-shadow: 0 0 12px var(--warn); }
+  .hotspot.sharp .dot, .hotspot.sustained .dot { border-color: var(--danger); background: rgba(255,77,94,0.3); box-shadow: 0 0 14px var(--danger); }
+  .hotspot .tag {
+    position: absolute; left: 20px; top: -4px; white-space: nowrap;
+    font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text); background: rgba(5,8,12,0.82);
+    border: 1px solid var(--panel-border); border-radius: 3px; padding: 3px 7px;
+  }
+  .hotspot .detail {
+    position: absolute; left: 20px; top: 18px; display: none;
+    font-size: 0.6rem; line-height: 1.7; color: var(--text-dim);
+    background: rgba(5,8,12,0.9); border: 1px solid var(--panel-border);
+    border-radius: 3px; padding: 6px 9px; min-width: 132px;
+  }
+  .hotspot.open .detail { display: block; }
+  .hotspot .detail b { color: var(--text); font-weight: normal; }
+
+  #placeHint {
+    position: fixed; top: 84px; left: 50%; transform: translateX(-50%);
+    z-index: 45; display: none; padding: 9px 16px;
+    background: rgba(53,240,201,0.12); border: 1px solid var(--accent);
+    border-radius: 4px; color: var(--accent); font-size: 0.66rem; letter-spacing: 0.06em;
+  }
+  #placeHint.show { display: block; }
+
+  @media (max-width: 1000px) {
+    #controlRail { top: 78px; left: 14px; width: 150px; }
+    #telemetryHud { bottom: 14px; left: 14px; width: 210px; }
+    #logHud { display: none; }
+    #footnote { display: none; }
+    #topbar { padding: 12px 18px; }
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "@mkkellogg/gaussian-splats-3d": "https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.7/build/gaussian-splats-3d.module.js"
+  }
+}
+</script>
+</head>
+<body>
+
+<div id="stage">
+  <div id="splatContainer"></div>
+  <div id="photoLayer">
+    <img src="assets/tukzie_side.jpg" class="active" data-key="side">
+    <img src="assets/tukzie_rear.jpg" data-key="rear">
+    <img src="assets/tukzie_front.jpg" data-key="front">
+    <img src="assets/tukzie_handlebar.jpg" data-key="handlebar">
+  </div>
+  <div id="hotspotLayer"></div>
+  <div id="splatStatus">Loading Gaussian splat (Tukzie.ply, ~113MB)&hellip;</div>
+</div>
+
+<div class="corner tl"></div><div class="corner tr"></div>
+<div class="corner bl"></div><div class="corner br"></div>
+
+<div id="topbar">
+  <div>
+    <h1>Virtual Tukzie</h1>
+    <div class="sub">SW-7 — walkthrough of the real vehicle, live sensor data</div>
+  </div>
+  <button class="hudbtn" id="connBtn">Connect to Tukzie</button>
+</div>
+
+<div id="placeHint">Click on the model to place <b id="placeTarget"></b> — Esc to cancel</div>
+
+<div class="hud" id="controlRail">
+  <div class="rail-group">
+    <div class="rail-label">View</div>
+    <button class="hudbtn active" data-mode="splat">Live 3D splat</button>
+    <button class="hudbtn" data-mode="photos">Captured frames</button>
+  </div>
+  <div class="rail-group" id="presetGroup">
+    <div class="rail-label">Walkthrough</div>
+    <button class="hudbtn" data-preset="front">Front</button>
+    <button class="hudbtn" data-preset="side">Side</button>
+    <button class="hudbtn" data-preset="rear">Rear / chassis</button>
+    <button class="hudbtn" data-preset="over">Overview</button>
+    <button class="hudbtn" id="tourBtn">▶ Guided tour</button>
+  </div>
+  <div class="rail-group" id="placeGroup">
+    <div class="rail-label">Component markers</div>
+    <button class="hudbtn" data-place="imu1">Place IMU1</button>
+    <button class="hudbtn" data-place="imu2">Place IMU2</button>
+    <button class="hudbtn" data-place="camera">Place camera</button>
+    <button class="hudbtn" id="exportBtn">Export positions</button>
+  </div>
+</div>
+
+<div class="hud" id="telemetryHud">
+  <div class="rail-label">Live telemetry — real sensors</div>
+  <div class="imu-block">
+    <div class="label">IMU1</div>
+    <div class="status idle" id="imu1-status">— not connected —</div>
+    <div class="metrics">
+      <div>RMS <span class="val" id="imu1-rms">–</span></div>
+      <div>P2P <span class="val" id="imu1-p2p">–</span></div>
+      <div>Crest <span class="val" id="imu1-crest">–</span></div>
+      <div>Jerk <span class="val" id="imu1-jerk">–</span></div>
+    </div>
+  </div>
+  <div class="imu-block">
+    <div class="label">IMU2</div>
+    <div class="status idle" id="imu2-status">— not connected —</div>
+    <div class="metrics">
+      <div>RMS <span class="val" id="imu2-rms">–</span></div>
+      <div>P2P <span class="val" id="imu2-p2p">–</span></div>
+      <div>Crest <span class="val" id="imu2-crest">–</span></div>
+      <div>Jerk <span class="val" id="imu2-jerk">–</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="hud" id="logHud">
+  <div class="rail-label">Event log</div>
+  <div id="log"></div>
+</div>
+
+<div id="footnote">
+  Real Gaussian splat (451,937 points) of the physical Tukzie · classification thresholds are
+  provisional, no field-test data yet · Chrome/Edge only (Web Serial) · serial data stays local to this browser
+</div>
+
+<script>
+// ============================================================
+// Shared state between the telemetry script (classic) and the
+// viewer script (module). The module reads this each frame to
+// colour component markers by their live classification.
+// ============================================================
+window.__tukzie = { telemetry: { imu1: null, imu2: null } };
+
+// --- Photo fallback layer -------------------------------------------------
+const photoImgs = document.querySelectorAll("#photoLayer img");
+const photoKeys = ["side", "rear", "front", "handlebar"];
+let photoIdx = 0;
+window.__cyclePhoto = function () {
+  photoIdx = (photoIdx + 1) % photoKeys.length;
+  photoImgs.forEach(img => img.classList.toggle("active", img.dataset.key === photoKeys[photoIdx]));
+};
+
+// --- View mode toggle -----------------------------------------------------
+const stage = document.getElementById("stage");
+const modeBtns = document.querySelectorAll("[data-mode]");
+modeBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    modeBtns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const photos = btn.dataset.mode === "photos";
+    stage.classList.toggle("photos-mode", photos);
+    if (photos) window.__cyclePhoto();
+  });
+});
+document.getElementById("photoLayer").addEventListener("click", () => {
+  if (stage.classList.contains("photos-mode")) window.__cyclePhoto();
+});
+
+// --- Serial telemetry -----------------------------------------------------
+const RIDE_RE = /\[RIDE(\d)\]\s+n=(\d+)\s+rms=([\d.]+)\s+std=([\d.]+)\s+p2p=([\d.]+)\s+crest=([\d.]+)\s+jerk=([\d.]+)\s+crossings=(\d+)/;
+
+const P2P_MODERATE = 1.5;
+const P2P_SHARP = 6.0;
+const CREST_IMPULSIVE = 2.0;
+
+function classify(p2p, crest) {
+  if (p2p < P2P_MODERATE) return { key: "quiescent", label: "Quiescent" };
+  if (p2p < P2P_SHARP) return { key: "moderate", label: "Moderate vibration" };
+  if (crest > CREST_IMPULSIVE) return { key: "sharp", label: "Sharp jerk event" };
+  return { key: "sustained", label: "Sustained large motion" };
+}
+
+const connBtn = document.getElementById("connBtn");
+const logEl = document.getElementById("log");
+let port, reader, keepReading = false;
+
+function logEntry(text, cls) {
+  const div = document.createElement("div");
+  div.className = "entry " + (cls || "");
+  div.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+  logEl.prepend(div);
+  while (logEl.children.length > 150) logEl.removeChild(logEl.lastChild);
+}
+
+function updateTelemetry(imu, rms, p2p, crest, jerk) {
+  const c = classify(p2p, crest);
+  const statusEl = document.getElementById(`imu${imu}-status`);
+  statusEl.textContent = c.label;
+  statusEl.className = "status " + c.key;
+  document.getElementById(`imu${imu}-rms`).textContent = rms.toFixed(3);
+  document.getElementById(`imu${imu}-p2p`).textContent = p2p.toFixed(3);
+  document.getElementById(`imu${imu}-crest`).textContent = crest.toFixed(3);
+  document.getElementById(`imu${imu}-jerk`).textContent = jerk.toFixed(3);
+  window.__tukzie.telemetry["imu" + imu] = { key: c.key, label: c.label, rms, p2p, crest, jerk };
+  if (c.key !== "quiescent") {
+    logEntry(`IMU${imu}: ${c.label} (p2p=${p2p.toFixed(3)}, crest=${crest.toFixed(3)})`, c.key);
+  }
+}
+
+async function connect() {
+  if (!("serial" in navigator)) {
+    alert("Web Serial API not available. Use Chrome or Edge on desktop.");
+    return;
+  }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+  } catch (err) {
+    logEntry("Connection cancelled or failed: " + err.message, "sharp");
+    return;
+  }
+
+  connBtn.textContent = "Disconnect";
+  connBtn.classList.add("connected");
+  logEntry("Connected. Real IMU data streaming.", "quiescent");
+  keepReading = true;
+
+  const textDecoder = new TextDecoderStream();
+  port.readable.pipeTo(textDecoder.writable);
+  reader = textDecoder.readable.getReader();
+
+  let buffer = "";
+  try {
+    while (keepReading) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += value;
+      let idx;
+      while ((idx = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, idx).trim();
+        buffer = buffer.slice(idx + 1);
+        const m = RIDE_RE.exec(line);
+        if (m) updateTelemetry(m[1], parseFloat(m[3]), parseFloat(m[5]), parseFloat(m[6]), parseFloat(m[7]));
+      }
+    }
+  } catch (err) {
+    logEntry("Read error: " + err.message, "sharp");
+  } finally {
+    try { reader.releaseLock(); } catch (e) {}
+  }
+}
+
+async function disconnect() {
+  keepReading = false;
+  try { if (reader) await reader.cancel(); } catch (e) {}
+  try { if (port) await port.close(); } catch (e) {}
+  connBtn.textContent = "Connect to Tukzie";
+  connBtn.classList.remove("connected");
+  document.querySelectorAll(".status").forEach(el => {
+    el.textContent = "— not connected —"; el.className = "status idle";
+  });
+  window.__tukzie.telemetry = { imu1: null, imu2: null };
+  logEntry("Disconnected.", "");
+}
+
+connBtn.addEventListener("click", () => {
+  if (connBtn.classList.contains("connected")) disconnect();
+  else connect();
+});
+</script>
+
+<script type="module">
+// ============================================================
+// Splat viewer, guided walkthrough, and component markers.
+//
+// viewer.camera / viewer.controls / viewer.renderer are real,
+// confirmed properties of GaussianSplats3D.Viewer (checked against
+// the library's own source, not assumed from its README, which does
+// not document them).
+//
+// Requires this page to be served over http(s):// - a bare file://
+// page cannot fetch the local .ply. See README.md.
+// ============================================================
+import * as THREE from "three";
+import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
+
+// Camera presets are expressed relative to the known-good starting view
+// that the first working version used. They are framing guesses, not
+// derived from the model's real geometry - adjust these once you can see
+// the actual splat and judge what "front" and "side" really look like.
+const CAMERA_PRESETS = {
+  front: { pos: [0, -2, 6.2],   target: [0, 0, 0], label: "Front" },
+  side:  { pos: [6.2, -2, 0],   target: [0, 0, 0], label: "Side" },
+  rear:  { pos: [0, -2, -6.2],  target: [0, 0, 0], label: "Rear / chassis" },
+  over:  { pos: [-3.5, -5, 5],  target: [0, 0, 0], label: "Overview" },
+};
+const TOUR_SEQUENCE = ["front", "side", "rear", "over"];
+const FLIGHT_MS = 1500;
+const TOUR_HOLD_MS = 2200;
+
+const COMPONENTS = [
+  { id: "imu1",   label: "IMU1",   telemetryKey: "imu1" },
+  { id: "imu2",   label: "IMU2",   telemetryKey: "imu2" },
+  { id: "camera", label: "Camera", telemetryKey: null },
+];
+
+const splatStatus = document.getElementById("splatStatus");
+const hotspotLayer = document.getElementById("hotspotLayer");
+const placeHint = document.getElementById("placeHint");
+const placeTargetEl = document.getElementById("placeTarget");
+
+if (location.protocol === "file:") {
+  splatStatus.textContent = "This page must be served over HTTP, not opened as a file. " +
+    "Run `python -m http.server 8000` in this folder and open http://localhost:8000/dashboard.html";
+} else {
+  startViewer();
+}
+
+function startViewer() {
+  let viewer;
+  try {
+    viewer = new GaussianSplats3D.Viewer({
+      rootElement: document.getElementById("splatContainer"),
+      cameraUp: [0, -1, 0],
+      initialCameraPosition: CAMERA_PRESETS.over.pos,
+      initialCameraLookAt: CAMERA_PRESETS.over.target,
+      sharedMemoryForWorkers: false,
+      selfDrivenMode: true,
+    });
+  } catch (err) {
+    splatStatus.textContent = "Splat viewer failed to initialise: " + err.message;
+    return;
+  }
+
+  viewer.addSplatScene("splat/Tukzie.ply", {
+    showLoadingUI: false,
+    progressiveLoad: true,
+    onProgress: (p) => { splatStatus.textContent = `Loading Gaussian splat… ${Math.round(p)}%`; },
+  }).then(() => {
+    splatStatus.classList.add("hidden");
+    viewer.start();
+    wireWalkthrough(viewer);
+    wireMarkers(viewer);
+  }).catch((err) => {
+    splatStatus.textContent = "Splat failed to load: " + err.message +
+      " — check that splat/Tukzie.ply exists in this folder.";
+  });
+}
+
+// ---- Guided walkthrough ---------------------------------------------------
+function wireWalkthrough(viewer) {
+  let flying = false;
+  let tourTimer = null;
+
+  function flyTo(presetKey) {
+    const preset = CAMERA_PRESETS[presetKey];
+    if (!preset || !viewer.camera || !viewer.controls) return Promise.resolve();
+    flying = true;
+    viewer.controls.enabled = false;
+
+    const startPos = viewer.camera.position.clone();
+    const endPos = new THREE.Vector3(...preset.pos);
+    const startTarget = viewer.controls.target.clone();
+    const endTarget = new THREE.Vector3(...preset.target);
+    const t0 = performance.now();
+
+    return new Promise((resolve) => {
+      function step(now) {
+        const raw = Math.min((now - t0) / FLIGHT_MS, 1);
+        const t = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2; // ease in-out
+        viewer.camera.position.lerpVectors(startPos, endPos, t);
+        viewer.controls.target.lerpVectors(startTarget, endTarget, t);
+        viewer.controls.update();
+        if (raw < 1) requestAnimationFrame(step);
+        else {
+          viewer.controls.enabled = true;
+          flying = false;
+          resolve();
+        }
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  document.querySelectorAll("[data-preset]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      stopTour();
+      flyTo(btn.dataset.preset);
+    });
+  });
+
+  const tourBtn = document.getElementById("tourBtn");
+  function stopTour() {
+    if (tourTimer) { clearTimeout(tourTimer); tourTimer = null; }
+    tourBtn.classList.remove("active");
+    tourBtn.textContent = "▶ Guided tour";
+  }
+  function runTour(i) {
+    const key = TOUR_SEQUENCE[i % TOUR_SEQUENCE.length];
+    flyTo(key).then(() => {
+      if (!tourBtn.classList.contains("active")) return;
+      tourTimer = setTimeout(() => runTour(i + 1), TOUR_HOLD_MS);
+    });
+  }
+  tourBtn.addEventListener("click", () => {
+    if (tourBtn.classList.contains("active")) { stopTour(); return; }
+    tourBtn.classList.add("active");
+    tourBtn.textContent = "■ Stop tour";
+    runTour(0);
+  });
+}
+
+// ---- Component markers ----------------------------------------------------
+// Positions are NOT guessed: nothing is placed until you place it by clicking
+// on the model. Placement projects the click into the scene at the current
+// orbit distance, which is approximate depth rather than a true surface hit
+// (Gaussian splats are not raycastable meshes) - good enough to label roughly
+// where a component sits, and nudgeable by re-placing from a different angle.
+function wireMarkers(viewer) {
+  const stored = loadPlacements();
+  const markers = {};
+  let placing = null;
+
+  COMPONENTS.forEach(c => {
+    const el = document.createElement("div");
+    el.className = "hotspot";
+    el.style.display = "none";
+    el.innerHTML = `<div class="dot"></div><div class="tag">${c.label}</div>
+      <div class="detail"></div>`;
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      el.classList.toggle("open");
+    });
+    hotspotLayer.appendChild(el);
+    markers[c.id] = { el, pos: stored[c.id] ? new THREE.Vector3(...stored[c.id]) : null, cfg: c };
+  });
+
+  document.querySelectorAll("[data-place]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      placing = btn.dataset.place;
+      placeTargetEl.textContent = (COMPONENTS.find(c => c.id === placing) || {}).label || placing;
+      placeHint.classList.add("show");
+      document.querySelectorAll("[data-place]").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape") cancelPlacing(); });
+
+  function cancelPlacing() {
+    placing = null;
+    placeHint.classList.remove("show");
+    document.querySelectorAll("[data-place]").forEach(b => b.classList.remove("active"));
+  }
+
+  document.getElementById("splatContainer").addEventListener("click", (e) => {
+    if (!placing || !viewer.camera || !viewer.controls) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ndc = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(ndc, viewer.camera);
+    const depth = viewer.camera.position.distanceTo(viewer.controls.target);
+    const point = ray.ray.origin.clone().add(ray.ray.direction.clone().multiplyScalar(depth));
+    markers[placing].pos = point;
+    savePlacements(markers);
+    cancelPlacing();
+  });
+
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const out = {};
+    Object.entries(markers).forEach(([id, m]) => {
+      if (m.pos) out[id] = [+m.pos.x.toFixed(4), +m.pos.y.toFixed(4), +m.pos.z.toFixed(4)];
+    });
+    const text = JSON.stringify(out, null, 2);
+    navigator.clipboard?.writeText(text).catch(() => {});
+    alert("Marker positions (also copied to clipboard):\n\n" + text);
+  });
+
+  // Project markers to screen space every frame, and colour them by the
+  // live classification of the sensor they represent.
+  const v = new THREE.Vector3();
+  (function updateMarkers() {
+    const rect = hotspotLayer.getBoundingClientRect();
+    Object.values(markers).forEach(m => {
+      if (!m.pos || !viewer.camera) { m.el.style.display = "none"; return; }
+      v.copy(m.pos).project(viewer.camera);
+      const behind = v.z > 1;
+      if (behind) { m.el.style.display = "none"; return; }
+      m.el.style.display = "block";
+      m.el.style.left = ((v.x * 0.5 + 0.5) * rect.width) + "px";
+      m.el.style.top = ((-v.y * 0.5 + 0.5) * rect.height) + "px";
+
+      const t = m.cfg.telemetryKey ? window.__tukzie.telemetry[m.cfg.telemetryKey] : null;
+      m.el.classList.remove("moderate", "sharp", "sustained");
+      if (t) m.el.classList.add(t.key);
+      const detail = m.el.querySelector(".detail");
+      if (t) {
+        detail.innerHTML = `<b>${t.label}</b><br>RMS ${t.rms.toFixed(2)} · P2P ${t.p2p.toFixed(2)}<br>` +
+                           `Crest ${t.crest.toFixed(2)} · Jerk ${t.jerk.toFixed(1)}`;
+      } else {
+        detail.innerHTML = m.cfg.telemetryKey ? "<b>No live data</b><br>connect to stream" : "<b>Camera</b><br>no telemetry feed";
+      }
+    });
+    requestAnimationFrame(updateMarkers);
+  })();
+
+  function loadPlacements() {
+    try { return JSON.parse(localStorage.getItem("tukzie_markers") || "{}"); }
+    catch (e) { return {}; }
+  }
+  function savePlacements(ms) {
+    const out = {};
+    Object.entries(ms).forEach(([id, m]) => { if (m.pos) out[id] = [m.pos.x, m.pos.y, m.pos.z]; });
+    try { localStorage.setItem("tukzie_markers", JSON.stringify(out)); } catch (e) {}
+  }
+}
+</script>
+</body>
+</html>

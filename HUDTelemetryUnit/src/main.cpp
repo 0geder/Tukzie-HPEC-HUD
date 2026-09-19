@@ -8,6 +8,7 @@
 #include <BLEUtils.h>
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
+#include <Preferences.h>
 
 // ============================================================
 // SW-7 ESP32-S3 Firmware v0.4.0
@@ -114,7 +115,84 @@ struct RideCharTaskConfig {
   uint8_t sensor_id;
   QueueHandle_t queue;
   volatile RideFeatures* result;
+  float mag_scale;  // per-sensor magnitude calibration factor, see loadOrCalibrateMagScale()
 };
+
+// ============================================================
+// Per-sensor magnitude calibration.
+//
+// Two "identical" MPU6050 breakouts do not read the same magnitude for the
+// same physical state - factory sensitivity/bias tolerance means a
+// stationary unit can read several percent away from the true 1g
+// (9.80665 m/s^2) gravity magnitude. Since computeRideFeatures() works on
+// magnitude only (see RideFeatures comment above), a single scalar
+// correction factor applied before feature computation is the right scope
+// here: it corrects the exact discrepancy this affects (RMS/std/p2p/jerk
+// all scale linearly with it; crest factor and crossing counts are
+// unaffected since both are scale-invariant ratios/threshold crossings
+// under a uniform multiply). It does NOT correct per-axis bias or
+// cross-axis coupling, which would require a full multi-orientation
+// calibration - out of scope for now, since magnitude is already the only
+// signal downstream code consumes.
+//
+// Calibrated once, at first boot after flashing (assumes the board is
+// stationary then, which holds for bench bring-up), and the result is
+// stored in NVS via Preferences so later boots - including on the vehicle,
+// where "stationary at power-on" cannot be assumed - reuse the stored
+// value instead of recalibrating blind.
+// ============================================================
+#define GRAVITY_MPS2 9.80665f
+#define MAG_CAL_SAMPLE_COUNT 200  // 1 s at IMU_SAMPLE_RATE_HZ
+#define MAG_CAL_SCALE_MIN 0.5f
+#define MAG_CAL_SCALE_MAX 2.0f
+
+Preferences imuCalPrefs;
+
+float loadOrCalibrateMagScale(const char* nvsKey, Adafruit_MPU6050* sensor, bool ready) {
+  imuCalPrefs.begin("imucal", false);
+  if (imuCalPrefs.isKey(nvsKey)) {
+    float scale = imuCalPrefs.getFloat(nvsKey, 1.0f);
+    imuCalPrefs.end();
+    Serial.printf("[CAL] %s: loaded stored scale=%.4f\n", nvsKey, scale);
+    return scale;
+  }
+  imuCalPrefs.end();
+
+  if (!ready) {
+    // Not wired yet - don't store a bogus value, so a real calibration
+    // still runs once this sensor is actually connected on a later boot.
+    Serial.printf("[CAL] %s: sensor not ready, skipping calibration (scale=1.0 this run).\n", nvsKey);
+    return 1.0f;
+  }
+
+  Serial.printf("[CAL] %s: no stored calibration. Assuming stationary for %ds...\n",
+                nvsKey, MAG_CAL_SAMPLE_COUNT / IMU_SAMPLE_RATE_HZ);
+  float sum = 0.0f;
+  sensors_event_t accel, gyro, temp;
+  for (int i = 0; i < MAG_CAL_SAMPLE_COUNT; i++) {
+    sensor->getEvent(&accel, &gyro, &temp);
+    sum += sqrtf(accel.acceleration.x * accel.acceleration.x +
+                  accel.acceleration.y * accel.acceleration.y +
+                  accel.acceleration.z * accel.acceleration.z);
+    delay(1000 / IMU_SAMPLE_RATE_HZ);
+  }
+  float meanMag = sum / MAG_CAL_SAMPLE_COUNT;
+  float scale = (meanMag > 1e-3f) ? (GRAVITY_MPS2 / meanMag) : 1.0f;
+
+  if (scale < MAG_CAL_SCALE_MIN || scale > MAG_CAL_SCALE_MAX) {
+    Serial.printf("[CAL] %s: computed scale=%.4f is outside sane range [%.1f, %.1f] "
+                  "(likely not actually stationary) - falling back to 1.0, NOT stored.\n",
+                  nvsKey, scale, MAG_CAL_SCALE_MIN, MAG_CAL_SCALE_MAX);
+    return 1.0f;
+  }
+
+  imuCalPrefs.begin("imucal", false);
+  imuCalPrefs.putFloat(nvsKey, scale);
+  imuCalPrefs.end();
+  Serial.printf("[CAL] %s: measured mean magnitude=%.4f, scale=%.4f, stored to NVS.\n",
+                nvsKey, meanMag, scale);
+  return scale;
+}
 
 // Pure function, no FreeRTOS/hardware dependency, so it can be exercised by
 // selfTestRideFeatures() at boot without any sensor attached.
@@ -477,7 +555,8 @@ void RideCharacterizationTask(void* pvParameters) {
   for (;;) {
     ImuSample sample;
     if (xQueueReceive(cfg->queue, &sample, pdMS_TO_TICKS(50)) == pdTRUE) {
-      window[count++] = sqrtf(sample.ax * sample.ax + sample.ay * sample.ay + sample.az * sample.az);
+      window[count++] = cfg->mag_scale *
+          sqrtf(sample.ax * sample.ax + sample.ay * sample.ay + sample.az * sample.az);
 
       if (count >= RIDE_WINDOW_SAMPLES) {
         RideFeatures f = computeRideFeatures(window, count, samplePeriodS);
@@ -1007,7 +1086,10 @@ void sendGnssCommand(const char* command) {
 // both command streams. Keeping MQTT in the same task avoids that.
 // ============================================================
 #define MQTT_CLIENT_INDEX 0
-#define MQTT_BROKER_HOST "CHANGE_ME_broker_host_or_ip"
+// test.mosquitto.org: public, free, no-auth broker - used here only to
+// prove the AT+CMQTT* sequence and cellular path work end-to-end. Not a
+// destination for real vehicle telemetry; replace before any real use.
+#define MQTT_BROKER_HOST "test.mosquitto.org"
 #define MQTT_BROKER_PORT 1883
 #define MQTT_CLIENT_ID "sw7-esp32-telemetry"
 #define MQTT_USERNAME ""  // leave empty if the broker does not require auth
@@ -1265,6 +1347,10 @@ void setup() {
 #endif
   Serial.println();
 
+  float imu1MagScale = loadOrCalibrateMagScale("imu1", &mpu1, imu1Ready);
+  float imu2MagScale = loadOrCalibrateMagScale("imu2", &mpu2, imu2Ready);
+  Serial.println();
+
   imu1Queue = xQueueCreate(IMU_QUEUE_LENGTH, sizeof(ImuSample));
   imu2Queue = xQueueCreate(IMU_QUEUE_LENGTH, sizeof(ImuSample));
   gnssQueue = xQueueCreate(20, sizeof(GnssFix));
@@ -1274,8 +1360,8 @@ void setup() {
 
   imu1Config = {0, imu1Queue, imu1CharQueue, &mpu1, &imu1Ready};
   imu2Config = {1, imu2Queue, imu2CharQueue, &mpu2, &imu2Ready};
-  rideChar1Config = {0, imu1CharQueue, &latestRideFeatures1};
-  rideChar2Config = {1, imu2CharQueue, &latestRideFeatures2};
+  rideChar1Config = {0, imu1CharQueue, &latestRideFeatures1, imu1MagScale};
+  rideChar2Config = {1, imu2CharQueue, &latestRideFeatures2, imu2MagScale};
 
   selfTestRideFeatures();
 
