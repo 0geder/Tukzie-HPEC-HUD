@@ -1,0 +1,56 @@
+# SW-6 (Sharaav) <-> SW-7 UART interface definition
+
+Status: preliminary, agreed informally 2026-09-21, to be finalised at an
+in-person discussion Wednesday. This is the interface-definition deliverable
+the VIT plan's D5 joint session specifies - no record could be found of that
+session producing one, so this captures the real agreement as it happens
+rather than let it live only in a WhatsApp thread.
+
+## Physical layer
+
+- Dedicated USB-C port on the SW-7 Makerfabs board, wired via CH340K to
+  ESP32-S3 GPIO43 (TX) / GPIO44 (RX) - confirmed free, unused by any other
+  firmware function (checked against the schematic and grepped the codebase
+  before agreeing to this).
+- 115200 baud, 8N1 framing. Confirmed by both sides.
+
+## Data layer
+
+- Format: CSV, sent as a plain string line.
+- Direction: SW-6 -> SW-7 (one-way, at least at this stage - Sharaav has his
+  own IMU, so no ride-characterisation data flows the other way).
+- Content: vehicle speed (km/h) and battery percentage.
+
+## Why this matters beyond the wire
+
+SW-7's HUD design settled on exactly two persistent, always-shown values:
+speed and battery state of charge (everything else - hazards, faults,
+notifications - is pop-up/event-driven, not constant). This link is the
+direct data source for both of those values. SW-7 does not need to
+independently solve reliable speed/SoC reporting; it consumes SW-6's feed
+for the HUD, while continuing to own ride-characterisation (IMU), camera
+hazard awareness, and cellular telemetry publishing.
+
+## Still open - bring to Wednesday's discussion
+
+- Exact field order in the CSV (e.g. `speed,battery\n` vs `battery,speed\n`)
+  and numeric precision (integer vs one/two decimal places).
+- Update rate - how often SW-6 sends a line.
+- Line terminator / framing - plain `\n`, `\r\n`, or any start/end marker
+  beyond newline-delimiting.
+- Behaviour on an invalid or out-of-range line: discard and hold last-known
+  value, or something else. SW-7's own GNSS/BMS handling elsewhere in this
+  project already uses a "hold last valid, flag as stale" pattern
+  (`GnssFix.valid`, similar for BMS) - worth proposing the same convention
+  here for consistency rather than inventing a new one.
+
+## SW-7-side implementation, not yet built
+
+A dedicated `HardwareSerial` instance on GPIO43/44, with its own FreeRTOS
+task owning it exclusively (same discipline as `ModemTask` owning `Serial1`
+- no locking exists on ESP32 UART access, so shared access from multiple
+tasks would corrupt the stream). Parses the agreed CSV format once finalised
+Wednesday, updates `latestSpeedKmph`/`latestBatteryPct`-style globals
+(volatile, field-by-field assignment per the established pattern used for
+`latestGnssFix`/`latestBmsSample`), consumed by the HUD rendering code once
+that exists.
