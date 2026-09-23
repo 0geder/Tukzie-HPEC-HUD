@@ -2,12 +2,36 @@
 """
 SW-7 hazard/obstacle detector for the Pi 4 camera.
 
-Scope, stated honestly: this runs a pretrained, COCO-trained SSD-MobileNet-v1
-object detector (quantized TFLite, no NPU required) on live camera frames,
-and reports which of a small set of road-relevant classes are present, with
-a *rough* distance estimate from a known-object-width heuristic. It does
-NOT do lane-level blind-spot geometry, does NOT track objects across frames,
-and does NOT constitute an autonomous-driving perception stack - it is a
+Runs under ethics approval EBE/03305/2026 (approved with conditions,
+23 Sep 2026 - 22 Sep 2027, EBE Faculty Research Ethics Committee). The
+conditions attached to that approval are enforced directly in this file,
+not left as a report-only statement:
+
+  - Camera data is processed for object detection and distance-alert
+    research only (see HAZARD_CLASSES below - restricted to the approved
+    category list, nothing broader).
+  - Raw camera frames are never written to disk: capture_array() output
+    exists only in memory for the duration of one inference pass, and is
+    discarded (goes out of scope) immediately after. Only the fields
+    listed in ALERT_LOG_FIELDS are ever persisted.
+  - No facial recognition, no number-plate recognition, no per-instance
+    identification of any person or vehicle is performed anywhere in this
+    file - COCO class labels only ("person", "car", etc.), never who or
+    which one.
+  - Processing is entirely local (this Pi, this process) - no frame or
+    inference result is uploaded to any external service.
+  - The system has no actuator output of any kind: it prints/logs only.
+    It must not, and does not, control steering, braking, acceleration,
+    or any other vehicle function.
+
+Scope, stated honestly beyond the ethics conditions: this runs a
+pretrained, COCO-trained SSD-MobileNet-v1 object detector (quantized
+TFLite, no NPU required) on live camera frames, and reports which of a
+small set of road-relevant classes are present, with a *rough* distance
+estimate from a known-object-width heuristic. It does NOT do lane-level
+blind-spot geometry, does NOT track individual objects across frames
+(the persistence check below is class-level, not per-instance), and does
+NOT constitute an autonomous-driving perception stack - it is a
 hazard-presence-and-rough-range indicator, sized to what a Pi 4 with no
 hardware accelerator can actually sustain in real time.
 
@@ -15,8 +39,10 @@ Distance estimate uses the pinhole-camera relationship:
     distance_m = (real_object_width_m * focal_length_px) / bbox_width_px
 This is an estimate, not a measurement: it assumes the object is roughly
 front-on to the camera and uses one average real-world width per class
-(a car is not always 1.8m wide from every angle). Treat the reported
-distance as "same order of magnitude", not precise ranging.
+(a car is not always 1.8m wide from every angle). The raw metre value is
+used only internally to select a distance BAND (see DISTANCE_BANDS) -
+the approval permits logging an "approximate distance band", not a
+precise continuous figure, so the raw estimate itself is never persisted.
 
 Time-to-collision (TTC = distance / closing_speed) is only computed if a
 vehicle speed is supplied externally (e.g. from the ESP32's GNSS speed
@@ -24,6 +50,7 @@ field) - that field's units are not yet confirmed (see Methodology.tex,
 GNSS section), so TTC output is clearly marked provisional whenever shown.
 """
 import argparse
+import json
 import time
 import numpy as np
 
@@ -40,12 +67,41 @@ KNOWN_WIDTHS_M = {
     "dog": 0.3,
 }
 
-# Road-relevant subset of COCO's 90 classes - everything else detected is
-# ignored for hazard reporting (COCO also includes e.g. "toothbrush",
-# "kite", which are not road hazards).
-HAZARD_CLASSES = set(KNOWN_WIDTHS_M.keys()) | {"traffic light", "stop sign", "fire hydrant"}
+# Restricted to the category list actually named in the ethics approval:
+# motor vehicles, motorcycles, bicycles, pedestrians, animals, road
+# obstacles. Earlier versions of this script also reported "traffic
+# light", "stop sign", "fire hydrant" - none of those are in the approved
+# list (they are infrastructure, not the approved object categories), so
+# they have been removed rather than left in on the assumption they'd be
+# covered by "road obstacles". If traffic-infrastructure detection is
+# wanted later, that is a new category requiring its own ethics review
+# under the change-control condition, not an assumption made in code.
+HAZARD_CLASSES = set(KNOWN_WIDTHS_M.keys())
 
 CONFIDENCE_THRESHOLD = 0.5
+
+# Distance bands, metres - matches the zones proposed in the ethics
+# application (immediate / warning / monitoring). The approval permits
+# logging a band, not a precise distance, so this is the coarsest
+# representation that still supports a useful alert.
+DISTANCE_BANDS = [
+    (3.0, "immediate"),
+    (8.0, "warning"),
+    (15.0, "monitoring"),
+]
+
+# An object must be continuously detected (this class, this band or
+# nearer) for this many consecutive frames before it is logged as a
+# reportable alert, rather than every single-frame flicker. This is a
+# class-level debounce, not per-instance tracking: it cannot distinguish
+# two different cars both briefly visible from one car persisting, since
+# no cross-frame object identity is maintained. That limitation is
+# stated here rather than implied by the counter's existence.
+ALERT_PERSISTENCE_FRAMES = 3
+
+# The only fields this script ever persists to the alert log, matching
+# the ethics approval's data-recording condition exactly.
+ALERT_LOG_FIELDS = ("class", "distance_band", "confidence", "timestamp", "alert_status")
 
 
 def load_labels(path):
@@ -58,6 +114,36 @@ def estimate_distance_m(class_name, bbox_width_px, focal_length_px):
     if real_width is None or bbox_width_px <= 0:
         return None
     return (real_width * focal_length_px) / bbox_width_px
+
+
+def distance_band(distance_m):
+    """Map a raw metre estimate to the coarse band the ethics approval
+    permits logging. Returns None if the object is farther than the
+    widest defined band (not a reportable event) or if no distance
+    estimate was available at all."""
+    if distance_m is None:
+        return None
+    for limit_m, band in DISTANCE_BANDS:
+        if distance_m <= limit_m:
+            return band
+    return None
+
+
+def log_alert(log_path, class_name, band, confidence, alert_status):
+    """Append exactly one JSON line containing only the fields the
+    ethics approval permits (ALERT_LOG_FIELDS) - never a frame, never a
+    bounding box, never a raw continuous distance."""
+    record = {
+        "class": class_name,
+        "distance_band": band,
+        "confidence": round(float(confidence), 2),
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "alert_status": alert_status,
+    }
+    assert set(record.keys()) == set(ALERT_LOG_FIELDS), "log_alert record must match ALERT_LOG_FIELDS exactly"
+    with open(log_path, "a") as f:
+        f.write(json.dumps(record) + "\n")
+    return record
 
 
 def main():
@@ -75,6 +161,9 @@ def main():
                          help="UNCALIBRATED placeholder - see comment in source")
     parser.add_argument("--duration", type=int, default=0,
                          help="Seconds to run, 0 = run until Ctrl+C")
+    parser.add_argument("--log-path", default="alerts.jsonl",
+                         help="Append-only JSONL file for reportable alert events "
+                              "(class, distance_band, confidence, timestamp, alert_status only)")
     args = parser.parse_args()
 
     try:
@@ -101,6 +190,16 @@ def main():
     print(f"WARNING: focal_length_px={args.focal_length_px} is UNCALIBRATED - "
           f"distance estimates are order-of-magnitude only until calibrated.")
     print("Watching for:", ", ".join(sorted(HAZARD_CLASSES)))
+    print(f"Alert log (class/band/confidence/timestamp/status only): {args.log_path}")
+
+    # Class-level persistence state: an object must be seen in-band for
+    # ALERT_PERSISTENCE_FRAMES consecutive frames before it becomes a
+    # reportable alert, and a "cleared" event is logged once it drops out
+    # again. This is deliberately class-level, not per-instance (see
+    # module docstring) - it answers "is a car persistently near", not
+    # "is this specific car persistently near".
+    streak = {cls: 0 for cls in HAZARD_CLASSES}
+    active = {cls: False for cls in HAZARD_CLASSES}
 
     start = time.time()
     frame_count = 0
@@ -116,13 +215,16 @@ def main():
 
             interpreter.set_tensor(input_details[0]['index'], input_data)
             interpreter.invoke()
+            # Frame is not referenced again after this point in the loop
+            # body and is overwritten by the next capture_array() call -
+            # nothing derived from it is written to disk (see docstring).
 
             boxes = interpreter.get_tensor(output_details[0]['index'])[0]
             classes = interpreter.get_tensor(output_details[1]['index'])[0]
             scores = interpreter.get_tensor(output_details[2]['index'])[0]
 
             frame_h, frame_w = frame.shape[0], frame.shape[1]
-            detections_this_frame = []
+            in_band_this_frame = {}  # class_name -> (band, confidence), nearest band wins
             for i in range(len(scores)):
                 if scores[i] < CONFIDENCE_THRESHOLD:
                     continue
@@ -136,19 +238,32 @@ def main():
                 ymin, xmin, ymax, xmax = boxes[i]
                 bbox_width_px = (xmax - xmin) * frame_w
                 distance_m = estimate_distance_m(class_name, bbox_width_px, args.focal_length_px)
+                band = distance_band(distance_m)
+                if band is None:
+                    continue  # detected, but outside the reportable zones entirely
 
-                detections_this_frame.append({
-                    "class": class_name,
-                    "confidence": float(scores[i]),
-                    "bbox_norm": [float(xmin), float(ymin), float(xmax), float(ymax)],
-                    "distance_m_estimate": distance_m,
-                })
+                confidence = float(scores[i])
+                prev = in_band_this_frame.get(class_name)
+                if prev is None or confidence > prev[1]:
+                    in_band_this_frame[class_name] = (band, confidence)
 
-            if detections_this_frame:
-                ts = time.strftime("%H:%M:%S")
-                for d in detections_this_frame:
-                    dist_str = f"~{d['distance_m_estimate']:.1f}m" if d['distance_m_estimate'] else "distance n/a"
-                    print(f"[{ts}] {d['class']} (conf={d['confidence']:.2f}) {dist_str}")
+            ts_console = time.strftime("%H:%M:%S")
+            for class_name in HAZARD_CLASSES:
+                if class_name in in_band_this_frame:
+                    band, confidence = in_band_this_frame[class_name]
+                    streak[class_name] += 1
+                    print(f"[{ts_console}] {class_name} band={band} conf={confidence:.2f} "
+                          f"streak={streak[class_name]}/{ALERT_PERSISTENCE_FRAMES}")
+                    if streak[class_name] >= ALERT_PERSISTENCE_FRAMES and not active[class_name]:
+                        active[class_name] = True
+                        log_alert(args.log_path, class_name, band, confidence, "active")
+                        print(f"  -> ALERT logged: {class_name} ({band})")
+                else:
+                    streak[class_name] = 0
+                    if active[class_name]:
+                        active[class_name] = False
+                        log_alert(args.log_path, class_name, None, 0.0, "cleared")
+                        print(f"  -> cleared: {class_name}")
 
     except KeyboardInterrupt:
         pass
