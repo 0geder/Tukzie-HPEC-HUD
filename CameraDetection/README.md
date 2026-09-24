@@ -5,7 +5,7 @@
 Runs under ethics approval **EBE/03305/2026** (approved with conditions,
 23 Sep 2026 - 22 Sep 2027, EBE Faculty Research Ethics Committee). The
 approval's conditions are enforced in code, not just documented:
-category list restricted to what was approved, raw frames never written
+category list restricted to what the application proposed, raw frames never written
 to disk, only class/distance-band/confidence/timestamp/alert-status ever
 logged, no facial or number-plate recognition, no actuator output. See
 the module docstring in `hazard_detector.py` for the full list and where
@@ -19,11 +19,11 @@ A pretrained, COCO-trained SSD-MobileNet-v1 object detector (quantized
 TFLite, `detect.tflite` + `labelmap.txt`, no custom training), run on
 live frames from the Pi 4's camera via `hazard_detector.py`. It reports
 which road-relevant COCO classes are visible - restricted to the
-categories in the ethics approval (person, bicycle, car, motorcycle,
-bus, truck, dog), each with a rough distance estimate from a
+categories proposed in the ethics application (person, bicycle, car,
+motorcycle, bus, truck, dog), each with a rough distance estimate from a
 known-object-width heuristic. Earlier versions also reported traffic
-light/stop sign/fire hydrant; those are not in the approved category
-list and have been removed.
+light/stop sign/fire hydrant; those are not in the application's
+category list and have been removed.
 
 An object must be detected continuously for `ALERT_PERSISTENCE_FRAMES`
 (default 3) consecutive frames within a reportable distance band before

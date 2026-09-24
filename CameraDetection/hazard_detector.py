@@ -8,8 +8,8 @@ conditions attached to that approval are enforced directly in this file,
 not left as a report-only statement:
 
   - Camera data is processed for object detection and distance-alert
-    research only (see HAZARD_CLASSES below - restricted to the approved
-    category list, nothing broader).
+    research only (see HAZARD_CLASSES below - restricted to the category
+    list proposed in the ethics application, nothing broader).
   - Raw camera frames are never written to disk: capture_array() output
     exists only in memory for the duration of one inference pass, and is
     discarded (goes out of scope) immediately after. Only the fields
@@ -41,8 +41,9 @@ This is an estimate, not a measurement: it assumes the object is roughly
 front-on to the camera and uses one average real-world width per class
 (a car is not always 1.8m wide from every angle). The raw metre value is
 used only internally to select a distance BAND (see DISTANCE_BANDS) -
-the approval permits logging an "approximate distance band", not a
-precise continuous figure, so the raw estimate itself is never persisted.
+the ethics application specifies logging an "approximate distance band",
+not a precise continuous figure, so the raw estimate itself is never
+persisted.
 
 Time-to-collision (TTC = distance / closing_speed) is only computed if a
 vehicle speed is supplied externally (e.g. from the ESP32's GNSS speed
@@ -67,7 +68,8 @@ KNOWN_WIDTHS_M = {
     "dog": 0.3,
 }
 
-# Restricted to the category list actually named in the ethics approval:
+# Restricted to the category list proposed in the ethics application
+# (the approval's condition is "only approved object categories"):
 # motor vehicles, motorcycles, bicycles, pedestrians, animals, road
 # obstacles. Earlier versions of this script also reported "traffic
 # light", "stop sign", "fire hydrant" - none of those are in the approved
@@ -81,7 +83,7 @@ HAZARD_CLASSES = set(KNOWN_WIDTHS_M.keys())
 CONFIDENCE_THRESHOLD = 0.5
 
 # Distance bands, metres - matches the zones proposed in the ethics
-# application (immediate / warning / monitoring). The approval permits
+# application (immediate / warning / monitoring). The application specifies
 # logging a band, not a precise distance, so this is the coarsest
 # representation that still supports a useful alert.
 DISTANCE_BANDS = [
@@ -100,7 +102,7 @@ DISTANCE_BANDS = [
 ALERT_PERSISTENCE_FRAMES = 3
 
 # The only fields this script ever persists to the alert log, matching
-# the ethics approval's data-recording condition exactly.
+# the fields proposed in the ethics application.
 ALERT_LOG_FIELDS = ("class", "distance_band", "confidence", "timestamp", "alert_status")
 
 
@@ -131,7 +133,7 @@ def distance_band(distance_m):
 
 def log_alert(log_path, class_name, band, confidence, alert_status):
     """Append exactly one JSON line containing only the fields the
-    ethics approval permits (ALERT_LOG_FIELDS) - never a frame, never a
+    ethics application specifies (ALERT_LOG_FIELDS) - never a frame, never a
     bounding box, never a raw continuous distance."""
     record = {
         "class": class_name,

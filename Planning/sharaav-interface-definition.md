@@ -6,6 +6,16 @@ the VIT plan's D5 joint session specifies - no record could be found of that
 session producing one, so this captures the real agreement as it happens
 rather than let it live only in a WhatsApp thread.
 
+**Update, 2026-09-24**: Sharaav indicated today that he may no longer need
+this link, since most of the speed/battery data SW-7's HUD would consume
+from it may already be available via the existing vac-work dashboard
+instead. Not yet confirmed as final on either side. This changes nothing
+below until it is confirmed one way or the other - if the link is dropped,
+SW-7's HUD would need to source speed/SoC from the dashboard's own data
+layer instead (consistent with the tether-to-dashboard direction already
+being explored for the HUD generally), and this document's "still open"
+and "not yet built" sections below become moot.
+
 ## Physical layer
 
 - Dedicated USB-C port on the SW-7 Makerfabs board, wired via CH340K to
