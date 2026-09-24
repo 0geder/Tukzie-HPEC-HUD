@@ -58,3 +58,6 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Personal signature image: keep out of the public repo
+GA Tracking Form/Signature.png
