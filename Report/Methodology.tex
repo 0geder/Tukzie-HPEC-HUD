@@ -1,0 +1,505 @@
+\chapter{Methodology}
+
+\section{Development and verification approach}
+
+Development followed a staged verification approach in which each hardware and software interface was tested before higher-level functions were introduced. This reduces the number of simultaneous fault sources and provides a traceable sequence from processor startup to cellular communication. The first stage established the microcontroller development environment. The second stage verified the hardware UART connection to the cellular modem. Sensor acquisition, task scheduling, storage, networking, and HUD rendering were added only after this baseline had been shown to operate repeatably.
+
+\section{Embedded hardware baseline}
+
+The initial platform is the Makerfabs ESP32-S3 4G LTE CAT1 A7670X board. It combines an ESP32-S3-WROOM-1-N16R8 microcontroller with an A7670X LTE Cat-1 modem and provides 16\,MB flash memory, 8\,MB PSRAM, native USB, modem USB, a microSD-card interface, and GNSS capability \cite{makerfabsa7670x}. This integrated board was selected for the baseline because it permits the processor, modem, storage, and GNSS interfaces to be tested without constructing a separate modem carrier circuit.
+
+Figure~\ref{fig:makerfabs-pinout} reproduces the manufacturer's own labelled port and pin diagram for this board. It is referenced directly in Section~\ref{sec:full-system-integration} to explain a genuine Serial-routing fault (the board exposes an ESP32-S3 native-USB port and a separate CH340K USB-TTL port as physically distinct connectors, not one port with two modes), and in Section~\ref{sec:pi-camera-provisioning}'s accompanying build configuration to record that the microSD-card slot's chip-select line (GPIO10, via R23) was traced on the underlying schematic and found not populated, which is why local telemetry logging in this project uses internal flash rather than the card slot shown here.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{figures/makerfabs_a7670x_pinout.jpg}
+\caption{Makerfabs ESP32-S3 4G LTE CAT1 A7670X board: manufacturer-labelled ports (left) and pinout (right) \cite{makerfabsa7670x}.}
+\label{fig:makerfabs-pinout}
+\end{figure}
+
+Firmware was developed in Visual Studio Code using PlatformIO and the Arduino framework. The PlatformIO target was configured as \texttt{esp32-s3-devkitc-1}. Native USB CDC was enabled using the following build definitions:
+
+\begin{verbatim}
+ARDUINO_USB_MODE=1
+ARDUINO_USB_CDC_ON_BOOT=1
+\end{verbatim}
+
+These settings expose the ESP32-S3 native USB connection as a serial interface during bench development. They are configuration choices for the selected board and framework, not general requirements for every ESP32-S3 implementation.
+
+\section{Microcontroller startup verification}
+
+A baseline firmware build, identified as version 0.1.0, was used to verify compilation, flash programming, boot, and host serial output. The program printed a fixed system banner and periodic status messages so that resets and interrupted execution could be identified. The runtime loop avoided long delays so that later interfaces could be added without redesigning a blocking program structure.
+
+During bench testing, firmware could wait for the native USB serial connection before printing the startup banner. An unbounded \texttt{while (!Serial)} loop is unsuitable for vehicle deployment because the unit must boot when no host computer is connected. The deployment implementation therefore uses a bounded startup timeout rather than an indefinite wait.
+
+The baseline acceptance criteria were:
+\begin{itemize}
+\item successful compilation without errors;
+\item successful firmware upload;
+\item one expected startup banner per reset;
+\item continuous execution without repeated resets; and
+\item readable serial output at 115200\,bit/s.
+\end{itemize}
+
+\section{A7670X UART integration}
+
+The modem was connected through a dedicated ESP32-S3 hardware UART. In the Makerfabs reference design, ESP32 GPIO 47 is the UART receive input and GPIO 48 is the UART transmit output. The modem power-key and reset controls are connected to GPIO 4 and GPIO 5, respectively \cite{makerfabsa7670x}. The UART was configured for 115200\,bit/s, eight data bits, no parity, and one stop bit. GPIO 47 therefore receives data transmitted by the modem, while GPIO 48 transmits commands to the modem.
+
+The initial test deliberately excluded MQTT, HTTP, FreeRTOS task partitioning, and sensor drivers. Its purpose was limited to confirming modem power-up, UART framing, command transmission, and response reception.
+
+\section{Modem power-up sequencing}
+
+Initial versions of the UART test assumed that the A7670X would already be active when the ESP32-S3 started sending commands. After a later reset, the ESP32-S3 printed each command but received no modem response. Inspection of the board reference design showed that the modem power key is controlled through GPIO 4. Firmware version 0.2.0 was therefore updated to reproduce the documented power-key operation automatically. GPIO 4 was driven high for three seconds and then returned low. GPIO 5, connected to the modem reset input, was held low during normal operation. The firmware then allowed five seconds for modem startup before beginning the AT-command sequence \cite{makerfabsa7670x}.
+
+Automating this operation removes the need to press the modem power button whenever the embedded unit restarts. It also makes the startup procedure repeatable for later vehicle deployment. The revised sequence was verified after an autonomous restart by recording the modem-ready indication, an \texttt{OK} response to \texttt{AT}, SIM readiness, and successful home-network registration responses.
+
+\section{AT-command verification procedure}
+
+After modem startup, the firmware issued the following commands in sequence:
+\begin{enumerate}
+\item \texttt{AT}, to test basic command and response communication;
+\item \texttt{AT+CPIN?}, to query SIM readiness;
+\item \texttt{AT+CSQ}, to obtain the modem's received-signal-quality indication;
+\item \texttt{AT+CEREG?}, to query LTE/EPS network registration;
+\item \texttt{AT+COPS?}, to identify the selected network operator; and
+\item \texttt{AT+CPSI?}, to inspect the serving radio system and connection state.
+\end{enumerate}
+
+The command meanings and response fields follow the SIMCom A76XX command set \cite{simcoma76xx}. A response of \texttt{OK} to \texttt{AT} confirms command-channel communication only. SIM readiness, LTE registration, and packet-data service require their respective responses and must not be inferred from the handshake alone.
+
+Following the automated sequence, the firmware entered a bidirectional serial bridge. Characters received from the host serial port were forwarded to the modem UART, and modem responses were returned to the host. Both directions were checked independently in each loop iteration so that manual commands could be issued without a separate firmware build. This bridge later proved useful beyond bench debugging: Section~\ref{sec:gnss-parsing-validation} uses it to inject AT commands directly and observe raw modem responses, decoupled from the firmware's own polling logic.
+
+\section{GNSS polling verification}
+\label{sec:gnss-polling-verification}
+
+The modem's GNSS engine was enabled by issuing \texttt{AT+CGNSSPWR=1}. Firmware then polled \texttt{AT+CGNSSINFO} at three-second intervals and forwarded each response to the USB serial terminal. Early polls were expected to fail while the GNSS subsystem was still starting. A successful interface test required the modem-ready indication, an \texttt{OK} response to the information query, and a correctly framed \texttt{+CGNSSINFO} record. A valid navigation fix additionally required populated time, position, and fix-status fields during an outdoor test with the GNSS antenna connected. This distinction prevents an empty but correctly framed response from being reported as a position measurement.
+
+\section{Baseline verification criteria}
+
+Table~\ref{tab:baseline-criteria} defines the evidence required before network protocol development began. Successful completion of these tests establishes the processor-to-modem control path. It does not by itself validate Internet connectivity, MQTT delivery, communication latency, or recovery after an outage; those functions are evaluated separately using a defined broker, payload, QoS level, encryption configuration, and induced link failures.
+
+\begin{table}[ht]
+\centering
+\caption{Baseline microcontroller and modem verification criteria.}
+\label{tab:baseline-criteria}
+\begin{tabular}{|p{3.2cm}|p{4.6cm}|p{4.6cm}|}
+\hline
+\textbf{Test} & \textbf{Required evidence} & \textbf{Acceptance condition} \\ \hline
+Processor boot & Versioned startup banner and continuous status output & No repeated reset loop \\ \hline
+Modem power-up & GPIO 4 pulse followed by startup delay & Modem becomes responsive without manual button input \\ \hline
+UART handshake & Modem response to \texttt{AT} & Response contains \texttt{OK} \\ \hline
+SIM status & Response to \texttt{AT+CPIN?} & SIM reports ready \\ \hline
+Signal indication & Recorded \texttt{AT+CSQ} response & Valid, non-unknown RSSI field \\ \hline
+LTE registration & Response to \texttt{AT+CEREG?} and \texttt{AT+CPSI?} & Registered on the intended network \\ \hline
+GNSS interface & Repeated \texttt{AT+CGNSSINFO} responses & Correctly framed response received after GNSS readiness \\ \hline
+GNSS position fix & Populated fix, time, latitude, and longitude fields & Valid outdoor fix recorded \\ \hline
+Manual bridge & Commands and responses transferred in both directions & No lost or corrupted command lines \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Single-sensor inertial integration (firmware v0.3.0)}
+
+A single MPU6050 six-axis inertial sensor was added to the baseline as an interim step, connected over I\textsuperscript{2}C on GPIO 8 (SDA) and GPIO 9 (SCL). A dedicated FreeRTOS task, pinned to a separate core from the modem task, polled the sensor and printed acceleration values to the serial console. This version established that the sensor could be read alongside an active modem task without interfering with cellular communication, but it did not timestamp samples, did not enforce a deterministic sampling period, and provided no mechanism for a second sensor or for downstream consumers. These limitations motivated the acquisition redesign described in Section~\ref{sec:dual-imu-architecture}.
+
+\section{Flash and PSRAM configuration verification}
+\label{sec:flash-psram}
+
+The ESP32-S3-WROOM-1-N16R8 module fitted to the board provides 16\,MB of flash and 8\,MB of PSRAM \cite{makerfabsa7670x}, but the stock PlatformIO board definition for \texttt{esp32-s3-devkitc-1} assumes a smaller-flash, no-PSRAM variant. This was confirmed directly from the build tool's own platform report, which identified the active board configuration as an 8\,MB, no-PSRAM devkit rather than the physically fitted module. Left uncorrected, this mismatch under-allocates the flash partition table and leaves the PSRAM uninitialised.
+
+A staged, single-variable change procedure was used to correct this rather than applying all changes at once, so that any resulting fault could be attributed to a specific configuration change:
+
+\begin{enumerate}
+\item \textbf{Baseline measurement.} The firmware was built and its reported flash partition size recorded (3{,}342{,}336 bytes), confirming the smaller default partition table was in effect.
+\item \textbf{Flash size and partition table override.} \texttt{board\_build.flash\_size} was set to 16\,MB and \texttt{board\_build.partitions} to a matching 16\,MB partition table. This alone produced a boot loop, with the processor resetting approximately once per second at a fixed program counter.
+\item \textbf{PSRAM configuration added.} A PSRAM memory-type override (\texttt{qio\_opi}, denoting quad-I/O flash with octal-I/O PSRAM) was added on top of the flash change. The identical boot loop persisted, at the same program counter, ruling out PSRAM configuration as the cause on its own.
+\item \textbf{Isolation by full reversion.} All board-configuration overrides were removed, returning the project to the original, unmodified configuration. The boot loop did not recur, and the firmware ran correctly, including live communication with the cellular modem. This isolated the fault to the flash-size and partition-table override rather than to firmware logic, application code, or a hardware fault.
+\end{enumerate}
+
+Direct hardware identification via the upload tool's own chip-detection routine (independent of the PlatformIO board manifest) confirmed the module genuinely reports \emph{Embedded PSRAM 8\,MB}, consistent with the fitted N16R8 part. The ROM bootloader's own boot banner consistently reported the flash interface as operating in dual-I/O (DIO) mode. This is the most probable explanation for the boot loop: the attempted \texttt{qio\_opi} configuration requests quad-I/O flash access, which is inconsistent with a flash chip or wiring that supports only dual-I/O access, producing an invalid image header rather than a working boot sequence.
+
+Given this evidence, the working stock configuration was retained rather than continuing to pursue the flash and PSRAM expansion during this development session. This was a deliberate, time-bounded decision rather than an unresolved fault: at the time of testing, firmware flash usage was approximately 9\% of the default 3.2\,MB application partition, so the additional flash and PSRAM capacity was not required for the acquisition architecture described in this chapter. Recovering the full 16\,MB flash and 8\,MB PSRAM is retained as identified future work, with a dual-I/O flash and octal-I/O PSRAM configuration (\texttt{dio\_opi}) identified as the next configuration to test, on the basis of the DIO evidence above.
+
+This process is reported in full, including the unsuccessful configuration attempts, because the diagnostic method (isolating a single hardware/software boot fault by reverting one configuration variable at a time and using an independent, tool-level hardware read to check an assumption) was the substantive engineering outcome, distinct from whether the specific PSRAM configuration ultimately succeeded on the first attempt.
+
+\section{Dual-inertial deterministic acquisition architecture}
+\label{sec:dual-imu-architecture}
+
+\subsection{Design requirements}
+
+The single-sensor implementation of Section 3.9 was replaced with an architecture intended to support the ride-characterisation methodology described in Chapter~2: two inertial sensors sampled at a deterministic rate, each sample individually timestamped and sequence-numbered, decoupled from any consumer (local logging, radio transmission, or serial reporting) via a bounded queue.
+
+The target sampling rate of 200\,Hz was derived from ISO~2631-1, which weights whole-body vibration content up to 80\,Hz \cite{iso2631}; the sampling theorem therefore requires a rate above 160\,Hz, and 200\,Hz was selected to provide margin above this bound without unduly increasing the load on the I\textsuperscript{2}C bus or the consuming task.
+
+\subsection{Task and queue structure}
+
+Each inertial sensor is served by an identical acquisition task, parameterised by a small configuration structure (sensor identifier, output queue handle, sensor driver instance, and a readiness flag) so that the timing-critical code path exists once rather than being duplicated per sensor. The two sensors are connected on the ESP32-S3's two independent I\textsuperscript{2}C peripherals (one sensor per bus) rather than sharing a single bus, which avoids both an address collision (both sensors default to the same I\textsuperscript{2}C address) and bus-bandwidth contention between the two sampling streams.
+
+Figure~\ref{fig:task-architecture} summarises the resulting task layout.
+
+\begin{figure}[ht]
+\centering
+\begin{verbatim}
+Core 0                              Core 1
+------                              ------
+ModemTask                           Imu1Task  (200 Hz, priority 3)
+  - AT command sequence               |
+  - GNSS polling (Sec. 3.12)          v
+  - serial bridge                  imu1Queue (bounded, 100 samples)
+                                       |
+                                    Imu2Task  (200 Hz, priority 3)
+                                       |
+                                       v
+                                    imu2Queue (bounded, 100 samples)
+                                       |
+                                    gnssQueue (bounded, 20 fixes)
+                                       |
+                                       v
+                                    StatsTask (priority 2)
+                                       - drains all three queues
+                                       - reports rate, jitter,
+                                         drop counts every 2 s
+                                       |
+                                    SyncTask (priority 2, 1 Hz)
+                                       - toggles a GPIO pulse
+                                       - logs its own edge times
+\end{verbatim}
+\caption{Task and queue architecture, firmware v0.4.0.}
+\label{fig:task-architecture}
+\end{figure}
+
+Each acquisition task uses \texttt{vTaskDelayUntil} rather than \texttt{vTaskDelay} to hold its sampling period. \texttt{vTaskDelayUntil} measures the delay from the previous \emph{target} wake time rather than from the moment the current iteration happens to finish, so that variable execution time in a given iteration does not accumulate into long-run drift of the sampling rate.
+
+No acquisition task performs serial output. Writing to the serial console blocks for a variable, non-trivial duration, which would have consumed part of the sampling period and defeated the purpose of measuring it; all reporting is deferred to a lower-priority stats task described in Section~\ref{sec:acquisition-instrumentation}. When a queue is full, the producing task drops the new sample and increments a counter rather than blocking, so that a slow consumer can never hold up sample acquisition.
+
+Each sample carries a sensor identifier, a monotonically increasing sequence number, and a timestamp from \texttt{esp\_timer\_get\_time()}, an ESP-IDF monotonic microsecond clock unaffected by wall-clock or network time adjustments. Table~\ref{tab:imu-sample} lists the sample structure.
+
+\begin{table}[ht]
+\centering
+\caption{Inertial sample structure.}
+\label{tab:imu-sample}
+\begin{tabular}{|l|l|p{6.5cm}|}
+\hline
+\textbf{Field} & \textbf{Type} & \textbf{Description} \\ \hline
+\texttt{sensor\_id} & uint8 & 0 for the first sensor, 1 for the second \\ \hline
+\texttt{sequence} & uint32 & Per-sensor sample counter \\ \hline
+\texttt{timestamp\_us} & int64 & \texttt{esp\_timer\_get\_time()} at acquisition \\ \hline
+\texttt{ax, ay, az} & float & Acceleration, m/s\textsuperscript{2} \\ \hline
+\texttt{gx, gy, gz} & float & Angular rate, rad/s \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Sensor configuration}
+
+Each sensor is initialised with an accelerometer range of $\pm8g$, chosen to give headroom against clipping during pothole or kerb impacts while retaining resolution; this value is provisional and will be revisited once field data indicates the actual peak levels produced by this vehicle. The gyroscope range is set to $\pm500^{\circ}$/s. The onboard low-pass filter bandwidth is explicitly set to its widest available option (260\,Hz) rather than left at the sensor driver's default, because ISO~2631-1 requires content up to 80\,Hz and a narrower default filter setting would have attenuated exactly the frequency band this project needs to measure.
+
+\section{Inter-board time synchronisation}
+\label{sec:sync-pulse}
+
+Correlating video, inertial, and other future sensor streams (Chapter 1) across the ESP32-S3 and a Raspberry Pi requires the two boards' independent clocks to be related to one another. A dedicated FreeRTOS task toggles a GPIO output once per second (2\,s period, edges 500\,ms apart), using \texttt{vTaskDelayUntil} for the same drift-resistant timing behaviour as the acquisition tasks, and logs its own \texttt{esp\_timer\_get\_time()} value at each edge. A companion process on the Raspberry Pi (outside the scope of this chapter) is intended to watch the same physical line on a GPIO input and record the edge arrival time against its own clock; comparing the two logs post-hoc yields the clock offset and drift between the boards.
+
+The pulse task's timing was verified directly from captured serial output: successive logged edges were consistently 500{,}000 to 500{,}001\,\textmu s apart over an extended capture, indicating no measurable drift over the observed window and confirming the mechanism is precise enough to serve as a shared time reference before it is connected to a second board.
+
+\subsection{Pin assignment error found before wiring}
+
+The GPIO initially selected for this output was chosen as a placeholder without reference to the board's schematic, on the same basis later found to be unsafe in Section~\ref{sec:dual-imu-architecture}: the Makerfabs ESP32-S3 4G LTE CAT1 A7670X module carries peripherals beyond the microcontroller itself, and not every silicon GPIO is brought out to an accessible header. Direct physical inspection of the assembled board showed no such pin present, which was then confirmed against the manufacturer's published schematic (obtained from the Makerfabs hardware repository, since the placeholder pin had been chosen before this document was available): the board exposes exactly two thirteen-pin headers, and the pin in question is not among the signals brought out on either. The fault was caught before any wiring was attempted, avoiding the risk of a connection to an internal or unexposed net.
+
+The schematic also confirmed, as a useful secondary result, that both IMU2's I2C pins (Section~\ref{sec:dual-imu-architecture}) and IMU1's original I2C pins are genuinely present on these headers, the former explicitly silkscreened as I2C signals and the latter as general-purpose GPIO usable for I2C via the microcontroller's pin matrix. The sync output was reassigned to a general-purpose pin on the same header as IMU2's I2C connection, avoiding pins with a strapping or alternate-function role that could interfere with the board's boot sequence, and allowing both signals to be wired to the Raspberry Pi through a single connector.
+
+\subsection{End-to-end validation}
+
+With the corrected pin wired to the Raspberry Pi's GPIO17 and a shared ground between the two boards, the mechanism was tested end-to-end for the first time: a listener process on the Raspberry Pi (using \texttt{gpiozero} to detect rising and falling edges, logging each against the Pi's own monotonic clock) was run concurrently with a capture of the ESP32's own serial log. Over a combined window, the Raspberry Pi logged 28 edges against the ESP32's 25 logged edges in its shorter capture window, with inter-edge intervals on the Raspberry Pi side clustering at 500.1--500.3\,ms, consistent with the ESP32's own 500.000\,ms period plus the expected interrupt-handling and Python-level logging overhead on the Raspberry Pi side. This confirms the physical connection, pin assignment, and cross-board signalling approach are sound.
+
+One interval fell well outside this cluster: a single 413.6\,ms gap, immediately followed by a 499.8\,ms gap, against a run of otherwise consistent $\sim$500\,ms intervals. This is reported rather than discounted, but is not yet explained; the most likely candidate, given it occurred once immediately after the physical connection was first made, is a transient contact bounce at the newly-wired connection rather than a fault in either board's timing logic, though this has not been confirmed and should be watched for over a longer capture before being dismissed.
+
+\subsection{A physical connection fault found during a later session}
+
+In a later lab session, the same test (concurrent capture of the Raspberry Pi's edge log and the ESP32's own serial log) unexpectedly returned zero edges logged on the Raspberry Pi side over a full capture window, despite the ESP32's own log confirming the pulse was still toggling correctly at the microcontroller pin. Isolating this to one board rather than the other in this way pointed directly at the physical link between them rather than either board's own logic. Visual inspection of the jumper wires between the two boards, which had been handled while repositioning the camera earlier in the same session, found the connection had been disturbed; reseating it and re-running the same concurrent test immediately restored correct operation (edges logged on both sides at the expected rate). This is noted as a real, if mundane, reliability consideration for eventual on-vehicle deployment: a jumper-wire connection was sufficient for bench testing but was shown, within a single session, to be vulnerable to incidental handling, which is a more benign disturbance than the vibration expected during actual vehicle operation. A more mechanically secure connector is recommended before this link is relied upon during a moving test.
+
+\subsection{Combined video and sync capture}
+
+A single script combining video recording (\texttt{rpicam-vid}, with per-frame presentation timestamps written via \texttt{--save-pts}) with the same GPIO edge-logging behaviour described above was run for a 15\,second test. This produced, in one output directory: an 18.3\,MB H.264 video file; a frame-timestamp file recording 439 frames (consistent with the sensor's approximately 29\,fps at 1920$\times$1080); a sync-edge log recording 33 edges, consistent with the ESP32's 2\,Hz toggle rate over the same duration; and a small reference file recording the script's own start time on both the monotonic and wall clocks.
+
+This confirms the combined capture pipeline runs without error and produces internally consistent output, but one calibration gap remained before frame-level correlation against sync edges could be trusted: the frame-timestamp file reports each frame's time relative to the first encoded frame (starting at 0\,ms), not against the same monotonic clock used for the sync log, and the recorded script-start time necessarily precedes the camera pipeline's actual initialisation. The offset between these two time bases required a dedicated calibration test.
+
+\subsection{Lens-cover calibration test}
+
+A deliberate visual event, fully covering the lens by hand for several seconds during a live recording, was used to bound this offset. The moment of covering was marked by the operator sending an explicit message at the instant of covering, immediately answered by querying the Raspberry Pi's wall clock; this reported time was then compared against the recording's own accounting of the same instant (the run's recorded start time plus the elapsed time, from the frame-rate, to the frame at which the recorded video visibly changes).
+
+An initial attempt at this test, coordinated by the operator reacting to a countdown given in advance, failed to produce a usable result: the visual event did not appear in the footage at all in one case, and in a second case appeared several seconds later than expected, most likely because reacting to an externally-given countdown introduces its own uncontrolled delay. Making the operator the one to trigger and report the event, rather than reacting to an external cue, resolved this: the reported covering time and the frame at which the image visibly changed (confirmed by inspection to be a uniform, featureless colour consistent with a hand directly over the lens, not a partial shadow or lighting change) agreed to within under one second, a gap consistent with ordinary human-reaction-plus-network round-trip latency in the reporting method itself rather than an intrinsic fault in the capture pipeline.
+
+This bounds the previously-unmeasured offset at under approximately one second, a substantially tighter and more confident result than the prior "of the order of several hundred milliseconds, unconfirmed" statement, though it does not eliminate the offset entirely: a tighter bound would require an event whose timing does not depend on a human reporting it (for example, an LED driven directly from the sync-pulse GPIO and captured optically), which was not available with the hardware on hand and is noted as a possible refinement rather than a requirement, given that sub-second alignment is adequate for the post-hoc correlation role this camera is intended to serve.
+
+\section{GNSS response parsing and field-mapping validation}
+\label{sec:gnss-parsing-validation}
+
+The GNSS interface verified in Section~\ref{sec:gnss-polling-verification} confirmed that a correctly framed \texttt{+CGNSSINFO} response could be obtained, but the firmware at that stage only forwarded the raw response text to the serial console; no structured position, altitude, or speed data was extracted. This section describes the design and validation of a parser to extract that structure.
+
+\subsection{Initial field-order assumption and its failure}
+
+A commonly published SIMCom A76XX \texttt{+CGNSSINFO} response format was initially assumed, consisting of thirteen comma-separated fields: fix mode; GPS, GLONASS, and BeiDou satellite counts; latitude and hemisphere; longitude and hemisphere; date; UTC time; altitude; speed; and course. The parser was written defensively against this assumption rather than trusting it unconditionally: the number of comma-separated fields in each response is checked before any field is interpreted, and the raw response text is always logged alongside the parsed result, so that an incorrect assumption would be visible in the log rather than silently producing plausible-looking but wrong values.
+
+This defensive design proved necessary. When tested against the live modem using the manual serial bridge established in Section~\ref{sec:gnss-polling-verification}, a genuine no-fix response was captured as:
+
+\begin{verbatim}
++CGNSSINFO: ,,,,,,,,
+\end{verbatim}
+
+This is eight commas, i.e.\ nine fields, not the assumed thirteen. Every poll was consequently logged as an unexpected field count rather than silently misparsed.
+
+\subsection{Revised mapping and its remaining limitation}
+
+The field count was corrected to nine, with a working-hypothesis mapping of fix mode, latitude, hemisphere, longitude, hemisphere, date, UTC time, altitude, and speed. This mapping is explicitly a hypothesis rather than a confirmed result: an all-empty response of the form captured above confirms the field \emph{count} but carries no information about field \emph{order}, since every field is empty. Confirming the order requires a response captured with a genuine satellite fix, which was not obtained during this indoor test session. Validating the field mapping against an outdoor fix, and confirming the units of the reported speed field (which differ between knots and km/h across firmware revisions of this modem family), is carried forward as part of the GNSS position-fix test defined in Table~\ref{tab:baseline-criteria}.
+
+With the corrected field count, the parser was re-tested over an extended run and produced a consistent, correctly parsed no-fix result on every poll (fix mode zero, no populated coordinate fields), with the raw response continuing to match the expected nine-field, all-empty structure. This is taken as validating the field \emph{count} correction; the field \emph{order} remains to be confirmed as described above.
+
+A later check against the manufacturer's command manual (version~1.09) sharpened rather than resolved this question. That version documents a sixteen-field \texttt{+CGNSSINFO} response (fix mode; GPS, GLONASS and BeiDou satellite counts; latitude and hemisphere; longitude and hemisphere; date; UTC time; altitude; speed; course; and three dilution-of-precision values), with a no-fix response of fifteen commas, and notes that other firmware variants report a different field set \cite{simcoma76xx}. The fitted modem's nine-field response therefore does not match that documented version, which means the field order cannot simply be taken from the manual either; the outdoor fix remains the deciding test. The same manual specifies the speed field in knots, which, if it also holds for the fitted firmware, must be converted before the speed-normalised roughness index in Section~\ref{sec:speed-norm} is computed.
+
+\subsection{Modem warm-up behaviour}
+
+A related, initially confusing observation was that GNSS polls timed out entirely (no response of any kind, not even an empty \texttt{+CGNSSINFO} line) for approximately the first 60--90 seconds after \texttt{AT+CGNSSPWR=1} was issued, despite the modem responding normally and immediately to other AT commands in the same session. Because the modem's power-key sequence (Section~3.5) runs on every firmware reset, this warm-up period was re-triggered on every reflash during development, which initially made the behaviour appear intermittent. Testing against a modem instance that had already been running for several minutes, via the manual serial bridge, confirmed that polling succeeds reliably once this warm-up period has elapsed. This is consistent with normal GNSS receiver behaviour, in which an internal startup or calibration routine delays the command interface for position queries independently of the shared AT command processor used for cellular functions, and is treated as expected behaviour rather than a fault, though it should be accounted for in any test procedure that enables GNSS shortly before recording data.
+
+\section{Acquisition-integrity instrumentation}
+\label{sec:acquisition-instrumentation}
+
+A dedicated, lower-priority task drains all three telemetry queues (two inertial, one GNSS) and periodically reports the evidence needed to characterise the acquisition path's real-time behaviour: achieved sample rate, minimum/mean/maximum inter-sample interval, and dropped-sample counts, per sensor, over a rolling two-second window; and GNSS poll and valid-fix counts over the same window. This task was itself the subject of a fault found during this development session: the GNSS queue was initially never drained by any consumer, since draining was added for the two inertial queues but omitted for GNSS. At the poll rate of one sample per three seconds and a queue depth of twenty, this produced a queue-full condition after approximately one minute of runtime, reported by the (non-blocking) producer as a dropped sample rather than causing a fault. The omission was corrected by including the GNSS queue in the same drain cycle as the two inertial queues.
+
+This instrumentation directly produces the acquisition-integrity evidence required for the experimental methodology described in Chapter~4: inter-sample jitter distributions, dropped-sample counts, and queue behaviour under load, without requiring a separate measurement pass once the vehicle is in motion.
+
+\section{Ride-characterisation signal processing}
+\label{sec:ride-characterisation}
+
+A dedicated task, one instance per IMU, computes time-domain ride-characterisation features from each one-second window of samples: root-mean-square acceleration, standard deviation, peak-to-peak amplitude, crest factor, mean absolute jerk, and a count of samples exceeding an adaptive threshold (mean plus two standard deviations). Features are computed on the acceleration-magnitude signal ($\sqrt{a_x^2+a_y^2+a_z^2}$) rather than a single nominally-vertical axis, since the sensor mounting has not yet been calibrated to a known vehicle-fixed frame; magnitude is rotation-invariant and therefore meaningful regardless of mounting orientation, at the cost of not identifying which axis a disturbance came from. This is a deliberate first-pass simplification, not a final design choice, and orientation compensation remains identified future work.
+
+Each IMU's acquisition task feeds this new characterisation task through its own dedicated queue, independent of the queue already drained by the acquisition-integrity task described above, so that adding this consumer could not alter the already-validated jitter and dropped-sample accounting for the acquisition path itself.
+
+\subsection{Validation against a synthetic signal}
+
+Since the physical IMUs are not yet connected, the feature-computation function was validated independently of any sensor hardware: a pure sine wave of known amplitude was generated in software, for which RMS, peak-to-peak amplitude, and crest factor have closed-form expected values ($A/\sqrt{2}$, $2A$, and $\sqrt{2}$ respectively, for amplitude $A$). Run once at boot regardless of whether an IMU is present, this self-test computed RMS, peak-to-peak, and crest factor all within 5\% of their analytical values against a 200-sample, 5\,Hz test signal. This confirms the arithmetic in the feature-computation code is correct; it does not, and cannot yet, confirm that the resulting features usefully separate road-induced vibration from motor and powertrain vibration on the real vehicle, which requires the physical IMUs and is carried forward as the empirical baselining work already described in Section~\ref{sec:dual-imu-architecture}.
+
+\subsection{Per-sensor magnitude calibration}
+\label{sec:imu-magnitude-calibration}
+
+Once both physical IMUs were wired and running simultaneously, a systematic discrepancy was observed between them: with both sensors stationary on the same rigid platform, one consistently reported a resting acceleration magnitude of approximately 10.35--10.39\,m/s\textsuperscript{2}, while the other reported approximately 9.55--9.60\,m/s\textsuperscript{2}. Since both sensors were stationary and subject to gravity alone, both should report a magnitude close to 9.80665\,m/s\textsuperscript{2}; the observed gap (approximately 5--8\% relative to each other, and against the true value) is consistent with the sensitivity and bias tolerance permitted by the accelerometer's own datasheet between nominally identical units, rather than a wiring or software fault. Two boards from the same batch simply do not agree on the same physical state without correction.
+
+Because the feature-computation pipeline described above operates on acceleration magnitude only (Section~\ref{sec:ride-characterisation}), the appropriate scope of correction is a single scalar multiplicative factor per sensor, applied to the magnitude signal before feature computation, rather than a full per-axis bias-and-scale calibration: RMS, standard deviation, peak-to-peak amplitude, and mean absolute jerk all scale linearly under such a correction, while crest factor and the threshold-crossing count are unaffected, since both are scale-invariant under a uniform multiply. This corrects exactly the discrepancy observed without attempting to correct per-axis bias or cross-axis coupling, which would require a multi-orientation calibration procedure and is not needed since no downstream code consumes individual axes.
+
+The calibration factor for each sensor is computed once, the first time that sensor is detected with no stored calibration present: the firmware samples 200 readings (one second at the 200\,Hz acquisition rate), computes the mean magnitude, and derives a scale factor as the ratio of true gravitational acceleration to that mean. This necessarily assumes the sensor is stationary during this window, which holds for the bench bring-up session in which calibration first ran, but cannot be assumed on every future boot once the sensor is mounted to a vehicle that may be powered on while already in motion or under vibration from other equipment. The computed factor is therefore stored in non-volatile storage and reused on every subsequent boot rather than recomputed blind; a computed factor falling outside a sanity range of 0.5--2.0 is rejected and not stored, on the basis that a result that far from unity is more likely to indicate the sensor was not actually stationary during calibration than a genuine hardware discrepancy of that magnitude.
+
+Applied to the two physical sensors in this project, the measured factors were 0.9773 and 0.9901. Following calibration, both sensors' resting magnitude readings converged to 9.80--9.81\,m/s\textsuperscript{2}, agreeing with each other to within measurement noise (previously a 5--8\% gap). This was further checked under dynamic conditions, not only at rest: physically perturbing the sensor platform produced a large, simultaneous spike in both sensors' computed features (peak-to-peak amplitude rising from a quiescent baseline of approximately 0.2\,m/s\textsuperscript{2} to 18.4 and 10.2\,m/s\textsuperscript{2} respectively, crest factor rising from approximately 1.01 to 2.17 and 1.43, mean absolute jerk rising from approximately 8\,m/s\textsuperscript{3} to 160 and 162\,m/s\textsuperscript{3}), followed by a decay back through progressively smaller windows to the original quiescent baseline. The two sensors continued to track each other closely throughout this dynamic event, not only in the stationary case the calibration factor was derived from, which is stronger evidence that the correction generalises than the static check alone would provide. This also serves as a first confirmation, independent of the earlier closed-form self-test, that the pipeline correctly distinguishes a genuine physical disturbance from the quiescent baseline on real hardware; it is a bench-top hand disturbance rather than a real road event, and is reported as evidence the detection logic behaves sensibly on genuine kinematic input, not as a substitute for the outstanding real vehicle field test.
+
+\subsection{Speed-normalised roughness index}
+\label{sec:speed-norm}
+
+The features above describe the vehicle's response rather than the road alone: the transfer from road profile to measured acceleration depends on vehicle speed, so the same road section driven faster produces a larger RMS. Li et al. classify road roughness from the mean square of unsprung-mass acceleration divided by vehicle speed, on the basis of the relationship between the road's power spectral density, the acceleration response, and speed \cite{li2018}. Following that approach, each one-second window additionally computes an index equal to the mean-square acceleration magnitude divided by the most recent GNSS speed.
+
+Two differences from that study are acknowledged. The sensors here are to be mounted on the vehicle body rather than on the unsprung mass, so the suspension's own filtering sits between the road and the measurement, and the index uses the acceleration magnitude rather than a single vertical axis. The index is left undefined, rather than reported as a misleading value, when there is no valid GNSS fix or when speed is below a minimum threshold, since dividing by a near-zero speed produces an arbitrarily large number. Its units follow the GNSS speed field, which the manufacturer's manual gives in knots but which has not yet been confirmed on the fitted modem (Section~\ref{sec:gnss-parsing-validation}), so until then it supports relative comparison within one dataset only. It has not yet been computed against a real GNSS fix.
+
+\section{Battery-management system interface over BLE}
+\label{sec:bms-interface}
+
+The vehicle's battery pack reports voltage, current, state of charge, capacity, cell and MOSFET temperature, and protection-fault status over a Bluetooth Low Energy interface conforming to the JBD/Jiabaida smart BMS protocol. A prior implementation of this interface existed but had not been integrated into the acquisition architecture described in this chapter, and was found on review to have three defects relevant to a vehicle deployment: it created a new BLE client object on every connection attempt without releasing the previous one, leaking memory at a rate of one client per reconnection cycle; it re-established the BLE connection from scratch every ten seconds regardless of whether the previous connection was still valid, rather than holding a persistent connection; and it framed incoming notification data using only a start byte and a trailing terminator byte, which is unreliable because the terminator's value can legitimately occur inside the data payload itself.
+
+\subsection{Hardened interface design}
+
+The interface was rewritten around a single BLE client object, created once and reused for every connection attempt, with reconnection triggered only by an explicit disconnect callback rather than a fixed timer. Frame reassembly now uses the protocol's declared data-length field (byte index 3) to compute the expected total frame length before attempting to parse a frame, rather than searching for a terminator value that is not guaranteed to be unique. Each frame is additionally validated against a checksum computed as the two's-complement of the sum of the register, status, and length-declared data bytes, following community-documented reverse-engineering of the JBD protocol; a persistent checksum failure is intended as a signal to re-derive this formula from a freshly captured frame rather than as proof the frame itself is corrupt, since no vendor datasheet was available to confirm the formula directly. A secondary plausibility check (pack voltage, state of charge, and current within ranges consistent with a 72\,V nominal pack) is applied independently of the checksum, since a checksum-valid but implausible reading is more likely to indicate a genuine fault condition worth logging than a parsing defect. Every advertised BLE device seen during scanning is logged, not only the configured target address, so that a stale or incorrect address is visible in the log rather than producing silent, unexplained non-connection.
+
+\subsection{A scanning fault found during testing}
+
+During bench testing, the interface was observed to log no BLE advertisements at all, from any device, over an extended scanning window in an environment known to contain multiple active BLE devices. Inspection of the reconnection logic showed that continued scanning had been made conditional on a target-address variable that is only ever set once the target device has already been found, meaning the retry path could never execute on a first run in which the target had not yet been located. Removing that condition, so that scanning resumes whenever the interface is disconnected and not already mid-scan, produced immediate and continuous device discovery on retest. This distinguishes a genuine absence of the target device from a defect preventing the interface from scanning for anything at all, a distinction that would not have been available without the diagnostic logging described above.
+
+\subsection{First live contact with a powered pack}
+
+In a subsequent lab session, the pack was powered on for the first time during testing. The configured MAC address was confirmed present in the scan log, this time carrying an advertised name (\texttt{DB24SA01L24S150ABU}) not seen while the pack was off. Read as a JBD-style model designation, the \texttt{24S} and \texttt{150A} components of this name are consistent with a 24-cell-series lithium pack rated to 150\,A, which is independently useful evidence: it does not match the vehicle's main traction pack, which a separate inherited team's safety documentation records as lead-acid with no BMS. The pack this interface targets is therefore most likely a separate lithium auxiliary pack (plausibly the sensor/accessory supply described by another inherited subsystem's documentation) rather than the vehicle's main battery, a distinction that should be confirmed directly with that subsystem's owners before the report claims which physical pack this section characterises.
+
+\subsection{A second assumption invalidated by live testing}
+
+With the pack advertising, \texttt{connect()} was observed to succeed on the underlying BLE link, but the subsequent \texttt{getService(BMS\_SERVICE\_UUID)} call returned null, so the connection was dropped before any characteristic was read. This is a second instance of the same class of fault as the scanning defect above: an assumption (that the notify/write characteristics are nested under service UUID \texttt{0xff00}) that had never been tested against a genuinely live pack. It is notable that an independently-written reference implementation, targeting the same MAC address and the same characteristic UUIDs (found in an inherited teammate's codebase, discussed further in Chapter~2/Chapter~3 as appropriate), never encounters this problem, because it looks up the notify/write characteristics directly rather than first requiring a specific parent service UUID: a difference in library behaviour (Bleak's high-level API versus this project's direct use of the ESP32 Arduino BLE library) rather than a difference in understanding of the protocol. The interface was corrected to search every service discovered on the connection for the required characteristic UUIDs, rather than assuming which service they belong to, matching the more permissive behaviour of the reference implementation.
+
+Separately, this same cross-check against an independently-written parser confirmed, byte for byte across every decoded field (pack voltage, current, remaining and nominal capacity, protection-fault flags, state of charge, and NTC temperature readings), that this project's own field-offset mapping is correct. This had previously been reverse-engineered from community documentation rather than a vendor datasheet; an independent implementation arriving at identical offsets is meaningful corroborating evidence, though it should be noted that the reference implementation does not itself validate the frame checksum, so the checksum formula specifically remains self-derived and not independently confirmed.
+
+\subsection{Status at time of writing}
+
+After the characteristic-lookup fix, the connection was observed to succeed intermittently rather than reliably: across repeated automatic retry cycles, most \texttt{connect()} attempts failed outright, with one confirmed success (which was the case that exposed the service-UUID fault above). A full power-cycle of the microcontroller did not change this pattern, which rules out a wedged BLE stack on the microcontroller side as the explanation. The pack continued to advertise consistently throughout, which argues against the most likely alternative explanation (another client already holding the pack's single available BLE connection), though this was not conclusively ruled out either. The interface's connection-management and frame-validation logic is therefore now corrected and partially exercised against the real, powered pack, but a fully reliable end-to-end connection, sufficient to capture and checksum-validate a complete real telemetry frame, remains outstanding, and is not yet claimed as complete.
+
+\section{Environmental sensing}
+\label{sec:environmental-sensing}
+
+Environmental and air-quality measurement is provided by a Sensirion SEN55 sensor module (part number SEN55-SDN-T), which reports particulate matter, volatile organic compounds (VOC), nitrogen oxides (NOx), relative humidity, and temperature over I\textsuperscript{2}C. The module was selected so that environmental data could be recorded alongside the ride-characterisation and positioning data on the same timeline, allowing conditions along a route to be compared with the vehicle's measured response. It has been ordered from a local supplier; at the time of writing it has not yet been received or integrated into the firmware.
+
+\section{Full-system integration on the target hardware}
+\label{sec:full-system-integration}
+
+The work described above (dual-IMU acquisition and calibration, the BMS interface, cellular/GNSS networking) had each been validated individually, but on two different physical boards: the two IMUs on a bare ESP32-S3 development board used for isolated bring-up, and the cellular modem, GNSS, and BMS interface on the project's actual target board (a Makerfabs ESP32-S3 A7670X module, the only board with the required cellular and GNSS hardware present). This section reports moving the IMUs onto the target board itself, so that ride-characterisation, BMS, GNSS, and cellular telemetry publishing all run together on the single physical board the vehicle deployment requires.
+
+\subsection{A misdiagnosed fault: distinguishing a hardware failure from a software configuration mismatch}
+
+After moving the physical IMU connections onto the target board, the firmware produced no serial output whatsoever beyond the ROM bootloader's own boot banner, across repeated reflashes, physical resets, and reseated wiring. Initial hypotheses, tested and each ruled out in turn, included: a hung I2C bus preventing the acquisition task from ever reaching its first diagnostic print (ruled out by adding explicit \texttt{Serial.flush()} calls immediately after \texttt{Serial.begin()}, before any I2C code executes, which still produced no output); insufficient time for native-USB enumeration before the host attempted to read (ruled out by adding a fixed startup delay, which did not change the result); and a damaged connection from the physical rewiring (ruled out by confirming the board's power LED and temperature were normal).
+
+The eventual explanation was a software configuration mismatch rather than a hardware fault. The project's build configuration had, in an earlier session, been changed to route the Arduino \texttt{Serial} object over hardware UART0 rather than native USB, specifically to fix serial output on the bare bring-up board, which reaches the host over UART0 via an external USB-to-serial bridge chip. The target board's own schematic (obtained directly from the manufacturer's public repository, not assumed) shows a materially different design: it exposes three separate USB-C connectors, one wired to the ESP32-S3's native USB peripheral and a second wired to hardware UART0 via an onboard CH340K bridge chip, on an entirely separate physical port from the first. With \texttt{Serial} routed to UART0, application output was being sent out the second, unconnected port, while only the ROM bootloader's fixed-routing boot banner (which uses the native USB peripheral regardless of application configuration) reached the port actually connected to the host. Restoring the native-USB routing configuration for this board resolved the fault immediately and completely.
+
+This is reported in some detail because the debugging process itself is the relevant methodological point: a symptom consistent with several plausible causes (hardware fault, timing issue, software fault) was resolved by systematically eliminating each using a targeted, falsifiable test, rather than assumed from the most recently changed variable. The two boards this project alternates between require opposite settings for this configuration, which is now documented directly in the build configuration file to prevent this specific fault recurring when switching boards again.
+
+\subsection{Result: simultaneous operation on the target hardware}
+
+With the configuration fault resolved, both IMUs, the BMS BLE scanner, and the cellular modem's AT command interface were confirmed running simultaneously on the target board. Both IMUs report as found and configured, each streaming a full window (400-401 samples per 2-second reporting interval, against a 200\,Hz target) with zero dropped samples, and each auto-calibrating on first detection via the procedure described in Section~\ref{sec:imu-magnitude-calibration} (measured scale factors of 1.0390 and 1.0245 for this particular pair of sensors on this board, both stored to non-volatile storage and correctly reloaded on subsequent boots without recalibrating). Concurrently, the modem responded to \texttt{AT+CPIN?} with \texttt{+CPIN: READY}, confirming the SIM is present and unlocked, and logged genuine network-attach events (\texttt{+CGEV: EPS N ACT 1}, \texttt{+CGEV: ME PDN ACT 8}) rather than the modem being silent or erroring, while the BMS scanner continued logging real nearby BLE advertisements throughout. This is the first point at which every major subsystem covered in this chapter has been exercised concurrently on the single physical board the vehicle deployment requires, rather than validated in isolation on separate hardware.
+
+Figure~\ref{fig:bench-setup} shows the bench setup used for this integration, with each component labelled by its role in the system. The Makerfabs board forms the telemetry unit, the Raspberry Pi~4 hosts the camera, and the two are joined by the sync-pulse wire described in Section~\ref{sec:sync-pulse}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  lbl/.style={font=\footnotesize, text width=3.5cm, inner sep=1pt},
+  pin/.style={draw=black, fill=white, circle, inner sep=0pt, minimum size=4.5pt},
+  lead/.style={line width=0.6pt, draw=black, preaction={draw=white, line width=2.2pt}}]
+\node[anchor=south west, inner sep=0] (img) at (0,0) {\includegraphics[width=0.5\textwidth]{figures/bench_setup.jpg}};
+\begin{scope}[x={(img.south east)}, y={(img.north west)}]
+  % left-hand labels
+  \node[lbl, anchor=east, align=right] (cam) at (-0.04,0.73) {\textbf{OV5647 camera}\\forward-facing visual record, time-aligned with the IMU data};
+  \node[lbl, anchor=east, align=right] (syn) at (-0.04,0.53) {\textbf{Sync-pulse wire}\\ESP32 GPIO to Pi GPIO17, a shared timing reference};
+  \node[lbl, anchor=east, align=right] (pi)  at (-0.04,0.35) {\textbf{Raspberry Pi 4}\\camera capture, sync-edge logging and object detection};
+  \node[lbl, anchor=east, align=right] (lte) at (-0.04,0.18) {\textbf{LTE antenna}\\for the A7670X cellular modem};
+  \node[lbl, anchor=east, align=right] (usb) at (-0.04,0.02) {\textbf{USB drive}\\boot media for the Raspberry Pi};
+  % right-hand labels
+  \node[lbl, anchor=west, align=left] (hub) at (1.04,0.82) {\textbf{USB hub}\\power and host connection};
+  \node[lbl, anchor=west, align=left] (imu) at (1.04,0.64) {\textbf{MPU6050 IMU}\\3-axis acceleration and angular rate, sampled at 200\,Hz};
+  \node[lbl, anchor=west, align=left] (esp) at (1.04,0.40) {\textbf{ESP32-S3 and A7670X board}\\IMU acquisition, ride features, BMS over BLE, GNSS, local logging and LTE telemetry};
+  \node[lbl, anchor=west, align=left] (gps) at (1.04,0.15) {\textbf{GNSS patch antenna}\\position and speed};
+  % leader lines
+  \draw[lead] (cam.east) -- (0.32,0.73); \node[pin] at (0.32,0.73) {};
+  \draw[lead] (syn.east) -- (0.45,0.37); \node[pin] at (0.45,0.37) {};
+  \draw[lead] (pi.east)  -- (0.38,0.28); \node[pin] at (0.38,0.28) {};
+  \draw[lead] (lte.east) -- (0.24,0.17); \node[pin] at (0.24,0.17) {};
+  \draw[lead] (usb.east) -- (0.31,0.09); \node[pin] at (0.31,0.09) {};
+  \draw[lead] (hub.west) -- (0.55,0.79); \node[pin] at (0.55,0.79) {};
+  \draw[lead] (imu.west) -- (0.63,0.70); \node[pin] at (0.63,0.70) {};
+  \draw[lead] (esp.west) -- (0.66,0.28); \node[pin] at (0.66,0.28) {};
+  \draw[lead] (gps.west) -- (0.745,0.20); \node[pin] at (0.745,0.20) {};
+\end{scope}
+\end{tikzpicture}
+\caption{Bench setup of the telemetry system, with each component labelled by its role.}
+\label{fig:bench-setup}
+\end{figure}
+
+\section{Camera subsystem: Raspberry Pi provisioning and network verification}
+\label{sec:pi-camera-provisioning}
+
+A forward-facing camera, intended to provide a synchronised visual record against which inertial events can be labelled (Chapter~2), is hosted on a Raspberry Pi 4 rather than the project's Raspberry Pi 5. This was a deliberate choice: the Raspberry Pi 5 already runs the inherited vehicle dashboard from prior vacation work, and only one storage card was available for the two boards. Provisioning the Raspberry Pi 4 from its own dedicated USB drive, rather than the Raspberry Pi 5's card, avoids modifying or risking a working, inherited deployment in order to develop unrelated capture software.
+
+\subsection{Camera identification}
+
+Querying the connected camera directly (\texttt{rpicam-hello --list-cameras}) identified the sensor as an OV5647, corresponding to the original 5-megapixel Raspberry Pi Camera Module rather than a v2, v3, or High Quality module. This determines the achievable frame rate and resolution combinations available to later experimental work; the sensor supports, among other modes, 1920$\times$1080 at approximately 32.8\,fps and 1296$\times$972 at approximately 46.3\,fps, either of which is adequate for the post-hoc correlation role this camera is intended to serve, as distinct from a real-time perception role that was not required of it.
+
+\subsection{A media-provisioning fault: incomplete partitioning}
+
+A second Raspberry Pi 4 USB drive, provisioned later to give the camera subsystem its own dedicated boot media independent of the first, was initially written incorrectly: inspecting the resulting drive showed a single FAT32 partition containing only boot files, with no second, larger partition present for the root filesystem. This is consistent with copying the boot-partition files directly onto the drive rather than writing a complete disk image through an imaging tool, since a plain file copy has no means of creating the ext4 root partition the boot configuration expects. The fault was caught by inspecting the drive's partition table directly rather than only its file listing, which showed one partition where two were expected; \texttt{cmdline.txt} on the faulty drive also referenced a root-partition identifier that did not exist anywhere on the disk, which would have caused the device to fail at boot rather than produce a subtler runtime fault. Re-writing the same target drive through Raspberry Pi Imager's normal write flow produced the expected two-partition layout (a $\sim$512\,MB boot partition and a $\sim$29\,GB root partition), which was confirmed both by inspecting the partition table and by cross-checking that the disk's own signature matched the partition identifier referenced in the regenerated \texttt{cmdline.txt}.
+
+\subsection{Network provisioning}
+
+Two network configurations were attempted before a working configuration was found. Joining the existing university network directly was unsuccessful, consistent with existing project documentation noting that the Raspberry Pi 5 is similarly not reachable over the general university network and instead relies on a dedicated mobile hotspot. A local Windows-hosted mobile hotspot was then configured, but the connecting laptop reported that it was sharing the connection over the 5\,GHz band; no device joined the hotspot despite correct network credentials being applied to the Raspberry Pi. This is consistent with a documented characteristic of the Raspberry Pi 4's wireless interface, which requires a wireless regulatory (country) domain to be configured before 5\,GHz operation is enabled at all; without this, the interface cannot use or discover a 5\,GHz-only network, independent of whether the correct credentials are present. Forcing the hotspot to the 2.4\,GHz band resolved this without requiring any change to the Raspberry Pi's own configuration, and the device joined the network immediately following its next reboot.
+
+A related, separate fault was found once the device was network-reachable: the secure-shell service did not respond on its expected port despite the device being fully booted. This was traced to the remote-access configuration not having been re-confirmed during a second provisioning pass that had been intended only to update the wireless network credentials, and was resolved directly on the device (\texttt{systemctl enable --now ssh}). This is noted because it illustrates a general risk in staged device provisioning: revisiting one configuration field to correct it does not guarantee that unrelated fields set in an earlier pass remain applied, and each should be independently verified rather than assumed.
+
+\subsection{A recurring connectivity fault on re-provisioned media}
+
+After the media-provisioning fault above was corrected and the device re-flashed, network connectivity had to be re-established from scratch, and proved considerably less straightforward the second time. The hotspot itself was first found to have stopped broadcasting entirely between sessions (the hosting laptop's virtual network adapter reported a disconnected media state despite appearing enabled in software), which was resolved by re-enabling it directly. With the hotspot broadcasting again, the device still did not detect it. Querying the device's wireless regulatory state directly (\texttt{iw reg get}) showed a discrepancy: the global regulatory domain proposed by the kernel boot parameter correctly showed the expected country code, but the wireless radio itself (\texttt{phy\#0}) reported a separate, generic ``world'' regulatory domain with DFS channels marked unset. This is consistent with a known characteristic of the Broadcom/Cypress wireless chip used on this board, in which the kernel's regulatory-domain hint is not always propagated to the radio's firmware, and a country code set through the driver-level configuration path (via \texttt{raspi-config} or an equivalent wireless-configuration mechanism) is required in addition to the kernel-level hint.
+
+Both the country-code fix and a re-confirmation that the hotspot's own broadcast band was set to 2.4\,GHz (Section~\ref{sec:pi-camera-provisioning} above) were applied together before connectivity was restored, and it is honestly reported here that the specific sufficient fix was not isolated, since testing was not repeated with each change in isolation once a working configuration was found. What is established with confidence is that the device's own radio hardware and driver stack were not blocked by any lower-level fault: \texttt{rfkill} reported no soft or hard block on either the Bluetooth or wireless interfaces throughout, ruling out the simpler explanation that the radio itself was disabled.
+
+\subsection{Verification}
+
+With network and remote-access issues resolved, the device was confirmed reachable, correctly identified by hostname, running Raspberry Pi OS Trixie (the same release used by the project's Raspberry Pi 5, avoiding a software-version mismatch between the two boards), reporting no under-voltage or thermal throttling condition, and reporting adequate free storage available for recorded video. The combined video-capture and inertial-synchronisation software described in Section~\ref{sec:sync-pulse} was subsequently implemented and validated on this device once connectivity was restored.
+
+A minimal live-preview capability (an MJPEG stream served over HTTP, viewable in any browser without additional software on the viewing machine) was also implemented as an operational aid, allowing the camera's physical aim and framing to be checked remotely before a recording session, independent of the main capture pipeline described above. This capability proved necessary rather than a convenience: without it, a recording session was found only after the fact to have been aimed at the ceiling rather than at any relevant scene, since the camera currently has no fixed mounting bracket and had shifted during handling. The live preview allows this to be caught and corrected before, rather than after, a recording is made, but the underlying cause, the lack of a rigid mount, remains open. The 3D-printed camera casing and corner mount described in Section~\ref{sec:camera-mount} were adopted to address this.
+
+\subsection{Camera casing and mounting}
+\label{sec:camera-mount}
+
+Section~\ref{sec:pi-camera-provisioning} above identifies the absence of a rigid camera mount as an open reliability issue: without one, a recording session was found only after the fact to have been aimed at the ceiling. As a first design, a parametric mounting bracket was modelled in OpenSCAD, sized to the camera module and lens, with a rectangular cable-routing slot and a circular lens aperture. This bracket was not used for the build; the casing that was 3D printed is described below.
+
+An initial render of the design appeared correct in preview, but rendering the full constructive-solid-geometry model (rather than only previewing it) revealed that the cavity cut for the lens aperture extended through the full thickness of the mounting face, consuming the material intended to retain the camera module rather than leaving a lip for it to seat against. This was corrected by bounding the cavity cut height to leave the intended retention lip in place, and re-verified with a full render rather than the preview alone, since the fault was only visible once the model was fully evaluated. Figure~\ref{fig:camera-mount} shows the corrected design.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/camera_mount_render.png}
+\caption{Initial parametric camera bracket (OpenSCAD, full render), showing the corrected lens-retention lip and cable-routing slots. This design was not printed.}
+\label{fig:camera-mount}
+\end{figure}
+
+The camera is instead housed in a three-part casing designed as part of this project and 3D printed, shown in Figure~\ref{fig:camera-casing} alongside the rest of the bench setup. A bottom shell (29.2 by 28.2 by 7.6\,mm) and a top cover (4.8\,mm) enclose the camera module, protecting it and its ribbon connection, and a separate 30-degree corner mount (32.3\,mm tall) provides the surface by which the casing is attached to the vehicle. A second printed casing houses a second camera. The casing has been printed but not yet fixed to the vehicle, so rigid mounting of the camera remains to be completed during vehicle integration.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  lbl/.style={font=\footnotesize, text width=3.5cm, inner sep=1pt},
+  pin/.style={draw=black, fill=white, circle, inner sep=0pt, minimum size=4.5pt},
+  lead/.style={line width=0.6pt, draw=black, preaction={draw=white, line width=2.2pt}}]
+\node[anchor=south west, inner sep=0] (img) at (0,0) {\includegraphics[width=0.5\textwidth]{figures/camera_casing_setup.jpg}};
+\begin{scope}[x={(img.south east)}, y={(img.north west)}]
+  \node[lbl, anchor=east, align=right] (rib) at (-0.04,0.86) {\textbf{Camera ribbon cable}\\CSI link from the camera to the Raspberry Pi};
+  \node[lbl, anchor=east, align=right] (cs1) at (-0.04,0.66) {\textbf{3D-printed camera casing}\\houses and protects the OV5647 camera module};
+  \node[lbl, anchor=east, align=right] (esp) at (-0.04,0.30) {\textbf{ESP32-S3 and A7670X board}\\telemetry unit};
+  \node[lbl, anchor=west, align=left] (imu) at (1.04,0.88) {\textbf{MPU6050 IMU}\\inertial sensing};
+  \node[lbl, anchor=west, align=left] (pi)  at (1.04,0.73) {\textbf{Raspberry Pi 4}\\camera host};
+  \node[lbl, anchor=west, align=left] (cs2) at (1.04,0.55) {\textbf{3D-printed camera casing}\\houses the second camera};
+  \draw[lead] (rib.east) -- (0.50,0.80); \node[pin] at (0.50,0.80) {};
+  \draw[lead] (cs1.east) -- (0.29,0.69); \node[pin] at (0.29,0.69) {};
+  \draw[lead] (esp.east) -- (0.33,0.32); \node[pin] at (0.33,0.32) {};
+  \draw[lead] (imu.west) -- (0.93,0.79); \node[pin] at (0.93,0.79) {};
+  \draw[lead] (pi.west)  -- (0.78,0.75); \node[pin] at (0.78,0.75) {};
+  \draw[lead] (cs2.west) -- (0.87,0.64); \node[pin] at (0.87,0.64) {};
+\end{scope}
+\end{tikzpicture}
+\caption{The cameras fitted in their 3D-printed casings, shown with the rest of the bench setup.}
+\label{fig:camera-casing}
+\end{figure}
+
+\subsection{Hazard-detection scope extension}
+\label{sec:hazard-detection}
+
+The camera's role was extended, on supervisor direction, beyond post-hoc visual correlation to include a live hazard-awareness function: reporting the presence, and an estimated rough distance, of road-relevant objects (pedestrians, cyclists, other vehicles) in the camera's field of view. This is deliberately scoped to what the Raspberry Pi 4 can sustain without a dedicated machine-learning accelerator, rather than a full autonomous-driving perception stack: a pretrained, COCO-trained SSD-MobileNet-v1 object detector (quantized to 8-bit integers as a TensorFlow Lite model, requiring no project-specific training data or training run) classifies objects in each frame, and distance is estimated from a known-object-width heuristic using the standard pinhole-camera relationship between an object's real-world width, its width in pixels, and the camera's focal length.
+
+This estimate has two acknowledged limitations, stated here rather than left implicit. First, the focal length used has not yet been calibrated against this specific camera and lens; a placeholder value is used until a calibration shot (an object of known width at a known distance) is captured. Second, each object class uses one fixed average real-world width (for example, 1.8\,m for a car), which is a reasonable order-of-magnitude estimate but not a per-instance measurement, since real vehicles vary in width and are not always presented front-on to the camera. Reported distances should therefore be read as indicative rather than precise until both limitations are addressed.
+
+\subsubsection*{Implementation and data handling}
+
+This component is the only part of the system that uses machine learning: a pretrained, quantised convolutional object-detection network. The detector was implemented but deliberately not executed against live camera data during bench development, so that its data handling could be fixed in code before it ever processed a real road scene.
+
+That data handling is deliberately minimal. The detector reports only a fixed set of object categories (motor vehicles, motorcycles, bicycles, pedestrians, and animals), grouped into coarse distance bands (immediate, warning, and monitoring) rather than precise distances. An object must be detected in the same band for several consecutive frames before it is treated as an alert, which suppresses single-frame flicker. For each alert, only five fields are recorded: object category, distance band, detection confidence, timestamp, and alert status. Each camera frame exists only in memory for a single inference pass and is never written to disk. No face or number-plate recognition, and no identification of any individual person or vehicle, is performed. All processing takes place locally on the Raspberry Pi, and the detector has no control over any vehicle function: its output is an advisory alert only.
+
+It is worth stating the boundary clearly in the other direction as well, because the vocabulary invites confusion: the ride-characterisation work described in Section~\ref{sec:ride-characterisation}, including its event detection and classification, is entirely classical time-domain signal processing against hand-set numerical thresholds. It contains no learned parameters and no trained model of any kind.
+
+\subsubsection*{A complementary, non-machine-learning proximity sensor}
+\label{sec:tof-sensor}
+
+A separate request arose during this project for a live alert to the driver when an object is near the vehicle, distinct from the post-hoc, camera-based hazard labelling described above. A VL53L5CX time-of-flight sensor (ST Microelectronics) was selected to provide this. It gives a second, physically distinct measurement of nearby objects, involves no camera image or learned model at all, and operates independently of the camera detector, so the alert does not depend on the detector's own status.
+
+Unlike a single-point time-of-flight device, the VL53L5CX resolves distance across an 8$\times$8 grid of independent zones within a 63\textdegree\ diagonal field of view, reporting a distance measurement per zone via I\textsuperscript{2}C at a rated range of up to 4\,m. This was chosen over the narrower single-point VL53L1X specifically for left/centre/right spatial discrimination: a single-point sensor can only report that \emph{something} is ahead within its narrow cone, whereas the zoned output can distinguish which side of the vehicle's path an object occupies. The sensor reports raw per-zone distance only, with no object classification or image capture involved. At the time of writing, the sensor has been sourced (Pololu carrier board, confirmed in stock locally for same-day order) but not yet received or integrated; the alerting logic (a per-zone distance threshold, driving either a GPIO output or a value published alongside the rest of the telemetry described in Section~\ref{sec:mqtt-networking}) is identified as near-term future work once hardware arrives.
+
+The rated 4\,m range and per-zone accuracy are datasheet figures obtained under controlled, indoor lighting. Ambient infrared from direct sunlight is known to reduce the effective range of time-of-flight sensors below their rated figure, and target reflectivity affects the range at which a given object is reliably detected. An independent laboratory characterisation of this exact sensor \cite{caroleo2026} quantifies the reflectivity effect directly rather than leaving it as a general expectation: against a white target, the sensor's reported distance was found to be near-linear with true distance (slope 1.005\,mm/mm) with a standard deviation of only a few millimetres across most of the tested range, whereas against a black target the standard deviation grew to nearly 50\,mm beyond 400\,mm, and the proportion of valid (non-rejected) readings fell to 18.8--34.4\% at the tested distances, against 92--100\% across the study's main experiments. The same study also reports a transient warm-up period of approximately 15 minutes after power-on, during which reported bias drifts as the sensor's internal temperature stabilises. Both effects are expected to be at least as pronounced outdoors on this vehicle, where sunlight adds a further reduction in range beyond what this indoor characterisation captures. This includes dark-coloured road users such as pedestrians in dark clothing, a realistic and safety-relevant case given the finding above, so the sensor's true achievable range and reliability under this project's actual operating conditions is treated as an open question to be measured directly once received, rather than assumed from either the datasheet or this indoor reference study.
+
+\subsubsection*{Why one sensor, not several}
+
+A single-point time-of-flight sensor (such as the VL53L1X considered initially) would need to be duplicated across several fixed pointing directions to give any left/centre/right discrimination, since each unit reports only one aggregate reading for whatever falls within its narrow cone. The VL53L5CX avoids this by construction: it already resolves its 63\textdegree\ field of view into a 8$\times$8 grid of independently reported zones from a single I\textsuperscript{2}C device, so the spatial-discrimination requirement that would otherwise justify multiple sensors is met by one. A second unit would only be justified by a requirement this design does not currently have, such as covering a field of view wider than 63\textdegree\ or sensing in more than one direction from the vehicle (for example, forward and reverse simultaneously); neither is part of the current scope, so one sensor is judged sufficient for this version of the system.
+
+\subsubsection*{Planned bench validation procedure}
+
+Once received, the sensor will be validated on the bench before integration, following the same staged, falsifiable approach used elsewhere in this chapter rather than assumed to work from the datasheet: (1) confirm I\textsuperscript{2}C communication and firmware/driver identification against the expected device ID; (2) reproduce, on this specific unit, the reflectivity-dependent behaviour reported in \cite{caroleo2026} using a plain white and a plain black test target at a fixed known distance, to confirm this unit's own valid-reading rate and bias rather than assuming the published figures transfer directly; (3) sweep a single target through the sensor's rated range at fixed increments to build a measured distance-versus-reported-distance curve, analogous to the self-test already used for the ride-characterisation feature computation (Section~\ref{sec:ride-characterisation}); (4) confirm the per-zone output correctly localises a target moved across the field of view (left, centre, right) rather than only validating the aggregate case; and (5) confirm the warm-up transient reported in \cite{caroleo2026} either is present on this unit or is shown not to materially affect the alert threshold used, before the sensor is relied upon for any on-vehicle test.
+
+\subsubsection*{Status at time of writing}
+
+At the time of writing, this component has been implemented and prepared for deployment but not yet run against the live camera, since the Raspberry Pi was not reachable on the network at the time. A first run against live camera data is identified as near-term work. This is reported as an implemented-but-unvalidated component rather than a completed one. A further open question, raised with the project supervisor but not yet answered, is what specifically should count as a reportable hazard for this vehicle and use case (road-surface defects specifically, versus general object presence of any kind); the current implementation reports a fixed set of general COCO object classes as a starting point, pending that clarification.
+
+A subsequent literature check specifically for camera-based hazard-awareness systems on three-wheeled or auto-rickshaw-class vehicles found no directly comparable academic or open-source system; the closest commercial precedent (a Tier-1 automotive supplier case study describing telematics and HUD products for auto-rickshaws) does not appear to combine camera-based detection with the vehicle-dynamics telemetry described elsewhere in this chapter. This is treated as evidence that the specific integration attempted here is not already a solved problem, rather than as proof of the individual component technologies (pretrained object detection, monocular distance estimation) being novel in themselves, since each of those is independently well precedented in the literature for other vehicle classes.
+
+\section{Cellular telemetry publishing}
+\label{sec:mqtt-networking}
+
+A networking task, running inside the existing modem-handling task rather than as a separate FreeRTOS task, publishes a compact JSON summary of the latest ride-characterisation, BMS, and GNSS state over MQTT via the A7670X modem's native AT command set (the same \texttt{AT+CMQTT*} family used by other SIMCom-class modems), rather than requiring a TCP/IP socket library on the microcontroller itself. This was deliberately kept inside the existing modem task rather than given its own task: the modem's UART is not protected by any locking mechanism, and a second task issuing AT commands on the same UART concurrently with the existing GNSS polling would interleave and corrupt both command streams.
+
+The broker address and credentials are left as placeholders in the firmware rather than pointed at the existing Tukzie vac-work team's own Mosquitto broker, whose documentation explicitly states its credentials must not be shared with a language model; this project had read access to that documentation but did not propagate its secrets into new code as a result. Tested against this placeholder broker, the connect sequence behaved exactly as intended: the AT+CMQTTCONNECT command failed cleanly (confirmed via live serial capture, showing the modem's own error response rather than a silent failure), the failure was logged clearly, and the rest of the system continued operating normally afterward with no crash or hang. This confirmed the AT command sequence itself was implemented correctly, independent of network conditions.
+
+\subsection{End-to-end validation against a real broker}
+
+With the full-system integration described in Section~\ref{sec:full-system-integration}, the modem was observed reaching genuine LTE registration: \texttt{AT+CPSI?} returned \texttt{LTE,Online} against a real mobile network operator's PLMN code, and \texttt{AT+CREG?}/\texttt{AT+CGREG?} both reported registered status. This registration was observed to be intermittent across repeated boot sequences in this indoor bench-testing location, in at least one case dropping mid-sequence (\texttt{+CGEV: NW PDN DEACT}) immediately before the MQTT connect attempt, which is reported honestly here as bench-test behaviour rather than smoothed over, since it is directly relevant to how reliably this subsystem could be expected to behave once mounted on the vehicle and moving through areas of varying signal strength.
+
+With the broker address changed from the placeholder to \texttt{test.mosquitto.org} (a public, unauthenticated broker used here only to validate the communication path end-to-end, not as a destination for real vehicle telemetry) and registration present at the time of the attempt, the full sequence succeeded: the firmware logged \texttt{[MQTT] Connected.}, and the subsequent publish returned \texttt{+CMQTTPUB: 0,0}, indicating a successfully acknowledged publish. This is the first point at which a complete, real path (SIM readiness, cellular network registration, PDN context activation, MQTT connection, and message publish) has been exercised end-to-end on real hardware, rather than validated only up to a placeholder failure. The intermittent registration observed above means this should be read as confirmation the mechanism works correctly when network conditions allow it, not as a claim of reliable connectivity under all conditions; the latter would require repeated testing under the vehicle's actual operating conditions, which remains outstanding.

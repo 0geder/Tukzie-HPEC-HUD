@@ -1,0 +1,27 @@
+\chapter{Results}
+
+This chapter presents the results by subsystem, followed by a full-system test on the vehicle, and maps each back to the research questions and requirements in Table~\ref{tab:requirements-mapping}. Bench-level validation results are reported alongside their methods in Chapter~3.
+
+\section{Inertial acquisition integrity (RQ3)}
+Achieved sample rate, inter-sample jitter distribution, and dropped-sample counts for both IMUs, first on the bench and then on the moving vehicle.
+
+\section{Sensor calibration}
+Per-sensor magnitude calibration factors and the resulting agreement between the two IMUs, at rest and under dynamic excitation.
+
+\section{Ride characterisation (RQ1, RQ4)}
+Time-domain features (RMS, peak-to-peak, crest factor, jerk, threshold crossings) and the speed-normalised roughness index recorded over known road sections, compared against identifiable road and powertrain events.
+
+\section{Battery-management telemetry}
+BLE connection reliability over a sustained session, and a measured discharge curve compared against the pack's rated capacity.
+
+\section{Camera, synchronisation and proximity sensing}
+Camera-to-IMU time alignment, object-detection alert events and the fields recorded for them, and time-of-flight distance measurements, including behaviour against light and dark targets.
+
+\section{Cellular synchronisation and data integrity (RQ3)}
+Publish success rate, latency, and recovery behaviour after induced or naturally occurring loss of coverage, with local-log completeness as the reference.
+
+\section{Head-up display (RQ2)}
+Information hierarchy as implemented, update latency, and legibility under representative lighting.
+
+\section{Full-system test}
+All subsystems operating together on the vehicle over a defined route.

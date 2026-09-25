@@ -61,3 +61,11 @@ dkms.conf
 
 # Personal signature image: keep out of the public repo
 GA Tracking Form/Signature.png
+Report/Signature.png
+Report/*.aux
+Report/*.log
+Report/*.toc
+Report/*.lof
+Report/*.lot
+Report/*.out
+__pycache__/

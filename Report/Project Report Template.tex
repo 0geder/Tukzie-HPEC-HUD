@@ -1,0 +1,164 @@
+% M. S. Tsoeu (2011), University of Cape Town <mohohlo.tsoeu@uct.ac.za>
+
+% This is a project report templace document created for EEE4022FS students at the University of Cape Town.
+%
+% This file should be is processed with ``pdflatex`` and might need a few modifications if a different processor is chosen.
+
+
+\documentclass[a4paper,12pt]{report}
+
+%Include packages you need to use here
+
+\usepackage[top = 1in, bottom = 1in, left = 1in, right = 1in]{geometry}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{lastpage}
+\usepackage{subfigure}
+\usepackage{lscape}
+\usepackage{hyphenat}
+\usepackage{setspace}
+\usepackage{longtable}
+\usepackage{tikz}
+\usepackage{hyperref}
+
+% Include page formatting here.
+\parskip = 6mm
+\parindent = 0mm
+\renewcommand{\headrulewidth}{0pt}
+\rhead[]{\thesection}
+\lhead[\thechapter]{}
+
+
+\begin{document}
+
+% This section formats the title page of the Report.
+\thispagestyle{empty}
+{\Huge \begin{center}
+% Modify the line below to insert your title.
+Development of an Embedded HPEC Telemetry Unit and Windshield HUD for the TUKZIE Rev 0 Platform
+\hrule
+\end{center}}
+
+\vskip 5mm
+\begin{center}
+\- \- \- \- \- \- \- \- \- \-\includegraphics[scale = 0.3]{uctLogo.png}
+\end{center}
+
+\vskip 5mm
+\begin{center}
+Presented by:\\
+Samson Okuthe\\
+Student number: OKTSAM001
+\end{center}
+
+\vskip 10mm
+\begin{center}
+Prepared for:\\
+Simon Winberg\\
+Co-supervisor: Sampath Jayalath\\
+Dept. of Electrical and Electronics Engineering\\University of Cape Town
+\end{center}
+
+
+\vskip 10mm
+\begin{center}
+Submitted to the Department of Electrical Engineering at the University of Cape Town in partial
+fulfilment of the academic requirements for a Bachelor of Science degree in Electrical and Computer
+Engineering.
+
+\end{center}
+
+
+\vskip 5mm
+\begin{center}{\bf \today}
+\end{center}
+
+\newpage
+
+\onehalfspacing
+\nohyphens{
+\thispagestyle{empty}
+\vskip 40mm
+
+
+% Please leave the declaration as it is (Standard UCT declaration).
+{\Large Declaration}\\
+\hrule
+
+\vskip 10mm
+\begin{enumerate}
+\item I know that plagiarism is wrong. Plagiarism is to use another's work and pretend that it is one's
+own.
+\item I have used the IEEE convention for citation and referencing. Each contribution to, and quotation in,
+this report from the work(s) of other people has been attributed, and has been cited and
+referenced.
+\item This report is my own work.
+\item I have not allowed, and will not allow, anyone to copy my work with the intention of passing it off
+as their own work or part thereof.
+\end{enumerate}
+\vskip 10mm
+Signature: \raisebox{-0.3\height}{\includegraphics[height=1.2cm]{Signature.png}}
+\\[8pt]Samson Okuthe (OKTSAM001)
+\vskip10mm
+Date: \today
+
+\newpage
+\thispagestyle{empty}
+{\Large Terms of Reference}\\
+\hrule
+
+This project (SW-7) is to develop an embedded high-performance-computing telemetry unit and windshield head-up display for the TUKZIE Rev 0 electric cargo trike, capable of acquiring synchronised inertial, battery, positioning and camera data, characterising the vehicle's dynamic response at the edge, preserving telemetry under intermittent cellular connectivity, and presenting a minimal set of safety-relevant information to the driver.
+
+
+\fancyfoot[C]{\thepage}
+\pagestyle{plain}
+\newpage
+\pagenumbering{roman}
+{\Large Acknowledgments}\\
+\hrule
+I thank my supervisor, A/Prof. Simon Winberg, and co-supervisor, Sampath Jayalath, for their guidance, and the TUKZIE Flagship Programme and its vacation-work teams, whose earlier work on the vehicle's dashboard, sensing and drivetrain this project builds on.
+
+
+\newpage
+
+{\Large Abstract}\\
+\hrule
+
+% Place your abstract here.
+\textit{Draft abstract, to be revised once field results are available.}
+
+This report describes the development of an embedded telemetry unit and windshield head-up display for the TUKZIE Rev 0, a 72\,V electric cargo trike. An ESP32-S3 with an integrated LTE modem acquires data from two inertial measurement units at 200\,Hz, the vehicle's battery-management system over Bluetooth Low Energy, and GNSS, computes time-domain ride-characterisation features at the edge, logs telemetry locally, and publishes it over MQTT. A Raspberry Pi 4 camera, time-synchronised to the inertial stream, provides a visual record, and an object detector reporting approximate distance bands has been implemented, to be complemented by a multi-zone time-of-flight sensor. Bench validation to date shows deterministic 200\,Hz acquisition with no dropped samples, per-sensor calibration reducing a 5 to 8\% disagreement between nominally identical accelerometers to within measurement noise, sub-second alignment between camera and inertial data, and a complete cellular publish path to a live broker. On-vehicle field testing, which the ride-characterisation and HUD research questions depend on, is the principal outstanding work.
+
+
+\newpage
+\tableofcontents
+
+%\newpage
+%\listoffigures
+
+%\newpage
+%\listoftables
+
+% Page formatting, to place section titles as headers of odd pages and Chapter titles as headers of even pages.
+\newpage
+\fancyhead[RE,LO]{}
+\fancyhead[LE]{\leftmark}
+\fancyhead[RO]{\rightmark}
+\pagestyle{fancy}
+
+\pagenumbering{arabic}
+
+% THe files included below are .tex files containing the respective chapters these are already created in this package and you can add to or modify them.
+\include{Introduction}
+\include{Literature}
+\include{Methodology}
+\include{Results}
+\include{Discussion}
+\include{Conclusions}
+\include{Recommendations}
+\include{References}
+\appendix
+\include{appendixa}
+}
+\end{document}
