@@ -142,6 +142,85 @@ struct RideCharTaskConfig {
   float mag_scale;  // per-sensor magnitude calibration factor, see loadOrCalibrateMagScale()
 };
 
+// Dual-IMU fusion. Both sensors are the same MPU6050 part in the same
+// configuration, calibrated to the same scale, so their measurement noise is
+// taken as equal; inverse-variance weighting then reduces to the plain mean,
+// which is the minimum-variance unbiased combination of two such readings.
+// The sensors are mounted at different points on the vehicle, so they are not
+// measuring an identical quantity: the fused mean is reported together with a
+// disagreement figure rather than hiding the difference between them.
+//
+// Only the linear features are averaged. Crest factor (a ratio) and the
+// threshold-crossing count do not combine meaningfully by averaging, so they
+// stay per-sensor.
+//
+// The two ride tasks fill their windows independently, so window boundaries
+// are not sample-aligned. A pair is fused only when the two windows ended
+// within half a window of each other (overlap of at least 50%), on the shared
+// esp_timer clock. If one sensor stops producing windows, the fused output
+// falls back to the other and says so via `sources`.
+#define RIDE_FUSION_MAX_SKEW_US (500000LL)   // half of the 1 s window
+#define RIDE_FUSION_STALE_US   (3000000LL)   // other sensor treated as absent after 3 s
+#define RIDE_FUSION_STD_FLOOR  0.05f         // m/s^2, avoids dividing by near-zero std at rest
+
+#define FUSED_SRC_IMU1 0x01
+#define FUSED_SRC_IMU2 0x02
+
+struct FusedRide {
+  int64_t window_end_timestamp_us;
+  uint8_t sources;            // FUSED_SRC_* bitmask of the sensors that contributed
+  int64_t skew_us;            // |t1 - t2| for a two-sensor fusion, 0 for a fallback
+  float rms_mps2;
+  float std_mps2;
+  float peak_to_peak_mps2;
+  float mean_abs_jerk_mps3;
+  float speed_norm_index;     // NaN unless every contributing sensor has one
+  // |std1 - std2| / max(mean std, floor): how differently the two mounting
+  // points are vibrating. NaN for a single-sensor fallback.
+  float std_disagreement;
+};
+
+// Combines one window from each sensor. Returns false (and leaves *out
+// untouched) when neither can be used. `now_us` is the time of the call, used
+// only to decide whether the other sensor has gone stale.
+bool fuseRideFeatures(const RideFeatures& a, const RideFeatures& b, int64_t now_us, FusedRide* out) {
+  const bool aFresh = a.sample_count > 0 && (now_us - a.window_end_timestamp_us) <= RIDE_FUSION_STALE_US;
+  const bool bFresh = b.sample_count > 0 && (now_us - b.window_end_timestamp_us) <= RIDE_FUSION_STALE_US;
+
+  if (aFresh && bFresh) {
+    int64_t skew = a.window_end_timestamp_us - b.window_end_timestamp_us;
+    if (skew < 0) skew = -skew;
+    if (skew > RIDE_FUSION_MAX_SKEW_US) return false;  // windows overlap too little to pair
+
+    out->window_end_timestamp_us = (a.window_end_timestamp_us > b.window_end_timestamp_us)
+                                       ? a.window_end_timestamp_us : b.window_end_timestamp_us;
+    out->sources = FUSED_SRC_IMU1 | FUSED_SRC_IMU2;
+    out->skew_us = skew;
+    out->rms_mps2 = 0.5f * (a.rms_mps2 + b.rms_mps2);
+    out->std_mps2 = 0.5f * (a.std_mps2 + b.std_mps2);
+    out->peak_to_peak_mps2 = 0.5f * (a.peak_to_peak_mps2 + b.peak_to_peak_mps2);
+    out->mean_abs_jerk_mps3 = 0.5f * (a.mean_abs_jerk_mps3 + b.mean_abs_jerk_mps3);
+    out->speed_norm_index = (isnan(a.speed_norm_index) || isnan(b.speed_norm_index))
+                                ? NAN : 0.5f * (a.speed_norm_index + b.speed_norm_index);
+    const float denom = fmaxf(out->std_mps2, RIDE_FUSION_STD_FLOOR);
+    out->std_disagreement = fabsf(a.std_mps2 - b.std_mps2) / denom;
+    return true;
+  }
+
+  const RideFeatures* only = aFresh ? &a : (bFresh ? &b : nullptr);
+  if (only == nullptr) return false;
+  out->window_end_timestamp_us = only->window_end_timestamp_us;
+  out->sources = aFresh ? FUSED_SRC_IMU1 : FUSED_SRC_IMU2;
+  out->skew_us = 0;
+  out->rms_mps2 = only->rms_mps2;
+  out->std_mps2 = only->std_mps2;
+  out->peak_to_peak_mps2 = only->peak_to_peak_mps2;
+  out->mean_abs_jerk_mps3 = only->mean_abs_jerk_mps3;
+  out->speed_norm_index = only->speed_norm_index;
+  out->std_disagreement = NAN;
+  return true;
+}
+
 // ============================================================
 // Per-sensor magnitude calibration.
 //
@@ -292,6 +371,52 @@ void selfTestRideFeatures() {
   Serial.printf("  Overall: %s\n\n", (rmsOk && p2pOk && crestOk) ? "PASS" : "FAIL - check computeRideFeatures()");
 }
 
+// One-shot self-test of fuseRideFeatures() with synthetic windows: checks the
+// averaging, the disagreement figure, rejection of badly misaligned windows,
+// and fallback to a single sensor when the other has gone stale.
+void selfTestRideFusion() {
+  const int64_t now = 10000000LL;  // arbitrary 10 s
+  RideFeatures a = {};
+  RideFeatures b = {};
+  a.sample_count = b.sample_count = RIDE_WINDOW_SAMPLES;
+  a.window_end_timestamp_us = now - 100000LL;   // 100 ms apart: should pair
+  b.window_end_timestamp_us = now - 200000LL;
+  a.rms_mps2 = 10.0f; b.rms_mps2 = 9.8f;
+  a.std_mps2 = 0.30f; b.std_mps2 = 0.10f;
+  a.peak_to_peak_mps2 = 2.0f; b.peak_to_peak_mps2 = 1.0f;
+  a.mean_abs_jerk_mps3 = 40.0f; b.mean_abs_jerk_mps3 = 20.0f;
+  a.speed_norm_index = 2.0f; b.speed_norm_index = NAN;
+
+  FusedRide f = {};
+  const bool paired = fuseRideFeatures(a, b, now, &f);
+  const bool meanOk = paired && f.sources == (FUSED_SRC_IMU1 | FUSED_SRC_IMU2)
+                      && fabsf(f.rms_mps2 - 9.9f) < 1e-4f && fabsf(f.std_mps2 - 0.20f) < 1e-4f
+                      && fabsf(f.peak_to_peak_mps2 - 1.5f) < 1e-4f && fabsf(f.mean_abs_jerk_mps3 - 30.0f) < 1e-4f
+                      && f.skew_us == 100000LL;
+  const bool disOk = paired && fabsf(f.std_disagreement - 1.0f) < 1e-4f;   // |0.3-0.1| / 0.2
+  const bool normOk = paired && isnan(f.speed_norm_index);                 // one side missing -> NaN
+
+  RideFeatures bLate = b;
+  bLate.window_end_timestamp_us = now - 800000LL;  // 700 ms from a: too little overlap
+  FusedRide g = {};
+  const bool skewOk = !fuseRideFeatures(a, bLate, now, &g);
+
+  RideFeatures bStale = b;
+  bStale.window_end_timestamp_us = now - 5000000LL;  // 5 s old: treated as absent
+  FusedRide h = {};
+  const bool fbOk = fuseRideFeatures(a, bStale, now, &h) && h.sources == FUSED_SRC_IMU1
+                    && fabsf(h.rms_mps2 - 10.0f) < 1e-4f && isnan(h.std_disagreement);
+
+  Serial.println("--- Dual-IMU fusion self-test (synthetic windows, no IMU needed) ---");
+  Serial.printf("  Mean of both sensors:     %s\n", meanOk ? "PASS" : "FAIL");
+  Serial.printf("  Disagreement figure:      %s\n", disOk ? "PASS" : "FAIL");
+  Serial.printf("  Speed index needs both:   %s\n", normOk ? "PASS" : "FAIL");
+  Serial.printf("  Misaligned pair rejected: %s\n", skewOk ? "PASS" : "FAIL");
+  Serial.printf("  Stale sensor fallback:    %s\n", fbOk ? "PASS" : "FAIL");
+  Serial.printf("  Overall: %s\n\n", (meanOk && disOk && normOk && skewOk && fbOk)
+                                        ? "PASS" : "FAIL - check fuseRideFeatures()");
+}
+
 struct BmsSample {
   int64_t timestamp_us;
   bool checksum_ok;       // frame passed length + checksum validation
@@ -372,6 +497,11 @@ QueueHandle_t imu1CharQueue;
 QueueHandle_t imu2CharQueue;
 volatile RideFeatures latestRideFeatures1 = {};
 volatile RideFeatures latestRideFeatures2 = {};
+volatile FusedRide latestFusedRide = {};
+// Guards latestRideFeatures1/2 and latestFusedRide. The two ride tasks and the
+// modem task read and write these from different contexts, and field-by-field
+// copies of a volatile struct could otherwise be torn mid-update.
+portMUX_TYPE rideMux = portMUX_INITIALIZER_UNLOCKED;
 static RideCharTaskConfig rideChar1Config;
 static RideCharTaskConfig rideChar2Config;
 TaskHandle_t RideChar1TaskHandle;
@@ -568,6 +698,52 @@ void StatsTask(void* pvParameters) {
 // timing - falling behind here drops characterisation windows, which is
 // far preferable to perturbing the 200 Hz sample clock.
 // ============================================================
+// Field-by-field copy out of a volatile struct (whole-struct assignment from a
+// volatile source does not compile). Callers hold rideMux.
+static void copyRide(RideFeatures& dst, const volatile RideFeatures& src) {
+  dst.window_end_timestamp_us = src.window_end_timestamp_us;
+  dst.sample_count = src.sample_count;
+  dst.rms_mps2 = src.rms_mps2;
+  dst.std_mps2 = src.std_mps2;
+  dst.peak_to_peak_mps2 = src.peak_to_peak_mps2;
+  dst.crest_factor = src.crest_factor;
+  dst.mean_abs_jerk_mps3 = src.mean_abs_jerk_mps3;
+  dst.threshold_crossings = src.threshold_crossings;
+  dst.speed_norm_index = src.speed_norm_index;
+  dst.speed_used = src.speed_used;
+}
+
+// Called by each ride task after it publishes a window. Snapshots both
+// sensors under the lock, fuses outside it, then publishes the result.
+static void updateFusedRide() {
+  RideFeatures a, b;
+  portENTER_CRITICAL(&rideMux);
+  copyRide(a, latestRideFeatures1);
+  copyRide(b, latestRideFeatures2);
+  portEXIT_CRITICAL(&rideMux);
+
+  FusedRide f;
+  if (!fuseRideFeatures(a, b, esp_timer_get_time(), &f)) return;
+
+  portENTER_CRITICAL(&rideMux);
+  latestFusedRide.window_end_timestamp_us = f.window_end_timestamp_us;
+  latestFusedRide.sources = f.sources;
+  latestFusedRide.skew_us = f.skew_us;
+  latestFusedRide.rms_mps2 = f.rms_mps2;
+  latestFusedRide.std_mps2 = f.std_mps2;
+  latestFusedRide.peak_to_peak_mps2 = f.peak_to_peak_mps2;
+  latestFusedRide.mean_abs_jerk_mps3 = f.mean_abs_jerk_mps3;
+  latestFusedRide.speed_norm_index = f.speed_norm_index;
+  latestFusedRide.std_disagreement = f.std_disagreement;
+  portEXIT_CRITICAL(&rideMux);
+
+  const char* src = (f.sources == (FUSED_SRC_IMU1 | FUSED_SRC_IMU2)) ? "1+2"
+                    : (f.sources == FUSED_SRC_IMU1 ? "1 only" : "2 only");
+  Serial.printf("[FUSED] src=%s skew=%lldms rms=%.3f std=%.3f p2p=%.3f jerk=%.3f dis=%.2f\n",
+                src, (long long)(f.skew_us / 1000), f.rms_mps2, f.std_mps2,
+                f.peak_to_peak_mps2, f.mean_abs_jerk_mps3, f.std_disagreement);
+}
+
 void RideCharacterizationTask(void* pvParameters) {
   RideCharTaskConfig* cfg = static_cast<RideCharTaskConfig*>(pvParameters);
   static float window1[RIDE_WINDOW_SAMPLES];
@@ -601,6 +777,7 @@ void RideCharacterizationTask(void* pvParameters) {
         // Field-by-field, not *(cfg->result) = f: the compiler-generated
         // struct operator= is not volatile-qualified, so whole-struct
         // assignment through a volatile pointer does not compile.
+        portENTER_CRITICAL(&rideMux);
         cfg->result->window_end_timestamp_us = f.window_end_timestamp_us;
         cfg->result->sample_count = f.sample_count;
         cfg->result->rms_mps2 = f.rms_mps2;
@@ -611,6 +788,7 @@ void RideCharacterizationTask(void* pvParameters) {
         cfg->result->threshold_crossings = f.threshold_crossings;
         cfg->result->speed_norm_index = f.speed_norm_index;
         cfg->result->speed_used = f.speed_used;
+        portEXIT_CRITICAL(&rideMux);
 
         if (isnan(f.speed_norm_index)) {
           Serial.printf("[RIDE%d] n=%lu rms=%.3f std=%.3f p2p=%.3f crest=%.3f jerk=%.3f "
@@ -626,6 +804,7 @@ void RideCharacterizationTask(void* pvParameters) {
                         (unsigned long)f.threshold_crossings, f.speed_norm_index, f.speed_used);
         }
         count = 0;
+        updateFusedRide();
       }
     }
     // No fixed vTaskDelay here: the 50ms queue-receive timeout above already
@@ -1336,20 +1515,39 @@ void appendLocalLog(const String& jsonLine) {
 // here, per the note above) - this is this project's own telemetry
 // payload, to whatever broker MQTT_BROKER_HOST is actually pointed at.
 String buildTelemetryJson() {
-  char buf[512];
+  RideFeatures r1, r2;
+  FusedRide fz;
+  portENTER_CRITICAL(&rideMux);
+  copyRide(r1, latestRideFeatures1);
+  copyRide(r2, latestRideFeatures2);
+  fz.sources = latestFusedRide.sources;
+  fz.rms_mps2 = latestFusedRide.rms_mps2;
+  fz.std_mps2 = latestFusedRide.std_mps2;
+  fz.peak_to_peak_mps2 = latestFusedRide.peak_to_peak_mps2;
+  fz.mean_abs_jerk_mps3 = latestFusedRide.mean_abs_jerk_mps3;
+  fz.std_disagreement = latestFusedRide.std_disagreement;
+  portEXIT_CRITICAL(&rideMux);
+
+  // JSON has no NaN; the disagreement is undefined for a single-sensor fallback.
+  char dis[16];
+  if (isnan(fz.std_disagreement)) snprintf(dis, sizeof(dis), "null");
+  else snprintf(dis, sizeof(dis), "%.3f", fz.std_disagreement);
+
+  char buf[640];
   snprintf(buf, sizeof(buf),
            "{"
            "\"imu1\":{\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"crest\":%.3f,\"jerk\":%.3f,\"crossings\":%u},"
            "\"imu2\":{\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"crest\":%.3f,\"jerk\":%.3f,\"crossings\":%u},"
+           "\"fused\":{\"src\":%u,\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"jerk\":%.3f,\"dis\":%s},"
            "\"bms\":{\"v\":%.2f,\"i\":%.2f,\"soc\":%u,\"checksum_ok\":%s},"
            "\"gnss\":{\"valid\":%s,\"lat\":%.6f,\"lon\":%.6f,\"speed\":%.1f}"
            "}",
-           latestRideFeatures1.rms_mps2, latestRideFeatures1.std_mps2,
-           latestRideFeatures1.peak_to_peak_mps2, latestRideFeatures1.crest_factor,
-           latestRideFeatures1.mean_abs_jerk_mps3, (unsigned)latestRideFeatures1.threshold_crossings,
-           latestRideFeatures2.rms_mps2, latestRideFeatures2.std_mps2,
-           latestRideFeatures2.peak_to_peak_mps2, latestRideFeatures2.crest_factor,
-           latestRideFeatures2.mean_abs_jerk_mps3, (unsigned)latestRideFeatures2.threshold_crossings,
+           r1.rms_mps2, r1.std_mps2, r1.peak_to_peak_mps2, r1.crest_factor,
+           r1.mean_abs_jerk_mps3, (unsigned)r1.threshold_crossings,
+           r2.rms_mps2, r2.std_mps2, r2.peak_to_peak_mps2, r2.crest_factor,
+           r2.mean_abs_jerk_mps3, (unsigned)r2.threshold_crossings,
+           (unsigned)fz.sources, fz.rms_mps2, fz.std_mps2, fz.peak_to_peak_mps2,
+           fz.mean_abs_jerk_mps3, dis,
            latestBmsSample.pack_voltage_v, latestBmsSample.current_a,
            (unsigned)latestBmsSample.soc_pct, latestBmsSample.checksum_ok ? "true" : "false",
            latestGnssFix.valid ? "true" : "false", latestGnssFix.latitude_deg,
@@ -1488,6 +1686,7 @@ void setup() {
   rideChar2Config = {1, imu2CharQueue, &latestRideFeatures2, imu2MagScale};
 
   selfTestRideFeatures();
+  selfTestRideFusion();
 
   xTaskCreatePinnedToCore(ModemTask, "ModemTask", 4096, nullptr, 1, &ModemTaskHandle, 0);
 
