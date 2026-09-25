@@ -260,6 +260,8 @@ A later check against the manufacturer's command manual (version~1.09) sharpened
 
 A related, initially confusing observation was that GNSS polls timed out entirely (no response of any kind, not even an empty \texttt{+CGNSSINFO} line) for approximately the first 60--90 seconds after \texttt{AT+CGNSSPWR=1} was issued, despite the modem responding normally and immediately to other AT commands in the same session. Because the modem's power-key sequence (Section~3.5) runs on every firmware reset, this warm-up period was re-triggered on every reflash during development, which initially made the behaviour appear intermittent. Testing against a modem instance that had already been running for several minutes, via the manual serial bridge, confirmed that polling succeeds reliably once this warm-up period has elapsed. This is consistent with normal GNSS receiver behaviour, in which an internal startup or calibration routine delays the command interface for position queries independently of the shared AT command processor used for cellular functions, and is treated as expected behaviour rather than a fault, though it should be accounted for in any test procedure that enables GNSS shortly before recording data.
 
+A later recorded session showed how this appears in the firmware's own statistics. The modem's start-up command sequence takes about 27 seconds after boot, and only then does GNSS polling begin, every 3 seconds. Every poll in the session then timed out, as expected during warm-up and indoors, and because the statistics count only polls that return a response, they reported zero polls throughout. A zero poll count therefore does not by itself mean that polling has stopped; the log lines reporting a poll timeout distinguish the two cases.
+
 \section{Acquisition-integrity instrumentation}
 \label{sec:acquisition-instrumentation}
 
@@ -304,6 +306,40 @@ The two inertial sensors were initially reported as two independent streams. The
 Because the sensors are mounted at different points on the vehicle, they do not measure an identical quantity, and averaging alone would hide that difference. Each fused window therefore also reports a disagreement figure: the absolute difference between the two sensors' standard deviations, divided by their mean (with a small floor to avoid dividing by near-zero values at rest). The two acquisition tasks fill their windows independently, so a pair is fused only if the two windows ended within half a window of each other on the shared microsecond clock, guaranteeing at least 50\% overlap. If one sensor stops producing windows for three seconds, the fused output falls back to the remaining sensor and records that it has done so, rather than silently averaging in stale data.
 
 The fusion logic is checked by a boot-time self-test on synthetic windows, covering the averaging, the disagreement figure, the rule that the speed index requires both sensors, rejection of a badly misaligned pair, and fallback to a single sensor; all five checks passed on the target board. In a live bench capture, every window was fused from both sensors with a measured skew below 1\,ms, the disagreement figure varied between 0.06 and 0.87 as the bench was disturbed, and acquisition continued at 200\,Hz on both sensors with no dropped samples. The same capture showed resting magnitudes of 10.07 and 9.97\,m/s\textsuperscript{2}, about 2.7\% and 1.6\% above standard gravity, where calibration had previously brought both to 9.80 to 9.81\,m/s\textsuperscript{2}; this drift since calibration is reported as found, and the sensors are to be recalibrated while stationary before field testing.
+
+\subsubsection*{Live telemetry dashboard and a recorded bench session}
+
+To view the telemetry as it is produced, a browser dashboard was written that reads the unit's serial output directly over USB, using the Web Serial interface in Chromium-based browsers, and needs no installation. It parses each line the firmware prints and shows the fused and per-sensor ride features, the sample rate and dropped-sample count of each IMU, GNSS and BMS status, free memory, and the result of the boot self-tests, with rolling plots of vibration level and sensor disagreement (Figure~\ref{fig:live-dashboard}). The same page can replay a saved log through the same parsing, so a recorded session can be reviewed exactly as it appeared live.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/live_dashboard.png}
+\caption{The live telemetry dashboard connected to the telemetry unit over USB during bench testing, showing both IMUs fused at 200\,Hz with no dropped samples and two hand disturbances in the vibration plot.}
+\label{fig:live-dashboard}
+\end{figure}
+
+A 150-second session was then recorded from power-up, with the board left still and then disturbed by hand, and saved as a log file. The planned protocol was to disturb the board between 50 and 70 seconds on audible cues, but the cues were not heard, so in the recording the board was still from 0 to about 75 seconds and disturbed from about 75 to 128 seconds; the log is annotated to say so. Figure~\ref{fig:recorded-session} shows the session replayed through the dashboard. The start of the log records both boot self-tests passing:
+
+\begin{verbatim}
+[   0.22s] [CAL] imu1: loaded stored scale=1.0390
+[   0.22s] [CAL] imu2: loaded stored scale=1.0245
+[   0.22s]   Overall: PASS            (ride-feature self-test)
+[   0.22s]   Mean of both sensors:     PASS
+[   0.23s]   Disagreement figure:      PASS
+[   0.23s]   Speed index needs both:   PASS
+[   0.23s]   Misaligned pair rejected: PASS
+[   0.23s]   Stale sensor fallback:    PASS
+[   0.23s]   Overall: PASS            (fusion self-test)
+\end{verbatim}
+
+Across the session, all 222 fused windows combined both sensors, with a skew below 1\,ms. While the board was still, the fused vibration level had a median of 0.041\,m/s\textsuperscript{2} and never exceeded 0.058\,m/s\textsuperscript{2}; during the disturbance it rose to a peak of 9.35\,m/s\textsuperscript{2}, with a peak-to-peak amplitude of 76.8\,m/s\textsuperscript{2}, before returning to the resting level. Both IMUs sampled at 200.0 to 200.5\,Hz throughout, with no dropped samples.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/recorded_session.png}
+\caption{A 150-second bench session recorded from power-up and replayed through the dashboard: still until about 75\,s, disturbed by hand until about 128\,s, then still again.}
+\label{fig:recorded-session}
+\end{figure}
 
 \section{Battery-management system interface over BLE}
 \label{sec:bms-interface}
@@ -514,7 +550,9 @@ The broker address and credentials are left as placeholders in the firmware rath
 
 Telemetry is also recorded locally, so that a session leaves a complete record even with no cellular connection at all. The board's microSD slot was the obvious candidate, but its chip-select line reaches the processor only through a resistor (R23) that the schematic marks as not populated, so there is likely no electrical path to the card as the board is assembled. Rather than build on an interface that may not physically exist, logging uses a LittleFS file system on the processor's own 16\,MB flash, in the 3.5\,MB data partition of the 16\,MB partition table.
 
-Every ten seconds, on the same cadence as MQTT publishing, the complete telemetry record is appended to the log as one JSON line, whether or not the MQTT connection is up; logging is deliberately not conditional on connectivity. The file is capped at 3\,MB, beyond which it is truncated. This first version has two stated limits: truncation discards the oldest data rather than rotating it into a second file, and the log does not yet track which lines have been published, so the unsent backlog is not replayed when the connection returns. The partition mounts correctly on the target board, but reading back and checking the logged records has not yet been done.
+Every ten seconds, on the same cadence as MQTT publishing, the complete telemetry record is appended to the log as one JSON line, whether or not the MQTT connection is up; logging is deliberately not conditional on connectivity. The file is capped at 3\,MB, beyond which it is truncated. This first version has two stated limits: truncation discards the oldest data rather than rotating it into a second file, and the log does not yet track which lines have been published, so the unsent backlog is not replayed when the connection returns. The partition mounts correctly on the target board, and its used space grew from 12\,KB to 56\,KB across later boots, consistent with records being written; reading back and checking the logged records has not yet been done.
+
+Enabling the log exposed a side effect on acquisition timing. In the recorded bench session of Section~\ref{sec:imu-fusion}, the longest interval between consecutive samples rose to between 25 and 30\,ms, against a nominal 5\,ms, in one two-second window out of every six, on both IMUs at the same moment, while every other window stayed below 8\,ms. The stalls began about 30 seconds after boot, once the modem's start-up sequence had finished, and then recurred every 12 seconds. Because each GNSS poll currently waits about 3 seconds to time out, the ten-second logging step in the modem loop actually runs every 12 seconds, so the stalls coincide with the flash writes. Writing to flash on the ESP32 briefly suspends code executing from flash on both cores, which would explain both sensors stalling together, although the two are on separate I\textsuperscript{2}C buses. No samples were lost, since the queues absorbed each stall, but the samples around it are unevenly spaced. The link is strongly suggested by the timing rather than proven, and it can be confirmed by disabling the log for one session. Candidate remedies are buffering log records in memory and writing them less often, or placing the time-critical acquisition code in instruction RAM.
 
 \subsection{End-to-end validation against a real broker}
 

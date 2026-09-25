@@ -112,9 +112,10 @@
 
 <script>
 const $ = (id) => document.getElementById(id);
-const WINDOW_S = 120;
+let WINDOW_S = 120;
 const series = { s1: [], s2: [], fz: [], dis: [] };   // [t_seconds, value]
 let port = null, reader = null, keepReading = false, lineCount = 0, t0 = performance.now();
+let replayTime = null;   // set only when replaying a recorded log
 
 const RE = {
   ride:  /\[RIDE(\d)\]\s+n=(\d+)\s+rms=([-\d.]+)\s+std=([-\d.]+)\s+p2p=([-\d.]+)\s+crest=([-\d.]+)\s+jerk=([-\d.]+)\s+crossings=(\d+)/,
@@ -129,7 +130,7 @@ const RE = {
 const dropped = { 1: 0, 2: 0 };
 let selfTests = { pass: 0, fail: 0 };
 
-function now() { return (performance.now() - t0) / 1000; }
+function now() { return replayTime !== null ? replayTime : (performance.now() - t0) / 1000; }
 function push(arr, v) {
   if (!isFinite(v)) return;
   const t = now(); arr.push([t, v]);
@@ -180,7 +181,7 @@ function handleLine(line) {
     el.className = "v " + (fixes > 0 ? "good" : (polls > 0 ? "warn" : "bad"));
   } else if ((m = RE.bms.exec(line))) {
     const el = $("bms"); const ok = m[1] === "yes";
-    el.textContent = ok ? "connected" : "not connected";
+    el.textContent = ok ? "linked" : "no link";
     el.className = "v " + (ok ? "good" : "warn");
   } else if ((m = RE.heap.exec(line))) {
     $("heap").textContent = Math.round(+m[1] / 1024);
@@ -217,8 +218,11 @@ function drawChart(canvas, list, colours) {
     g.beginPath(); g.moveTo(padL, y); g.lineTo(w - padR, y); g.stroke();
     g.fillText(v.toFixed(v < 1 ? 2 : 1), 4, y + 4);
   }
-  for (let s = 0; s <= WINDOW_S; s += 30) {
-    const x = X(tMin + s); g.fillText(s === WINDOW_S ? "now" : `-${WINDOW_S - s}s`, x - 12, h - 5);
+  const step = WINDOW_S <= 60 ? 10 : 30;
+  for (let s = 0; s <= WINDOW_S; s += step) {
+    const x = X(tMin + s);
+    const label = replayTime !== null ? `${Math.round(tMin + s)}s` : (s === WINDOW_S ? "now" : `-${WINDOW_S - s}s`);
+    g.fillText(label, x - 12, h - 5);
   }
   list.forEach((arr, i) => {
     if (arr.length < 2) return;
@@ -228,12 +232,28 @@ function drawChart(canvas, list, colours) {
   });
 }
 
-function frame() {
+function drawCharts() {
   drawChart($("chartStd"), [series.s1, series.s2, series.fz], [css("--s1"), css("--s2"), css("--s3")]);
   drawChart($("chartDis"), [series.dis], [css("--s4")]);
-  requestAnimationFrame(frame);
 }
+function frame() { drawCharts(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
+
+// Replays a recorded log (lines prefixed "[  12.34s] " by the capture script)
+// through the same parser, using the recorded times, so a saved session can
+// be viewed exactly as it looked live.
+function replay(lines, name) {
+  const parsed = lines.map(l => /^\[\s*([\d.]+)s\]\s?(.*)$/.exec(l)).filter(Boolean);
+  if (!parsed.length) return;
+  WINDOW_S = Math.max(10, Math.ceil(+parsed[parsed.length - 1][1] / 10) * 10);
+  for (const m of parsed) { replayTime = +m[1]; handleLine(m[2]); }
+  replayTime = WINDOW_S;   // chart spans 0 .. end of recording
+  $("status").textContent = "Recorded log: " + name;
+  ["connect", "disconnect", "clear"].forEach(id => { $(id).style.display = "none"; });
+  document.querySelectorAll(".panel h2").forEach(h => { h.textContent = h.textContent.replace(", last 2 minutes", ""); });
+  drawCharts();
+}
+if (window.REPLAY_LINES) replay(window.REPLAY_LINES, window.REPLAY_NAME || "recorded log");
 
 async function connect() {
   if (!("serial" in navigator)) {
