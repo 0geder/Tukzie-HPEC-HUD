@@ -8,14 +8,8 @@ Development followed a staged verification approach in which each hardware and s
 
 The initial platform is the Makerfabs ESP32-S3 4G LTE CAT1 A7670X board. It combines an ESP32-S3-WROOM-1-N16R8 microcontroller with an A7670X LTE Cat-1 modem and provides 16\,MB flash memory, 8\,MB PSRAM, native USB, modem USB, a microSD-card interface, and GNSS capability \cite{makerfabsa7670x}. This integrated board was selected for the baseline because it permits the processor, modem, storage, and GNSS interfaces to be tested without constructing a separate modem carrier circuit.
 
-Figure~\ref{fig:makerfabs-pinout} reproduces the manufacturer's own labelled port and pin diagram for this board. It is referenced directly in Section~\ref{sec:full-system-integration} to explain a genuine Serial-routing fault (the board exposes an ESP32-S3 native-USB port and a separate CH340K USB-TTL port as physically distinct connectors, not one port with two modes), and in Section~\ref{sec:pi-camera-provisioning}'s accompanying build configuration to record that the microSD-card slot's chip-select line (GPIO10, via R23) was traced on the underlying schematic and found not populated, which is why local telemetry logging in this project uses internal flash rather than the card slot shown here.
+Figure~\ref{fig:makerfabs-pinout} (Appendix~\ref{app:figures}) reproduces the manufacturer's own labelled port and pin diagram for this board. It is referenced directly in Section~\ref{sec:full-system-integration} to explain a genuine Serial-routing fault (the board exposes an ESP32-S3 native-USB port and a separate CH340K USB-TTL port as physically distinct connectors, not one port with two modes), and in Section~\ref{sec:pi-camera-provisioning}'s accompanying build configuration to record that the microSD-card slot's chip-select line (GPIO10, via R23) was traced on the underlying schematic and found not populated, which is why local telemetry logging in this project uses internal flash rather than the card slot shown here.
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/makerfabs_a7670x_pinout.jpg}
-\caption{Makerfabs ESP32-S3 4G LTE CAT1 A7670X board: manufacturer-labelled ports (left) and pinout (right) \cite{makerfabsa7670x}.}
-\label{fig:makerfabs-pinout}
-\end{figure}
 
 Firmware was developed in Visual Studio Code using PlatformIO and the Arduino framework. The PlatformIO target was configured as \texttt{esp32-s3-devkitc-1}. Native USB CDC was enabled using the following build definitions:
 
@@ -309,14 +303,8 @@ The fusion logic is checked by a boot-time self-test on synthetic windows, cover
 
 \subsubsection*{Live telemetry dashboard and a recorded bench session}
 
-To view the telemetry as it is produced, a browser dashboard was written that reads the unit's serial output directly over USB, using the Web Serial interface in Chromium-based browsers, and needs no installation. It parses each line the firmware prints and shows the fused and per-sensor ride features, the sample rate and dropped-sample count of each IMU, GNSS and BMS status, free memory, and the result of the boot self-tests, with rolling plots of vibration level and sensor disagreement (Figure~\ref{fig:live-dashboard}). The same page can replay a saved log through the same parsing, so a recorded session can be reviewed exactly as it appeared live.
+To view the telemetry as it is produced, a browser dashboard was written that reads the unit's serial output directly over USB, using the Web Serial interface in Chromium-based browsers, and needs no installation. It parses each line the firmware prints and shows the fused and per-sensor ride features, the sample rate and dropped-sample count of each IMU, GNSS and BMS status, free memory, and the result of the boot self-tests, with rolling plots of vibration level and sensor disagreement (Figure~\ref{fig:live-dashboard}, Appendix~\ref{app:figures}). The same page can replay a saved log through the same parsing, so a recorded session can be reviewed exactly as it appeared live.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.85\textwidth]{figures/live_dashboard.png}
-\caption{The live telemetry dashboard connected to the telemetry unit over USB during bench testing, showing both IMUs fused at 200\,Hz with no dropped samples and two hand disturbances in the vibration plot.}
-\label{fig:live-dashboard}
-\end{figure}
 
 A 150-second session was then recorded from power-up, with the board left still and then disturbed by hand, and saved as a log file. The planned protocol was to disturb the board between 50 and 70 seconds on audible cues, but the cues were not heard, so in the recording the board was still from 0 to about 75 seconds and disturbed from about 75 to 128 seconds; the log is annotated to say so. Figure~\ref{fig:recorded-session} shows the session replayed through the dashboard. The start of the log records both boot self-tests passing:
 
@@ -463,14 +451,8 @@ A minimal live-preview capability (an MJPEG stream served over HTTP, viewable in
 
 Section~\ref{sec:pi-camera-provisioning} above identifies the absence of a rigid camera mount as an open reliability issue: without one, a recording session was found only after the fact to have been aimed at the ceiling. As a first design, a parametric mounting bracket was modelled in OpenSCAD, sized to the camera module and lens, with a rectangular cable-routing slot and a circular lens aperture. This bracket was not used for the build; the casing that was 3D printed is described below.
 
-An initial render of the design appeared correct in preview, but rendering the full constructive-solid-geometry model (rather than only previewing it) revealed that the cavity cut for the lens aperture extended through the full thickness of the mounting face, consuming the material intended to retain the camera module rather than leaving a lip for it to seat against. This was corrected by bounding the cavity cut height to leave the intended retention lip in place, and re-verified with a full render rather than the preview alone, since the fault was only visible once the model was fully evaluated. Figure~\ref{fig:camera-mount} shows the corrected design.
+An initial render of the design appeared correct in preview, but rendering the full constructive-solid-geometry model (rather than only previewing it) revealed that the cavity cut for the lens aperture extended through the full thickness of the mounting face, consuming the material intended to retain the camera module rather than leaving a lip for it to seat against. This was corrected by bounding the cavity cut height to leave the intended retention lip in place, and re-verified with a full render rather than the preview alone, since the fault was only visible once the model was fully evaluated. Figure~\ref{fig:camera-mount} (Appendix~\ref{app:figures}) shows the corrected design.
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.6\textwidth]{figures/camera_mount_render.png}
-\caption{Initial parametric camera bracket (OpenSCAD, full render), showing the corrected lens-retention lip and cable-routing slots. This design was not printed.}
-\label{fig:camera-mount}
-\end{figure}
 
 The camera is instead housed in a three-part casing designed as part of this project and 3D printed, shown in Figure~\ref{fig:camera-casing} alongside the rest of the bench setup. A bottom shell (29.2 by 28.2 by 7.6\,mm) and a top cover (4.8\,mm) enclose the camera module, protecting it and its ribbon connection, and a separate 30-degree corner mount (32.3\,mm tall) provides the surface by which the casing is attached to the vehicle. A second printed casing houses a second camera. The casing has been printed but not yet fixed to the vehicle, so rigid mounting of the camera remains to be completed during vehicle integration.
 
