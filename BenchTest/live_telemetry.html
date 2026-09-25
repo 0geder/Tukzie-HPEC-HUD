@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SW7 Live Telemetry</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --panel: #ffffff; --border: #dde1e7; --text: #1b1f24; --dim: #5f6b7a;
+    --accent: #1f6feb; --good: #1a7f37; --warn: #9a6700; --bad: #cf222e;
+    --s1: #1f6feb; --s2: #d4700c; --s3: #1a7f37; --s4: #8250df; --grid: #e6e9ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1216; --panel: #171b21; --border: #2a313b; --text: #e6e9ee; --dim: #8b96a5;
+      --accent: #4c9aff; --good: #3fb950; --warn: #d29922; --bad: #f85149;
+      --s1: #4c9aff; --s2: #f0883e; --s3: #3fb950; --s4: #b392f0; --grid: #232a33;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+           padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--panel); }
+  header h1 { font-size: 16px; margin: 0 auto 0 0; }
+  button { font: inherit; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border);
+           background: var(--accent); color: #fff; cursor: pointer; }
+  button.secondary { background: transparent; color: var(--text); }
+  button:disabled { opacity: .5; cursor: default; }
+  #status { color: var(--dim); font-size: 13px; }
+  main { padding: 16px; display: grid; gap: 16px; max-width: 1200px; margin: 0 auto; }
+  .tiles { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .tile { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .tile .k { color: var(--dim); font-size: 12px; }
+  .tile .v { font-size: 22px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .tile .u { color: var(--dim); font-size: 12px; margin-left: 3px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .panel h2 { font-size: 13px; margin: 0 0 8px; color: var(--dim); font-weight: 600; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+  .legend i { display: inline-block; width: 12px; height: 3px; vertical-align: middle; margin-right: 5px; }
+  canvas { width: 100%; height: 220px; display: block; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--border); }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--dim); font-weight: 600; font-size: 12px; }
+  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  #log { height: 220px; overflow: auto; font: 12px/1.4 ui-monospace, Consolas, monospace;
+         white-space: pre; background: var(--bg); border-radius: 6px; padding: 8px; margin: 0; }
+  .grid2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>SW7 live telemetry (ESP32-S3 serial)</h1>
+  <span id="status">Not connected</span>
+  <button id="connect">Connect</button>
+  <button id="disconnect" class="secondary" disabled>Disconnect</button>
+  <button id="clear" class="secondary">Clear</button>
+</header>
+<main>
+  <div class="tiles">
+    <div class="tile"><div class="k">Fused RMS</div><div class="v"><span id="f_rms">–</span><span class="u">m/s²</span></div></div>
+    <div class="tile"><div class="k">Fused vibration (std)</div><div class="v"><span id="f_std">–</span><span class="u">m/s²</span></div></div>
+    <div class="tile"><div class="k">Sensor disagreement</div><div class="v"><span id="f_dis">–</span></div></div>
+    <div class="tile"><div class="k">Fusion sources</div><div class="v" id="f_src">–</div></div>
+    <div class="tile"><div class="k">IMU1 rate</div><div class="v"><span id="r1">–</span><span class="u">Hz</span></div></div>
+    <div class="tile"><div class="k">IMU2 rate</div><div class="v"><span id="r2">–</span><span class="u">Hz</span></div></div>
+    <div class="tile"><div class="k">Dropped samples</div><div class="v" id="drop">–</div></div>
+    <div class="tile"><div class="k">GNSS</div><div class="v" id="gnss">–</div></div>
+    <div class="tile"><div class="k">Battery (BMS)</div><div class="v" id="bms">–</div></div>
+    <div class="tile"><div class="k">Free heap</div><div class="v"><span id="heap">–</span><span class="u">KB</span></div></div>
+    <div class="tile"><div class="k">Boot self-tests</div><div class="v" id="selftest">–</div></div>
+    <div class="tile"><div class="k">Lines received</div><div class="v" id="lines">0</div></div>
+  </div>
+
+  <div class="panel">
+    <h2>Vibration level (standard deviation of acceleration magnitude), last 2 minutes</h2>
+    <div class="legend">
+      <span><i style="background:var(--s1)"></i>IMU1</span>
+      <span><i style="background:var(--s2)"></i>IMU2</span>
+      <span><i style="background:var(--s3)"></i>Fused</span>
+    </div>
+    <canvas id="chartStd"></canvas>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Sensor disagreement, last 2 minutes</h2>
+      <div class="legend"><span><i style="background:var(--s4)"></i>|std1 − std2| / mean std</span></div>
+      <canvas id="chartDis"></canvas>
+    </div>
+    <div class="panel">
+      <h2>Latest window per sensor</h2>
+      <table>
+        <thead><tr><th></th><th>RMS</th><th>std</th><th>p2p</th><th>crest</th><th>jerk</th><th>crossings</th></tr></thead>
+        <tbody>
+          <tr><td>IMU1</td><td id="i1_rms">–</td><td id="i1_std">–</td><td id="i1_p2p">–</td><td id="i1_crest">–</td><td id="i1_jerk">–</td><td id="i1_cross">–</td></tr>
+          <tr><td>IMU2</td><td id="i2_rms">–</td><td id="i2_std">–</td><td id="i2_p2p">–</td><td id="i2_crest">–</td><td id="i2_jerk">–</td><td id="i2_cross">–</td></tr>
+          <tr><td>Fused</td><td id="fz_rms">–</td><td id="fz_std">–</td><td id="fz_p2p">–</td><td>n/a</td><td id="fz_jerk">–</td><td>n/a</td></tr>
+        </tbody>
+      </table>
+      <p style="color:var(--dim);font-size:12px;margin:8px 0 0">Units: m/s² (jerk in m/s³). Crest factor and crossings are not averaged across sensors.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Raw serial output</h2>
+    <pre id="log"></pre>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const WINDOW_S = 120;
+const series = { s1: [], s2: [], fz: [], dis: [] };   // [t_seconds, value]
+let port = null, reader = null, keepReading = false, lineCount = 0, t0 = performance.now();
+
+const RE = {
+  ride:  /\[RIDE(\d)\]\s+n=(\d+)\s+rms=([-\d.]+)\s+std=([-\d.]+)\s+p2p=([-\d.]+)\s+crest=([-\d.]+)\s+jerk=([-\d.]+)\s+crossings=(\d+)/,
+  fused: /\[FUSED\]\s+src=(\S+(?:\s+only)?)\s+skew=(-?\d+)ms\s+rms=([-\d.]+)\s+std=([-\d.]+)\s+p2p=([-\d.]+)\s+jerk=([-\d.]+)\s+dis=(\S+)/,
+  rate:  /^IMU(\d):\s+(\d+)\s+samples\s+\(([\d.]+)\s+Hz\).*dropped=(\d+)/,
+  gnss:  /^GNSS:\s+(\d+)\s+polls,\s+(\d+)\s+with a fix/,
+  bms:   /^BMS:\s+connected=(\w+)\s+valid=(\d+)/,
+  heap:  /^Free heap:\s+(\d+)\s+bytes/,
+  overall: /^\s*Overall:\s+(PASS|FAIL)/,
+};
+
+const dropped = { 1: 0, 2: 0 };
+let selfTests = { pass: 0, fail: 0 };
+
+function now() { return (performance.now() - t0) / 1000; }
+function push(arr, v) {
+  if (!isFinite(v)) return;
+  const t = now(); arr.push([t, v]);
+  while (arr.length && arr[0][0] < t - WINDOW_S) arr.shift();
+}
+function set(id, v, cls) { const el = $(id); el.textContent = v; el.className = cls || (el.className.includes("v") ? "v" : ""); }
+
+function handleLine(line) {
+  lineCount++; $("lines").textContent = lineCount;
+  const log = $("log");
+  log.textContent += line + "\n";
+  if (log.textContent.length > 60000) log.textContent = log.textContent.slice(-40000);
+  log.scrollTop = log.scrollHeight;
+
+  let m;
+  if ((m = RE.ride.exec(line))) {
+    const s = m[1];
+    $("i" + s + "_rms").textContent = (+m[3]).toFixed(3);
+    $("i" + s + "_std").textContent = (+m[4]).toFixed(3);
+    $("i" + s + "_p2p").textContent = (+m[5]).toFixed(3);
+    $("i" + s + "_crest").textContent = (+m[6]).toFixed(3);
+    $("i" + s + "_jerk").textContent = (+m[7]).toFixed(2);
+    $("i" + s + "_cross").textContent = m[8];
+    push(s === "1" ? series.s1 : series.s2, +m[4]);
+  } else if ((m = RE.fused.exec(line))) {
+    const src = m[1].trim(), dis = parseFloat(m[7]);
+    $("f_rms").textContent = (+m[3]).toFixed(3);
+    $("f_std").textContent = (+m[4]).toFixed(3);
+    $("f_dis").textContent = isFinite(dis) ? dis.toFixed(2) : "n/a";
+    const srcEl = $("f_src");
+    srcEl.textContent = src === "1+2" ? "both IMUs" : "IMU " + src;
+    srcEl.className = "v " + (src === "1+2" ? "good" : "warn");
+    $("fz_rms").textContent = (+m[3]).toFixed(3);
+    $("fz_std").textContent = (+m[4]).toFixed(3);
+    $("fz_p2p").textContent = (+m[5]).toFixed(3);
+    $("fz_jerk").textContent = (+m[6]).toFixed(2);
+    push(series.fz, +m[4]); push(series.dis, dis);
+  } else if ((m = RE.rate.exec(line))) {
+    const s = m[1], hz = +m[3];
+    const el = $("r" + s); el.textContent = hz.toFixed(1);
+    el.parentElement.className = "v " + (hz >= 195 ? "good" : "bad");
+    dropped[s] = +m[4];
+    const d = $("drop"); d.textContent = dropped[1] + dropped[2];
+    d.className = "v " + (dropped[1] + dropped[2] === 0 ? "good" : "bad");
+  } else if ((m = RE.gnss.exec(line))) {
+    const el = $("gnss"); const polls = +m[1], fixes = +m[2];
+    el.textContent = fixes > 0 ? "fix" : (polls > 0 ? "no fix" : "no polls");
+    el.className = "v " + (fixes > 0 ? "good" : (polls > 0 ? "warn" : "bad"));
+  } else if ((m = RE.bms.exec(line))) {
+    const el = $("bms"); const ok = m[1] === "yes";
+    el.textContent = ok ? "connected" : "not connected";
+    el.className = "v " + (ok ? "good" : "warn");
+  } else if ((m = RE.heap.exec(line))) {
+    $("heap").textContent = Math.round(+m[1] / 1024);
+  } else if ((m = RE.overall.exec(line))) {
+    if (m[1] === "PASS") selfTests.pass++; else selfTests.fail++;
+    const el = $("selftest");
+    el.textContent = selfTests.fail ? `${selfTests.fail} failed` : `${selfTests.pass} passed`;
+    el.className = "v " + (selfTests.fail ? "bad" : "good");
+  } else if (/^ESP-ROM:/.test(line)) {
+    selfTests = { pass: 0, fail: 0 }; $("selftest").textContent = "booting";
+  }
+}
+
+function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+function drawChart(canvas, list, colours) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== w * dpr || canvas.height !== h * dpr) { canvas.width = w * dpr; canvas.height = h * dpr; }
+  const g = canvas.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+  const padL = 44, padB = 20, padT = 6, padR = 8;
+  const tNow = now(), tMin = tNow - WINDOW_S;
+  let yMax = 0;
+  list.forEach(arr => arr.forEach(p => { if (p[1] > yMax) yMax = p[1]; }));
+  yMax = yMax > 0 ? yMax * 1.15 : 1;
+  const X = t => padL + (t - tMin) / WINDOW_S * (w - padL - padR);
+  const Y = v => padT + (1 - v / yMax) * (h - padT - padB);
+
+  g.strokeStyle = css("--grid"); g.fillStyle = css("--dim"); g.lineWidth = 1;
+  g.font = "11px system-ui, sans-serif";
+  for (let i = 0; i <= 4; i++) {
+    const v = yMax * i / 4, y = Y(v);
+    g.beginPath(); g.moveTo(padL, y); g.lineTo(w - padR, y); g.stroke();
+    g.fillText(v.toFixed(v < 1 ? 2 : 1), 4, y + 4);
+  }
+  for (let s = 0; s <= WINDOW_S; s += 30) {
+    const x = X(tMin + s); g.fillText(s === WINDOW_S ? "now" : `-${WINDOW_S - s}s`, x - 12, h - 5);
+  }
+  list.forEach((arr, i) => {
+    if (arr.length < 2) return;
+    g.strokeStyle = colours[i]; g.lineWidth = 2; g.beginPath();
+    arr.forEach((p, j) => { const x = X(p[0]), y = Y(p[1]); j ? g.lineTo(x, y) : g.moveTo(x, y); });
+    g.stroke();
+  });
+}
+
+function frame() {
+  drawChart($("chartStd"), [series.s1, series.s2, series.fz], [css("--s1"), css("--s2"), css("--s3")]);
+  drawChart($("chartDis"), [series.dis], [css("--s4")]);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+async function connect() {
+  if (!("serial" in navigator)) {
+    $("status").textContent = "This browser has no Web Serial. Use Microsoft Edge or Google Chrome.";
+    return;
+  }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+  } catch (e) {
+    $("status").textContent = "Could not open port: " + e.message + " (close any other serial monitor first)";
+    return;
+  }
+  $("status").textContent = "Connected, 115200 baud";
+  $("connect").disabled = true; $("disconnect").disabled = false;
+  keepReading = true;
+  const decoder = new TextDecoderStream();
+  const closed = port.readable.pipeTo(decoder.writable).catch(() => {});
+  reader = decoder.readable.getReader();
+  let buf = "";
+  try {
+    while (keepReading) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += value;
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).replace(/\r$/, "");
+        buf = buf.slice(nl + 1);
+        if (line.length) handleLine(line);
+      }
+    }
+  } catch (e) {
+    $("status").textContent = "Connection lost: " + e.message;
+  } finally {
+    try { reader.releaseLock(); } catch (_) {}
+    await closed;
+    try { await port.close(); } catch (_) {}
+    $("connect").disabled = false; $("disconnect").disabled = true;
+    if (keepReading) $("status").textContent = "Disconnected (board reset or cable removed)";
+  }
+}
+
+async function disconnect() {
+  keepReading = false;
+  try { await reader.cancel(); } catch (_) {}
+  $("status").textContent = "Disconnected";
+}
+
+$("connect").addEventListener("click", connect);
+$("disconnect").addEventListener("click", disconnect);
+$("clear").addEventListener("click", () => {
+  series.s1 = []; series.s2 = []; series.fz = []; series.dis = [];
+  $("log").textContent = ""; lineCount = 0; $("lines").textContent = 0; t0 = performance.now();
+});
+</script>
+</body>
+</html>
