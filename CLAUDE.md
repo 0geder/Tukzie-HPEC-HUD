@@ -2,7 +2,7 @@
 
 - After finishing any piece of work in this repo (a fix, a test, a
   decision, a report edit), run the `progress-scribe` agent with a short
-  description of what was done, so PROJECT_LOG.md and the report stay
+  description of what was done, so PROJECT_LOG.md, CHANGELOG.md and the report stay
   current. PROJECT_LOG.md is the student's record of everything done and
   decided.
 - Commit with plain messages, never a Co-Authored-By line, and push to

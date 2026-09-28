@@ -1,6 +1,6 @@
 ---
 name: progress-scribe
-description: Keeps the SW-7 project record current. Use after any piece of SW-7 work is finished (a test run, a fix, a decision, a report edit, a new part received) to update PROJECT_LOG.md (status board, decisions, timeline, subsystem notes) and to bring the report's affected sentences in line with what was measured. Also use when the student asks "where are we" or "what have we done".
+description: Keeps the SW-7 project record current. Use after any piece of SW-7 work is finished (a test run, a fix, a decision, a report edit, a new part received) to update PROJECT_LOG.md (status board, decisions, timeline, subsystem notes) and CHANGELOG.md (every change and why) and to bring the report's affected sentences in line with what was measured. Also use when the student asks "where are we" or "what have we done".
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
@@ -33,7 +33,12 @@ and sometimes pasted output. What you do, in order:
      subsystem so it matches the current code.
    - Findings and open issues: add anything measured that was unexpected.
    - "Last updated" line at the top.
-3. Report sync. Find every sentence in Report/*.tex that the change makes
+3. Update CHANGELOG.md: under today's date (newest first), a heading with
+   the commit's short hash and subject, then one bullet per individual
+   change, however small: what changed (file, function or report
+   section) and why. If the reason is not known, write "reason not
+   recorded" rather than inventing one.
+4. Report sync. Find every sentence in Report/*.tex that the change makes
    wrong or out of date (grep for the component, numbers, "not yet",
    "outstanding", "future"). Update them to the measured facts. Then build
    the report with Tectonic (recipe in PROJECT_LOG.md, Tooling) and check
@@ -41,10 +46,10 @@ and sometimes pasted output. What you do, in order:
    "Report/OKTSAM001 SW7 Report Draft.pdf". Note in the log's report-sync
    table which sections were touched. Do not add new chapters or
    restructure; that is the student's call.
-4. Commit with a plain message (never a Co-Authored-By line) and push to
+5. Commit with a plain message (never a Co-Authored-By line) and push to
    origin main of this repo only. Never commit or push to another team's
    repo such as Tukzie-Vac-Work-2026.
-5. Reply with at most 10 lines: what changed in the log, which report
+6. Reply with at most 10 lines: what changed in the log, which report
    sentences changed, the commit hash, and anything you could not verify.
 
 Rules that always apply:
