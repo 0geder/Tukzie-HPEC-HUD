@@ -238,6 +238,7 @@ Grouped by week (weeks start on Monday). Commit hashes are in brackets. Events w
   - This log created, and figures corrected from the bench log: 149 fused windows, 0.067 still max, 9.93/10.10 resting, 1 s sync period (b57f742).
   - Bench console combining ESP32, camera, alerts, ToF and SEN55 panels (97481b0).
   - Report put into the handout format: Times New Roman 11 pt, single spacing (Intro Lecture p. 11, Lecture 2 p. 7). Content pages fell from 62 to 46 (limit 50). Body word count 17,931 added under the declaration (Lecture 2 p. 10), against 10,000 to 15,000 in GA6.
+  - Vehicle state, per the student: the trike is on the ground in the lab and can be raised or lowered on request (the test plan's "permanently raised" is out of date). Sensors to be mounted on the trike on Wednesday 30 Sept; first road test requested from Yusuf for Friday 2 Oct (email drafted, not yet confirmed).
   - Appendix C, Test Evidence, and Report/evidence/ with a capture guide. CHANGELOG.md (every change and why) and Planning/brief-compliance.md (requirements matrix, about 40 percent complete) added.
 
 ---
