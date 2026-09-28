@@ -1,6 +1,6 @@
 # SW-7 brief compliance audit
 
-Prepared 28 September 2026, against repo state at commit b57f742 (with firmware v0.5.0 at dfc6542). 29 days remain to the final report deadline of 27 October.
+Prepared 28 September 2026, against repo state at commit b57f742; format rows H2 to H6 updated 29 September (with firmware v0.5.0 at dfc6542). 29 days remain to the final report deadline of 27 October.
 
 Sources read:
 - Brief: "EEE4022S 2026 Topics Winberg_Taken By Samson.pdf", SW-7 entry, pages 20 to 22 of the topics list (PDF pages 1 to 3). Cited below as "Brief p20" etc., using the printed page number.
@@ -11,7 +11,7 @@ Sources read:
 
 Status values: met, partly met, not met, changed by a decision pending the supervisor (written "pending supervisor").
 
-Main-body page count, checked in the PDF: Chapter 1 starts on PDF page 11 (printed page 1) and Chapter 7 ends on PDF page 72 (printed page 62). The bibliography starts on PDF page 73. The main body is 62 pages.
+Main-body page count, checked in the PDF: Chapter 1 starts on PDF page 11 (printed page 1) and Chapter 7 ends on PDF page 72 (printed page 62). The bibliography starts on PDF page 73. The main body is 62 pages. Update 29 Sept: after the switch to Times New Roman 11 pt with single spacing, the main body is 46 pages (PDF pp 11 to 56) and the whole PDF is 68 pages.
 
 ## 1. Requirements matrix
 
@@ -74,11 +74,11 @@ Main-body page count, checked in the PDF: Chapter 1 starts on PDF page 11 (print
 | # | Requirement (quoted) | Source | Status | Evidence | What is left |
 |---|---|---|---|---|---|
 | H1 | "Single column format" | Intro L. s11; L2 s7 | met | Report PDF | None |
-| H2 | "Font type – Times New Roman" (Intro L.), "Times New Roman font, font size 11" (L2) | Intro L. s11; L2 s7 | not met | The PDF uses LMRoman12 at 12 pt (fonts read from PDF page 13). Project Report Template.tex line 8: \documentclass[a4paper,12pt]{report} | Switch to Times New Roman (fontspec under XeTeX/Tectonic) at 11 pt |
-| H3 | "Line spacing - single line space" | Intro L. s11 | not met | \onehalfspacing in Project Report Template.tex; \parskip = 6mm | Single spacing. This, with H2, will also cut many pages |
-| H4 | "Maximum number of content pages for the report should be 50, i.e. excluding Table of Contents, Appendix, References. Severe penalties for overly long reports, including outright failure." | Intro L. s11; L2 s7 | not met | 62 pages (PDF pp 11 to 72). Log F15 | Reformat (H2, H3) first, then cut. Results, Discussion and Conclusions still have to be added inside the 50 |
-| H5 | "Stipulate number of words of the body of your report under your Plagiarism declaration." | Intro L. s11; L2 s7 | not met | Declaration page (PDF p2) has no word count | Add the count |
-| H6 | "Written reports (10 000 to 15 000 words plus tables, diagrams and appendices)" | GA template p4, GA 6 descriptor | likely not met | A rough count of PDF pp 11 to 72 gives about 18,800 words (this count includes tables, captions and running heads, so the body alone is lower, but probably still over 15,000) | Measure properly (texcount) and cut to 15,000 or less |
+| H2 | "Font type – Times New Roman" (Intro L.), "Times New Roman font, font size 11" (L2) | Intro L. s11; L2 s7 | met (29 Sept) | Since 28 Sept the preamble loads the real Times New Roman at 11 pt under XeTeX (newtx fallback under pdfLaTeX); the PDF embeds TimesNewRomanPSMT. | Switch to Times New Roman (fontspec under XeTeX/Tectonic) at 11 pt |
+| H3 | "Line spacing - single line space" | Intro L. s11 | met (29 Sept) | \singlespacing since 28 Sept; \parskip = 6mm kept. | Single spacing. This, with H2, will also cut many pages |
+| H4 | "Maximum number of content pages for the report should be 50, i.e. excluding Table of Contents, Appendix, References. Severe penalties for overly long reports, including outright failure." | Intro L. s11; L2 s7 | met (29 Sept) | 46 content pages after the format change (Chapter 1 on PDF p11, Bibliography on PDF p57), limit 50. Filling Results, Discussion and Conclusions will add pages, so keep checking. | Reformat (H2, H3) first, then cut. Results, Discussion and Conclusions still have to be added inside the 50 |
+| H5 | "Stipulate number of words of the body of your report under your Plagiarism declaration." | Intro L. s11; L2 s7 | met (29 Sept) | Word count line added under the declaration: 17,931 words, prose only (tables, figures, captions and code excluded). | Add the count |
+| H6 | "Written reports (10 000 to 15 000 words plus tables, diagrams and appendices)" | GA template p4, GA 6 descriptor | not met | Prose count 17,931 words (Methodology 12,656) against 10,000 to 15,000, with Results, Discussion and Conclusions still to write. | Measure properly (texcount) and cut to 15,000 or less |
 | H7 | "Be sure that your project title and descriptions reflect the work you have done" | L2 s7 | pending supervisor | Title, Terms of Reference, abstract, Scope and RQ2 all describe a windshield HUD (PDF pp 1, 3, 5, 15). Kept until the supervisor agrees (Log 6) | Update after the decision |
 | H8 | "GA Appendix: As part of your project report, include an appendix that describes how you met the six Graduate Attributes for your particular project." | L2 s7; Intro L. s11 | partly met | Appendix A.1 covers GA 1, 4, 5, 6, 8, 9 (PDF pp 81 to 82). GA 6 entry is only "This report." GA 10 is listed as partial in L2 s3 and as "*GA 10: Professionalism" in Intro L. s4, and not covered | Expand the entries with results, add GA 10 |
 | H9 | "Ethics approval letter – Attach the ethics approval letter as a separate appendix." | L2 s7 | not met, conflicts with a student rule | No such appendix. Log D20: "The report must not mention the ethics application, approval or protocol number". The approval letter file was not found in the repo | This is a course requirement. Raise D20 with the supervisor before submission |
@@ -185,7 +185,7 @@ Weighting. The report is 90 percent of the course mark and the oral 10 percent (
 
 | Area | Weight | Estimate | Weighted | Basis |
 |---|---|---|---|---|
-| Report (writing and compliance) | 25% | 40% | 10.0 | Chapters 1 to 3 written; Results, Discussion, Conclusions empty; 62 of 50 pages; wrong font, size and spacing; no word count, ethics appendix or AI prompt examples |
+| Report (writing and compliance) | 25% | 40% | 10.0 | Chapters 1 to 3 written; Results, Discussion, Conclusions empty; format fixed 28 Sept (46 of 50 pages, Times New Roman 11 pt, single spacing, word count added); prose 17,931 words against 15,000; no ethics appendix or AI prompt examples |
 | Field testing and analysis (GA 4, RQ1, RQ3, RQ4) | 20% | 5% | 1.0 | Test plan exists; no vehicle session, no dataset, no road-test approval recorded |
 | Telemetry unit firmware and data path | 15% | 70% | 10.5 | Acquisition, calibration, features, fusion, BMS decode, local log, MQTT all working on the bench; v0.5.0 unflashed; no GNSS fix; BMS intermittent; no SW-6 link; no database; F6 open |
 | Sensor payload (SEN55, ToF, powertrain tap) | 10% | 10% | 1.0 | Parts chosen and ordered, optocouplers received; nothing integrated |
