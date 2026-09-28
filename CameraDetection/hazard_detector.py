@@ -198,6 +198,7 @@ class PreviewServer:
         self._pending = None          # latest (rgb, detections, stats) not yet encoded
         self._pending_cv = threading.Condition()
         self._running = True
+        self._alerts_json = b'{"active": [], "fps": 0, "latency_ms": null}'
         server = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -210,6 +211,16 @@ class PreviewServer:
                     self.send_header("Content-Type", "text/html")
                     self.end_headers()
                     self.wfile.write(PREVIEW_PAGE)
+                elif self.path == "/alerts":
+                    with server._lock:
+                        body = server._alerts_json
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Cache-Control", "no-cache")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
                 elif self.path == "/stream":
                     import socket
                     # Keep the kernel from queueing several frames ahead of the
@@ -282,6 +293,17 @@ class PreviewServer:
             with self._lock:
                 self._jpeg = buf.getvalue()
                 self._lock.notify_all()
+
+    def set_alerts(self, active, fps, latency_ms):
+        """Publish the currently active alerts for GET /alerts. Same five
+        fields as the alert log, nothing else about the scene."""
+        body = json.dumps({
+            "active": active,
+            "fps": round(fps, 1),
+            "latency_ms": None if latency_ms is None else round(latency_ms),
+        }).encode()
+        with self._lock:
+            self._alerts_json = body
 
     def close(self):
         self._running = False
@@ -437,6 +459,7 @@ def main():
     missed = {cls: 0 for cls in HAZARD_CLASSES}
     nearer = {cls: 0 for cls in HAZARD_CLASSES}  # consecutive frames nearer than the active band
     active_band = {cls: None for cls in HAZARD_CLASSES}  # None = no active alert
+    active_record = {}  # class -> the last "active" record logged, for GET /alerts
 
     preview = None
     timing = LatencyStats(args.timing_log)
@@ -525,7 +548,7 @@ def main():
                     current = active_band[class_name]
                     if current is None and streak[class_name] >= ALERT_PERSISTENCE_FRAMES:
                         active_band[class_name] = band
-                        log_alert(args.log_path, class_name, band, confidence, "active")
+                        active_record[class_name] = log_alert(args.log_path, class_name, band, confidence, "active")
                         print(f"[{ts_console}] ALERT {class_name} ({band}) conf={confidence:.2f} "
                               f"bbox_width_px={bbox_px:.0f}")
                     elif current is not None and BAND_RANK[band] < BAND_RANK[current]:
@@ -535,7 +558,7 @@ def main():
                         if nearer[class_name] >= ALERT_PERSISTENCE_FRAMES:
                             nearer[class_name] = 0
                             active_band[class_name] = band
-                            log_alert(args.log_path, class_name, band, confidence, "active")
+                            active_record[class_name] = log_alert(args.log_path, class_name, band, confidence, "active")
                             print(f"[{ts_console}] ALERT escalated: {class_name} ({current} -> {band})")
                     else:
                         nearer[class_name] = 0
@@ -546,6 +569,7 @@ def main():
                         missed[class_name] += 1
                         if missed[class_name] >= CLEAR_AFTER_MISSED_FRAMES:
                             active_band[class_name] = None
+                            active_record.pop(class_name, None)
                             missed[class_name] = 0
                             log_alert(args.log_path, class_name, None, 0.0, "cleared")
                             print(f"[{ts_console}] cleared: {class_name}")
@@ -568,6 +592,9 @@ def main():
                 fps_now = frame_count / elapsed_now if elapsed_now > 0 else 0.0
                 total_ms = (t_post - sensor_ns) / 1e6 if sensor_ns else 0.0
                 preview.publish(rgb, drawn, f"{fps_now:.1f} fps  sensor-to-result {total_ms:.0f} ms")
+                preview.set_alerts(sorted(active_record.values(),
+                                          key=lambda r: BAND_RANK.get(r["distance_band"], 9)),
+                                   fps_now, total_ms if sensor_ns else None)
 
     except KeyboardInterrupt:
         pass
