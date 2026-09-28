@@ -238,6 +238,7 @@ Grouped by week (weeks start on Monday). Commit hashes are in brackets. Events w
   - This log created, and figures corrected from the bench log: 149 fused windows, 0.067 still max, 9.93/10.10 resting, 1 s sync period (b57f742).
   - Bench console combining ESP32, camera, alerts, ToF and SEN55 panels (97481b0).
   - Report put into the handout format: Times New Roman 11 pt, single spacing (Intro Lecture p. 11, Lecture 2 p. 7). Content pages fell from 62 to 46 (limit 50). Body word count 17,931 added under the declaration (Lecture 2 p. 10), against 10,000 to 15,000 in GA6.
+  - 29 Sept: per the student, capture all work in the report now and cut for length later. Methodology gained: alert hysteresis (tested offline), live view and latency measurement (tested offline), alerts feed, dashboard camera page and start-up service (page tested offscreen; service not installed), colour-cast investigation (tests not yet run), the combined bench console, and firmware v0.5.0 result-code checking, reconnection and serial commands (compiles, not flashed). Report now 49 content pages and 19,370 prose words.
   - Vehicle state, per the student: the trike is on the ground in the lab and can be raised or lowered on request (the test plan's "permanently raised" is out of date). Sensors to be mounted on the trike on Wednesday 30 Sept; first road test requested from Yusuf for Friday 2 Oct (email drafted, not yet confirmed).
   - Appendix C, Test Evidence, and Report/evidence/ with a capture guide. CHANGELOG.md (every change and why) and Planning/brief-compliance.md (requirements matrix, about 40 percent complete) added.
 
@@ -455,7 +456,7 @@ Presentation (Presentation/)
 | F18 | Record | Ten commits (5e3e6d9 to 20d2fa6) carry a Co-Authored-By trailer, against D22 | Noted, no action |
 | F19 | Record | CameraDetection/README.md still has an "Ethics status" section with the protocol number | Allowed in the README; must not reach the report |
 | F20 | 09-28 | Report was 12 pt with 1.5 spacing; the handouts require Times New Roman 11 pt, single spacing, at most 50 content pages | Fixed: now 46 content pages |
-| F21 | 09-28 | Body prose is about 17,931 words (Methodology 12,656) against 10,000 to 15,000 in GA6, and Results, Discussion and Conclusions are still mostly placeholders | Open: cut Methodology by roughly 5,000 words while writing the results chapters |
+| F21 | 09-28 | Body prose is about 17,931 words (19,370 on 29 Sept after capturing the new work) (Methodology 12,656) against 10,000 to 15,000 in GA6, and Results, Discussion and Conclusions are still mostly placeholders | Open: cut Methodology by roughly 5,000 words while writing the results chapters |
 | F22 | 09-28 | Lecture 2 slide 7 lists an ethics approval letter for the report appendix, which conflicts with the student's rule of no ethics mention in the report (D20) | Open: ask the supervisor |
 
 ---

@@ -19,6 +19,20 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 ---
 
+
+## 2026-09-29
+
+Report captures all implemented work, marked tested or untested; length pass deferred.
+
+### (this commit) Report: capture the camera, console and firmware v0.5.0 work
+
+- `Report/Methodology.tex`, hazard detection: new parts on alert hysteresis, the live view and latency measurement, the alerts feed with the dashboard page and start-up service, and the colour cast. Why: the student asked to capture everything now and cut later; each part states whether it was tested offline, offscreen or not yet.
+- `Report/Methodology.tex`, live telemetry dashboard: paragraph on the combined bench console. Why: same.
+- `Report/Methodology.tex`, new subsection on firmware v0.5.0 result-code checking, reconnection and serial test commands. Why: records the latent OK-means-success fault found in the manual and the fixes; states that v0.5.0 is not yet on the board.
+- `Report/Project Report Template.tex`: word count updated from 17,931 to 19,370. Why: the new text was added.
+- `PROJECT_LOG.md`: timeline entry and F21 updated. `Planning/brief-compliance.md` format rows marked met (previous commit).
+- Memory: report policy recorded as capture first, cut later.
+
 ## 2026-09-28
 
 Summary: the camera detector ran live for the first time and gained a live view, latency timing, an /alerts endpoint, a boot service and a dashboard page; firmware v0.5.0 was committed; the project log, CLAUDE.md and the progress-scribe agent were added; bench figures in the report and deck were corrected.
