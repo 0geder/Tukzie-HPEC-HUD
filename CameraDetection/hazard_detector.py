@@ -183,13 +183,21 @@ class PreviewServer:
     bench checks. Frames stay in memory as the latest JPEG only and are
     never written to disk. Bound to localhost by default, so only a browser
     on this Pi can open it; --preview-host 0.0.0.0 also serves it to
-    devices on the same local network (still never saved or uploaded)."""
+    devices on the same local network (still never saved or uploaded).
+
+    Drawing and JPEG encoding run in their own thread. The detector only
+    hands over its latest frame and returns immediately; if the encoder is
+    still busy, older frames are skipped, so the live view can fall behind
+    without ever slowing detection down."""
 
     def __init__(self, port, host="127.0.0.1"):
         import threading
         from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
         self._lock = threading.Condition()
         self._jpeg = None
+        self._pending = None          # latest (rgb, detections, stats) not yet encoded
+        self._pending_cv = threading.Condition()
+        self._running = True
         server = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -203,19 +211,32 @@ class PreviewServer:
                     self.end_headers()
                     self.wfile.write(PREVIEW_PAGE)
                 elif self.path == "/stream":
+                    import socket
+                    # Keep the kernel from queueing several frames ahead of the
+                    # viewer: a small send buffer means a slow link drops frames
+                    # instead of showing ever-older ones.
+                    try:
+                        self.connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                        self.connection.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 64 * 1024)
+                    except OSError:
+                        pass
                     self.send_response(200)
                     self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=frame")
+                    self.send_header("Cache-Control", "no-cache")
                     self.end_headers()
+                    last = None
                     try:
-                        while True:
+                        while server._running:
                             with server._lock:
-                                server._lock.wait(timeout=2)
+                                if server._jpeg is last:
+                                    server._lock.wait(timeout=2)
                                 jpeg = server._jpeg
-                            if jpeg is None:
+                            if jpeg is None or jpeg is last:
                                 continue
-                            self.wfile.write(b"--frame\r\nContent-Type: image/jpeg\r\n")
-                            self.wfile.write(f"Content-Length: {len(jpeg)}\r\n\r\n".encode())
-                            self.wfile.write(jpeg + b"\r\n")
+                            last = jpeg
+                            self.wfile.write(b"--frame\r\nContent-Type: image/jpeg\r\n"
+                                             + f"Content-Length: {len(jpeg)}\r\n\r\n".encode()
+                                             + jpeg + b"\r\n")
                     except OSError:
                         pass  # viewer closed the page or the connection dropped
                 else:
@@ -224,30 +245,105 @@ class PreviewServer:
         self._httpd = ThreadingHTTPServer((host, port), Handler)
         self._httpd.daemon_threads = True
         threading.Thread(target=self._httpd.serve_forever, daemon=True).start()
+        self._encoder = threading.Thread(target=self._encode_loop, daemon=True)
+        self._encoder.start()
 
-    def publish(self, rgb_frame, detections, fps):
+    def publish(self, rgb_frame, detections, stats):
+        """Hand over the latest frame. Never blocks on encoding."""
+        with self._pending_cv:
+            self._pending = (rgb_frame, detections, stats)
+            self._pending_cv.notify()
+
+    def _encode_loop(self):
         import io
         from PIL import Image, ImageDraw
-        img = Image.fromarray(rgb_frame)
-        draw = ImageDraw.Draw(img)
-        for d in detections:
-            colour = BAND_COLOURS.get(d["band"], (150, 150, 150))
-            draw.rectangle(d["box"], outline=colour, width=3)
-            dist = f"{d['distance_m']:.1f}m" if d["distance_m"] is not None else "?"
-            label = f"{d['class']} {d['confidence']:.2f} {dist} {d['band'] or 'out of range'}"
-            x, y = d["box"][0], max(0, d["box"][1] - 14)
-            draw.rectangle((x, y, x + 7 * len(label), y + 14), fill=colour)
-            draw.text((x + 2, y + 1), label, fill=(0, 0, 0))
-        draw.text((6, 6), f"{fps:.1f} fps", fill=(255, 255, 255))
-        buf = io.BytesIO()
-        img.save(buf, format="JPEG", quality=70)
-        with self._lock:
-            self._jpeg = buf.getvalue()
-            self._lock.notify_all()
+        while self._running:
+            with self._pending_cv:
+                while self._pending is None and self._running:
+                    self._pending_cv.wait(timeout=1)
+                item, self._pending = self._pending, None
+            if item is None:
+                continue
+            rgb_frame, detections, stats = item
+            img = Image.fromarray(rgb_frame)
+            draw = ImageDraw.Draw(img)
+            for d in detections:
+                colour = BAND_COLOURS.get(d["band"], (150, 150, 150))
+                draw.rectangle(d["box"], outline=colour, width=3)
+                dist = f"{d['distance_m']:.1f}m" if d["distance_m"] is not None else "?"
+                label = f"{d['class']} {d['confidence']:.2f} {dist} {d['band'] or 'out of range'}"
+                x, y = d["box"][0], max(0, d["box"][1] - 14)
+                draw.rectangle((x, y, x + 7 * len(label), y + 14), fill=colour)
+                draw.text((x + 2, y + 1), label, fill=(0, 0, 0))
+            draw.rectangle((0, 0, 330, 18), fill=(0, 0, 0))
+            draw.text((6, 4), stats, fill=(255, 255, 255))
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=60)
+            with self._lock:
+                self._jpeg = buf.getvalue()
+                self._lock.notify_all()
 
     def close(self):
+        self._running = False
+        with self._pending_cv:
+            self._pending_cv.notify_all()
         self._httpd.shutdown()
         self._httpd.server_close()
+
+
+class LatencyStats:
+    """Per-frame stage timings, summarised every few seconds.
+
+    Sensor-to-result latency uses the frame's SensorTimestamp, which the
+    Picamera2 manual defines as nanoseconds since boot at the moment the
+    first pixel is read out of the sensor, on the same clock as
+    time.monotonic_ns(). It therefore covers readout, ISP, queueing,
+    preprocessing, inference and alert logic, but not the exposure itself."""
+
+    FIELDS = ("frame", "sensor_ns", "queue_ms", "pre_ms", "infer_ms", "post_ms", "total_ms")
+
+    def __init__(self, csv_path=None, every_s=5.0):
+        self.rows = []
+        self.every_s = every_s
+        self.last_print = time.monotonic()
+        self.frames_since = 0
+        self.csv = None
+        if csv_path:
+            self.csv = open(csv_path, "w", buffering=1)
+            self.csv.write(",".join(self.FIELDS) + "\n")
+
+    def add(self, row):
+        self.rows.append(row)
+        self.frames_since += 1
+        if self.csv:
+            self.csv.write(",".join(f"{row[k]:.2f}" if isinstance(row[k], float) else str(row[k])
+                                    for k in self.FIELDS) + "\n")
+
+    @staticmethod
+    def _pct(vals, q):
+        v = sorted(vals)
+        return v[min(len(v) - 1, int(round(q * (len(v) - 1))))]
+
+    def maybe_print(self):
+        now = time.monotonic()
+        if now - self.last_print < self.every_s or not self.rows:
+            return None
+        fps = self.frames_since / (now - self.last_print)
+        parts = [f"{fps:.1f} fps"]
+        for k in ("queue_ms", "pre_ms", "infer_ms", "post_ms", "total_ms"):
+            vals = [r[k] for r in self.rows]
+            parts.append(f"{k[:-3]} p50={self._pct(vals, 0.5):.0f} p95={self._pct(vals, 0.95):.0f} "
+                         f"max={max(vals):.0f}")
+        line = "[timing] " + " | ".join(parts) + " (ms)"
+        print(line)
+        self.rows = []
+        self.frames_since = 0
+        self.last_print = now
+        return line
+
+    def close(self):
+        if self.csv:
+            self.csv.close()
 
 
 def main():
@@ -276,6 +372,13 @@ def main():
     parser.add_argument("--preview-port", type=int, default=8080)
     parser.add_argument("--preview-host", default="127.0.0.1",
                          help="127.0.0.1 = this Pi only; 0.0.0.0 = also other devices on the local network")
+    parser.add_argument("--threads", type=int, default=4,
+                         help="CPU threads for inference (the Pi 4 has 4 cores)")
+    parser.add_argument("--verbose", action="store_true",
+                         help="Print every per-frame detection (slower terminals can lag); "
+                              "otherwise only alerts and a timing summary every 5 s are printed")
+    parser.add_argument("--timing-log", default=None,
+                         help="Optional CSV of per-frame stage timings (no image data), for latency analysis")
     args = parser.parse_args()
 
     # ai_edge_litert is the successor to tflite_runtime and the only one
@@ -291,7 +394,7 @@ def main():
     from picamera2 import Picamera2
 
     labels = load_labels(args.labels)
-    interpreter = Interpreter(model_path=args.model)
+    interpreter = Interpreter(model_path=args.model, num_threads=args.threads)
     interpreter.allocate_tensors()
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
@@ -303,7 +406,7 @@ def main():
         main={"size": (args.width, args.height), "format": "RGB888"}))
     picam2.start()
 
-    print(f"Model loaded: {args.model} (input {input_width}x{input_height})")
+    print(f"Model loaded: {args.model} (input {input_width}x{input_height}, {args.threads} inference threads)")
     print(f"WARNING: focal_length_px={args.focal_length_px} is UNCALIBRATED - "
           f"distance estimates are order-of-magnitude only until calibrated.")
     print("Watching for:", ", ".join(sorted(HAZARD_CLASSES)))
@@ -329,6 +432,8 @@ def main():
     active_band = {cls: None for cls in HAZARD_CLASSES}  # None = no active alert
 
     preview = None
+    timing = LatencyStats(args.timing_log)
+    last_timing = ""
     start = time.monotonic()
     frame_count = 0
     try:
@@ -341,7 +446,13 @@ def main():
                       f"(hostname -I shows the IP)")
         start = time.monotonic()
         while args.duration == 0 or (time.monotonic() - start) < args.duration:
-            frame = picam2.capture_array()
+            request = picam2.capture_request()
+            try:
+                frame = request.make_array("main")
+                sensor_ns = request.get_metadata().get("SensorTimestamp")
+            finally:
+                request.release()
+            t_got = time.monotonic_ns()
             frame_count += 1
 
             # Picamera2's "RGB888" is stored B, G, R; the model expects R, G, B.
@@ -350,9 +461,11 @@ def main():
             input_data = np.expand_dims(resized, axis=0)
             if input_details[0]['dtype'] == np.float32:
                 input_data = (np.float32(input_data) - 127.5) / 127.5
+            t_pre = time.monotonic_ns()
 
             interpreter.set_tensor(input_details[0]['index'], input_data)
             interpreter.invoke()
+            t_inf = time.monotonic_ns()
             # The frame (and rgb, if the preview is on) is replaced by the next
             # capture_array() call. Nothing derived from it is written to disk
             # (see docstring).
@@ -393,23 +506,21 @@ def main():
                         or (band == prev[0] and confidence > prev[1])):
                     in_band_this_frame[class_name] = (band, confidence, bbox_width_px)
 
-            if preview is not None:
-                elapsed_now = time.monotonic() - start
-                preview.publish(rgb, drawn, frame_count / elapsed_now if elapsed_now > 0 else 0.0)
-
             ts_console = time.strftime("%H:%M:%S")
             for class_name in HAZARD_CLASSES:
                 if class_name in in_band_this_frame:
                     band, confidence, bbox_px = in_band_this_frame[class_name]
                     streak[class_name] += 1
                     missed[class_name] = 0
-                    print(f"[{ts_console}] {class_name} band={band} conf={confidence:.2f} "
-                          f"bbox_width_px={bbox_px:.0f} streak={streak[class_name]}/{ALERT_PERSISTENCE_FRAMES}")
+                    if args.verbose:
+                        print(f"[{ts_console}] {class_name} band={band} conf={confidence:.2f} "
+                              f"bbox_width_px={bbox_px:.0f} streak={streak[class_name]}/{ALERT_PERSISTENCE_FRAMES}")
                     current = active_band[class_name]
                     if current is None and streak[class_name] >= ALERT_PERSISTENCE_FRAMES:
                         active_band[class_name] = band
                         log_alert(args.log_path, class_name, band, confidence, "active")
-                        print(f"  -> ALERT logged: {class_name} ({band})")
+                        print(f"[{ts_console}] ALERT {class_name} ({band}) conf={confidence:.2f} "
+                              f"bbox_width_px={bbox_px:.0f}")
                     elif current is not None and BAND_RANK[band] < BAND_RANK[current]:
                         # Nearer than the logged band: re-log once it has held for
                         # the same debounce as an onset, so one noisy frame can't escalate.
@@ -418,7 +529,7 @@ def main():
                             nearer[class_name] = 0
                             active_band[class_name] = band
                             log_alert(args.log_path, class_name, band, confidence, "active")
-                            print(f"  -> ALERT escalated: {class_name} ({current} -> {band})")
+                            print(f"[{ts_console}] ALERT escalated: {class_name} ({current} -> {band})")
                     else:
                         nearer[class_name] = 0
                 else:
@@ -430,7 +541,26 @@ def main():
                             active_band[class_name] = None
                             missed[class_name] = 0
                             log_alert(args.log_path, class_name, None, 0.0, "cleared")
-                            print(f"  -> cleared: {class_name}")
+                            print(f"[{ts_console}] cleared: {class_name}")
+
+            t_post = time.monotonic_ns()
+            timing.add({
+                "frame": frame_count,
+                "sensor_ns": sensor_ns if sensor_ns is not None else -1,
+                "queue_ms": (t_got - sensor_ns) / 1e6 if sensor_ns else 0.0,
+                "pre_ms": (t_pre - t_got) / 1e6,
+                "infer_ms": (t_inf - t_pre) / 1e6,
+                "post_ms": (t_post - t_inf) / 1e6,
+                "total_ms": (t_post - sensor_ns) / 1e6 if sensor_ns else (t_post - t_got) / 1e6,
+            })
+            line = timing.maybe_print()
+            if line:
+                last_timing = line
+            if preview is not None:
+                elapsed_now = time.monotonic() - start
+                fps_now = frame_count / elapsed_now if elapsed_now > 0 else 0.0
+                total_ms = (t_post - sensor_ns) / 1e6 if sensor_ns else 0.0
+                preview.publish(rgb, drawn, f"{fps_now:.1f} fps  sensor-to-result {total_ms:.0f} ms")
 
     except KeyboardInterrupt:
         pass
@@ -438,6 +568,7 @@ def main():
         elapsed = time.monotonic() - start
         fps = frame_count / elapsed if elapsed > 0 else 0
         print(f"\nStopped. {frame_count} frames in {elapsed:.1f}s ({fps:.1f} fps average).")
+        timing.close()
         picam2.stop()
         if preview is not None:
             preview.close()
@@ -445,12 +576,12 @@ def main():
 
 def np_resize(frame, width, height):
     # Stretch the whole frame to the model's input size (300x300 for this
-    # SSD-MobileNet-v1) with Pillow's default bicubic resize, so box
-    # coordinates map straight back onto the full frame. Avoids adding an
-    # OpenCV dependency.
+    # SSD-MobileNet-v1), so box coordinates map straight back onto the full
+    # frame. Bilinear rather than Pillow's bicubic default: cheaper, and the
+    # usual choice for this model's preprocessing. Avoids an OpenCV dependency.
     from PIL import Image
     img = Image.fromarray(frame)
-    img = img.resize((width, height))
+    img = img.resize((width, height), Image.BILINEAR)
     return np.array(img)
 
 
