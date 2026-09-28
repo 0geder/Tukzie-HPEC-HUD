@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SW-7 Bench Console</title>
+<style>
+  :root {
+    --bg: #eef1f4; --panel: #ffffff; --panel-2: #f5f7f9; --border: #d6dbe2; --text: #16202a; --dim: #5a6776;
+    --accent: #0b6bcb; --good: #17803d; --warn: #9a6200; --bad: #c62828; --off: #8a95a3;
+    --s1: #0b6bcb; --s2: #d4700c; --s3: #17803d; --s4: #7c4dcc; --grid: #e3e7ec;
+    --imm: #d32f2f; --wrn: #f2a900; --mon: #2e9d4f;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d1117; --panel: #161b22; --panel-2: #1c232c; --border: #2b3440; --text: #e6ebf0; --dim: #8d99a8;
+      --accent: #4ea1ff; --good: #3fb950; --warn: #e3b341; --bad: #ff6b6b; --off: #5b6572;
+      --s1: #4ea1ff; --s2: #f0883e; --s3: #3fb950; --s4: #b392f0; --grid: #222a34;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
+           padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--panel);
+           position: sticky; top: 0; z-index: 5; }
+  header h1 { font-size: 16px; margin: 0 auto 0 0; letter-spacing: .01em; }
+  .group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .group label { font-size: 12px; color: var(--dim); }
+  input[type=text] { font: 13px ui-monospace, Consolas, monospace; padding: 6px 8px; border-radius: 6px;
+           border: 1px solid var(--border); background: var(--panel-2); color: var(--text); width: 170px; }
+  button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+           background: var(--accent); color: #fff; cursor: pointer; }
+  button.secondary { background: transparent; color: var(--text); }
+  button.danger { background: transparent; color: var(--bad); border-color: var(--bad); }
+  button:disabled { opacity: .45; cursor: default; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .chip { font-size: 12px; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); color: var(--dim); white-space: nowrap; }
+  .chip.good { color: var(--good); border-color: var(--good); }
+  .chip.warn { color: var(--warn); border-color: var(--warn); }
+  .chip.bad { color: var(--bad); border-color: var(--bad); }
+  main { padding: 16px; display: grid; gap: 16px; max-width: 1400px; margin: 0 auto; }
+  .top { display: grid; gap: 16px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+  @media (max-width: 1000px) { .top { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+  .panel h2 { font-size: 13px; margin: 0 0 10px; color: var(--dim); font-weight: 600; display: flex; gap: 8px; align-items: center; }
+  .panel h2 .chip { margin-left: auto; }
+  .cam { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) 200px; }
+  @media (max-width: 640px) { .cam { grid-template-columns: 1fr; } }
+  .cam-view { background: #000; border-radius: 8px; aspect-ratio: 4 / 3; display: grid; place-items: center;
+              color: #8d99a8; font-size: 13px; overflow: hidden; }
+  .cam-view img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .alerts { display: flex; flex-direction: column; gap: 6px; }
+  .alert { border-radius: 8px; padding: 8px 10px; font-weight: 600; color: #000; display: flex; justify-content: space-between; gap: 6px; }
+  .alert small { font-weight: 500; opacity: .8; }
+  .alert.immediate { background: var(--imm); color: #fff; } .alert.warning { background: var(--wrn); } .alert.monitoring { background: var(--mon); color: #fff; }
+  .none { color: var(--dim); font-size: 13px; }
+  .cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); align-content: start; }
+  .card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .card h3 { margin: 0 0 6px; font-size: 12px; color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+             display: flex; justify-content: space-between; align-items: center; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--off); display: inline-block; }
+  .dot.good { background: var(--good); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 13px; }
+  .kv span:nth-child(odd) { color: var(--dim); }
+  .kv span:nth-child(even) { text-align: right; font-variant-numeric: tabular-nums; }
+  .big { font-size: 22px; font-variant-numeric: tabular-nums; }
+  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); } .muted { color: var(--off); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+  .legend i { display: inline-block; width: 12px; height: 3px; vertical-align: middle; margin-right: 5px; }
+  canvas.chart { width: 100%; height: 200px; display: block; }
+  .grid2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
+  th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--border); }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--dim); font-weight: 600; font-size: 12px; }
+  .tof { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; max-width: 280px; }
+  .tof div { aspect-ratio: 1; border-radius: 3px; background: var(--grid); font-size: 9px; display: grid; place-items: center; color: var(--dim); }
+  .pending { font-size: 12px; color: var(--dim); margin-top: 8px; }
+  .cmdbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .cmdbar input { flex: 1 1 220px; width: auto; }
+  select { font: inherit; font-size: 13px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); }
+  #log { height: 240px; overflow: auto; font: 12px/1.4 ui-monospace, Consolas, monospace;
+         white-space: pre; background: var(--panel-2); border-radius: 6px; padding: 8px; margin: 0; }
+  .confirm { display: none; gap: 8px; align-items: center; font-size: 13px; color: var(--warn); }
+  .confirm.show { display: inline-flex; }
+</style>
+</head>
+<body>
+<header>
+  <h1>SW-7 bench console</h1>
+  <div class="group">
+    <label>ESP32</label>
+    <button id="connect">Connect</button>
+    <button id="disconnect" class="secondary" disabled>Disconnect</button>
+    <span id="espChip" class="chip">not connected</span>
+  </div>
+  <div class="group">
+    <label for="camHost">Camera</label>
+    <input type="text" id="camHost" value="10.84.114.244:8080" spellcheck="false" autocomplete="off">
+    <button id="camToggle" class="secondary">Show camera</button>
+    <span id="camChip" class="chip">off</span>
+  </div>
+  <div class="group">
+    <button id="saveLog" class="secondary" title="Download everything received this session, with timestamps">Save session log</button>
+    <button id="clear" class="secondary">Clear</button>
+  </div>
+</header>
+
+<main>
+  <div class="top">
+    <section class="panel">
+      <h2>Front camera and hazard alerts <span id="camMetrics" class="chip">no data</span></h2>
+      <div class="cam">
+        <div class="cam-view" id="camView">Camera off. Enter the Pi's address and press Show camera.</div>
+        <div>
+          <div class="alerts" id="alerts"><div class="none">No alerts</div></div>
+          <p class="pending">Boxes on the image are drawn by the detector on the Pi. Alerts come from its /alerts feed every 0.5 s.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Telemetry unit (ESP32-S3) <span id="fwChip" class="chip">firmware unknown</span></h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Ride vibration <span class="dot" id="d_motion"></span></h3>
+          <div class="big"><span id="f_std">–</span> <small class="muted">m/s² std</small></div>
+          <div class="kv">
+            <span>Fused RMS</span><span id="f_rms">–</span>
+            <span>Disagreement</span><span id="f_dis">–</span>
+            <span>Sources</span><span id="f_src">–</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>IMU acquisition <span class="dot" id="d_imu"></span></h3>
+          <div class="kv">
+            <span>IMU1 rate</span><span id="r1">–</span>
+            <span>IMU2 rate</span><span id="r2">–</span>
+            <span>Max gap</span><span id="gap">–</span>
+            <span>Dropped</span><span id="drop">–</span>
+            <span>Scale factors</span><span id="scales">–</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Battery (BMS) <span class="dot" id="d_bms"></span></h3>
+          <div class="kv">
+            <span>Link</span><span id="bmsLink">–</span>
+            <span>Pack</span><span id="bmsV">–</span>
+            <span>Current</span><span id="bmsI">–</span>
+            <span>State of charge</span><span id="bmsSoc">–</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Position (GNSS) <span class="dot" id="d_gnss"></span></h3>
+          <div class="kv">
+            <span>Fix</span><span id="gnss">–</span>
+            <span>Latitude</span><span id="lat">–</span>
+            <span>Longitude</span><span id="lon">–</span>
+            <span>Speed</span><span id="spd">–</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Cellular (MQTT) <span class="dot" id="d_mqtt"></span></h3>
+          <div class="kv">
+            <span>Session</span><span id="mqtt">–</span>
+            <span>Last event</span><span id="mqttEv">–</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Logging and system <span class="dot" id="d_sys"></span></h3>
+          <div class="kv">
+            <span>Flash log</span><span id="logState">–</span>
+            <span>Free heap</span><span id="heap">–</span>
+            <span>Self-tests</span><span id="selftest">–</span>
+            <span>Sync pulses</span><span id="sync">–</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>Vibration level (standard deviation of acceleration magnitude) <span id="winChip" class="chip">last 2 minutes</span></h2>
+    <div class="legend">
+      <span><i style="background:var(--s1)"></i>IMU1</span>
+      <span><i style="background:var(--s2)"></i>IMU2</span>
+      <span><i style="background:var(--s3)"></i>Fused</span>
+    </div>
+    <canvas id="chartStd" class="chart"></canvas>
+  </section>
+
+  <div class="grid2">
+    <section class="panel">
+      <h2>Sensor disagreement</h2>
+      <div class="legend"><span><i style="background:var(--s4)"></i>|std1 − std2| / mean std</span></div>
+      <canvas id="chartDis" class="chart"></canvas>
+    </section>
+    <section class="panel">
+      <h2>Latest window per sensor</h2>
+      <table>
+        <thead><tr><th></th><th>RMS</th><th>std</th><th>p2p</th><th>crest</th><th>jerk</th><th>crossings</th></tr></thead>
+        <tbody>
+          <tr><td>IMU1</td><td id="i1_rms">–</td><td id="i1_std">–</td><td id="i1_p2p">–</td><td id="i1_crest">–</td><td id="i1_jerk">–</td><td id="i1_cross">–</td></tr>
+          <tr><td>IMU2</td><td id="i2_rms">–</td><td id="i2_std">–</td><td id="i2_p2p">–</td><td id="i2_crest">–</td><td id="i2_jerk">–</td><td id="i2_cross">–</td></tr>
+          <tr><td>Fused</td><td id="fz_rms">–</td><td id="fz_std">–</td><td id="fz_p2p">–</td><td>n/a</td><td id="fz_jerk">–</td><td>n/a</td></tr>
+        </tbody>
+      </table>
+      <p class="pending">Units m/s² (jerk m/s³). Crest factor and crossings are not averaged across sensors.</p>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="panel">
+      <h2>Time-of-flight (VL53L5CX, 8x8 zones) <span id="tofChip" class="chip">not connected</span></h2>
+      <div class="tof" id="tof"></div>
+      <p class="pending" id="tofNote">Waiting for the sensor. Once the firmware prints lines of the form <code>[TOF] mm=d0,d1,...,d63</code> (64 distances, row by row) this grid fills in: red under 1 m, amber under 2 m.</p>
+    </section>
+    <section class="panel">
+      <h2>Air quality and microclimate (SEN55) <span id="envChip" class="chip">not connected</span></h2>
+      <div class="kv" style="max-width:340px">
+        <span>PM1.0</span><span id="pm1">–</span>
+        <span>PM2.5</span><span id="pm25">–</span>
+        <span>PM4.0</span><span id="pm4">–</span>
+        <span>PM10</span><span id="pm10">–</span>
+        <span>Temperature</span><span id="envT">–</span>
+        <span>Humidity</span><span id="envRh">–</span>
+        <span>VOC index</span><span id="voc">–</span>
+        <span>NOx index</span><span id="nox">–</span>
+      </div>
+      <p class="pending" id="envNote">Waiting for the sensor. Expected line format: <code>[ENV] pm1=.. pm2_5=.. pm4=.. pm10=.. t=.. rh=.. voc=.. nox=..</code></p>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>Commands and serial output</h2>
+    <div class="cmdbar">
+      <button class="secondary cmd" data-cmd="!status" disabled>!status</button>
+      <button class="secondary cmd" data-cmd="!log off" disabled>!log off</button>
+      <button class="secondary cmd" data-cmd="!log on" disabled>!log on</button>
+      <button class="secondary cmd" data-cmd="!mqtt" disabled>!mqtt</button>
+      <button class="danger" id="recal" disabled>!recal</button>
+      <span class="confirm" id="recalConfirm">Board flat and completely still?
+        <button class="danger" id="recalYes">Yes, recalibrate</button>
+        <button class="secondary" id="recalNo">Cancel</button></span>
+      <input type="text" id="freeCmd" placeholder="AT command, or ! command, then Enter" spellcheck="false" disabled>
+      <select id="filter" aria-label="Filter the log">
+        <option value="">All lines</option>
+        <option value="\[(FUSED|RIDE)">Ride features</option>
+        <option value="^IMU|\[CAL\]">IMU and calibration</option>
+        <option value="\[BMS\]|^BMS:">Battery</option>
+        <option value="\[GNSS\]|^GNSS:">GNSS</option>
+        <option value="\[MQTT\]|CMQTT">MQTT</option>
+        <option value="\[CMD\]">Commands</option>
+        <option value="FAIL|ERROR|failed|WARNING">Problems</option>
+      </select>
+    </div>
+    <pre id="log"></pre>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let WINDOW_S = 120;
+const series = { s1: [], s2: [], fz: [], dis: [] };
+let port = null, reader = null, keepReading = false, t0 = performance.now();
+let replayTime = null;
+const allLines = [];          // [iso time, line] for the session log download
+let syncEdges = 0;
+
+const RE = {
+  ride:  /\[RIDE(\d)\]\s+n=(\d+)\s+rms=([-\d.]+)\s+std=([-\d.]+)\s+p2p=([-\d.]+)\s+crest=([-\d.]+)\s+jerk=([-\d.]+)\s+crossings=(\d+)/,
+  fused: /\[FUSED\]\s+src=(\S+(?:\s+only)?)\s+skew=(-?\d+)ms\s+rms=([-\d.]+)\s+std=([-\d.]+)\s+p2p=([-\d.]+)\s+jerk=([-\d.]+)\s+dis=(\S+)/,
+  rate:  /^IMU(\d):\s+(\d+)\s+samples\s+\(([\d.]+)\s+Hz\)\s+dt_us\[min=(\d+)\s+avg=(\d+)\s+max=(\d+)\]\s+dropped=(\d+)/,
+  gnss:  /^GNSS:\s+(\d+)\s+polls,\s+(\d+)\s+with a fix/,
+  gnssFix: /\[GNSS\] fix mode=(\d+) lat=([-\d.]+) lon=([-\d.]+) alt=([-\d.]+)m speed=([-\d.]+)/,
+  bms:   /^BMS:\s+connected=(\w+)\s+valid=(\d+)/,
+  bmsVal: /\[BMS\] V=([\d.]+)V I=([-\d.]+)A SOC=(\d+)%/,
+  heap:  /^Free heap:\s+(\d+)\s+bytes/,
+  overall: /^\s*Overall:\s+(PASS|FAIL)/,
+  fw:    /SW-7 ESP32-S3 Firmware (v[\d.]+)/,
+  cal:   /\[CAL\] (imu\d): .*scale=([\d.]+)/,
+  scales: /\[CMD\] IMU scale factors: imu1=([\d.]+) imu2=([\d.]+)/,
+  logSt: /\[CMD\] local log: (not mounted|on|OFF)/,
+  mqttSt: /\[CMD\] mqtt: (connected|not connected)/,
+  tof:   /\[TOF\] mm=([\d,\s]+)/,
+  env:   /\[ENV\]\s+(.*)$/,
+};
+const dropped = { 1: 0, 2: 0 }, maxGap = { 1: 0, 2: 0 }, cal = {};
+let selfTests = { pass: 0, fail: 0 };
+
+function now() { return replayTime !== null ? replayTime : (performance.now() - t0) / 1000; }
+function push(arr, v) { if (!isFinite(v)) return; const t = now(); arr.push([t, v]); while (arr.length && arr[0][0] < t - WINDOW_S) arr.shift(); }
+function txt(id, v, cls) { const el = $(id); el.textContent = v; el.className = cls || ""; }
+function dot(id, state) { $(id).className = "dot " + (state || ""); }
+
+function handleLine(line) {
+  allLines.push([new Date().toISOString(), replayTime !== null ? `[${replayTime.toFixed(2)}s] ` + line : line]);
+  appendLog(line);
+  let m;
+  if ((m = RE.ride.exec(line))) {
+    const s = m[1];
+    $("i" + s + "_rms").textContent = (+m[3]).toFixed(3); $("i" + s + "_std").textContent = (+m[4]).toFixed(3);
+    $("i" + s + "_p2p").textContent = (+m[5]).toFixed(3); $("i" + s + "_crest").textContent = (+m[6]).toFixed(3);
+    $("i" + s + "_jerk").textContent = (+m[7]).toFixed(2); $("i" + s + "_cross").textContent = m[8];
+    push(s === "1" ? series.s1 : series.s2, +m[4]);
+  } else if ((m = RE.fused.exec(line))) {
+    const src = m[1].trim(), dis = parseFloat(m[7]);
+    $("f_std").textContent = (+m[4]).toFixed(3);
+    txt("f_rms", (+m[3]).toFixed(3));
+    txt("f_dis", isFinite(dis) ? dis.toFixed(2) : "n/a");
+    txt("f_src", src === "1+2" ? "both IMUs" : "IMU " + src, src === "1+2" ? "good" : "warn");
+    dot("d_motion", src === "1+2" ? "good" : "warn");
+    $("fz_rms").textContent = (+m[3]).toFixed(3); $("fz_std").textContent = (+m[4]).toFixed(3);
+    $("fz_p2p").textContent = (+m[5]).toFixed(3); $("fz_jerk").textContent = (+m[6]).toFixed(2);
+    push(series.fz, +m[4]); push(series.dis, dis);
+  } else if ((m = RE.rate.exec(line))) {
+    const s = m[1], hz = +m[3];
+    txt("r" + s, hz.toFixed(1) + " Hz", hz >= 195 ? "good" : "bad");
+    dropped[s] = +m[7]; maxGap[s] = +m[6];
+    const g = Math.max(maxGap[1], maxGap[2]) / 1000;
+    txt("gap", g.toFixed(1) + " ms", g > 10 ? "warn" : "");
+    const d = dropped[1] + dropped[2];
+    txt("drop", String(d), d === 0 ? "good" : "bad");
+    dot("d_imu", hz < 195 || d > 0 ? "bad" : (g > 10 ? "warn" : "good"));
+  } else if ((m = RE.gnss.exec(line))) {
+    const polls = +m[1], fixes = +m[2];
+    txt("gnss", fixes > 0 ? "fix" : (polls > 0 ? "no fix" : "no polls"), fixes > 0 ? "good" : "warn");
+    dot("d_gnss", fixes > 0 ? "good" : (polls > 0 ? "warn" : "bad"));
+  } else if ((m = RE.gnssFix.exec(line))) {
+    txt("gnss", "fix (mode " + m[1] + ")", "good"); dot("d_gnss", "good");
+    txt("lat", (+m[2]).toFixed(5)); txt("lon", (+m[3]).toFixed(5)); txt("spd", m[5] + " (units unconfirmed)");
+  } else if ((m = RE.bms.exec(line))) {
+    const ok = m[1] === "yes";
+    txt("bmsLink", ok ? "linked" : "no link", ok ? "good" : "warn"); dot("d_bms", ok ? "good" : "warn");
+  } else if ((m = RE.bmsVal.exec(line))) {
+    txt("bmsV", (+m[1]).toFixed(1) + " V"); txt("bmsI", (+m[2]).toFixed(1) + " A"); txt("bmsSoc", m[3] + " %");
+    txt("bmsLink", "linked", "good"); dot("d_bms", /CHECKSUM FAIL/.test(line) ? "warn" : "good");
+  } else if ((m = RE.heap.exec(line))) {
+    txt("heap", Math.round(+m[1] / 1024) + " KB");
+  } else if ((m = RE.overall.exec(line))) {
+    if (m[1] === "PASS") selfTests.pass++; else selfTests.fail++;
+    txt("selftest", selfTests.fail ? `${selfTests.fail} failed` : `${selfTests.pass} passed`, selfTests.fail ? "bad" : "good");
+    dot("d_sys", selfTests.fail ? "bad" : "good");
+  } else if (/^ESP-ROM:/.test(line)) {
+    selfTests = { pass: 0, fail: 0 }; txt("selftest", "booting"); syncEdges = 0;
+  } else if ((m = RE.fw.exec(line))) {
+    $("fwChip").textContent = "firmware " + m[1];
+    $("fwChip").className = "chip " + (m[1] >= "v0.5" ? "good" : "warn");
+    if (m[1] < "v0.5") $("fwChip").title = "Commands need v0.5.0 or later";
+  } else if ((m = RE.cal.exec(line))) {
+    cal[m[1]] = (+m[2]).toFixed(4); txt("scales", `${cal.imu1 || "?"} / ${cal.imu2 || "?"}`);
+  } else if ((m = RE.scales.exec(line))) {
+    txt("scales", `${(+m[1]).toFixed(4)} / ${(+m[2]).toFixed(4)}`);
+  } else if ((m = RE.logSt.exec(line))) {
+    txt("logState", m[1] === "OFF" ? "off" : m[1], m[1] === "on" ? "good" : "warn");
+  } else if (/\[CMD\] local flash logging OFF/.test(line)) { txt("logState", "off", "warn");
+  } else if (/\[CMD\] local flash logging on/.test(line)) { txt("logState", "on", "good");
+  } else if (/\[LOG\] LittleFS mounted/.test(line)) { txt("logState", "on", "good");
+  } else if ((m = RE.mqttSt.exec(line))) {
+    const ok = m[1] === "connected"; txt("mqtt", m[1], ok ? "good" : "warn"); dot("d_mqtt", ok ? "good" : "warn");
+  } else if (/\[MQTT\]/.test(line)) {
+    txt("mqttEv", line.replace(/^.*\[MQTT\]\s*/, "").slice(0, 40));
+    if (/Connected\./.test(line)) { txt("mqtt", "connected", "good"); dot("d_mqtt", "good"); }
+    else if (/failed|lost|Reconnecting/.test(line)) { txt("mqtt", "not connected", "warn"); dot("d_mqtt", "warn"); }
+  } else if (/\[SYNC\]/.test(line)) {
+    syncEdges++; txt("sync", syncEdges + " edges", "good");
+  } else if ((m = RE.tof.exec(line))) {
+    showTof(m[1].split(",").map(Number));
+  } else if ((m = RE.env.exec(line))) {
+    showEnv(m[1]);
+  }
+}
+
+// ---- log view with filter ----
+function appendLog(line) {
+  const f = $("filter").value;
+  if (f && !new RegExp(f).test(line)) return;
+  const log = $("log");
+  log.textContent += line + "\n";
+  if (log.textContent.length > 80000) log.textContent = log.textContent.slice(-50000);
+  log.scrollTop = log.scrollHeight;
+}
+$("filter").addEventListener("change", () => {
+  const f = $("filter").value, re = f ? new RegExp(f) : null;
+  $("log").textContent = allLines.slice(-3000).map(x => x[1]).filter(l => !re || re.test(l)).join("\n") + "\n";
+  $("log").scrollTop = $("log").scrollHeight;
+});
+
+// ---- future sensors ----
+const tofGrid = $("tof");
+for (let i = 0; i < 64; i++) tofGrid.appendChild(document.createElement("div"));
+function showTof(mm) {
+  if (mm.length !== 64) return;
+  $("tofChip").textContent = "live"; $("tofChip").className = "chip good";
+  $("tofNote").textContent = "Distance per zone in mm. Red under 1 m, amber under 2 m.";
+  [...tofGrid.children].forEach((c, i) => {
+    const d = mm[i];
+    c.textContent = d >= 1000 ? (d / 1000).toFixed(1) : d;
+    c.style.background = d < 1000 ? "var(--imm)" : d < 2000 ? "var(--wrn)" : "var(--grid)";
+    c.style.color = d < 1000 ? "#fff" : d < 2000 ? "#000" : "";
+  });
+}
+function showEnv(s) {
+  const kv = Object.fromEntries(s.trim().split(/\s+/).map(p => p.split("=")));
+  const map = { pm1: ["pm1", " µg/m³"], pm2_5: ["pm25", " µg/m³"], pm4: ["pm4", " µg/m³"], pm10: ["pm10", " µg/m³"],
+                t: ["envT", " °C"], rh: ["envRh", " %"], voc: ["voc", ""], nox: ["nox", ""] };
+  for (const [k, [id, u]] of Object.entries(map)) if (kv[k] !== undefined) txt(id, kv[k] + u);
+  $("envChip").textContent = "live"; $("envChip").className = "chip good";
+  $("envNote").textContent = "Latest reading from the SEN55.";
+}
+
+// ---- charts ----
+function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function drawChart(canvas, list, colours) {
+  const dpr = window.devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== w * dpr || canvas.height !== h * dpr) { canvas.width = w * dpr; canvas.height = h * dpr; }
+  const g = canvas.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const padL = 44, padB = 20, padT = 6, padR = 8, tNow = now(), tMin = tNow - WINDOW_S;
+  let yMax = 0; list.forEach(a => a.forEach(p => { if (p[1] > yMax) yMax = p[1]; }));
+  yMax = yMax > 0 ? yMax * 1.15 : 1;
+  const X = t => padL + (t - tMin) / WINDOW_S * (w - padL - padR), Y = v => padT + (1 - v / yMax) * (h - padT - padB);
+  g.strokeStyle = css("--grid"); g.fillStyle = css("--dim"); g.lineWidth = 1; g.font = "11px system-ui, sans-serif";
+  for (let i = 0; i <= 4; i++) { const v = yMax * i / 4, y = Y(v); g.beginPath(); g.moveTo(padL, y); g.lineTo(w - padR, y); g.stroke(); g.fillText(v.toFixed(v < 1 ? 2 : 1), 4, y + 4); }
+  const step = WINDOW_S <= 60 ? 10 : 30;
+  for (let s = 0; s <= WINDOW_S; s += step) {
+    const lab = replayTime !== null ? `${Math.round(tMin + s)}s` : (s === WINDOW_S ? "now" : `-${WINDOW_S - s}s`);
+    g.fillText(lab, X(tMin + s) - 12, h - 5);
+  }
+  list.forEach((a, i) => { if (a.length < 2) return; g.strokeStyle = colours[i]; g.lineWidth = 2; g.beginPath();
+    a.forEach((p, j) => { const x = X(p[0]), y = Y(p[1]); j ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); });
+}
+function frame() {
+  drawChart($("chartStd"), [series.s1, series.s2, series.fz], [css("--s1"), css("--s2"), css("--s3")]);
+  drawChart($("chartDis"), [series.dis], [css("--s4")]);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ---- ESP32 over Web Serial ----
+async function connect() {
+  if (!("serial" in navigator)) { txt("espChip", "use Edge or Chrome (no Web Serial)", "chip bad"); return; }
+  try { port = await navigator.serial.requestPort(); await port.open({ baudRate: 115200 }); }
+  catch (e) { $("espChip").textContent = "port busy? close other monitors"; $("espChip").className = "chip bad"; return; }
+  $("espChip").textContent = "connected, 115200"; $("espChip").className = "chip good";
+  $("connect").disabled = true; $("disconnect").disabled = false; setCmds(true);
+  keepReading = true;
+  const dec = new TextDecoderStream(); const closed = port.readable.pipeTo(dec.writable).catch(() => {});
+  reader = dec.readable.getReader(); let buf = "";
+  try {
+    while (keepReading) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += value; let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) { const l = buf.slice(0, nl).replace(/\r$/, ""); buf = buf.slice(nl + 1); if (l.length) handleLine(l); }
+    }
+  } catch (e) { $("espChip").textContent = "connection lost"; $("espChip").className = "chip bad"; }
+  finally {
+    try { reader.releaseLock(); } catch (_) {} await closed; try { await port.close(); } catch (_) {}
+    $("connect").disabled = false; $("disconnect").disabled = true; setCmds(false);
+    if (keepReading) { $("espChip").textContent = "disconnected (reset or cable)"; $("espChip").className = "chip warn"; }
+  }
+}
+async function disconnect() { keepReading = false; try { await reader.cancel(); } catch (_) {} $("espChip").textContent = "not connected"; $("espChip").className = "chip"; }
+async function send(cmd) {
+  if (!port || !port.writable) return;
+  const w = port.writable.getWriter();
+  try { await w.write(new TextEncoder().encode(cmd + "\r\n")); handleLine("> " + cmd); } finally { w.releaseLock(); }
+}
+function setCmds(on) { document.querySelectorAll(".cmd, #recal, #freeCmd").forEach(el => el.disabled = !on); }
+document.querySelectorAll(".cmd").forEach(b => b.addEventListener("click", () => send(b.dataset.cmd)));
+$("recal").addEventListener("click", () => $("recalConfirm").classList.add("show"));
+$("recalNo").addEventListener("click", () => $("recalConfirm").classList.remove("show"));
+$("recalYes").addEventListener("click", () => { $("recalConfirm").classList.remove("show"); send("!recal"); });
+$("freeCmd").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.value.trim()) { send(e.target.value.trim()); e.target.value = ""; } });
+$("connect").addEventListener("click", connect);
+$("disconnect").addEventListener("click", disconnect);
+
+// ---- camera: MJPEG image and /alerts polling ----
+let camOn = false, alertTimer = null, alertBusy = false;
+function camBase() { const h = $("camHost").value.trim().replace(/^https?:\/\//, "").replace(/\/+$/, ""); return "http://" + h; }
+function camToggle() {
+  camOn = !camOn;
+  $("camToggle").textContent = camOn ? "Hide camera" : "Show camera";
+  const view = $("camView");
+  if (camOn) {
+    view.textContent = "";
+    const img = new Image(); img.alt = "Live view from the Pi camera";
+    img.onerror = () => { $("camChip").textContent = "no stream"; $("camChip").className = "chip bad"; };
+    img.onload = () => { $("camChip").textContent = "live"; $("camChip").className = "chip good"; };
+    img.src = camBase() + "/stream"; view.appendChild(img);
+    alertTimer = setInterval(pollAlerts, 500); pollAlerts();
+    try { localStorage.setItem("sw7camHost", $("camHost").value); } catch (_) {}
+  } else {
+    view.textContent = "Camera off."; clearInterval(alertTimer);
+    $("camChip").textContent = "off"; $("camChip").className = "chip";
+  }
+}
+async function pollAlerts() {
+  if (alertBusy) return; alertBusy = true;
+  const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 2000);
+  try {
+    const r = await fetch(camBase() + "/alerts", { signal: ctl.signal, cache: "no-store" });
+    const j = await r.json();
+    const parts = [];
+    if (j.fps != null) parts.push(j.fps.toFixed(1) + " fps");
+    if (j.latency_ms != null) parts.push(j.latency_ms + " ms sensor to result");
+    $("camMetrics").textContent = parts.join(", ") || "live"; $("camMetrics").className = "chip good";
+    const box = $("alerts"); box.textContent = "";
+    if (!j.active || !j.active.length) { box.innerHTML = '<div class="none">No alerts</div>'; }
+    else j.active.forEach(a => {
+      const d = document.createElement("div"); d.className = "alert " + (a.distance_band || "");
+      const name = document.createElement("span"); name.textContent = String(a.class || "?");
+      const band = document.createElement("small"); band.textContent = (a.distance_band || "") + " " + Math.round((a.confidence || 0) * 100) + "%";
+      d.append(name, band); box.appendChild(d);
+    });
+  } catch (e) {
+    $("camMetrics").textContent = "detector not reachable"; $("camMetrics").className = "chip bad";
+  } finally { clearTimeout(to); alertBusy = false; }
+}
+$("camToggle").addEventListener("click", camToggle);
+try { const h = localStorage.getItem("sw7camHost"); if (h) $("camHost").value = h; } catch (_) {}
+
+// ---- session log download and clear ----
+$("saveLog").addEventListener("click", () => {
+  const body = allLines.map(x => x[0] + "  " + x[1]).join("\n") + "\n";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([body], { type: "text/plain" }));
+  a.download = "sw7_session_" + new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19) + ".log";
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+$("clear").addEventListener("click", () => {
+  series.s1 = []; series.s2 = []; series.fz = []; series.dis = []; allLines.length = 0;
+  $("log").textContent = ""; t0 = performance.now(); syncEdges = 0;
+});
+
+// ---- replay a recorded log: window.REPLAY_LINES with "[  12.34s] " prefixes ----
+function replay(lines, name) {
+  const parsed = lines.map(l => /^\[\s*([\d.]+)s\]\s?(.*)$/.exec(l)).filter(Boolean);
+  if (!parsed.length) return;
+  WINDOW_S = Math.max(10, Math.ceil(+parsed[parsed.length - 1][1] / 10) * 10);
+  for (const m of parsed) { replayTime = +m[1]; handleLine(m[2]); }
+  replayTime = WINDOW_S;
+  $("espChip").textContent = "recorded log: " + name; $("espChip").className = "chip";
+  $("winChip").textContent = "whole recording";
+  ["connect", "disconnect", "camToggle", "clear"].forEach(id => $(id).style.display = "none");
+}
+if (window.REPLAY_LINES) replay(window.REPLAY_LINES, window.REPLAY_NAME || "recorded log");
+</script>
+</body>
+</html>
