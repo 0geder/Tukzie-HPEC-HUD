@@ -372,6 +372,9 @@ def main():
     parser.add_argument("--preview-port", type=int, default=8080)
     parser.add_argument("--preview-host", default="127.0.0.1",
                          help="127.0.0.1 = this Pi only; 0.0.0.0 = also other devices on the local network")
+    parser.add_argument("--tuning", default=None,
+                         help="Camera tuning file, e.g. ov5647_noir.json for a module with no "
+                              "infrared filter (pink or red cast). Default: the standard tuning")
     parser.add_argument("--threads", type=int, default=4,
                          help="CPU threads for inference (the Pi 4 has 4 cores)")
     parser.add_argument("--verbose", action="store_true",
@@ -401,7 +404,11 @@ def main():
     input_height = input_details[0]['shape'][1]
     input_width = input_details[0]['shape'][2]
 
-    picam2 = Picamera2()
+    if args.tuning:
+        picam2 = Picamera2(tuning=Picamera2.load_tuning_file(args.tuning))
+        print(f"Camera tuning: {args.tuning}")
+    else:
+        picam2 = Picamera2()
     picam2.configure(picam2.create_preview_configuration(
         main={"size": (args.width, args.height), "format": "RGB888"}))
     picam2.start()
