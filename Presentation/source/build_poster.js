@@ -110,7 +110,7 @@ const stats = [
   ["200 Hz", "both IMUs, zero dropped samples"],
   ["5 to 8%", "gap between the two IMUs, calibrated down to noise"],
   ["< 1 s", "camera aligned to the IMU data"],
-  ["222 / 222", "windows fused from both IMUs"],
+  ["149 / 149", "windows fused from both IMUs"],
 ];
 const statW = (b.w - 0.5) / 2;
 stats.forEach(([big, small], i) => {

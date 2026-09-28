@@ -222,12 +222,12 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
     "First results. Both IMUs run at 200 hertz with zero dropped samples, and the drop counters prove that rather than assuming it. " +
     "Two nominally identical accelerometers disagreed by 5 to 8 percent at rest; per-sensor calibration against true gravity brought that down to measurement noise, which meets RQ1. " +
     "The two are then fused into one ride estimate. With equal noise on both sensors, inverse-variance weighting reduces to a plain mean. Windows are only paired if they ended within half a window of each other, a disagreement figure is reported rather than hidden, and if one sensor goes silent for three seconds the output falls back to the other. " +
-    "The chart is a recorded 150 second session: still, then disturbed by hand from about 75 seconds. All 222 windows were fused from both sensors with skew under a millisecond, and all five boot self-tests passed. " +
-    "One honest finding: the latest resting readings were 1.6 and 2.7 percent above gravity, so the calibration has drifted and will be redone before the field test.");
+    "The chart is a recorded 150 second session: still, then disturbed by hand from about 75 seconds. All 149 windows were fused from both sensors with skew under a millisecond, and all five boot self-tests passed. " +
+    "One honest finding: the stored calibration on the board was not the one first measured, and the resting readings were 1.3 and 2.9 percent above gravity, so the sensors will be recalibrated before the field test.");
   const stats = [
     ["200 Hz", "on both IMUs, zero dropped samples"],
     ["5 to 8%", "IMU gap at rest, calibrated down to noise"],
-    ["222 / 222", "windows fused from both IMUs"],
+    ["149 / 149", "windows fused from both IMUs"],
     ["< 1 ms", "skew between paired windows"],
   ];
   const cw = (W - 2 * M - 3 * 0.3) / 4, cy = 1.4, ch = 1.6;
@@ -310,14 +310,14 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   const s = content("Camera casing and hazard awareness",
     "On supervisor direction, the camera's role grew from a visual record to a hazard-awareness function. " +
     "I designed a three-part casing and 3D printed it: a bottom shell and top cover that protect the camera and its ribbon cable, and a 30 degree corner mount to fix it to the trike. A second casing houses a second camera. The casings are printed but not yet fixed to the vehicle. " +
-    "The detector is a pretrained, 8-bit SSD-MobileNet chosen to fit the Pi 4, with no training of my own. It reports only a few object types in three coarse distance bands. It is implemented but has not yet been run on live camera data. " +
+    "The detector is a pretrained, 8-bit SSD-MobileNet chosen to fit the Pi 4, with no training of my own. It reports only a few object types in three coarse distance bands. It has now run on live bench footage at about 7 frames a second and detects a person reliably; the other object types and the distance calibration are still to be tested. " +
     "For a live near-object alert I chose a VL53L5CX time-of-flight sensor with an 8 by 8 zone grid, so it can tell left, centre and right apart. It has been sourced and is awaiting delivery.");
   const ih = 5.35, iw = ih * 1827 / 1306;
   s.addImage({ path: A("casing_labelled.png"), x: M, y: 1.4, w: iw, h: ih });
   const x = M + iw + 0.4, w = W - M - x;
   const blocks = [
     ["3D-printed casing", "Designed and printed in this project: shell, cover and 30-degree corner mount. A second casing holds a second camera. Not yet fixed to the vehicle."],
-    ["Object detector", "Pretrained 8-bit SSD-MobileNet sized for the Pi 4: a few object types in three distance bands. Implemented, not yet run on live data."],
+    ["Object detector", "Pretrained 8-bit SSD-MobileNet sized for the Pi 4: a few object types in three distance bands. Running live at about 7 fps; person confirmed, other classes untested."],
     ["Time-of-flight sensor", "VL53L5CX, 8x8 zones over 63 degrees, up to 4 m, for left, centre and right alerts. Sourced, awaiting delivery."],
   ];
   const bh = 1.65, bg = 0.2;
