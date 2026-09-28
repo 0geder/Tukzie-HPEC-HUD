@@ -25,12 +25,16 @@ known-object-width heuristic. Earlier versions also reported traffic
 light/stop sign/fire hydrant; those are not in the application's
 category list and have been removed.
 
-An object must be detected continuously for `ALERT_PERSISTENCE_FRAMES`
-(default 3) consecutive frames within a reportable distance band before
-it is logged as an alert, rather than every single-frame flicker. Only
-five fields are ever written to the alert log (`alerts.jsonl` by
-default): object class, distance band (`immediate`/`warning`/
-`monitoring`), detection confidence, timestamp, and alert status
+An object class must be detected within any reportable distance band
+for `ALERT_PERSISTENCE_FRAMES` (default 3) consecutive frames before it
+is logged as an alert, rather than every single-frame flicker. Once
+active, it is re-logged if it holds a nearer band for the same 3 frames,
+and it clears only after `CLEAR_AFTER_MISSED_FRAMES` (default 5)
+consecutive frames without it, so detections hovering near the
+confidence threshold do not toggle the alert on and off. Only five
+fields are ever written to the alert log (`alerts.jsonl` by default):
+object class, distance band (`immediate`/`warning`/`monitoring`),
+detection confidence, timestamp (with UTC offset), and alert status
 (`active`/`cleared`). No frame, bounding box, or raw continuous distance
 value is ever persisted.
 
@@ -57,24 +61,61 @@ Two things this depends on that are **not yet done**:
 
 ## Deploying
 
-From the scratchpad (or wherever this was prepared on the development
-machine): `python pi_deploy_hazard_detector.py` copies `hazard_detector.py`,
-`detect.tflite`, and `labelmap.txt` to `/home/ogeder/hazard_detector/` on
-the Pi and checks whether `tflite_runtime`, `picamera2`, and `PIL` are
-already installed there.
+From the `Tukzie-HPEC-HUD` folder on the development machine, copy the
+three files to the Pi (the Pi is `pi4-camera`; use its IP, from
+`hostname -I` on the Pi, where `.local` names do not resolve):
 
-Run on the Pi: `python3 hazard_detector.py` (add `--duration 30` to run
-for a fixed window instead of until Ctrl+C).
+```
+ssh -i ~/.ssh/pi4_camera_key ogeder@<pi-ip> "mkdir -p ~/hazard_detector"
+scp -i ~/.ssh/pi4_camera_key CameraDetection/hazard_detector.py CameraDetection/detect.tflite CameraDetection/labelmap.txt ogeder@<pi-ip>:~/hazard_detector/
+```
+
+On the Pi, once. Pi OS Trixie runs Python 3.13, for which `tflite-runtime`
+has no wheels, so the LiteRT package (`ai-edge-litert`, its successor)
+is used, in a venv that can still see the system `picamera2`:
+
+```
+cd ~/hazard_detector
+python3 -m venv --system-site-packages venv
+source venv/bin/activate
+pip install ai-edge-litert
+```
+
+Run (in each new terminal, `source venv/bin/activate` first):
+
+```
+python3 hazard_detector.py --duration 60              # fixed run
+python3 hazard_detector.py --preview                  # live view at http://localhost:8080 on the Pi
+python3 hazard_detector.py --preview --preview-host 0.0.0.0   # live view from another device: http://<pi-ip>:8080
+```
+
+The live view draws the model's detections (class, confidence,
+estimated distance, band) on the camera image. It is served over plain,
+unauthenticated HTTP and never saved. With `--preview-host 0.0.0.0`
+anyone on the same network can open it, so use that only on a private
+network such as a phone hotspot.
 
 ## Status
 
-Not yet run against the real camera - the ethics-conditioned category
-restriction, distance banding, persistence debounce, and structured
-alert logger described above are all implemented and syntax-checked,
-but have not yet been exercised against live frames on the Pi. Model
-file verified as a genuine, complete TFLite archive (not a corrupted or
-truncated download). Needs, in order: (1) a real run to confirm frame
-rate is usable and the alert log fills in as expected, (2) focal-length
-calibration, (3) a decision on whether "hazard" for this project means
-road-surface defects specifically or general object presence - raised
-with the supervisor separately, not yet answered.
+First run against the live camera on the bench on 28 September 2026
+(Raspberry Pi 4, OV5647 at 640x480, LiteRT): about 7 frames per second
+(430 frames and 419 frames in two 60 s runs).
+
+- The first run exposed two input faults, both fixed: the label file's
+  leading `???` placeholder shifted every class name by one (a person in
+  view was never reported), and Picamera2's `RGB888` buffers are stored
+  B, G, R (Picamera2 manual, Image Formats) while the model expects
+  R, G, B. After both fixes a person in view was detected with
+  confidence 0.50 to 0.73. The two fixes went in together, so their
+  individual effects were not separated.
+- The same run showed an alert clearing on one missed frame (16
+  activations in 47 s for one person standing in view). Clear-side
+  hysteresis and escalation debounce were added afterwards and tested
+  offline against a replayed detection sequence, not yet on the Pi.
+- Only `person` has been confirmed on live frames. The other six classes
+  are untested.
+- Outstanding, in order: focal-length calibration (the console now
+  prints `bbox_width_px` per detection for this; 600 px is a placeholder,
+  and about 643 px would be expected from the Camera Module v1 lens
+  spec), an outdoor and on-vehicle test, and a decision on whether
+  "hazard" means road-surface defects or general object presence.
