@@ -5,7 +5,7 @@
 % This file should be is processed with ``pdflatex`` and might need a few modifications if a different processor is chosen.
 
 
-\documentclass[a4paper,12pt]{report}
+\documentclass[a4paper,11pt]{report}
 
 %Include packages you need to use here
 
@@ -21,6 +21,17 @@
 \usepackage{longtable}
 \usepackage{tikz}
 \usepackage{hyperref}
+
+% Course handout format: single column, Times New Roman, 11 pt, single line
+% spacing, at most 50 content pages. XeTeX (Tectonic) uses the real Times
+% New Roman; pdfLaTeX falls back to newtx, a Times clone.
+\usepackage{iftex}
+\ifXeTeX
+  \usepackage{fontspec}
+  \setmainfont{Times New Roman}
+\else
+  \usepackage{newtxtext,newtxmath}
+\fi
 
 % Include page formatting here.
 \parskip = 6mm
@@ -76,7 +87,7 @@ Engineering.
 
 \newpage
 
-\onehalfspacing
+\singlespacing
 \nohyphens{
 \thispagestyle{empty}
 \vskip 40mm
@@ -102,6 +113,8 @@ Signature: \raisebox{-0.3\height}{\includegraphics[height=1.2cm]{Signature.png}}
 \\[8pt]Samson Okuthe (OKTSAM001)
 \vskip10mm
 Date: \today
+\vskip10mm
+Word count of the body of the report (Chapters 1 to 7, excluding tables, figures, captions and code listings): 17\,931.
 
 \newpage
 \thispagestyle{empty}
@@ -161,5 +174,6 @@ This report describes the development of an embedded telemetry unit and windshie
 \appendix
 \include{appendixa}
 \include{appendixb}
+\include{appendixc}
 }
 \end{document}

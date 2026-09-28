@@ -1,0 +1,292 @@
+# Detector run 2 on the Raspberry Pi 4, 28 Sept 2026, as pasted from the Pi terminal.
+# After the label-offset and colour-order fixes. Shows the alert flicker that led to clear-side hysteresis.
+
+etector
+source venv/bin/activate
+rm -f alerts.jsonl
+python3 hazard_detector.py --duration 60 --log-path alerts.jsonl
+cat alerts.jsonl
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+[3:02:40.165720337] [2466]  INFO Camera camera_manager.cpp:340 libcamera v0.7.2+rpt20260817
+[3:02:40.185523262] [2469]  INFO RPI pipeline_base.cpp:1133 Using configuration file '/usr/share/libcamera/pipeline/rpi/vc4/rpi_apps.yaml'
+[3:02:40.208999057] [2469]  INFO IPAProxy ipa_proxy.cpp:184 Using tuning file /usr/share/libcamera/ipa/rpi/vc4/ov5647.json
+[3:02:40.215477422] [2469]  INFO Camera camera_manager.cpp:223 Adding camera '/base/soc/i2c0mux/i2c@1/ov5647@36' for pipeline handler rpi/vc4
+[3:02:40.215558310] [2469]  INFO RPI vc4.cpp:445 Registered camera /base/soc/i2c0mux/i2c@1/ov5647@36 to Unicam device /dev/media3 and ISP device /dev/media1
+[3:02:40.224776783] [2466]  INFO Camera camera.cpp:1216 configuring streams: (0) 640x480-RGB888/sRGB (1) 640x480-SGBRG10_CSI2P/RAW
+[3:02:40.225823600] [2469]  INFO RPI vc4.cpp:620 Sensor: /base/soc/i2c0mux/i2c@1/ov5647@36 - Selected sensor format: 640x480-SGBRG10_1X10/RAW - Selected unicam format: 640x480-pGAA/RAW
+Model loaded: detect.tflite (input 300x300)
+WARNING: focal_length_px=600.0 is UNCALIBRATED - distance estimates are order-of-magnitude only until calibrated.
+Watching for: bicycle, bus, car, dog, motorcycle, person, truck
+Alert log (class/band/confidence/timestamp/status only): alerts.jsonl
+[14:31:28] person band=immediate conf=0.54 streak=1/3
+[14:31:28] person band=immediate conf=0.59 streak=2/3
+[14:31:28] person band=immediate conf=0.59 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:31:28] person band=immediate conf=0.55 streak=4/3
+[14:31:28] person band=immediate conf=0.63 streak=5/3
+[14:31:29] person band=immediate conf=0.54 streak=6/3
+[14:31:29] person band=immediate conf=0.55 streak=7/3
+[14:31:29] person band=immediate conf=0.55 streak=8/3
+[14:31:29] person band=immediate conf=0.55 streak=9/3
+[14:31:29] person band=immediate conf=0.55 streak=10/3
+[14:31:29] person band=immediate conf=0.63 streak=11/3
+[14:31:29] person band=immediate conf=0.57 streak=12/3
+[14:31:30] person band=immediate conf=0.55 streak=13/3
+[14:31:30] person band=immediate conf=0.56 streak=14/3
+[14:31:30] person band=immediate conf=0.61 streak=15/3
+[14:31:30] person band=immediate conf=0.62 streak=16/3
+[14:31:30] person band=immediate conf=0.57 streak=17/3
+  -> cleared: person
+[14:31:31] person band=immediate conf=0.60 streak=1/3
+[14:31:31] person band=immediate conf=0.59 streak=2/3
+[14:31:31] person band=immediate conf=0.59 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:31:31] person band=immediate conf=0.55 streak=4/3
+[14:31:31] person band=immediate conf=0.57 streak=5/3
+[14:31:31] person band=immediate conf=0.61 streak=6/3
+[14:31:31] person band=immediate conf=0.52 streak=7/3
+  -> cleared: person
+[14:31:32] person band=immediate conf=0.61 streak=1/3
+[14:31:32] person band=immediate conf=0.57 streak=2/3
+[14:31:32] person band=immediate conf=0.63 streak=3/3
+  -> ALERT logged: person (immediate)
+  -> cleared: person
+[14:31:33] person band=immediate conf=0.54 streak=1/3
+[14:31:33] person band=immediate conf=0.59 streak=2/3
+[14:31:33] person band=immediate conf=0.52 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:31:34] person band=immediate conf=0.56 streak=4/3
+[14:31:34] person band=immediate conf=0.61 streak=5/3
+[14:31:34] person band=immediate conf=0.51 streak=6/3
+[14:31:34] person band=immediate conf=0.52 streak=7/3
+  -> cleared: person
+[14:31:35] person band=immediate conf=0.55 streak=1/3
+[14:31:35] person band=immediate conf=0.51 streak=2/3
+[14:31:35] person band=immediate conf=0.55 streak=1/3
+[14:31:35] person band=immediate conf=0.60 streak=2/3
+[14:31:35] person band=immediate conf=0.55 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:31:36] person band=immediate conf=0.54 streak=4/3
+[14:31:36] person band=immediate conf=0.59 streak=5/3
+[14:31:36] person band=immediate conf=0.60 streak=6/3
+[14:31:36] person band=immediate conf=0.69 streak=7/3
+[14:31:36] person band=immediate conf=0.57 streak=8/3
+[14:31:36] person band=immediate conf=0.52 streak=9/3
+[14:31:36] person band=immediate conf=0.55 streak=10/3
+[14:31:37] person band=immediate conf=0.51 streak=11/3
+  -> cleared: person
+[14:31:37] person band=immediate conf=0.59 streak=1/3
+[14:31:37] person band=immediate conf=0.55 streak=2/3
+[14:31:37] person band=immediate conf=0.51 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:31:37] person band=immediate conf=0.61 streak=4/3
+[14:31:37] person band=immediate conf=0.52 streak=5/3
+  -> cleared: person
+[14:31:38] person band=immediate conf=0.55 streak=1/3
+[14:31:38] person band=immediate conf=0.59 streak=1/3
+[14:31:38] person band=immediate conf=0.57 streak=1/3
+[14:31:38] person band=immediate conf=0.51 streak=2/3
+[14:31:39] person band=immediate conf=0.54 streak=1/3
+[14:31:39] person band=immediate conf=0.59 streak=2/3
+[14:31:39] person band=immediate conf=0.59 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:31:39] person band=immediate conf=0.62 streak=4/3
+[14:31:40] person band=immediate conf=0.62 streak=5/3
+[14:31:40] person band=immediate conf=0.57 streak=6/3
+[14:31:40] person band=immediate conf=0.61 streak=7/3
+[14:31:40] person band=immediate conf=0.61 streak=8/3
+[14:31:40] person band=immediate conf=0.64 streak=9/3
+[14:31:40] person band=immediate conf=0.61 streak=10/3
+[14:31:40] person band=immediate conf=0.56 streak=11/3
+[14:31:41] person band=immediate conf=0.52 streak=12/3
+[14:31:41] person band=monitoring conf=0.51 streak=13/3
+[14:31:41] person band=monitoring conf=0.51 streak=14/3
+  -> cleared: person
+[14:31:41] person band=monitoring conf=0.52 streak=1/3
+[14:31:41] person band=monitoring conf=0.51 streak=2/3
+[14:31:41] person band=monitoring conf=0.52 streak=3/3
+  -> ALERT logged: person (monitoring)
+  -> cleared: person
+[14:31:42] person band=monitoring conf=0.51 streak=1/3
+[14:31:42] person band=monitoring conf=0.50 streak=2/3
+[14:31:42] person band=monitoring conf=0.55 streak=3/3
+  -> ALERT logged: person (monitoring)
+[14:31:42] person band=monitoring conf=0.55 streak=4/3
+[14:31:42] person band=monitoring conf=0.56 streak=5/3
+[14:31:42] person band=monitoring conf=0.56 streak=6/3
+[14:31:43] person band=monitoring conf=0.59 streak=7/3
+[14:31:43] person band=warning conf=0.50 streak=8/3
+[14:31:43] person band=monitoring conf=0.51 streak=9/3
+[14:31:43] person band=monitoring conf=0.51 streak=10/3
+[14:31:43] person band=monitoring conf=0.51 streak=11/3
+[14:31:43] person band=monitoring conf=0.51 streak=12/3
+  -> cleared: person
+[14:31:44] person band=warning conf=0.52 streak=1/3
+[14:31:44] person band=warning conf=0.57 streak=2/3
+[14:31:45] person band=immediate conf=0.54 streak=1/3
+[14:31:45] person band=immediate conf=0.59 streak=2/3
+[14:31:45] person band=immediate conf=0.61 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:31:45] person band=immediate conf=0.59 streak=4/3
+[14:31:45] person band=immediate conf=0.61 streak=5/3
+[14:31:45] person band=immediate conf=0.61 streak=6/3
+[14:31:46] person band=immediate conf=0.62 streak=7/3
+[14:31:46] person band=immediate conf=0.64 streak=8/3
+[14:31:46] person band=immediate conf=0.59 streak=9/3
+[14:31:46] person band=immediate conf=0.62 streak=10/3
+[14:31:46] person band=immediate conf=0.57 streak=11/3
+[14:31:46] person band=immediate conf=0.68 streak=12/3
+[14:31:46] person band=immediate conf=0.64 streak=13/3
+[14:31:47] person band=immediate conf=0.64 streak=14/3
+[14:31:47] person band=immediate conf=0.64 streak=15/3
+[14:31:47] person band=immediate conf=0.61 streak=16/3
+[14:31:47] person band=immediate conf=0.62 streak=17/3
+[14:31:47] person band=warning conf=0.64 streak=18/3
+[14:31:47] person band=immediate conf=0.62 streak=19/3
+[14:31:47] person band=immediate conf=0.64 streak=20/3
+[14:31:48] person band=immediate conf=0.63 streak=21/3
+[14:31:48] person band=immediate conf=0.61 streak=22/3
+[14:31:48] person band=immediate conf=0.63 streak=23/3
+[14:31:48] person band=immediate conf=0.61 streak=24/3
+[14:31:48] person band=immediate conf=0.59 streak=25/3
+[14:31:48] person band=immediate conf=0.62 streak=26/3
+[14:31:48] person band=immediate conf=0.62 streak=27/3
+[14:31:49] person band=warning conf=0.63 streak=28/3
+[14:31:49] person band=immediate conf=0.59 streak=29/3
+[14:31:49] person band=immediate conf=0.62 streak=30/3
+[14:31:49] person band=immediate conf=0.59 streak=31/3
+[14:31:49] person band=immediate conf=0.59 streak=32/3
+[14:31:49] person band=immediate conf=0.62 streak=33/3
+[14:31:49] person band=immediate conf=0.62 streak=34/3
+[14:31:50] person band=immediate conf=0.64 streak=35/3
+[14:31:50] person band=immediate conf=0.70 streak=36/3
+[14:31:50] person band=immediate conf=0.73 streak=37/3
+  -> cleared: person
+[14:31:50] person band=immediate conf=0.55 streak=1/3
+[14:31:51] person band=immediate conf=0.50 streak=1/3
+[14:31:51] person band=immediate conf=0.56 streak=1/3
+[14:31:52] person band=monitoring conf=0.54 streak=1/3
+[14:31:56] person band=immediate conf=0.66 streak=1/3
+[14:31:56] person band=warning conf=0.70 streak=2/3
+[14:31:57] person band=warning conf=0.56 streak=1/3
+[14:32:02] person band=immediate conf=0.61 streak=1/3
+[14:32:02] person band=immediate conf=0.60 streak=2/3
+[14:32:02] person band=immediate conf=0.56 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:32:02] person band=immediate conf=0.54 streak=4/3
+[14:32:03] person band=immediate conf=0.54 streak=5/3
+[14:32:03] person band=immediate conf=0.54 streak=6/3
+[14:32:03] person band=immediate conf=0.54 streak=7/3
+[14:32:03] person band=immediate conf=0.55 streak=8/3
+[14:32:03] person band=immediate conf=0.51 streak=9/3
+  -> cleared: person
+[14:32:03] person band=immediate conf=0.55 streak=1/3
+[14:32:04] person band=immediate conf=0.59 streak=2/3
+[14:32:04] person band=immediate conf=0.55 streak=3/3
+  -> ALERT logged: person (immediate)
+  -> cleared: person
+[14:32:04] person band=immediate conf=0.54 streak=1/3
+[14:32:04] person band=immediate conf=0.50 streak=2/3
+[14:32:04] person band=immediate conf=0.55 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:32:04] person band=immediate conf=0.55 streak=4/3
+[14:32:05] person band=immediate conf=0.55 streak=5/3
+[14:32:05] person band=immediate conf=0.56 streak=6/3
+[14:32:05] person band=warning conf=0.61 streak=7/3
+[14:32:05] person band=immediate conf=0.57 streak=8/3
+[14:32:05] person band=immediate conf=0.62 streak=9/3
+[14:32:05] person band=immediate conf=0.63 streak=10/3
+[14:32:05] person band=immediate conf=0.62 streak=11/3
+[14:32:06] person band=immediate conf=0.59 streak=12/3
+[14:32:06] person band=immediate conf=0.57 streak=13/3
+[14:32:06] person band=immediate conf=0.61 streak=14/3
+[14:32:06] person band=immediate conf=0.63 streak=15/3
+[14:32:06] person band=immediate conf=0.67 streak=16/3
+[14:32:06] person band=immediate conf=0.50 streak=17/3
+  -> cleared: person
+[14:32:07] person band=immediate conf=0.51 streak=1/3
+[14:32:08] person band=immediate conf=0.51 streak=1/3
+[14:32:08] person band=immediate conf=0.59 streak=2/3
+[14:32:08] dog band=immediate conf=0.56 streak=1/3
+[14:32:08] person band=immediate conf=0.59 streak=1/3
+[14:32:08] person band=immediate conf=0.59 streak=2/3
+[14:32:09] person band=immediate conf=0.59 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:32:09] person band=immediate conf=0.56 streak=4/3
+[14:32:09] person band=immediate conf=0.54 streak=5/3
+[14:32:09] person band=immediate conf=0.52 streak=6/3
+  -> cleared: person
+[14:32:10] person band=immediate conf=0.52 streak=1/3
+[14:32:10] person band=immediate conf=0.55 streak=1/3
+[14:32:10] person band=immediate conf=0.61 streak=1/3
+[14:32:11] person band=immediate conf=0.56 streak=1/3
+[14:32:11] person band=immediate conf=0.57 streak=1/3
+[14:32:11] person band=immediate conf=0.51 streak=2/3
+[14:32:13] person band=immediate conf=0.60 streak=1/3
+[14:32:13] person band=immediate conf=0.57 streak=2/3
+[14:32:14] person band=immediate conf=0.52 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:32:14] person band=immediate conf=0.54 streak=4/3
+[14:32:14] person band=immediate conf=0.54 streak=5/3
+[14:32:14] person band=immediate conf=0.51 streak=6/3
+  -> cleared: person
+[14:32:14] person band=immediate conf=0.63 streak=1/3
+[14:32:14] person band=immediate conf=0.60 streak=2/3
+[14:32:15] person band=immediate conf=0.61 streak=3/3
+  -> ALERT logged: person (immediate)
+[14:32:15] person band=immediate conf=0.63 streak=4/3
+[14:32:15] person band=immediate conf=0.63 streak=5/3
+[14:32:15] person band=immediate conf=0.63 streak=6/3
+[14:32:15] person band=immediate conf=0.64 streak=7/3
+[14:32:15] person band=immediate conf=0.64 streak=8/3
+[14:32:15] person band=immediate conf=0.64 streak=9/3
+[14:32:16] person band=immediate conf=0.64 streak=10/3
+[14:32:16] person band=immediate conf=0.66 streak=11/3
+[14:32:16] person band=immediate conf=0.64 streak=12/3
+[14:32:16] person band=immediate conf=0.64 streak=13/3
+[14:32:16] person band=immediate conf=0.64 streak=14/3
+[14:32:16] person band=immediate conf=0.66 streak=15/3
+[14:32:16] person band=immediate conf=0.64 streak=16/3
+[14:32:17] person band=immediate conf=0.64 streak=17/3
+[14:32:17] person band=immediate conf=0.64 streak=18/3
+[14:32:17] person band=immediate conf=0.64 streak=19/3
+[14:32:17] person band=immediate conf=0.64 streak=20/3
+[14:32:17] person band=immediate conf=0.64 streak=21/3
+[14:32:17] person band=immediate conf=0.64 streak=22/3
+[14:32:17] person band=immediate conf=0.63 streak=23/3
+
+Stopped. 419 frames in 60.1s (7.0 fps average).
+{"class": "person", "distance_band": "immediate", "confidence": 0.59, "timestamp": "2026-09-28T14:31:28", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:31:30", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.59, "timestamp": "2026-09-28T14:31:31", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:31:32", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.63, "timestamp": "2026-09-28T14:31:32", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:31:32", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.52, "timestamp": "2026-09-28T14:31:33", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:31:34", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.55, "timestamp": "2026-09-28T14:31:35", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:31:37", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.51, "timestamp": "2026-09-28T14:31:37", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:31:38", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.59, "timestamp": "2026-09-28T14:31:39", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:31:41", "alert_status": "cleared"}
+{"class": "person", "distance_band": "monitoring", "confidence": 0.52, "timestamp": "2026-09-28T14:31:41", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:31:42", "alert_status": "cleared"}
+{"class": "person", "distance_band": "monitoring", "confidence": 0.55, "timestamp": "2026-09-28T14:31:42", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:31:43", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.61, "timestamp": "2026-09-28T14:31:45", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:31:50", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.56, "timestamp": "2026-09-28T14:32:02", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:32:03", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.55, "timestamp": "2026-09-28T14:32:04", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:32:04", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.55, "timestamp": "2026-09-28T14:32:04", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:32:06", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.59, "timestamp": "2026-09-28T14:32:09", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:32:09", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.52, "timestamp": "2026-09-28T14:32:14", "alert_status": "active"}
+{"class": "person", "distance_band": null, "confidence": 0.0, "timestamp": "2026-09-28T14:32:14", "alert_status": "cleared"}
+{"class": "person", "distance_band": "immediate", "confidence": 0.61, "timestamp": "2026-09-28T14:32:15", "alert_status": "active"}
+(venv) ogeder@pi4-camera:~/hazard_detector $ ^C
+(venv) ogeder@pi4-camera:~/hazard_detector $ ^C
+(venv) ogeder@pi4-camera:~/hazard_detector $

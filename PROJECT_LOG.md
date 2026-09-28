@@ -2,7 +2,7 @@
 
 SW-7 is a UCT EEE4022S 2026 final-year project by Samson Okuthe (OKTSAM001), supervised by A/Prof. Simon Winberg with co-supervisor Sampath Jayalath. It is an embedded HPEC telemetry unit and a windshield HUD for the TUKZIE Rev 0, a 72 V electric cargo trike. The telemetry unit is an ESP32-S3 (Makerfabs board with an A7670X LTE Cat 1 modem). It runs FreeRTOS and samples two MPU6050 IMUs at 200 Hz. From those it computes calibrated, speed-normalised ride features and fuses them. It also reads the JBD BMS over BLE and GNSS through the modem, publishes JSON over MQTT on LTE, and logs locally to internal flash (LittleFS). A Raspberry Pi 4 runs a forward camera with a pretrained object detector, a live view and an alerts endpoint for the inherited vac-work dashboard. The HUD is on hold pending the supervisor meeting. This file records everything technical done and every decision made. The `progress-scribe` agent (.claude/agents/progress-scribe.md) keeps it current.
 
-Last updated: 2026-09-28 (initial build from the repo, report, GA form and session transcript; covers commits 3dd8ab9 to 72ba826; later on 28 Sept: firmware v0.5.0 committed as dfc6542, and the fusion and calibration figures in the report, deck and poster corrected from the bench log).
+Last updated: 2026-09-28, evening (initial build from the repo, report, GA form and session transcript; covers commits 3dd8ab9 to 72ba826; later on 28 Sept: firmware v0.5.0 committed as dfc6542, and the fusion and calibration figures in the report, deck and poster corrected from the bench log).
 
 Conventions: dates are 2026. "Transcript" means the Claude Code session transcript. A fact marked "per the student, not in the repo" was stated by the student in the session but has no file in this repo behind it. "Unverified" means claimed but not measured or not found.
 
@@ -234,8 +234,11 @@ Grouped by week (weeks start on Monday). Commit hashes are in brackets. Events w
   - README (ccbcd2a).
   - progress-scribe agent, CLAUDE.md and log prompt (72ba826).
   - Optocouplers received; HUD put on hold pending the supervisor (transcript).
-  - Firmware v0.5.0 in progress, uncommitted.
-  - This log created.
+  - Firmware v0.5.0: MQTT result codes and reconnect, serial commands; compiles, not yet flashed (dfc6542).
+  - This log created, and figures corrected from the bench log: 149 fused windows, 0.067 still max, 9.93/10.10 resting, 1 s sync period (b57f742).
+  - Bench console combining ESP32, camera, alerts, ToF and SEN55 panels (97481b0).
+  - Report put into the handout format: Times New Roman 11 pt, single spacing (Intro Lecture p. 11, Lecture 2 p. 7). Content pages fell from 62 to 46 (limit 50). Body word count 17,931 added under the declaration (Lecture 2 p. 10), against 10,000 to 15,000 in GA6.
+  - Appendix C, Test Evidence, and Report/evidence/ with a capture guide. CHANGELOG.md (every change and why) and Planning/brief-compliance.md (requirements matrix, about 40 percent complete) added.
 
 ---
 
@@ -383,6 +386,7 @@ Not tested: on the Pi 5, against the live detector, or with the four edits appli
 ### 4.4 Bench tools (BenchTest/, VirtualTukzie/, Research/)
 
 - BenchTest/live_telemetry.html: Chromium Web Serial dashboard. Shows fused and per-IMU features, sample rate and drops, GNSS/BMS status, free memory, self-test results, and rolling plots of vibration and disagreement. It can replay a saved log (6e871a1, 46377a3).
+- BenchTest/sw7_console.html: the combined bench console (97481b0). One local page in Edge or Chrome with the ESP32 telemetry over Web Serial (cards for ride vibration, IMU acquisition, BMS, GNSS, MQTT, logging and system), the Pi camera live view and /alerts, buttons for the v0.5.0 serial commands (with an in-page confirm for !recal), a filtered log, a timestamped session-log download, and replay of recorded logs. ToF and SEN55 panels parse proposed `[TOF] mm=...` and `[ENV] ...` lines, ready for when those sensors are wired. Checked by replaying the 25 Sept log. It only reads data, so it does not change the firmware or the fusion; while connected it holds the COM port, so close it before flashing or using another serial monitor.
 - BenchTest/live_classifier.py: live bench classifier on the [RIDE] feature stream (5e3e6d9).
 - BenchTest/logs/2026-09-25_bench_fusion_shake.log: the 150 s session from power-up. It was still from 0 to about 75 s and disturbed by hand from about 75 to 128 s; the planned 50 to 70 s cues were not heard, and the log header says so. Results:
   - 149 fused windows (222 printed lines), all from both sensors, skew under 1 ms.
@@ -390,7 +394,7 @@ Not tested: on the Pi 5, against the live detector, or with the four edits appli
   - Disturbed: peak std 9.35 m/s2 (that window's peak-to-peak 76.8); largest peak-to-peak in any window 77.6 m/s2.
   - Both IMUs at 200.0 to 200.5 Hz with no drops.
   - Resting magnitudes in this log (median, first 75 s): IMU1 9.93, IMU2 10.10 m/s2 (1.3 and 2.9 percent above g) with stored factors 1.0390 and 1.0245. The 10.07 and 9.97 previously in the report came from an earlier live capture that is not in the repo, so they were replaced.
-  - Disagreement 0.06 to 0.87.
+  - Disagreement 0.00 to 1.68 over the session (the 0.06 to 0.87 earlier in the report came from a live capture not in the repo).
 - Gaussian-splat walkthrough with live telemetry (5e3e6d9). The 113 MB splat is gitignored.
 - Research/: pipeline, SQLite database, gap ledger, digests, BibTeX. 733 sources, 309 in BibTeX after RQ6/RQ7 (6154050).
 
@@ -449,6 +453,9 @@ Presentation (Presentation/)
 | F17 | Record | Commit c5f5b55 message says the deck has 15 slides; the file and talking points have 12 | Noted; file wins |
 | F18 | Record | Ten commits (5e3e6d9 to 20d2fa6) carry a Co-Authored-By trailer, against D22 | Noted, no action |
 | F19 | Record | CameraDetection/README.md still has an "Ethics status" section with the protocol number | Allowed in the README; must not reach the report |
+| F20 | 09-28 | Report was 12 pt with 1.5 spacing; the handouts require Times New Roman 11 pt, single spacing, at most 50 content pages | Fixed: now 46 content pages |
+| F21 | 09-28 | Body prose is about 17,931 words (Methodology 12,656) against 10,000 to 15,000 in GA6, and Results, Discussion and Conclusions are still mostly placeholders | Open: cut Methodology by roughly 5,000 words while writing the results chapters |
+| F22 | 09-28 | Lecture 2 slide 7 lists an ethics approval letter for the report appendix, which conflicts with the student's rule of no ethics mention in the report (D20) | Open: ask the supervisor |
 
 ---
 
@@ -483,13 +490,13 @@ Checked against the evidence on 2026-09-28.
 ### Build the report (Tectonic)
 Tectonic is not on PATH. It has been run from the scratchpad; its cache is at C:\Users\0geda\AppData\Local\TectonicProject. The recipe:
 1. Make an empty build folder (for example in the scratchpad).
-2. Copy Report/*.tex, Report/*.png and Report/figures/ into it.
+2. Copy Report/*.tex, Report/*.png, Report/figures/ and Report/evidence/ into it.
 3. In the build folder, copy "Project Report Template.tex" to SW7_Report.tex.
 4. Run `tectonic --outdir <dir> SW7_Report.tex`.
 5. Check the output for undefined references and errors.
 6. Copy SW7_Report.pdf to "Report/OKTSAM001 SW7 Report Draft.pdf".
 
-The template header mentions pdflatex; Tectonic (XeTeX) is what produced the current PDF (xdvipdfmx producer).
+The template header mentions pdflatex; Tectonic (XeTeX) is what produced the current PDF (xdvipdfmx producer). Under XeTeX the preamble loads the real Times New Roman through fontspec; under pdfLaTeX it falls back to newtx, a Times clone. Word count: run the prose counter over Chapters 1 to 7 (tables, figures, captions and code excluded) and update the line under the declaration.
 
 ### Flash the ESP32
 From HUDTelemetryUnit/:
