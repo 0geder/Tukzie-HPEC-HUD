@@ -95,6 +95,17 @@ unauthenticated HTTP and never saved. With `--preview-host 0.0.0.0`
 anyone on the same network can open it, so use that only on a private
 network such as a phone hotspot.
 
+With `--preview` the same server also answers `GET /alerts` with the
+currently active alerts as JSON (the same five fields as the log, plus
+frame rate and sensor-to-result latency), for the dashboard's Front camera
+page (`../DashboardIntegration/`). Every 5 s the console prints a
+`[timing]` line with p50, p95 and max per stage; `--timing-log file.csv`
+keeps per-frame timings, `--threads` sets inference threads (default 4),
+`--tuning ov5647_noir.json` loads the tuning for a camera with no infrared
+filter, and `--verbose` prints every detection.
+
+To start it at boot and restart it on failure, see `deploy/INSTALL.md`.
+
 ## Status
 
 First run against the live camera on the bench on 28 September 2026
