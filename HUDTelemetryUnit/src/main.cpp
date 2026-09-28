@@ -11,6 +11,8 @@
 #include <Preferences.h>
 #include <LittleFS.h>
 
+#define FIRMWARE_VERSION "v0.5.0"
+
 // ============================================================
 // SW-7 ESP32-S3 Firmware v0.4.0
 // Dual-IMU deterministic acquisition + A7670X modem/GNSS + Pi sync pulse
@@ -1328,6 +1330,17 @@ void sendGnssCommand(const char* command) {
 volatile bool mqttConnected = false;
 volatile uint32_t mqttPublishCount = 0;
 volatile uint32_t mqttPublishFailures = 0;
+uint32_t mqttConsecutivePublishFailures = 0;
+uint32_t mqttConnectAttempts = 0;
+
+// Reconnect with backoff: first retry 30 s after a failure, doubling up to
+// 5 min, reset on success. Three failed publishes in a row, or the modem's
+// +CMQTTCONNLOST / +CMQTTNONET URC, mark the session as lost.
+#define MQTT_RETRY_MIN_MS 30000UL
+#define MQTT_RETRY_MAX_MS 300000UL
+#define MQTT_MAX_CONSECUTIVE_PUB_FAILURES 3
+unsigned long mqttRetryDelayMs = MQTT_RETRY_MIN_MS;
+unsigned long mqttNextAttemptMs = 0;
 
 // Sends one AT command and waits up to timeoutMs for a line containing
 // expectSubstring. Returns the full accumulated response via outResponse
@@ -1360,14 +1373,73 @@ bool mqttSendCommand(const String& command, const char* expectSubstring, unsigne
   return found;
 }
 
+// For the commands whose real outcome arrives after OK as a result line
+// (AT+CMQTTSTART, AT+CMQTTCONNECT, AT+CMQTTPUB, AT+CMQTTDISC): the SIMCom
+// A76XX manual v1.09 (section 18.2) gives both success and failure as
+// "OK" followed by "+CMQTTxxx: [<client>,]<err>", where err 0 is success.
+// OK alone therefore proves nothing. Sends `command` (unless empty), waits
+// for a complete line starting with `resultPrefix`, and returns the last
+// number on it through *err. Returns false on ERROR or timeout.
+bool mqttAwaitResult(const String& command, const char* resultPrefix, unsigned long timeoutMs,
+                     int* err, String* outResponse = nullptr) {
+  if (command.length() > 0) Serial1.println(command);
+  String response;
+  unsigned long startWait = millis();
+  bool got = false;
+  while (millis() - startWait < timeoutMs) {
+    while (Serial1.available()) {
+      response += static_cast<char>(Serial1.read());
+    }
+    int at = response.indexOf(resultPrefix);
+    if (at >= 0) {
+      int eol = response.indexOf('\n', at);
+      if (eol >= 0) {
+        String line = response.substring(at + strlen(resultPrefix), eol);
+        line.trim();
+        int comma = line.lastIndexOf(',');
+        *err = (comma >= 0 ? line.substring(comma + 1) : line).toInt();
+        got = true;
+        break;
+      }
+    } else if (response.indexOf("ERROR") >= 0) {
+      break;
+    }
+    vTaskDelay(pdMS_TO_TICKS(1));
+  }
+  if (outResponse != nullptr) *outResponse = response;
+  return got;
+}
+
+// Clean shutdown in the order the manual requires (AT+CMQTTREL "must be
+// called after AT+CMQTTDISC and before AT+CMQTTSTOP"), so a reconnect
+// starts from a known state. Each step may fail harmlessly when that stage
+// was never reached; results are ignored.
+void mqttTeardown() {
+  int err = 0;
+  String resp;
+  mqttAwaitResult(String("AT+CMQTTDISC=") + MQTT_CLIENT_INDEX + ",60", "+CMQTTDISC: ", 5000, &err, &resp);
+  mqttSendCommand(String("AT+CMQTTREL=") + MQTT_CLIENT_INDEX, "OK", 3000, &resp);
+  mqttAwaitResult("AT+CMQTTSTOP", "+CMQTTSTOP: ", 5000, &err, &resp);
+  mqttConnected = false;
+}
+
 // Runs the CMQTTSTART/ACCQ/CONNECT sequence once. Returns false (and
 // leaves mqttConnected false) on the first step that fails, logging which
 // step failed rather than failing silently.
 bool mqttConnect() {
   String resp;
+  int err = -1;
+  mqttConnectAttempts++;
 
-  if (!mqttSendCommand("AT+CMQTTSTART", "OK", 5000, &resp)) {
-    Serial.print("[MQTT] CMQTTSTART failed: ");
+  // Per the manual, ERROR here means the service was already started,
+  // which is fine; a +CMQTTSTART line with a non-zero code is a failure.
+  bool gotStart = mqttAwaitResult("AT+CMQTTSTART", "+CMQTTSTART: ", 12000, &err, &resp);
+  if (gotStart && err != 0) {
+    Serial.printf("[MQTT] CMQTTSTART failed, code %d\n", err);
+    return false;
+  }
+  if (!gotStart && resp.indexOf("ERROR") < 0) {
+    Serial.print("[MQTT] CMQTTSTART gave no result: ");
     Serial.println(resp);
     return false;
   }
@@ -1385,14 +1457,19 @@ bool mqttConnect() {
   if (strlen(MQTT_USERNAME) > 0) {
     connCmd += String(",\"") + MQTT_USERNAME + "\",\"" + MQTT_PASSWORD + "\"";
   }
-  if (!mqttSendCommand(connCmd, "OK", 10000, &resp)) {
-    Serial.print("[MQTT] CMQTTCONNECT failed (is MQTT_BROKER_HOST still a placeholder?): ");
+  if (!mqttAwaitResult(connCmd, "+CMQTTCONNECT: ", 30000, &err, &resp)) {
+    Serial.print("[MQTT] CMQTTCONNECT gave no result: ");
     Serial.println(resp);
+    return false;
+  }
+  if (err != 0) {
+    Serial.printf("[MQTT] CMQTTCONNECT failed, code %d (manual section 18.3)\n", err);
     return false;
   }
 
   Serial.println("[MQTT] Connected.");
   mqttConnected = true;
+  mqttConsecutivePublishFailures = 0;
   return true;
 }
 
@@ -1429,8 +1506,9 @@ bool mqttPublish(const String& payload) {
   }
 
   String pubCmd = String("AT+CMQTTPUB=") + MQTT_CLIENT_INDEX + ",1,60";
-  if (!mqttSendCommand(pubCmd, "OK", 10000, &resp)) {
-    Serial.print("[MQTT] CMQTTPUB failed: ");
+  int err = -1;
+  if (!mqttAwaitResult(pubCmd, "+CMQTTPUB: ", 15000, &err, &resp) || err != 0) {
+    Serial.printf("[MQTT] CMQTTPUB failed, code %d: ", err);
     Serial.println(resp);
     mqttPublishFailures++;
     return false;
@@ -1464,6 +1542,9 @@ bool mqttPublish(const String& payload) {
 #define LOCAL_LOG_MAX_BYTES (3 * 1024 * 1024)  // stay under the ~3.375MB
                                                  // LittleFS partition with margin
 bool localLogReady = false;
+// Runtime switch (serial command "!log off" / "!log on"), for testing
+// whether the periodic acquisition stalls come from these flash writes.
+volatile bool localLogEnabled = true;
 uint32_t localLogAppendCount = 0;
 uint32_t localLogAppendFailures = 0;
 
@@ -1483,7 +1564,7 @@ bool initLocalLog() {
 }
 
 void appendLocalLog(const String& jsonLine) {
-  if (!localLogReady) return;
+  if (!localLogReady || !localLogEnabled) return;
 
   if (LittleFS.exists(LOCAL_LOG_PATH)) {
     File existing = LittleFS.open(LOCAL_LOG_PATH, "r");
@@ -1555,6 +1636,65 @@ String buildTelemetryJson() {
   return String(buf);
 }
 
+// ============================================================
+// Local serial commands.
+//
+// Everything typed on the USB serial console is still passed straight to
+// the modem (AT pass-through), except a line starting with '!', which is
+// handled here instead:
+//   !help        list the commands
+//   !status      logging, MQTT and calibration state
+//   !log off     stop local flash logging (flash-write stall test)
+//   !log on      start it again
+//   !mqtt        try to reconnect MQTT now
+//   !recal       erase both stored IMU calibrations and restart; the board
+//                must be kept still for the ~2 s calibration after boot
+// ============================================================
+void handleLocalCommand(String line) {
+  line.trim();
+  line.toLowerCase();
+  if (line == "!help") {
+    Serial.println("[CMD] !status  !log off  !log on  !mqtt  !recal");
+  } else if (line == "!status") {
+    Serial.printf("[CMD] firmware %s\n", FIRMWARE_VERSION);
+    Serial.printf("[CMD] local log: %s, %u lines written, %u failures\n",
+                  !localLogReady ? "not mounted" : (localLogEnabled ? "on" : "OFF"),
+                  (unsigned)localLogAppendCount, (unsigned)localLogAppendFailures);
+    Serial.printf("[CMD] mqtt: %s, %u published, %u failed, %u connect attempts",
+                  mqttConnected ? "connected" : "not connected",
+                  (unsigned)mqttPublishCount, (unsigned)mqttPublishFailures,
+                  (unsigned)mqttConnectAttempts);
+    if (!mqttConnected) {
+      long wait = (long)(mqttNextAttemptMs - millis());
+      Serial.printf(", next attempt in %ld s", wait > 0 ? wait / 1000 : 0);
+    }
+    Serial.println();
+    Serial.printf("[CMD] IMU scale factors: imu1=%.4f imu2=%.4f\n",
+                  rideChar1Config.mag_scale, rideChar2Config.mag_scale);
+  } else if (line == "!log off") {
+    localLogEnabled = false;
+    Serial.println("[CMD] local flash logging OFF");
+  } else if (line == "!log on") {
+    localLogEnabled = true;
+    Serial.println("[CMD] local flash logging on");
+  } else if (line == "!mqtt") {
+    mqttNextAttemptMs = millis();
+    mqttConnected = false;
+    Serial.println("[CMD] MQTT reconnect requested");
+  } else if (line == "!recal") {
+    imuCalPrefs.begin("imucal", false);
+    imuCalPrefs.remove("imu1");
+    imuCalPrefs.remove("imu2");
+    imuCalPrefs.end();
+    Serial.println("[CMD] Stored IMU calibration erased. Keep the board STILL: restarting to recalibrate...");
+    Serial.flush();
+    delay(500);
+    ESP.restart();
+  } else {
+    Serial.printf("[CMD] unknown command '%s', try !help\n", line.c_str());
+  }
+}
+
 void ModemTask(void* pvParameters) {
   Serial1.begin(MODEM_BAUD, SERIAL_8N1, A7670X_RX_PIN, A7670X_TX_PIN);
 
@@ -1590,19 +1730,48 @@ void ModemTask(void* pvParameters) {
 
   Serial.println("---> Connecting MQTT...");
   if (!mqttConnect()) {
-    Serial.println("[MQTT] Initial connect failed - will not retry automatically this run. "
-                    "Check MQTT_BROKER_HOST/port/credentials in main.cpp.");
+    mqttNextAttemptMs = millis() + mqttRetryDelayMs;
+    Serial.printf("[MQTT] Initial connect failed, retrying in %lu s.\n", mqttRetryDelayMs / 1000);
   }
 
   Serial.println("==============================");
   Serial.println("Sequence complete. Entering pass-through mode.");
-  Serial.println("Type AT commands below freely:");
+  Serial.println("Type AT commands below freely, or !help for local commands:");
 
   unsigned long lastGnssPoll = millis() - 3000;
   unsigned long lastMqttPublish = millis() - MQTT_PUBLISH_INTERVAL_MS;
+  String localCmd;          // a '!' line being typed
+  bool forwardingLine = false;  // mid-way through a line going to the modem
+  String modemLine;         // modem output, scanned for connection-lost URCs
   for (;;) {
     while (Serial.available()) {
-      Serial1.write(static_cast<uint8_t>(Serial.read()));
+      char c = static_cast<char>(Serial.read());
+      if (!forwardingLine && localCmd.length() == 0 && c == '!') {
+        localCmd = "!";
+        continue;
+      }
+      if (localCmd.length() > 0) {
+        if (c == '\n' || c == '\r') {
+          handleLocalCommand(localCmd);
+          localCmd = "";
+        } else if (localCmd.length() < 64) {
+          localCmd += c;
+        }
+        continue;
+      }
+      Serial1.write(static_cast<uint8_t>(c));
+      forwardingLine = !(c == '\n' || c == '\r');
+    }
+    if (!mqttConnected && (long)(millis() - mqttNextAttemptMs) >= 0) {
+      Serial.println("[MQTT] Reconnecting...");
+      mqttTeardown();
+      if (mqttConnect()) {
+        mqttRetryDelayMs = MQTT_RETRY_MIN_MS;
+      } else {
+        mqttNextAttemptMs = millis() + mqttRetryDelayMs;
+        Serial.printf("[MQTT] Reconnect failed, next attempt in %lu s.\n", mqttRetryDelayMs / 1000);
+        mqttRetryDelayMs = min(mqttRetryDelayMs * 2, MQTT_RETRY_MAX_MS);
+      }
     }
     if (millis() - lastGnssPoll >= 3000) {
       lastGnssPoll = millis();
@@ -1615,13 +1784,33 @@ void ModemTask(void* pvParameters) {
       String payload = buildTelemetryJson();
       appendLocalLog(payload);
       if (mqttConnected) {
-        if (!mqttPublish(payload)) {
+        if (mqttPublish(payload)) {
+          mqttConsecutivePublishFailures = 0;
+        } else {
           Serial.println("[MQTT] publish failed");
+          if (++mqttConsecutivePublishFailures >= MQTT_MAX_CONSECUTIVE_PUB_FAILURES) {
+            Serial.println("[MQTT] 3 publishes failed in a row, treating the session as lost.");
+            mqttConnected = false;
+            mqttNextAttemptMs = millis();
+          }
         }
       }
     }
     while (Serial1.available()) {
-      Serial.write(static_cast<uint8_t>(Serial1.read()));
+      char c = static_cast<char>(Serial1.read());
+      Serial.write(static_cast<uint8_t>(c));
+      if (c == '\n') {
+        // Manual 18.4: +CMQTTCONNLOST means the server dropped the client;
+        // +CMQTTNONET means the network went away and MQTT must be restarted.
+        if (modemLine.indexOf("+CMQTTCONNLOST") >= 0 || modemLine.indexOf("+CMQTTNONET") >= 0) {
+          if (mqttConnected) Serial.println("[MQTT] Connection lost (modem URC), will reconnect.");
+          mqttConnected = false;
+          mqttNextAttemptMs = millis() + 5000;
+        }
+        modemLine = "";
+      } else if (modemLine.length() < 120) {
+        modemLine += c;
+      }
     }
     vTaskDelay(pdMS_TO_TICKS(1));
   }
@@ -1643,7 +1832,7 @@ void setup() {
                 (unsigned)ESP.getFreePsram());
   Serial.printf("[BOOT] Flash: size=%u bytes\n", (unsigned)ESP.getFlashChipSize());
 
-  Serial.println("\nSW-7 ESP32-S3 Firmware v0.4.0");
+  Serial.printf("\nSW-7 ESP32-S3 Firmware %s\n", FIRMWARE_VERSION);
   Serial.println("==================================");
   Serial.println("System booted: ESP32-S3");
   Serial.println("Status: ONLINE\n");
