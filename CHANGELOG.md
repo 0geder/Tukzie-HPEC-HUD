@@ -22,7 +22,16 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 ## 2026-09-29
 
-Report captures all implemented work, marked tested or untested; length pass deferred.
+Report captures all implemented work, marked tested or untested; length pass deferred. Firmware v0.5.0 flashed and bench-tested; flash-write stall confirmed.
+
+### (this commit) Firmware v0.5.0 bench test and flash-stall confirmation
+
+- `BenchTest/v050_bench_test.py`: new scripted bench test (reset, commands, 120 s logging on, 120 s off, reconnect). Why: to test v0.5.0 and settle the flash-stall question with a controlled comparison. It closes and reopens the port after the reset because the ESP32-S3's native USB disappears while it reboots (the first attempt failed on this).
+- `BenchTest/logs/2026-09-29_v050_bench_test.log`: the recorded session. Why: evidence for the report.
+- `Report/Methodology.tex`, local logging: the stall is now confirmed by the logging off/on comparison, with the measured figures. Why: replaces 'strongly suggested, not proven'.
+- `Report/Methodology.tex`, v0.5.0 subsection: now records the bench test results and what was not exercised. Why: v0.5.0 is on the board.
+- `Report/appendixc.tex`: evidence index row for the new log. Why: keep the evidence appendix complete.
+- `PROJECT_LOG.md`: timeline entry. Why: record of the session.
 
 ### (this commit) Report: capture the camera, console and firmware v0.5.0 work
 
