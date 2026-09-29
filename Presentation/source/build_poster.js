@@ -108,7 +108,7 @@ let h4 = 2.2 + 2 * statH + 0.4 + 0.6 + chartH + 1.3;
 b = panel(4, "Bench results", XR, yR, h4);
 const stats = [
   ["200 Hz", "both IMUs, zero dropped samples"],
-  ["5 to 8%", "gap between the two IMUs, calibrated down to noise"],
+  ["8%", "gap between the two IMUs, calibrated down to noise"],
   ["< 1 s", "camera aligned to the IMU data"],
   ["149 / 149", "windows fused from both IMUs"],
 ];

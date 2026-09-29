@@ -1,4 +1,5 @@
 \chapter{Introduction}
+\label{chap:intro}
 
 \section{Background and motivation}
 
@@ -18,7 +19,7 @@ The intended outcome is an integrated prototype demonstrated on the target or a 
 
 \subsection{Problems to be investigated}
 
-Transportation agencies and fleet operators face significant challenges in monitoring road health and vehicle performance cost-effectively. Reference-grade profiling equipment requires specialist instrumentation and operation, which limits the frequency and coverage of surveys in resource-constrained settings \cite{fhwa2016, alatoom2025}. Standard in-car displays often contribute to cognitive overload and attention capture, where drivers divert their gaze from the road to process telemetry \cite{zhu2021}. Furthermore, in resource-constrained environments, there is a gap for a modular, low-latency system capable of edge-based signal processing for vehicle dynamic-response characterisation while providing a safe, augmented-reality interface.
+Transportation agencies and fleet operators face significant challenges in monitoring road health and vehicle performance cost-effectively. Reference-grade profiling equipment requires specialist instrumentation and operation, which limits the frequency and coverage of surveys in resource-constrained settings \cite{fhwa2016, alatoom2025}. Standard in-car displays often contribute to cognitive overload and attention capture, where drivers divert their gaze from the road to process telemetry \cite{zhu2021}. Furthermore, in resource-constrained environments, there is a gap for a modular, low-latency system capable of edge-based signal processing for vehicle dynamic-response characterisation while providing a safe head-up driver interface.
 
 The engineering problem is therefore to acquire synchronised data reliably on a high-vibration, power-constrained vehicle; distinguish road-induced motion from vehicle-specific dynamics; maintain bounded processing and display latency; and preserve telemetry during intermittent cellular connectivity. These functions must be integrated without obstructing the driver's view or making safety-critical behaviour dependent on a remote service \cite{winberg2026}.
 
@@ -34,7 +35,7 @@ Specifically, this study investigates the following research questions:
 \subsection{Requirements and verification mapping}
 \label{sec:requirements-mapping}
 
-Table~\ref{tab:requirements-mapping} maps each research question to a concrete system requirement and the method by which it is, or will be, verified. This mapping is used consistently through Chapter~3 (Methodology) and is intended to be revisited directly in Chapter~5 (Results), rather than treated as a fixed statement made only here.
+Table~\ref{tab:requirements-mapping} maps each research question to a concrete system requirement and the method by which it is, or will be, verified. This mapping is used consistently through Chapter~\ref{chap:method} (Methodology) and is intended to be revisited directly in Chapter~\ref{chap:results}, rather than treated as a fixed statement made only here.
 
 \begin{table}[ht]
 \centering
@@ -79,10 +80,10 @@ The project is aligned with the UCT Radar Remote Sensing Group's focus on advanc
 The software architecture follows a modular design, with separate threads for:
 
 \begin{itemize}
-\item High-frequency sensor polling (IMU at $\geq$100 Hz).
+\item High-frequency sensor polling (both IMUs at 200\,Hz, above the 160\,Hz minimum in Table~\ref{tab:requirements-mapping}).
 \item Compute-heavy signal-processing algorithms (ride characterisation).
 \item Graphical HUD rendering.
-\item Networking stacks (MQTT/HTTP over 4G/LTE-M).
+\item Networking stack (MQTT over 4G LTE Cat-1).
 \end{itemize}
 
 This separation ensures that no process blocks another \cite{winberg2026}.

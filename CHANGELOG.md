@@ -24,6 +24,22 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 Report captures all implemented work, marked tested or untested; length pass deferred. Firmware v0.5.0 flashed and bench-tested; flash-write stall confirmed.
 
+### (this commit) Report clean-up pass
+
+- `Report/Methodology.tex`: drafting notes removed or rewritten ("Chapter 2/Chapter 3 as appropriate", "before the report claims which physical pack", "the student observed", "for the report"). Why: they read as carelessness to an examiner (Planning/report-review.md).
+- `Report/Methodology.tex`: the credentials remark keeps the fact that the vac-work broker credentials were not copied and drops the reason. Why: out of register for a report.
+- `Report/Methodology.tex`: repository log path in running text replaced by a reference to Appendix C. Why: paths belong in the evidence index.
+- `Report/Methodology.tex`: five wrong cross-references fixed (Fig 3.1 section number, serial bridge, sync-pin clause, baselining, camera mount); labels added for the AT-command section, the Pi verification subsection and Literature 2.4. Why: they pointed at sections that did not contain what the text claimed.
+- All chapter files: chapter labels added and every hard-coded "Chapter~N" turned into a \ref; Introduction's "Chapter 5 (Results)" and Methodology's "Chapter 4" methodology reference corrected. Why: Results is Chapter 4, and \ref keeps numbers right if chapters move.
+- `Report/appendixc.tex`: figure reference corrected (the recorded-session figure is in Chapter 3). Why: it said Appendix B.
+- `Report/Methodology.tex`, calibration: figures corrected from the 18 Sept session record; the stored factors are shown to imply 10.03 and 9.90 m/s2 at calibration, the target-board first-boot measurements (9.44, 9.57) added, orientation dependence named as the likely cause and the recalibration consequence drawn. Why: the old text's factors could not produce the stated convergence (review finding, confirmed by arithmetic).
+- `Report/Methodology.tex`, fusion: the target-board calibration boot is described as recorded. Why: it was in the session record.
+- Abstract, deck slide 7, poster, talking points: "5 to 8%" changed to about 8%. Why: the readings were 5.7% high and 2.6% low, about 8% apart.
+- `Report/Introduction.tex`: "augmented-reality interface" changed to "head-up driver interface"; IMU rate stated as 200 Hz above the 160 Hz minimum; "MQTT/HTTP over 4G/LTE-M" changed to MQTT over 4G LTE Cat-1. Why: internal contradictions with the rest of the report and the hardware.
+- `Report/Project Report Template.tex`: one department name on the cover; HPEC defined in the Terms of Reference; word count 19,687. Why: consistency.
+- `Report/Recommendations.tex`: "dissertation" changed to "project". Why: this is a project report.
+- `Report/appendixa.tex`: GA appendix rewritten as one paragraph per GA (GA1, 4, 5, 6, 8, 9) with section references, consistent with the student's entries on the signed GA form and the supervisor's comments. Why: the old table was too thin to show how each GA was met.
+
 ### (this commit) Firmware v0.5.0 bench test and flash-stall confirmation
 
 - `BenchTest/v050_bench_test.py`: new scripted bench test (reset, commands, 120 s logging on, 120 s off, reconnect). Why: to test v0.5.0 and settle the flash-stall question with a controlled comparison. It closes and reopens the port after the reset because the ESP32-S3's native USB disappears while it reboots (the first attempt failed on this).

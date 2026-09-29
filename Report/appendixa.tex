@@ -1,31 +1,34 @@
 \chapter{Graduate Attributes, AI Use and Project Repository}
 
 \section{Graduate attribute evidence}
+\label{app:ga}
 
-\begin{longtable}{||p{2em} |p{9em} |p{22em}||}
- \hline
- \textbf{GA} & \textbf{Requirement} & \textbf{Justification and section in the report}  \\ [0.5ex]
- \hline\hline
- \endhead
- 1 & Problem-solving & Research questions framed around measurable dynamic response (Section~\ref{sec:requirements-mapping}); faults root-caused from first principles, including the speed dependence of raw RMS (Section~\ref{sec:speed-norm}) and the Serial-routing fault (Section~\ref{sec:full-system-integration}). \\
- \hline
- 4 & Investigations, experiments and data analysis & Hypothesis-test-conclusion investigations of the GNSS format (Section~\ref{sec:gnss-parsing-validation}) and BMS protocol (Section~\ref{sec:bms-interface}); synthetic-signal validation and per-sensor calibration (Section~\ref{sec:imu-magnitude-calibration}); camera-to-IMU timing bounds (Section~\ref{sec:sync-pulse}). \\
- \hline
- 5 & Use of engineering tools & PlatformIO, FreeRTOS and serial diagnostics (Chapter~3); staged flash and PSRAM configuration testing (Section~\ref{sec:flash-psram}); OpenSCAD bracket design and the 3D-printed camera casing (Section~\ref{sec:camera-mount}). \\
- \hline
- 6 & Professional and technical communication (Long report) & This report. \\
- \hline
- 8 & Individual work & Independent design decisions, including sensor selection (Section~\ref{sec:tof-sensor}) and the data handling designed into the object detector (Section~\ref{sec:hazard-detection}). \\
- \hline
- 9 & Independent learning ability & Self-corrected assumptions against primary sources (schematics, live tests); literature-driven narrowing of the research gap (Chapter~2). \\ [1ex]
- \hline
-\end{longtable}
+This section summarises how the work reported here meets the six graduate attributes assessed in this course, with the sections that hold the evidence.
+
+\subsection*{GA1: Problem solving}
+The research questions were framed around measurable vehicle dynamic response rather than subjective ride comfort, and each was tied to a requirement and a verification method (Section~\ref{sec:requirements-mapping}). The design choices were reasoned from first principles: a 200\,Hz sampling rate from the ISO 2631-1 band and the sampling theorem, drift-free task timing and non-blocking bounded queues so that acquisition is never held up (Section~\ref{sec:dual-imu-architecture}), the acceleration magnitude as an orientation-tolerant signal (Section~\ref{sec:ride-characterisation}), and speed normalisation after the literature showed that raw RMS mixes road roughness with speed (Section~\ref{sec:speed-norm}). Faults were root-caused from evidence rather than worked around, including a sync-pin choice checked against the board schematic (Section~\ref{sec:sync-pulse}), a serial-routing fault (Section~\ref{sec:full-system-integration}) and the flash-write acquisition stall (Section~\ref{sec:local-logging}).
+
+\subsection*{GA4: Investigations, experiments and data analysis}
+Assumptions were treated as hypotheses and tested on the real hardware: the GNSS reply format (assumed 13 fields, measured 9, Section~\ref{sec:gnss-parsing-validation}), the BMS service layout (Section~\ref{sec:bms-interface}), and the cause of the periodic acquisition stall, confirmed by a controlled comparison with local logging on and off (Section~\ref{sec:local-logging}). The feature computation was validated against a synthetic signal with known answers, the two IMUs were calibrated against gravity and checked under disturbance (Section~\ref{sec:imu-magnitude-calibration}), the dual-IMU fusion was verified in a recorded session (Section~\ref{sec:imu-fusion}), and the camera-to-IMU timing offset was bounded (Section~\ref{sec:sync-pulse}). The raw evidence is indexed in Appendix~\ref{app:evidence}.
+
+\subsection*{GA5: Use of engineering tools}
+PlatformIO, the Arduino framework and FreeRTOS were used for the firmware, with esptool and serial diagnostics for hardware verification (Section~\ref{sec:flash-psram}). Python tools were written to support testing: a scripted bench test, a browser bench console that parses and replays the telemetry, and schematic checks. On the camera side, LiteRT and Picamera2 run the detector, and per-stage latency is measured from the sensor's own frame timestamps (Section~\ref{sec:hazard-detection}). A parametric bracket was modelled in OpenSCAD and a camera casing was designed and 3D printed (Section~\ref{sec:camera-mount}). The limits of each tool were checked rather than assumed, for example a BMS checksum formula that no vendor document confirms (Section~\ref{sec:bms-interface}).
+
+\subsection*{GA6: Professional and technical communication}
+This report documents the engineering work, including the faults found and how they were resolved. The written work was developed with the supervisor through regular meetings and a draft Introduction and Methodology, and inconsistencies between chapters were corrected as the work changed. The raw evidence behind each result is kept and indexed (Appendix~\ref{app:evidence}), and the firmware, tools and planning documents are in the project repository.
+
+\subsection*{GA8: Individual work}
+The hardware bring-up, firmware, bench tools and report were done individually, with the supervisor consulted on specific questions. The components were selected, compared against the requirements and ordered by the author, for example the 8$\times$8-zone time-of-flight sensor chosen over a single-point one to separate left, centre and right (Section~\ref{sec:tof-sensor}); each component was tested on the bench before being relied on; and the camera casing was designed and 3D printed by the author (Section~\ref{sec:camera-mount}). Inherited work is identified where it is used: the vehicle dashboard and its team, and a teammate's BMS parser used only as an independent cross-check (Section~\ref{sec:bms-interface}). The use of AI tools is declared in Section~\ref{app:ai}.
+
+\subsection*{GA9: Independent learning ability}
+The work required learning FreeRTOS timing, BLE GATT, the A76XX AT command set and on-device inference on the Raspberry Pi, largely from primary sources: manufacturer schematics and manuals, and live tests on the hardware. Assumptions were repeatedly corrected against those sources, for example GPIO assignments against the schematic and the MQTT result handling against the modem manual (Section~\ref{sec:mqtt-networking}). A continuously running literature search was kept up so that the research-gap claims were tested rather than asserted once, and it narrowed two of them (Chapter~\ref{chap:lit}).
 
 \section{Project repository}
 
 Firmware, camera software, planning documents and supporting tools for this project are available at \url{https://github.com/0geder/Tukzie-HPEC-HUD}.
 
 \section{Declaration of Artificial Intelligence Use}
+\label{app:ai}
 
 Artificial intelligence tools were used to assist with clarifying the organisation of this report, improving the alignment and consistency of its presentation, refining wording, and checking LaTeX formatting. All AI-assisted suggestions were reviewed by the author. The author remains responsible for the report's technical content, analysis, interpretations, and final editorial decisions.
 

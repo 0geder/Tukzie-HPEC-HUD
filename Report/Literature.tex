@@ -1,4 +1,5 @@
 \chapter{Literature Review}
+\label{chap:lit}
 
 \section{Review scope and evaluation framework}
 
@@ -23,6 +24,7 @@ Smartphone and low-cost inertial sensing studies extend this response-based appr
 These findings support a deliberately bounded claim for this project. The TUKZIE unit should first produce a repeatable, vehicle-specific ride-smoothness index and event log. Correlation with IRI may be investigated when reference profile data are available, but the system should not label its output as IRI solely from uncalibrated chassis acceleration. Repeatability over repeated traversals, sensitivity to speed and payload, and agreement with a reference sensor or labelled route provide more defensible validation criteria.
 
 \section{Inertial signal processing and vibration separation}
+\label{sec:lit-signal-processing}
 
 An IMU signal contains gravitational acceleration, orientation changes, road excitation, vehicle-body motion, motor and drivetrain vibration, sensor noise, and transient events. The processing pipeline must therefore preserve road-related information while removing components that would make comparisons between runs misleading. Orientation compensation or transformation into a vehicle-fixed frame is required before features from the nominally vertical axis are compared. Resampling and timestamp checks are also necessary because feature values become unreliable when samples are irregular or missing.
 
@@ -68,7 +70,7 @@ MQTT is suitable for compact publish--subscribe telemetry, whereas HTTP is usefu
 
 Live nearby-object alerting is a recognised requirement even for low-speed vehicles, not only high-speed autonomous ones. De Simone et al. used ultrasonic range data, classified by a supervised neural network, to add obstacle avoidance to retrofitted autonomous agricultural machines \cite{desimone2018}, showing that low-cost range sensing can support obstacle awareness on slow-moving vehicles. Closer to this project's own vehicle class, Noomwongs et al. developed a low-speed autonomous micro electric vehicle that combines RTK-GNSS localisation with a 2D LiDAR for real-time obstacle avoidance, explicitly because vision-based approaches demand expensive sensors and computing power that such vehicles lack, a constraint this project shares \cite{noomwongs2025}, confirming that proximity/obstacle awareness is treated as a genuine requirement for this vehicle category in the literature, not only for highway-speed autonomous cars.
 
-This project's own live-alerting requirement is addressed with a time-of-flight (ToF) rather than an ultrasonic or vision-based sensor, and a solid-state multi-zone ToF sensor (the VL53L5CX) was selected over a single-point alternative specifically for its ability to resolve direction (left/centre/right) from a single device, discussed further in Chapter~3. An independent laboratory characterisation of this exact sensor \cite{caroleo2026} is used directly in that chapter to set realistic, evidence-based expectations for its accuracy and reliability, rather than relying on the manufacturer's datasheet figures alone.
+This project's own live-alerting requirement is addressed with a time-of-flight (ToF) rather than an ultrasonic or vision-based sensor, and a solid-state multi-zone ToF sensor (the VL53L5CX) was selected over a single-point alternative specifically for its ability to resolve direction (left/centre/right) from a single device, discussed further in Chapter~\ref{chap:method}. An independent laboratory characterisation of this exact sensor \cite{caroleo2026} is used directly in that chapter to set realistic, evidence-based expectations for its accuracy and reliability, rather than relying on the manufacturer's datasheet figures alone.
 
 \section{Synthesis and research gap}
 

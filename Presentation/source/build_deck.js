@@ -220,13 +220,13 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 {
   const s = content("Result: 200 Hz acquisition and dual-IMU fusion",
     "First results. Both IMUs run at 200 hertz with zero dropped samples, and the drop counters prove that rather than assuming it. " +
-    "Two nominally identical accelerometers disagreed by 5 to 8 percent at rest; per-sensor calibration against true gravity brought that down to measurement noise, which meets RQ1. " +
+    "Two nominally identical accelerometers disagreed by about 8 percent at rest; per-sensor calibration against true gravity brought that down to measurement noise, which meets RQ1. " +
     "The two are then fused into one ride estimate. With equal noise on both sensors, inverse-variance weighting reduces to a plain mean. Windows are only paired if they ended within half a window of each other, a disagreement figure is reported rather than hidden, and if one sensor goes silent for three seconds the output falls back to the other. " +
     "The chart is a recorded 150 second session: still, then disturbed by hand from about 75 seconds. All 149 windows were fused from both sensors with skew under a millisecond, and all five boot self-tests passed. " +
     "One honest finding: the stored calibration on the board was not the one first measured, and the resting readings were 1.3 and 2.9 percent above gravity, so the sensors will be recalibrated before the field test.");
   const stats = [
     ["200 Hz", "on both IMUs, zero dropped samples"],
-    ["5 to 8%", "IMU gap at rest, calibrated down to noise"],
+    ["8%", "IMU gap at rest, calibrated down to noise"],
     ["149 / 149", "windows fused from both IMUs"],
     ["< 1 ms", "skew between paired windows"],
   ];
