@@ -1,0 +1,2730 @@
+# GNSS capture, BenchTest/gnss_capture.py on COM10, 5 min, mode raw.
+# Reference position: -33.9800701, 18.4654199 (phone).
+[   0.20s] [RIDE2] n=200 rms=10.233 std=0.051 p2p=0.410 crest=1.020 jerk=10.113 crossings=6 norm=n/a
+[   0.20s] [RIDE1] n=200 rms=10.581 std=0.035 p2p=0.177 crest=1.009 jerk=8.031 crossings=7 norm=n/a
+[   0.20s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.043 p2p=0.294 jerk=9.072 dis=0.32
+[   0.20s] [SYNC] pin=HIGH  t=122032624 us
+[   0.61s] [SYNC] pin=LOW  t=122532626 us
+[   1.23s] [RIDE2] n=200 rms=10.235 std=0.050 p2p=0.328 crest=1.017 jerk=9.815 crossings=3 norm=n/a
+[   1.23s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.183 crest=1.009 jerk=7.139 crossings=5 norm=n/a
+[   1.23s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.041 p2p=0.255 jerk=8.477 dis=0.35
+[   1.23s] [SYNC] pin=HIGH  t=123032626 us
+[   1.23s] --- Acquisition stats (2s window) ---
+[   1.23s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4570 avg=5011 max=5470]  dropped=0
+[   1.23s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4729 avg=5011 max=5472]  dropped=0
+[   1.23s] GNSS: 0 polls, 0 with a fix
+[   1.23s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[   1.23s] Free heap: 183408 bytes
+[   1.23s] 
+[   1.64s] [SYNC] pin=LOW  t=123532628 us
+[   2.06s] [RIDE2] n=200 rms=10.233 std=0.074 p2p=0.437 crest=1.020 jerk=15.148 crossings=7 norm=n/a
+[   2.06s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.197 crest=1.010 jerk=7.780 crossings=7 norm=n/a
+[   2.06s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.054 p2p=0.317 jerk=11.464 dis=0.75
+[   2.06s] [SYNC] pin=HIGH  t=124032624 us
+[   2.67s] [SYNC] pin=LOW  t=124532606 us
+[   3.09s] [RIDE2] n=200 rms=10.236 std=0.037 p2p=0.201 crest=1.010 jerk=7.737 crossings=4 norm=n/a
+[   3.09s] [RIDE1] n=200 rms=10.581 std=0.033 p2p=0.170 crest=1.008 jerk=7.483 crossings=4 norm=n/a
+[   3.09s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.035 p2p=0.185 jerk=7.610 dis=0.08
+[   3.09s] [SYNC] pin=HIGH  t=125032624 us
+[   3.09s] > !gnssraw
+[   3.29s] --- Acquisition stats (2s window) ---
+[   3.29s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4779 avg=5012 max=5315]  dropped=0
+[   3.29s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4753 avg=5012 max=5334]  dropped=0
+[   3.29s] GNSS: 0 polls, 0 with a fix
+[   3.29s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[   3.29s] Free heap: 183456 bytes
+[   3.29s] 
+[   3.69s] [SYNC] pin=LOW  t=125532626 us
+[   4.10s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.226 crest=1.011 jerk=7.442 crossings=6 norm=n/a
+[   4.10s] [RIDE2] n=200 rms=10.236 std=0.066 p2p=0.462 crest=1.018 jerk=13.321 crossings=6 norm=n/a
+[   4.10s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.051 p2p=0.344 jerk=10.382 dis=0.61
+[   4.10s] [SYNC] pin=HIGH  t=126032624 us
+[   4.72s] [SYNC] pin=LOW  t=126532604 us
+[   5.14s] [RIDE1] n=200 rms=10.582 std=0.034 p2p=0.177 crest=1.009 jerk=7.908 crossings=6 norm=n/a
+[   5.14s] [RIDE2] n=200 rms=10.239 std=0.055 p2p=0.413 crest=1.021 jerk=10.304 crossings=6 norm=n/a
+[   5.14s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.045 p2p=0.295 jerk=9.106 dis=0.42
+[   5.14s] [SYNC] pin=HIGH  t=127032624 us
+[   5.14s] --- Acquisition stats (2s window) ---
+[   5.14s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4820 avg=5012 max=5208]  dropped=0
+[   5.14s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4811 avg=5012 max=5216]  dropped=0
+[   5.14s] GNSS: 0 polls, 0 with a fix
+[   5.14s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[   5.14s] Free heap: 183456 bytes
+[   5.14s] 
+[   5.56s] [SYNC] pin=LOW  t=127532626 us
+[   6.19s] [RIDE1] n=200 rms=10.582 std=0.034 p2p=0.205 crest=1.009 jerk=8.058 crossings=5 norm=n/a
+[   6.19s] [RIDE2] n=200 rms=10.236 std=0.043 p2p=0.383 crest=1.018 jerk=8.105 crossings=4 norm=n/a
+[   6.19s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.038 p2p=0.294 jerk=8.082 dis=0.17
+[   6.19s] [SYNC] pin=HIGH  t=128032624 us
+[   6.60s] [SYNC] pin=LOW  t=128532606 us
+[   7.22s] [RIDE2] n=200 rms=10.234 std=0.061 p2p=0.386 crest=1.021 jerk=12.467 crossings=8 norm=n/a
+[   7.22s] [RIDE1] n=200 rms=10.581 std=0.034 p2p=0.176 crest=1.007 jerk=7.871 crossings=4 norm=n/a
+[   7.22s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.047 p2p=0.281 jerk=10.169 dis=0.55
+[   7.22s] [SYNC] pin=HIGH  t=129032624 us
+[   7.22s] --- Acquisition stats (2s window) ---
+[   7.22s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4795 avg=5012 max=5220]  dropped=0
+[   7.22s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4809 avg=5012 max=5249]  dropped=0
+[   7.22s] GNSS: 0 polls, 0 with a fix
+[   7.22s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[   7.22s] Free heap: 183456 bytes
+[   7.22s] 
+[   7.64s] [SYNC] pin=LOW  t=129532649 us
+[   7.64s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[   7.64s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[   7.64s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[   8.04s] [RIDE1] n=200 rms=10.581 std=0.031 p2p=0.194 crest=1.011 jerk=7.409 crossings=6 norm=n/a
+[   8.04s] [RIDE2] n=200 rms=10.240 std=0.050 p2p=0.439 crest=1.023 jerk=10.065 crossings=4 norm=n/a
+[   8.04s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.041 p2p=0.317 jerk=8.737 dis=0.37
+[   8.04s] [SYNC] pin=HIGH  t=130032624 us
+[   8.65s] [SYNC] pin=LOW  t=130532624 us
+[   9.08s] [RIDE2] n=200 rms=10.241 std=0.061 p2p=0.463 crest=1.019 jerk=11.293 crossings=8 norm=n/a
+[   9.08s] [RIDE1] n=200 rms=10.581 std=0.034 p2p=0.174 crest=1.010 jerk=7.772 crossings=3 norm=n/a
+[   9.08s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.047 p2p=0.318 jerk=9.532 dis=0.54
+[   9.08s] [SYNC] pin=HIGH  t=131032624 us
+[   9.28s] --- Acquisition stats (2s window) ---
+[   9.28s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4486 avg=5012 max=5608]  dropped=0
+[   9.28s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4494 avg=5012 max=5618]  dropped=0
+[   9.28s] GNSS: 0 polls, 0 with a fix
+[   9.28s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[   9.28s] Free heap: 183464 bytes
+[   9.28s] 
+[   9.70s] [SYNC] pin=LOW  t=131532628 us
+[  10.11s] [RIDE1] n=200 rms=10.580 std=0.033 p2p=0.174 crest=1.009 jerk=6.999 crossings=5 norm=n/a
+[  10.11s] [RIDE2] n=200 rms=10.238 std=0.055 p2p=0.466 crest=1.023 jerk=10.419 crossings=5 norm=n/a
+[  10.11s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.044 p2p=0.320 jerk=8.709 dis=0.43
+[  10.11s] [SYNC] pin=HIGH  t=132032624 us
+[  10.72s] [SYNC] pin=LOW  t=132532630 us
+[  11.14s] [RIDE1] n=200 rms=10.584 std=0.033 p2p=0.183 crest=1.009 jerk=8.032 crossings=4 norm=n/a
+[  11.14s] [RIDE2] n=200 rms=10.234 std=0.047 p2p=0.429 crest=1.014 jerk=9.394 crossings=3 norm=n/a
+[  11.14s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.040 p2p=0.306 jerk=8.713 dis=0.28
+[  11.14s] [SYNC] pin=HIGH  t=133032626 us
+[  11.14s] --- Acquisition stats (2s window) ---
+[  11.14s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4519 avg=5012 max=5575]  dropped=0
+[  11.14s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4526 avg=5012 max=5572]  dropped=0
+[  11.14s] GNSS: 0 polls, 0 with a fix
+[  11.14s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  11.14s] Free heap: 183464 bytes
+[  11.14s] 
+[  11.55s] [SYNC] pin=LOW  t=133532628 us
+[  12.17s] [RIDE1] n=200 rms=10.578 std=0.033 p2p=0.169 crest=1.007 jerk=7.770 crossings=4 norm=n/a
+[  12.17s] [RIDE2] n=200 rms=10.238 std=0.063 p2p=0.438 crest=1.021 jerk=12.791 crossings=4 norm=n/a
+[  12.17s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.048 p2p=0.304 jerk=10.280 dis=0.60
+[  12.17s] [SYNC] pin=HIGH  t=134032626 us
+[  12.59s] [SYNC] pin=LOW  t=134532624 us
+[  13.21s] [RIDE2] n=200 rms=10.240 std=0.049 p2p=0.508 crest=1.020 jerk=9.610 crossings=5 norm=n/a
+[  13.21s] [RIDE1] n=200 rms=10.579 std=0.034 p2p=0.167 crest=1.008 jerk=7.590 crossings=5 norm=n/a
+[  13.21s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.041 p2p=0.338 jerk=8.600 dis=0.30
+[  13.21s] [SYNC] pin=HIGH  t=135032624 us
+[  13.21s] --- Acquisition stats (2s window) ---
+[  13.21s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4462 avg=5012 max=5484]  dropped=0
+[  13.21s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4448 avg=5012 max=5600]  dropped=0
+[  13.21s] GNSS: 0 polls, 0 with a fix
+[  13.21s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  13.21s] Free heap: 183464 bytes
+[  13.21s] 
+[  13.69s] [SYNC] pin=LOW  t=135532628 us
+[  14.11s] [RIDE2] n=200 rms=10.235 std=0.045 p2p=0.291 crest=1.013 jerk=9.335 crossings=4 norm=n/a
+[  14.11s] [RIDE1] n=200 rms=10.580 std=0.035 p2p=0.173 crest=1.009 jerk=7.773 crossings=3 norm=n/a
+[  14.11s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.040 p2p=0.232 jerk=8.554 dis=0.20
+[  14.11s] [SYNC] pin=HIGH  t=136032624 us
+[  14.74s] [SYNC] pin=LOW  t=136532608 us
+[  15.19s] [RIDE2] n=200 rms=10.237 std=0.046 p2p=0.251 crest=1.012 jerk=8.927 crossings=1 norm=n/a
+[  15.19s] [RIDE1] n=200 rms=10.582 std=0.030 p2p=0.157 crest=1.007 jerk=7.194 crossings=5 norm=n/a
+[  15.19s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.038 p2p=0.204 jerk=8.061 dis=0.32
+[  15.19s] [SYNC] pin=HIGH  t=137032624 us
+[  15.19s] --- Acquisition stats (2s window) ---
+[  15.19s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4801 avg=5012 max=5221]  dropped=0
+[  15.19s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4810 avg=5012 max=5218]  dropped=0
+[  15.19s] GNSS: 0 polls, 0 with a fix
+[  15.19s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  15.19s] Free heap: 183464 bytes
+[  15.19s] 
+[  15.60s] [SYNC] pin=LOW  t=137532626 us
+[  16.22s] [RIDE2] n=200 rms=10.236 std=0.031 p2p=0.144 crest=1.007 jerk=6.993 crossings=6 norm=n/a
+[  16.22s] [RIDE1] n=200 rms=10.585 std=0.036 p2p=0.191 crest=1.009 jerk=7.944 crossings=5 norm=n/a
+[  16.22s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.033 p2p=0.167 jerk=7.469 dis=0.08
+[  16.22s] [SYNC] pin=HIGH  t=138032624 us
+[  16.65s] [SYNC] pin=LOW  t=138532608 us
+[  17.07s] [RIDE2] n=200 rms=10.236 std=0.034 p2p=0.174 crest=1.008 jerk=7.964 crossings=2 norm=n/a
+[  17.07s] [RIDE1] n=200 rms=10.585 std=0.034 p2p=0.249 crest=1.013 jerk=7.522 crossings=5 norm=n/a
+[  17.07s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.034 p2p=0.212 jerk=7.743 dis=0.00
+[  17.07s] [SYNC] pin=HIGH  t=139032624 us
+[  17.28s] --- Acquisition stats (2s window) ---
+[  17.28s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4788 avg=5012 max=5232]  dropped=0
+[  17.28s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4797 avg=5012 max=5229]  dropped=0
+[  17.28s] GNSS: 0 polls, 0 with a fix
+[  17.28s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  17.28s] Free heap: 183316 bytes
+[  17.28s] 
+[  17.70s] [SYNC] pin=LOW  t=139532626 us
+[  18.12s] [RIDE2] n=200 rms=10.235 std=0.036 p2p=0.176 crest=1.009 jerk=7.847 crossings=5 norm=n/a
+[  18.12s] [RIDE1] n=200 rms=10.580 std=0.033 p2p=0.174 crest=1.008 jerk=6.930 crossings=8 norm=n/a
+[  18.12s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.035 p2p=0.175 jerk=7.389 dis=0.06
+[  18.12s] [SYNC] pin=HIGH  t=140032624 us
+[  18.54s] [SYNC] pin=LOW  t=140532608 us
+[  18.94s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[  18.94s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[  18.94s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[  19.15s] [RIDE1] n=200 rms=10.588 std=0.035 p2p=0.207 crest=1.011 jerk=8.031 crossings=6 norm=n/a
+[  19.15s] [RIDE2] n=200 rms=10.235 std=0.032 p2p=0.149 crest=1.007 jerk=6.959 crossings=4 norm=n/a
+[  19.15s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.033 p2p=0.178 jerk=7.495 dis=0.07
+[  19.15s] [SYNC] pin=HIGH  t=141032624 us
+[  19.15s] --- Acquisition stats (2s window) ---
+[  19.15s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4469 avg=5012 max=5777]  dropped=0
+[  19.15s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4483 avg=5012 max=5654]  dropped=0
+[  19.15s] GNSS: 0 polls, 0 with a fix
+[  19.15s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  19.15s] Free heap: 183324 bytes
+[  19.15s] 
+[  19.64s] [SYNC] pin=LOW  t=141532630 us
+[  20.05s] [RIDE1] n=200 rms=10.578 std=0.035 p2p=0.199 crest=1.009 jerk=7.909 crossings=8 norm=n/a
+[  20.05s] [RIDE2] n=200 rms=10.232 std=0.035 p2p=0.185 crest=1.008 jerk=7.267 crossings=5 norm=n/a
+[  20.05s] [FUSED] src=1+2 skew=0ms rms=10.405 std=0.035 p2p=0.192 jerk=7.588 dis=0.01
+[  20.05s] [SYNC] pin=HIGH  t=142032624 us
+[  20.66s] [SYNC] pin=LOW  t=142532628 us
+[  21.07s] [RIDE2] n=200 rms=10.234 std=0.041 p2p=0.208 crest=1.010 jerk=9.261 crossings=4 norm=n/a
+[  21.07s] [RIDE1] n=200 rms=10.586 std=0.036 p2p=0.209 crest=1.008 jerk=8.646 crossings=1 norm=n/a
+[  21.07s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.038 p2p=0.209 jerk=8.954 dis=0.10
+[  21.07s] [SYNC] pin=HIGH  t=143032624 us
+[  21.28s] --- Acquisition stats (2s window) ---
+[  21.28s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4720 avg=5012 max=5310]  dropped=0
+[  21.28s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4682 avg=5012 max=5325]  dropped=0
+[  21.28s] GNSS: 0 polls, 0 with a fix
+[  21.28s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  21.28s] Free heap: 183324 bytes
+[  21.28s] 
+[  22.10s] [SYNC] pin=LOW  t=143532628 us
+[  22.10s] [RIDE2] n=200 rms=10.235 std=0.037 p2p=0.216 crest=1.008 jerk=6.745 crossings=1 norm=n/a
+[  22.10s] [RIDE1] n=200 rms=10.585 std=0.034 p2p=0.181 crest=1.008 jerk=8.570 crossings=3 norm=n/a
+[  22.10s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.035 p2p=0.198 jerk=7.658 dis=0.06
+[  22.10s] [SYNC] pin=HIGH  t=144032626 us
+[  22.72s] [SYNC] pin=LOW  t=144532624 us
+[  23.13s] [RIDE2] n=200 rms=10.235 std=0.033 p2p=0.180 crest=1.009 jerk=6.709 crossings=5 norm=n/a
+[  23.13s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.033 p2p=0.177 jerk=7.110 dis=0.01
+[  23.13s] [RIDE1] n=200 rms=10.583 std=0.033 p2p=0.174 crest=1.009 jerk=7.512 crossings=4 norm=n/a
+[  23.13s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.033 p2p=0.177 jerk=7.110 dis=0.01
+[  23.13s] [MQTT] CMQTTSTART gave no result: 
+[  23.13s] [MQTT] Reconnect failed, next attempt in 60 s.
+[  23.13s] [SYNC] pin=HIGH  t=145032624 us
+[  23.34s] --- Acquisition stats (2s window) ---
+[  23.34s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4379 avg=5012 max=5665]  dropped=0
+[  23.34s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4398 avg=5012 max=5570]  dropped=0
+[  23.34s] GNSS: 0 polls, 0 with a fix
+[  23.34s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  23.34s] Free heap: 183324 bytes
+[  23.34s] 
+[  23.55s] [SYNC] pin=LOW  t=145532628 us
+[  24.18s] [RIDE1] n=200 rms=10.582 std=0.034 p2p=0.167 crest=1.009 jerk=7.257 crossings=6 norm=n/a
+[  24.18s] [RIDE2] n=200 rms=10.236 std=0.038 p2p=0.170 crest=1.009 jerk=8.326 crossings=6 norm=n/a
+[  24.18s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.036 p2p=0.168 jerk=7.792 dis=0.08
+[  24.18s] [SYNC] pin=HIGH  t=146032624 us
+[  24.65s] [SYNC] pin=LOW  t=146532610 us
+[  25.07s] [RIDE1] n=200 rms=10.584 std=0.032 p2p=0.205 crest=1.010 jerk=7.123 crossings=4 norm=n/a
+[  25.07s] [RIDE2] n=200 rms=10.237 std=0.032 p2p=0.206 crest=1.009 jerk=7.583 crossings=5 norm=n/a
+[  25.07s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.032 p2p=0.206 jerk=7.353 dis=0.00
+[  25.07s] [GNSS] poll timeout
+[  25.07s] [SYNC] pin=HIGH  t=147032470 us
+[  25.28s] [CMD] raw GNSS replies on
+[  25.28s] --- Acquisition stats (2s window) ---
+[  25.28s] IMU1: 400 samples (200.0 Hz)  dt_us[min=880 avg=5012 max=35666]  dropped=0
+[  25.28s] IMU2: 400 samples (200.0 Hz)  dt_us[min=887 avg=5012 max=36137]  dropped=0
+[  25.28s] GNSS: 0 polls, 0 with a fix
+[  25.28s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  25.28s] Free heap: 183324 bytes
+[  25.28s] 
+[  25.70s] [SYNC] pin=LOW  t=147532628 us
+[  26.12s] [RIDE2] n=200 rms=10.237 std=0.034 p2p=0.172 crest=1.008 jerk=7.848 crossings=6 norm=n/a
+[  26.12s] [RIDE1] n=200 rms=10.582 std=0.036 p2p=0.218 crest=1.011 jerk=8.083 crossings=3 norm=n/a
+[  26.12s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.035 p2p=0.195 jerk=7.966 dis=0.03
+[  26.12s] [SYNC] pin=HIGH  t=148032622 us
+[  26.55s] [SYNC] pin=LOW  t=148532610 us
+[  27.16s] [RIDE2] n=200 rms=10.239 std=0.040 p2p=0.204 crest=1.010 jerk=8.633 crossings=4 norm=n/a
+[  27.16s] [RIDE1] n=200 rms=10.582 std=0.032 p2p=0.164 crest=1.007 jerk=7.551 crossings=3 norm=n/a
+[  27.16s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.036 p2p=0.184 jerk=8.092 dis=0.16
+[  27.16s] [SYNC] pin=HIGH  t=149032622 us
+[  27.16s] --- Acquisition stats (2s window) ---
+[  27.16s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4782 avg=5012 max=5248]  dropped=0
+[  27.16s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4787 avg=5012 max=5239]  dropped=0
+[  27.16s] GNSS: 0 polls, 0 with a fix
+[  27.16s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  27.16s] Free heap: 183324 bytes
+[  27.16s] 
+[  27.57s] [SYNC] pin=LOW  t=149532628 us
+[  28.19s] [RIDE2] n=200 rms=10.237 std=0.033 p2p=0.178 crest=1.008 jerk=7.402 crossings=6 norm=n/a
+[  28.19s] [RIDE1] n=200 rms=10.584 std=0.029 p2p=0.153 crest=1.008 jerk=6.603 crossings=7 norm=n/a
+[  28.19s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.031 p2p=0.165 jerk=7.003 dis=0.08
+[  28.19s] [GNSS] poll timeout
+[  28.19s] [SYNC] pin=HIGH  t=150032622 us
+[  28.61s] [SYNC] pin=LOW  t=150532608 us
+[  29.24s] [RIDE2] n=200 rms=10.234 std=0.033 p2p=0.194 crest=1.008 jerk=7.347 crossings=1 norm=n/a
+[  29.24s] [RIDE1] n=200 rms=10.582 std=0.031 p2p=0.182 crest=1.008 jerk=6.964 crossings=8 norm=n/a
+[  29.24s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.032 p2p=0.188 jerk=7.156 dis=0.04
+[  29.24s] [SYNC] pin=HIGH  t=151032624 us
+[  29.24s] --- Acquisition stats (2s window) ---
+[  29.24s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4787 avg=5012 max=5229]  dropped=0
+[  29.24s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4791 avg=5012 max=5218]  dropped=0
+[  29.24s] GNSS: 0 polls, 0 with a fix
+[  29.24s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  29.24s] Free heap: 183324 bytes
+[  29.24s] 
+[  29.69s] [SYNC] pin=LOW  t=151532624 us
+[  30.11s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[  30.11s] [RIDE1] n=200 rms=10.586 std=0.031 p2p=0.173 crest=1.008 jerk=7.306 crossings=8 norm=n/a
+[  30.11s] [RIDE2] n=200 rms=10.237 std=0.037 p2p=0.216 crest=1.011 jerk=8.440 crossings=4 norm=n/a
+[  30.11s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.034 p2p=0.194 jerk=7.873 dis=0.12
+[  30.11s] [SYNC] pin=HIGH  t=152032648 us
+[  30.11s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[  30.11s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[  31.15s] [SYNC] pin=LOW  t=152532628 us
+[  31.15s] [RIDE1] n=200 rms=10.581 std=0.035 p2p=0.158 crest=1.007 jerk=7.149 crossings=2 norm=n/a
+[  31.15s] [RIDE2] n=200 rms=10.234 std=0.034 p2p=0.152 crest=1.008 jerk=7.234 crossings=2 norm=n/a
+[  31.15s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.034 p2p=0.155 jerk=7.192 dis=0.00
+[  31.15s] [GNSS] poll timeout
+[  31.15s] [SYNC] pin=HIGH  t=153032624 us
+[  31.36s] --- Acquisition stats (2s window) ---
+[  31.36s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4308 avg=5012 max=5588]  dropped=0
+[  31.36s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4310 avg=5012 max=5616]  dropped=0
+[  31.36s] GNSS: 0 polls, 0 with a fix
+[  31.36s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  31.36s] Free heap: 183304 bytes
+[  31.36s] 
+[  31.36s] [BMS] scan saw: 2e:40:f8:ce:c3:de (no name)
+[  31.57s] [SYNC] pin=LOW  t=153532628 us
+[  32.20s] [RIDE2] n=200 rms=10.236 std=0.034 p2p=0.179 crest=1.009 jerk=7.376 crossings=4 norm=n/a
+[  32.20s] [RIDE1] n=200 rms=10.588 std=0.034 p2p=0.228 crest=1.012 jerk=7.382 crossings=5 norm=n/a
+[  32.20s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.034 p2p=0.203 jerk=7.379 dis=0.01
+[  32.20s] [SYNC] pin=HIGH  t=154032624 us
+[  32.62s] [SYNC] pin=LOW  t=154532626 us
+[  33.04s] [RIDE2] n=200 rms=10.237 std=0.038 p2p=0.227 crest=1.009 jerk=7.724 crossings=5 norm=n/a
+[  33.04s] [RIDE1] n=200 rms=10.584 std=0.033 p2p=0.176 crest=1.009 jerk=6.773 crossings=3 norm=n/a
+[  33.04s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.036 p2p=0.201 jerk=7.248 dis=0.12
+[  33.04s] [SYNC] pin=HIGH  t=155032625 us
+[  33.25s] --- Acquisition stats (2s window) ---
+[  33.25s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4225 avg=5012 max=5716]  dropped=0
+[  33.25s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4224 avg=5012 max=5859]  dropped=0
+[  33.25s] GNSS: 0 polls, 0 with a fix
+[  33.25s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  33.25s] Free heap: 183008 bytes
+[  33.25s] 
+[  34.06s] [SYNC] pin=LOW  t=155532628 us
+[  34.06s] [RIDE2] n=200 rms=10.233 std=0.035 p2p=0.191 crest=1.009 jerk=7.417 crossings=3 norm=n/a
+[  34.06s] [RIDE1] n=200 rms=10.582 std=0.034 p2p=0.176 crest=1.008 jerk=7.429 crossings=6 norm=n/a
+[  34.06s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.035 p2p=0.184 jerk=7.423 dis=0.01
+[  34.06s] [SYNC] pin=HIGH  t=156032624 us
+[  34.69s] [SYNC] pin=LOW  t=156532628 us
+[  35.11s] [RIDE1] n=200 rms=10.582 std=0.034 p2p=0.168 crest=1.008 jerk=7.580 crossings=3 norm=n/a
+[  35.11s] [RIDE2] n=200 rms=10.233 std=0.033 p2p=0.177 crest=1.008 jerk=7.269 crossings=6 norm=n/a
+[  35.11s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.033 p2p=0.173 jerk=7.424 dis=0.02
+[  35.11s] [SYNC] pin=HIGH  t=157032624 us
+[  35.31s] --- Acquisition stats (2s window) ---
+[  35.31s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4725 avg=5012 max=5299]  dropped=0
+[  35.31s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4657 avg=5012 max=5313]  dropped=0
+[  35.31s] GNSS: 0 polls, 0 with a fix
+[  35.31s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  35.31s] Free heap: 183008 bytes
+[  35.31s] 
+[  35.73s] [SYNC] pin=LOW  t=157532626 us
+[  36.13s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.209 crest=1.010 jerk=7.545 crossings=3 norm=n/a
+[  36.13s] [RIDE2] n=200 rms=10.238 std=0.038 p2p=0.233 crest=1.013 jerk=8.501 crossings=1 norm=n/a
+[  36.13s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.037 p2p=0.221 jerk=8.023 dis=0.07
+[  36.13s] [SYNC] pin=HIGH  t=158032624 us
+[  36.54s] [SYNC] pin=LOW  t=158532608 us
+[  37.16s] [RIDE1] n=200 rms=10.588 std=0.033 p2p=0.190 crest=1.011 jerk=7.609 crossings=4 norm=n/a
+[  37.16s] [RIDE2] n=200 rms=10.238 std=0.034 p2p=0.191 crest=1.009 jerk=7.495 crossings=5 norm=n/a
+[  37.16s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.034 p2p=0.190 jerk=7.552 dis=0.03
+[  37.16s] [GNSS] [SYNC] pin=HIGH  t=159032447 us
+[  37.36s] --- Acquisition stats (2s window) ---
+[  37.36s] IMU1: 401 samples (200.5 Hz)  dt_us[min=843 avg=5012 max=37426]  dropped=0
+[  37.36s] IMU2: 401 samples (200.5 Hz)  dt_us[min=796 avg=5012 max=37748]  dropped=0
+[  37.36s] GNSS: 0 polls, 0 with a fix
+[  37.36s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  37.36s] Free heap: 183008 bytes
+[  37.36s] 
+[  37.56s] [SYNC] pin=LOW  t=159532628 us
+[  38.19s] [RIDE2] n=200 rms=10.238 std=0.037 p2p=0.190 crest=1.009 jerk=8.145 crossings=3 norm=n/a
+[  38.19s] [RIDE1] n=200 rms=10.587 std=0.033 p2p=0.188 crest=1.008 jerk=7.247 crossings=5 norm=n/a
+[  38.19s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.035 p2p=0.189 jerk=7.696 dis=0.07
+[  38.19s] [SYNC] pin=HIGH  t=160032622 us
+[  38.61s] [SYNC] pin=LOW  t=160532610 us
+[  39.04s] [RIDE2] n=200 rms=10.232 std=0.044 p2p=0.234 crest=1.013 jerk=9.111 crossings=3 norm=n/a
+[  39.04s] [RIDE1] n=200 rms=10.582 std=0.031 p2p=0.172 crest=1.008 jerk=7.002 crossings=5 norm=n/a
+[  39.04s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.038 p2p=0.203 jerk=8.056 dis=0.25
+[  39.04s] [SYNC] pin=HIGH  t=161032624 us
+[  39.38s] --- Acquisition stats (2s window) ---
+[  39.38s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4767 avg=5012 max=5235]  dropped=0
+[  39.38s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4743 avg=5012 max=5257]  dropped=0
+[  39.38s] GNSS: 0 polls, 0 with a fix
+[  39.38s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  39.38s] Free heap: 183008 bytes
+[  39.38s] 
+[  39.58s] [SYNC] pin=LOW  t=161532626 us
+[  40.19s] [RIDE2] n=200 rms=10.236 std=0.036 p2p=0.187 crest=1.009 jerk=7.805 crossings=3 norm=n/a
+[  40.19s] [RIDE1] n=200 rms=10.581 std=0.031 p2p=0.174 crest=1.008 jerk=6.877 crossings=4 norm=n/a
+[  40.19s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.033 p2p=0.180 jerk=7.341 dis=0.11
+[  40.19s] [GNSS] poll timeout
+[  40.19s] [SYNC] pin=HIGH  t=162032624 us
+[  40.61s] [SYNC] pin=LOW  t=162532608 us
+[  41.03s] [RIDE2] n=200 rms=10.235 std=0.033 p2p=0.171 crest=1.010 jerk=7.514 crossings=4 norm=n/a
+[  41.03s] [RIDE1] n=200 rms=10.581 std=0.034 p2p=0.216 crest=1.012 jerk=8.121 crossings=4 norm=n/a
+[  41.03s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.034 p2p=0.194 jerk=7.818 dis=0.02
+[  41.23s] [SYNC] pin=HIGH  t=163032622 us
+[  41.23s] --- Acquisition stats (2s window) ---
+[  41.23s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4391 avg=5012 max=5646]  dropped=0
+[  41.23s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4404 avg=5012 max=5751]  dropped=0
+[  41.23s] GNSS: 0 polls, 0 with a fix
+[  41.23s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  41.23s] Free heap: 184272 bytes
+[  41.23s] 
+[  41.23s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (no name)
+[  41.23s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[  41.43s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[  41.64s] [SYNC] pin=LOW  t=163532628 us
+[  42.06s] [RIDE1] n=200 rms=10.583 std=0.033 p2p=0.185 crest=1.009 jerk=7.839 crossings=3 norm=n/a
+[  42.06s] [RIDE2] n=200 rms=10.232 std=0.048 p2p=0.277 crest=1.015 jerk=11.524 crossings=7 norm=n/a
+[  42.06s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.040 p2p=0.231 jerk=9.681 dis=0.32
+[  42.06s] [SYNC] pin=HIGH  t=164032626 us
+[  42.89s] [SYNC] pin=LOW  t=164532626 us
+[  42.89s] [BMS] scan saw: 2e:40:f8:ce:c3:de (no name)
+[  43.09s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.167 crest=1.008 jerk=7.787 crossings=3 norm=n/a
+[  43.09s] [RIDE2] n=200 rms=10.237 std=0.048 p2p=0.248 crest=1.013 jerk=10.384 crossings=6 norm=n/a
+[  43.09s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.041 p2p=0.207 jerk=9.085 dis=0.28
+[  43.09s] [GNSS] poll timeout
+[  43.09s] [SYNC] pin=HIGH  t=165032626 us
+[  43.29s] --- Acquisition stats (2s window) ---
+[  43.29s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4454 avg=5012 max=5608]  dropped=0
+[  43.29s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4459 avg=5012 max=5521]  dropped=0
+[  43.29s] GNSS: 0 polls, 0 with a fix
+[  43.29s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  43.29s] Free heap: 183028 bytes
+[  43.29s] 
+[  43.70s] [SYNC] pin=LOW  t=165532628 us
+[  44.12s] [RIDE2] n=200 rms=10.237 std=0.043 p2p=0.252 crest=1.012 jerk=8.176 crossings=6 norm=n/a
+[  44.12s] [RIDE1] n=200 rms=10.580 std=0.032 p2p=0.176 crest=1.009 jerk=7.083 crossings=3 norm=n/a
+[  44.12s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.038 p2p=0.214 jerk=7.630 dis=0.23
+[  44.12s] [SYNC] pin=HIGH  t=166032642 us
+[  44.73s] [SYNC] pin=LOW  t=166532628 us
+[  45.15s] [RIDE1] n=200 rms=10.584 std=0.036 p2p=0.182 crest=1.010 jerk=8.553 crossings=7 norm=n/a
+[  45.15s] [RIDE2] n=200 rms=10.235 std=0.058 p2p=0.330 crest=1.018 jerk=13.718 crossings=9 norm=n/a
+[  45.15s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.047 p2p=0.256 jerk=11.136 dis=0.44
+[  45.15s] [SYNC] pin=HIGH  t=167032624 us
+[  45.35s] --- Acquisition stats (2s window) ---
+[  45.36s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4600 avg=5012 max=5572]  dropped=0
+[  45.36s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4608 avg=5012 max=5431]  dropped=0
+[  45.36s] GNSS: 0 polls, 0 with a fix
+[  45.36s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  45.36s] Free heap: 183028 bytes
+[  45.36s] 
+[  45.57s] [SYNC] pin=LOW  t=167532628 us
+[  46.19s] [RIDE1] n=200 rms=10.583 std=0.037 p2p=0.221 crest=1.011 jerk=9.101 crossings=5 norm=n/a
+[  46.19s] [RIDE2] n=200 rms=10.235 std=0.049 p2p=0.301 crest=1.013 jerk=11.607 crossings=4 norm=n/a
+[  46.19s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.043 p2p=0.261 jerk=10.354 dis=0.23
+[  46.19s] [GNSS] poll timeout
+[  46.19s] [SYNC] pin=HIGH  t=168032626 us
+[  46.61s] [SYNC] pin=LOW  t=168532628 us
+[  47.22s] [RIDE1] n=200 rms=10.582 std=0.035 p2p=0.193 crest=1.009 jerk=7.738 crossings=6 norm=n/a
+[  47.22s] [RIDE2] n=200 rms=10.240 std=0.043 p2p=0.266 crest=1.014 jerk=8.578 crossings=6 norm=n/a
+[  47.22s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.039 p2p=0.229 jerk=8.158 dis=0.15
+[  47.22s] [SYNC] pin=HIGH  t=169032624 us
+[  47.22s] --- Acquisition stats (2s window) ---
+[  47.22s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4737 avg=5012 max=5455]  dropped=0
+[  47.22s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4710 avg=5012 max=5454]  dropped=0
+[  47.22s] GNSS: 0 polls, 0 with a fix
+[  47.22s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  47.22s] Free heap: 183028 bytes
+[  47.22s] 
+[  47.64s] [SYNC] pin=LOW  t=169532626 us
+[  48.05s] [RIDE1] n=200 rms=10.585 std=0.035 p2p=0.203 crest=1.009 jerk=7.333 crossings=4 norm=n/a
+[  48.05s] [RIDE2] n=200 rms=10.236 std=0.057 p2p=0.431 crest=1.028 jerk=13.013 crossings=5 norm=n/a
+[  48.05s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.046 p2p=0.317 jerk=10.173 dis=0.43
+[  48.05s] [SYNC] pin=HIGH  t=170032624 us
+[  48.70s] [SYNC] pin=LOW  t=170532610 us
+[  49.11s] [RIDE1] n=200 rms=10.581 std=0.037 p2p=0.223 crest=1.009 jerk=8.237 crossings=4 norm=n/a
+[  49.11s] [RIDE2] n=200 rms=10.235 std=0.043 p2p=0.231 crest=1.011 jerk=9.538 crossings=3 norm=n/a
+[  49.11s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.040 p2p=0.227 jerk=8.887 dis=0.11
+[  49.11s] [GNSS] poll timeout
+[  49.11s] [SYNC] pin=HIGH  t=171032495 us
+[  49.31s] --- Acquisition stats (2s window) ---
+[  49.31s] IMU1: 401 samples (200.5 Hz)  dt_us[min=841 avg=5012 max=35934]  dropped=0
+[  49.31s] IMU2: 401 samples (200.5 Hz)  dt_us[min=870 avg=5012 max=35825]  dropped=0
+[  49.31s] GNSS: 0 polls, 0 with a fix
+[  49.31s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  49.31s] Free heap: 183028 bytes
+[  49.31s] 
+[  49.74s] [SYNC] pin=LOW  t=171532628 us
+[  50.15s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.180 crest=1.009 jerk=8.058 crossings=2 norm=n/a
+[  50.15s] [RIDE2] n=200 rms=10.241 std=0.045 p2p=0.255 crest=1.011 jerk=8.841 crossings=7 norm=n/a
+[  50.15s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.040 p2p=0.218 jerk=8.449 dis=0.21
+[  50.15s] [SYNC] pin=HIGH  t=172032622 us
+[  50.56s] [SYNC] pin=LOW  t=172532612 us
+[  51.18s] [RIDE1] n=200 rms=10.586 std=0.033 p2p=0.180 crest=1.008 jerk=7.625 crossings=4 norm=n/a
+[  51.18s] [RIDE2] n=200 rms=10.238 std=0.064 p2p=0.432 crest=1.024 jerk=14.428 crossings=6 norm=n/a
+[  51.18s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.048 p2p=0.306 jerk=11.026 dis=0.62
+[  51.18s] [SYNC] pin=HIGH  t=173032624 us
+[  51.18s] --- Acquisition stats (2s window) ---
+[  51.18s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4779 avg=5012 max=5265]  dropped=0
+[  51.18s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4744 avg=5012 max=5276]  dropped=0
+[  51.18s] GNSS: 0 polls, 0 with a fix
+[  51.18s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  51.18s] Free heap: 183028 bytes
+[  51.18s] 
+[  51.59s] [SYNC] pin=LOW  t=173532626 us
+[  52.36s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.173 crest=1.009 jerk=7.736 crossings=3 norm=n/a
+[  52.36s] [RIDE2] n=200 rms=10.237 std=0.050 p2p=0.331 crest=1.020 jerk=11.165 crossings=4 norm=n/a
+[  52.36s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.042 p2p=0.252 jerk=9.451 dis=0.33
+[  52.36s] [GNSS] poll timeout
+[  52.36s] [SYNC] pin=HIGH  t=174032624 us
+[  52.57s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[  52.57s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[  52.57s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[  52.57s] [SYNC] pin=LOW  t=174532628 us
+[  53.18s] [RIDE2] n=200 rms=10.237 std=0.041 p2p=0.202 crest=1.012 jerk=8.417 crossings=6 norm=n/a
+[  53.18s] [RIDE1] n=200 rms=10.583 std=0.034 p2p=0.157 crest=1.007 jerk=8.021 crossings=3 norm=n/a
+[  53.18s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.038 p2p=0.180 jerk=8.219 dis=0.15
+[  53.18s] [SYNC] pin=HIGH  t=175032624 us
+[  53.18s] --- Acquisition stats (2s window) ---
+[  53.18s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4546 avg=5012 max=5433]  dropped=0
+[  53.18s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4509 avg=5012 max=5592]  dropped=0
+[  53.18s] GNSS: 0 polls, 0 with a fix
+[  53.18s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  53.18s] Free heap: 183328 bytes
+[  53.18s] 
+[  53.60s] [SYNC] pin=LOW  t=175532628 us
+[  54.28s] [RIDE1] n=200 rms=10.584 std=0.033 p2p=0.166 crest=1.008 jerk=7.625 crossings=3 norm=n/a
+[  54.28s] [RIDE2] n=200 rms=10.237 std=0.061 p2p=0.342 crest=1.014 jerk=13.263 crossings=2 norm=n/a
+[  54.28s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.047 p2p=0.254 jerk=10.444 dis=0.57
+[  54.28s] [SYNC] pin=HIGH  t=176032626 us
+[  55.11s] [SYNC] pin=LOW  t=176532628 us
+[  55.11s] [RIDE2] n=200 rms=10.238 std=0.046 p2p=0.257 crest=1.011 jerk=10.393 crossings=4 norm=n/a
+[  55.11s] [RIDE1] n=200 rms=10.582 std=0.034 p2p=0.168 crest=1.009 jerk=7.660 crossings=6 norm=n/a
+[  55.11s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.040 p2p=0.212 jerk=9.027 dis=0.25
+[  55.11s] [GNSS] poll timeout
+[  55.11s] [SYNC] pin=HIGH  t=177032624 us
+[  55.32s] --- Acquisition stats (2s window) ---
+[  55.32s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4567 avg=5012 max=5436]  dropped=0
+[  55.32s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4554 avg=5012 max=5450]  dropped=0
+[  55.32s] GNSS: 0 polls, 0 with a fix
+[  55.32s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  55.32s] Free heap: 183328 bytes
+[  55.32s] 
+[  55.74s] [SYNC] pin=LOW  t=177532628 us
+[  56.17s] [RIDE2] n=200 rms=10.237 std=0.042 p2p=0.233 crest=1.011 jerk=8.188 crossings=6 norm=n/a
+[  56.17s] [RIDE1] n=200 rms=10.582 std=0.033 p2p=0.152 crest=1.007 jerk=7.331 crossings=6 norm=n/a
+[  56.17s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.038 p2p=0.192 jerk=7.760 dis=0.18
+[  56.17s] [SYNC] pin=HIGH  t=178032624 us
+[  56.57s] [SYNC] pin=LOW  t=178532626 us
+[  57.21s] [RIDE2] n=200 rms=10.235 std=0.060 p2p=0.338 crest=1.014 jerk=14.292 crossings=3 norm=n/a
+[  57.21s] [RIDE1] n=200 rms=10.583 std=0.033 p2p=0.168 crest=1.008 jerk=8.305 crossings=6 norm=n/a
+[  57.21s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.046 p2p=0.253 jerk=11.299 dis=0.55
+[  57.21s] [SYNC] pin=HIGH  t=179032626 us
+[  57.21s] --- Acquisition stats (2s window) ---
+[  57.21s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4457 avg=5012 max=5592]  dropped=0
+[  57.21s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4340 avg=5012 max=5665]  dropped=0
+[  57.21s] GNSS: 0 polls, 0 with a fix
+[  57.21s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  57.21s] Free heap: 183328 bytes
+[  57.21s] 
+[  57.62s] [SYNC] pin=LOW  t=179532628 us
+[  58.03s] [RIDE2] n=200 rms=10.235 std=0.043 p2p=0.222 crest=1.009 jerk=10.771 crossings=5 norm=n/a
+[  58.03s] [RIDE1] n=200 rms=10.579 std=0.037 p2p=0.248 crest=1.012 jerk=7.675 crossings=6 norm=n/a
+[  58.03s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.040 p2p=0.235 jerk=9.223 dis=0.12
+[  58.23s] [GNSS] poll timeout
+[  58.23s] [SYNC] pin=HIGH  t=180032624 us
+[  58.64s] [SYNC] pin=LOW  t=180532610 us
+[  59.05s] [RIDE2] n=200 rms=10.234 std=0.041 p2p=0.258 crest=1.011 jerk=8.018 crossings=7 norm=n/a
+[  59.05s] [RIDE1] n=200 rms=10.582 std=0.033 p2p=0.183 crest=1.010 jerk=7.992 crossings=3 norm=n/a
+[  59.05s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.037 p2p=0.221 jerk=8.005 dis=0.16
+[  59.05s] [SYNC] pin=HIGH  t=181032624 us
+[  59.26s] --- Acquisition stats (2s window) ---
+[  59.26s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4756 avg=5012 max=5324]  dropped=0
+[  59.26s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4763 avg=5012 max=5347]  dropped=0
+[  59.26s] GNSS: 0 polls, 0 with a fix
+[  59.26s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  59.26s] Free heap: 183328 bytes
+[  59.26s] 
+[  59.69s] [SYNC] pin=LOW  t=181532626 us
+[  60.09s] [RIDE2] n=200 rms=10.237 std=0.058 p2p=0.417 crest=1.021 jerk=12.258 crossings=5 norm=n/a
+[  60.09s] [RIDE1] n=200 rms=10.579 std=0.033 p2p=0.192 crest=1.008 jerk=7.879 crossings=4 norm=n/a
+[  60.09s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.045 p2p=0.305 jerk=10.068 dis=0.49
+[  60.09s] [SYNC] pin=HIGH  t=182032624 us
+[  60.72s] [SYNC] pin=LOW  t=182532610 us
+[  61.19s] [RIDE2] n=200 rms=10.237 std=0.044 p2p=0.238 crest=1.011 jerk=10.253 crossings=3 norm=n/a
+[  61.19s] [RIDE1] n=200 rms=10.586 std=0.033 p2p=0.187 crest=1.009 jerk=7.290 crossings=4 norm=n/a
+[  61.19s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.039 p2p=0.212 jerk=8.772 dis=0.22
+[  61.19s] [GNSS] poll timeout
+[  61.19s] [SYNC] pin=HIGH  t=183032472 us
+[  61.40s] --- Acquisition stats (2s window) ---
+[  61.40s] IMU1: 401 samples (200.5 Hz)  dt_us[min=843 avg=5012 max=39688]  dropped=0
+[  61.40s] IMU2: 401 samples (200.5 Hz)  dt_us[min=856 avg=5012 max=39775]  dropped=0
+[  61.40s] GNSS: 0 polls, 0 with a fix
+[  61.40s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  61.40s] Free heap: 183328 bytes
+[  61.40s] 
+[  61.60s] [SYNC] pin=LOW  t=183532628 us
+[  62.21s] [RIDE1] n=200 rms=10.587 std=0.037 p2p=0.217 crest=1.011 jerk=8.615 crossings=2 norm=n/a
+[  62.21s] [RIDE2] n=200 rms=10.241 std=0.037 p2p=0.189 crest=1.008 jerk=7.655 crossings=1 norm=n/a
+[  62.21s] [FUSED] src=1+2 skew=0ms rms=10.414 std=0.037 p2p=0.203 jerk=8.135 dis=0.01
+[  62.21s] [SYNC] pin=HIGH  t=184032622 us
+[  62.63s] [SYNC] pin=LOW  t=184532610 us
+[  63.04s] [RIDE1] n=200 rms=10.583 std=0.035 p2p=0.164 crest=1.008 jerk=7.654 crossings=1 norm=n/a
+[  63.04s] [RIDE2] n=200 rms=10.233 std=0.065 p2p=0.483 crest=1.023 jerk=15.279 crossings=6 norm=n/a
+[  63.04s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.050 p2p=0.323 jerk=11.467 dis=0.61
+[  63.04s] [SYNC] pin=HIGH  t=185032624 us
+[  63.29s] --- Acquisition stats (2s window) ---
+[  63.29s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4784 avg=5012 max=5238]  dropped=0
+[  63.29s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4748 avg=5012 max=5268]  dropped=0
+[  63.29s] GNSS: 0 polls, 0 with a fix
+[  63.29s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  63.29s] Free heap: 183328 bytes
+[  63.29s] 
+[  63.71s] [SYNC] pin=LOW  t=185532626 us
+[  63.71s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[  63.71s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[  64.01s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[  64.22s] [RIDE1] n=200 rms=10.581 std=0.032 p2p=0.205 crest=1.009 jerk=7.307 crossings=2 norm=n/a
+[  64.22s] [RIDE2] n=200 rms=10.235 std=0.043 p2p=0.211 crest=1.011 jerk=10.346 crossings=6 norm=n/a
+[  64.22s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.038 p2p=0.208 jerk=8.827 dis=0.21
+[  64.22s] [GNSS] poll timeout
+[  64.22s] [SYNC] pin=HIGH  t=186032626 us
+[  64.64s] [SYNC] pin=LOW  t=186532626 us
+[  65.06s] [RIDE1] n=200 rms=10.585 std=0.035 p2p=0.208 crest=1.010 jerk=7.572 crossings=6 norm=n/a
+[  65.06s] [RIDE2] n=200 rms=10.233 std=0.040 p2p=0.195 crest=1.009 jerk=8.355 crossings=2 norm=n/a
+[  65.06s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.038 p2p=0.201 jerk=7.963 dis=0.10
+[  65.06s] [SYNC] pin=HIGH  t=187032626 us
+[  65.06s] [BMS] scan saw: 2e:40:f8:ce:c3:de (no name)
+[  65.27s] --- Acquisition stats (2s window) ---
+[  65.27s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4700 avg=5012 max=5524]  dropped=0
+[  65.27s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4679 avg=5012 max=5442]  dropped=0
+[  65.27s] GNSS: 0 polls, 0 with a fix
+[  65.27s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  65.27s] Free heap: 183028 bytes
+[  65.27s] 
+[  65.75s] [SYNC] pin=LOW  t=187532628 us
+[  66.17s] [RIDE2] n=200 rms=10.238 std=0.057 p2p=0.357 crest=1.018 jerk=13.019 crossings=3 norm=n/a
+[  66.17s] [RIDE1] n=200 rms=10.586 std=0.032 p2p=0.163 crest=1.007 jerk=7.090 crossings=5 norm=n/a
+[  66.17s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.044 p2p=0.260 jerk=10.054 dis=0.50
+[  66.17s] [SYNC] pin=HIGH  t=188032624 us
+[  66.68s] [SYNC] pin=LOW  t=188532626 us
+[  67.09s] [RIDE2] n=200 rms=10.236 std=0.048 p2p=0.233 crest=1.013 jerk=11.384 crossings=5 norm=n/a
+[  67.09s] [RIDE1] n=200 rms=10.584 std=0.033 p2p=0.174 crest=1.007 jerk=7.166 crossings=3 norm=n/a
+[  67.09s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.040 p2p=0.204 jerk=9.275 dis=0.29
+[  67.09s] [GNSS] poll timeout
+[  67.09s] [SYNC] pin=HIGH  t=189032626 us
+[  67.30s] --- Acquisition stats (2s window) ---
+[  67.30s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4724 avg=5012 max=5442]  dropped=0
+[  67.30s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4706 avg=5012 max=5455]  dropped=0
+[  67.30s] GNSS: 0 polls, 0 with a fix
+[  67.30s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  67.30s] Free heap: 183028 bytes
+[  67.30s] 
+[  67.73s] [SYNC] pin=LOW  t=189532628 us
+[  68.15s] [RIDE2] n=200 rms=10.238 std=0.042 p2p=0.213 crest=1.008 jerk=8.083 crossings=1 norm=n/a
+[  68.15s] [RIDE1] n=200 rms=10.585 std=0.035 p2p=0.163 crest=1.007 jerk=7.583 crossings=5 norm=n/a
+[  68.15s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.039 p2p=0.188 jerk=7.833 dis=0.15
+[  68.15s] [SYNC] pin=HIGH  t=190032624 us
+[  68.55s] [SYNC] pin=LOW  t=190532608 us
+[  69.26s] [RIDE1] n=200 rms=10.586 std=0.032 p2p=0.196 crest=1.011 jerk=7.317 crossings=6 norm=n/a
+[  69.26s] [RIDE2] n=200 rms=10.240 std=0.060 p2p=0.484 crest=1.020 jerk=13.791 crossings=3 norm=n/a
+[  69.26s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.046 p2p=0.340 jerk=10.554 dis=0.56
+[  69.26s] [SYNC] pin=HIGH  t=191032624 us
+[  69.46s] --- Acquisition stats (2s window) ---
+[  69.46s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4576 avg=5012 max=5406]  dropped=0
+[  69.46s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4581 avg=5012 max=5545]  dropped=0
+[  69.46s] GNSS: 0 polls, 0 with a fix
+[  69.46s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  69.46s] Free heap: 183028 bytes
+[  69.46s] 
+[  69.66s] [SYNC] pin=LOW  t=191532628 us
+[  70.07s] [RIDE1] n=200 rms=10.587 std=0.035 p2p=0.202 crest=1.008 jerk=8.846 crossings=4 norm=n/a
+[  70.07s] [RIDE2] n=200 rms=10.233 std=0.043 p2p=0.215 crest=1.011 jerk=10.137 crossings=4 norm=n/a
+[  70.07s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.039 p2p=0.209 jerk=9.491 dis=0.17
+[  70.07s] [GNSS] poll timeout
+[  70.07s] [SYNC] pin=HIGH  t=192032624 us
+[  70.69s] [SYNC] pin=LOW  t=192532610 us
+[  71.10s] [RIDE1] n=200 rms=10.587 std=0.035 p2p=0.155 crest=1.008 jerk=7.323 crossings=7 norm=n/a
+[  71.10s] [RIDE2] n=200 rms=10.235 std=0.037 p2p=0.173 crest=1.009 jerk=7.664 crossings=4 norm=n/a
+[  71.10s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.036 p2p=0.164 jerk=7.494 dis=0.05
+[  71.10s] [SYNC] pin=HIGH  t=193032622 us
+[  71.30s] --- Acquisition stats (2s window) ---
+[  71.30s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4803 avg=5012 max=5224]  dropped=0
+[  71.30s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4793 avg=5012 max=5288]  dropped=0
+[  71.30s] GNSS: 0 polls, 0 with a fix
+[  71.30s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  71.30s] Free heap: 183028 bytes
+[  71.30s] 
+[  71.71s] [SYNC] pin=LOW  t=193532626 us
+[  72.13s] [RIDE1] n=200 rms=10.582 std=0.032 p2p=0.188 crest=1.010 jerk=7.111 crossings=6 norm=n/a
+[  72.13s] [RIDE2] n=200 rms=10.236 std=0.057 p2p=0.368 crest=1.013 jerk=13.402 crossings=4 norm=n/a
+[  72.13s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.044 p2p=0.278 jerk=10.257 dis=0.51
+[  72.13s] [SYNC] pin=HIGH  t=194032624 us
+[  72.55s] [SYNC] pin=LOW  t=194532606 us
+[  73.17s] [RIDE1] n=200 rms=10.585 std=0.034 p2p=0.174 crest=1.009 jerk=7.793 crossings=8 norm=n/a
+[  73.17s] [RIDE2] n=200 rms=10.232 std=0.041 p2p=0.225 crest=1.011 jerk=9.938 crossings=8 norm=n/a
+[  73.17s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.037 p2p=0.200 jerk=8.865 dis=0.14
+[  73.17s] [GNSS] poll timeout
+[  73.17s] [SYNC] pin=HIGH  t=195032468 us
+[  73.37s] --- Acquisition stats (2s window) ---
+[  73.37s] IMU1: 400 samples (200.0 Hz)  dt_us[min=860 avg=5012 max=36317]  dropped=0
+[  73.37s] IMU2: 400 samples (200.0 Hz)  dt_us[min=869 avg=5012 max=36578]  dropped=0
+[  73.37s] GNSS: 0 polls, 0 with a fix
+[  73.37s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  73.37s] Free heap: 183028 bytes
+[  73.37s] 
+[  73.58s] [SYNC] pin=LOW  t=195532628 us
+[  74.20s] [RIDE2] n=200 rms=10.235 std=0.036 p2p=0.182 crest=1.009 jerk=6.933 crossings=9 norm=n/a
+[  74.20s] [RIDE1] n=200 rms=10.585 std=0.036 p2p=0.178 crest=1.008 jerk=8.112 crossings=3 norm=n/a
+[  74.20s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.036 p2p=0.180 jerk=7.523 dis=0.00
+[  74.20s] [SYNC] pin=HIGH  t=196032622 us
+[  74.63s] [SYNC] pin=LOW  t=196532612 us
+[  74.84s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[  74.84s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[  75.14s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[  75.14s] [RIDE1] n=200 rms=10.585 std=0.035 p2p=0.179 crest=1.008 jerk=7.570 crossings=5 norm=n/a
+[  75.14s] [RIDE2] n=200 rms=10.237 std=0.053 p2p=0.318 crest=1.015 jerk=12.479 crossings=5 norm=n/a
+[  75.14s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.044 p2p=0.249 jerk=10.025 dis=0.36
+[  75.14s] [SYNC] pin=HIGH  t=197032624 us
+[  75.34s] --- Acquisition stats (2s window) ---
+[  75.34s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4672 avg=5012 max=5318]  dropped=0
+[  75.34s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4649 avg=5012 max=5423]  dropped=0
+[  75.34s] GNSS: 0 polls, 0 with a fix
+[  75.34s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  75.34s] Free heap: 183324 bytes
+[  75.34s] 
+[  75.55s] [SYNC] pin=LOW  t=197532628 us
+[  76.17s] [RIDE2] n=200 rms=10.236 std=0.038 p2p=0.222 crest=1.010 jerk=9.054 crossings=3 norm=n/a
+[  76.17s] [RIDE1] n=200 rms=10.586 std=0.038 p2p=0.196 crest=1.009 jerk=8.202 crossings=4 norm=n/a
+[  76.17s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.038 p2p=0.209 jerk=8.628 dis=0.01
+[  76.17s] [GNSS] poll timeout
+[  76.17s] [SYNC] pin=HIGH  t=198032624 us
+[  76.57s] [SYNC] pin=LOW  t=198532628 us
+[  77.19s] [RIDE1] n=200 rms=10.577 std=0.036 p2p=0.185 crest=1.009 jerk=8.707 crossings=4 norm=n/a
+[  77.19s] [RIDE2] n=200 rms=10.237 std=0.048 p2p=0.270 crest=1.012 jerk=9.345 crossings=4 norm=n/a
+[  77.19s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.042 p2p=0.227 jerk=9.026 dis=0.23
+[  77.19s] [SYNC] pin=HIGH  t=199032624 us
+[  77.19s] --- Acquisition stats (2s window) ---
+[  77.19s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4424 avg=5012 max=5601]  dropped=0
+[  77.19s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4425 avg=5012 max=5656]  dropped=0
+[  77.19s] GNSS: 0 polls, 0 with a fix
+[  77.19s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  77.19s] Free heap: 183324 bytes
+[  77.19s] 
+[  77.60s] [SYNC] pin=LOW  t=199532630 us
+[  78.22s] [RIDE1] n=200 rms=10.584 std=0.036 p2p=0.211 crest=1.011 jerk=8.219 crossings=6 norm=n/a
+[  78.22s] [RIDE2] n=200 rms=10.239 std=0.065 p2p=0.401 crest=1.018 jerk=14.509 crossings=6 norm=n/a
+[  78.22s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.050 p2p=0.306 jerk=11.364 dis=0.58
+[  78.22s] [SYNC] pin=HIGH  t=200032624 us
+[  78.63s] [SYNC] pin=LOW  t=200532624 us
+[  79.06s] [RIDE1] n=200 rms=10.589 std=0.034 p2p=0.205 crest=1.010 jerk=7.939 crossings=4 norm=n/a
+[  79.06s] [RIDE2] n=200 rms=10.238 std=0.045 p2p=0.205 crest=1.011 jerk=11.301 crossings=4 norm=n/a
+[  79.06s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.040 p2p=0.205 jerk=9.620 dis=0.23
+[  79.06s] [GNSS] poll timeout
+[  79.06s] [SYNC] pin=HIGH  t=201032626 us
+[  79.26s] --- Acquisition stats (2s window) ---
+[  79.26s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4329 avg=5012 max=5669]  dropped=0
+[  79.26s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4338 avg=5012 max=5660]  dropped=0
+[  79.26s] GNSS: 0 polls, 0 with a fix
+[  79.26s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  79.26s] Free heap: 183324 bytes
+[  79.26s] 
+[  79.69s] [SYNC] pin=LOW  t=201532628 us
+[  80.11s] [RIDE1] n=200 rms=10.586 std=0.033 p2p=0.180 crest=1.009 jerk=7.317 crossings=4 norm=n/a
+[  80.11s] [RIDE2] n=200 rms=10.236 std=0.039 p2p=0.190 crest=1.009 jerk=8.242 crossings=4 norm=n/a
+[  80.11s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.036 p2p=0.185 jerk=7.779 dis=0.12
+[  80.11s] [SYNC] pin=HIGH  t=202032624 us
+[  80.72s] [SYNC] pin=LOW  t=202532608 us
+[  81.19s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.193 crest=1.008 jerk=7.432 crossings=5 norm=n/a
+[  81.19s] [RIDE2] n=200 rms=10.236 std=0.057 p2p=0.382 crest=1.019 jerk=13.137 crossings=6 norm=n/a
+[  81.19s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.045 p2p=0.288 jerk=10.285 dis=0.47
+[  81.19s] [SYNC] pin=HIGH  t=203032624 us
+[  81.40s] --- Acquisition stats (2s window) ---
+[  81.40s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4736 avg=5012 max=5366]  dropped=0
+[  81.40s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4668 avg=5012 max=5319]  dropped=0
+[  81.40s] GNSS: 0 polls, 0 with a fix
+[  81.40s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  81.40s] Free heap: 183324 bytes
+[  81.40s] 
+[  81.60s] [SYNC] pin=LOW  t=203532628 us
+[  82.10s] [RIDE1] n=200 rms=10.586 std=0.040 p2p=0.213 crest=1.011 jerk=9.541 crossings=3 norm=n/a
+[  82.10s] [RIDE2] n=200 rms=10.239 std=0.042 p2p=0.237 crest=1.013 jerk=9.959 crossings=5 norm=n/a
+[  82.10s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.041 p2p=0.225 jerk=9.750 dis=0.06
+[  82.30s] [GNSS] poll timeout
+[  82.30s] [SYNC] pin=HIGH  t=204032624 us
+[  82.71s] [SYNC] pin=LOW  t=204532610 us
+[  83.12s] [RIDE2] n=200 rms=10.236 std=0.035 p2p=0.180 crest=1.008 jerk=7.528 crossings=6 norm=n/a
+[  83.12s] [RIDE1] n=200 rms=10.582 std=0.035 p2p=0.210 crest=1.010 jerk=7.945 crossings=5 norm=n/a
+[  83.12s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.035 p2p=0.195 jerk=7.736 dis=0.01
+[  83.12s] [MQTT] Reconnecting...
+[  83.12s] [SYNC] pin=HIGH  t=205032624 us
+[  83.42s] --- Acquisition stats (2s window) ---
+[  83.42s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4765 avg=5012 max=5287]  dropped=0
+[  83.42s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4756 avg=5012 max=5299]  dropped=0
+[  83.42s] GNSS: 0 polls, 0 with a fix
+[  83.42s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  83.42s] Free heap: 183276 bytes
+[  83.42s] 
+[  83.62s] [SYNC] pin=LOW  t=205532626 us
+[  84.04s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.189 crest=1.009 jerk=7.883 crossings=5 norm=n/a
+[  84.04s] [RIDE2] n=200 rms=10.239 std=0.061 p2p=0.439 crest=1.022 jerk=13.073 crossings=4 norm=n/a
+[  84.04s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.048 p2p=0.314 jerk=10.478 dis=0.53
+[  84.04s] [SYNC] pin=HIGH  t=206032624 us
+[  84.67s] [SYNC] pin=LOW  t=206532608 us
+[  85.15s] [RIDE1] n=200 rms=10.583 std=0.038 p2p=0.221 crest=1.010 jerk=8.178 crossings=3 norm=n/a
+[  85.15s] [RIDE2] n=200 rms=10.240 std=0.045 p2p=0.229 crest=1.012 jerk=10.356 crossings=5 norm=n/a
+[  85.15s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.041 p2p=0.225 jerk=9.267 dis=0.14
+[  85.15s] [SYNC] pin=HIGH  t=207032624 us
+[  85.37s] --- Acquisition stats (2s window) ---
+[  85.37s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4811 avg=5012 max=5209]  dropped=0
+[  85.37s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4801 avg=5012 max=5220]  dropped=0
+[  85.37s] GNSS: 0 polls, 0 with a fix
+[  85.37s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  85.37s] Free heap: 183276 bytes
+[  85.37s] 
+[  85.58s] [SYNC] pin=LOW  t=207532626 us
+[  86.06s] [RIDE2] n=200 rms=10.232 std=0.037 p2p=0.211 crest=1.010 jerk=7.390 crossings=4 norm=n/a
+[  86.06s] [RIDE1] n=200 rms=10.583 std=0.035 p2p=0.198 crest=1.010 jerk=8.561 crossings=3 norm=n/a
+[  86.06s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.036 p2p=0.205 jerk=7.976 dis=0.03
+[  86.06s] [SYNC] pin=HIGH  t=208032624 us
+[  86.06s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[  86.06s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[  86.27s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[  86.68s] [SYNC] pin=LOW  t=208532628 us
+[  87.10s] [RIDE2] n=200 rms=10.239 std=0.058 p2p=0.318 crest=1.015 jerk=13.312 crossings=4 norm=n/a
+[  87.10s] [RIDE1] n=200 rms=10.585 std=0.034 p2p=0.201 crest=1.009 jerk=7.644 crossings=6 norm=n/a
+[  87.10s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.046 p2p=0.259 jerk=10.478 dis=0.48
+[  87.10s] [SYNC] pin=HIGH  t=209032624 us
+[  87.35s] --- Acquisition stats (2s window) ---
+[  87.35s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4137 avg=5012 max=5830]  dropped=0
+[  87.35s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4208 avg=5012 max=5860]  dropped=0
+[  87.35s] GNSS: 0 polls, 0 with a fix
+[  87.35s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  87.35s] Free heap: 183280 bytes
+[  87.35s] 
+[  87.55s] [BMS] scan saw: 2e:40:f8:ce:c3:de (no name)
+[  87.55s] [SYNC] pin=LOW  t=209532628 us
+[  88.17s] [RIDE2] n=200 rms=10.236 std=0.042 p2p=0.227 crest=1.011 jerk=9.654 crossings=5 norm=n/a
+[  88.17s] [RIDE1] n=200 rms=10.586 std=0.034 p2p=0.190 crest=1.009 jerk=7.637 crossings=6 norm=n/a
+[  88.17s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.038 p2p=0.209 jerk=8.645 dis=0.17
+[  88.17s] [SYNC] pin=HIGH  t=210032626 us
+[  88.59s] [SYNC] pin=LOW  t=210532624 us
+[  89.21s] [RIDE2] n=200 rms=10.241 std=0.040 p2p=0.209 crest=1.009 jerk=7.886 crossings=2 norm=n/a
+[  89.21s] [RIDE1] n=200 rms=10.586 std=0.036 p2p=0.185 crest=1.009 jerk=7.542 crossings=5 norm=n/a
+[  89.21s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.038 p2p=0.197 jerk=7.714 dis=0.08
+[  89.21s] [SYNC] pin=HIGH  t=211032626 us
+[  89.21s] --- Acquisition stats (2s window) ---
+[  89.21s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4207 avg=5012 max=5858]  dropped=0
+[  89.21s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4206 avg=5012 max=5748]  dropped=0
+[  89.21s] GNSS: 0 polls, 0 with a fix
+[  89.21s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  89.21s] Free heap: 183028 bytes
+[  89.21s] 
+[  89.71s] [SYNC] pin=LOW  t=211532628 us
+[  90.17s] [RIDE2] n=200 rms=10.242 std=0.053 p2p=0.465 crest=1.024 jerk=11.872 crossings=3 norm=n/a
+[  90.17s] [RIDE1] n=200 rms=10.588 std=0.035 p2p=0.186 crest=1.009 jerk=7.702 crossings=9 norm=n/a
+[  90.17s] [FUSED] src=1+2 skew=0ms rms=10.415 std=0.044 p2p=0.325 jerk=9.787 dis=0.36
+[  90.17s] [SYNC] pin=HIGH  t=212032624 us
+[  90.58s] [SYNC] pin=LOW  t=212532628 us
+[  91.06s] [RIDE2] n=200 rms=10.235 std=0.044 p2p=0.235 crest=1.013 jerk=10.539 crossings=6 norm=n/a
+[  91.06s] [RIDE1] n=200 rms=10.584 std=0.032 p2p=0.169 crest=1.008 jerk=6.903 crossings=6 norm=n/a
+[  91.06s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.038 p2p=0.202 jerk=8.721 dis=0.23
+[  91.06s] [SYNC] pin=HIGH  t=213032624 us
+[  91.27s] --- Acquisition stats (2s window) ---
+[  91.27s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4524 avg=5012 max=5488]  dropped=0
+[  91.27s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4512 avg=5012 max=5492]  dropped=0
+[  91.27s] GNSS: 0 polls, 0 with a fix
+[  91.27s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  91.27s] Free heap: 183028 bytes
+[  91.27s] 
+[  91.67s] [SYNC] pin=LOW  t=213532626 us
+[  92.08s] [RIDE1] n=200 rms=10.584 std=0.032 p2p=0.174 crest=1.007 jerk=6.789 crossings=3 norm=n/a
+[  92.08s] [RIDE2] n=200 rms=10.235 std=0.033 p2p=0.165 crest=1.007 jerk=7.428 crossings=2 norm=n/a
+[  92.08s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.033 p2p=0.170 jerk=7.109 dis=0.01
+[  92.08s] [SYNC] pin=HIGH  t=214032624 us
+[  92.75s] [SYNC] pin=LOW  t=214532608 us
+[  93.17s] [RIDE1] n=200 rms=10.587 std=0.036 p2p=0.215 crest=1.009 jerk=7.706 crossings=5 norm=n/a
+[  93.17s] [RIDE2] n=200 rms=10.237 std=0.058 p2p=0.406 crest=1.019 jerk=12.754 crossings=6 norm=n/a
+[  93.17s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.047 p2p=0.310 jerk=10.230 dis=0.43
+[  93.17s] [SYNC] pin=HIGH  t=215032624 us
+[  93.38s] --- Acquisition stats (2s window) ---
+[  93.38s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4791 avg=5012 max=5214]  dropped=0
+[  93.38s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4786 avg=5012 max=5225]  dropped=0
+[  93.38s] GNSS: 0 polls, 0 with a fix
+[  93.38s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  93.38s] Free heap: 183028 bytes
+[  93.38s] 
+[  93.58s] [SYNC] pin=LOW  t=215532626 us
+[  94.19s] [RIDE2] n=200 rms=10.235 std=0.045 p2p=0.215 crest=1.011 jerk=10.972 crossings=6 norm=n/a
+[  94.19s] [RIDE1] n=200 rms=10.583 std=0.037 p2p=0.188 crest=1.008 jerk=8.557 crossings=3 norm=n/a
+[  94.19s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.041 p2p=0.201 jerk=9.764 dis=0.15
+[  94.19s] [SYNC] pin=HIGH  t=216032624 us
+[  94.60s] [SYNC] pin=LOW  t=216532608 us
+[  95.24s] [RIDE2] n=200 rms=10.233 std=0.037 p2p=0.175 crest=1.008 jerk=8.229 crossings=5 norm=n/a
+[  95.24s] [RIDE1] n=200 rms=10.579 std=0.033 p2p=0.176 crest=1.008 jerk=7.711 crossings=3 norm=n/a
+[  95.24s] [FUSED] src=1+2 skew=0ms rms=10.406 std=0.035 p2p=0.175 jerk=7.970 dis=0.07
+[  95.24s] [SYNC] pin=HIGH  t=217032624 us
+[  95.24s] --- Acquisition stats (2s window) ---
+[  95.24s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4770 avg=5012 max=5236]  dropped=0
+[  95.24s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4779 avg=5012 max=5234]  dropped=0
+[  95.24s] GNSS: 0 polls, 0 with a fix
+[  95.24s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  95.24s] Free heap: 183028 bytes
+[  95.24s] 
+[  95.65s] [SYNC] pin=LOW  t=217532626 us
+[  96.06s] [RIDE2] n=200 rms=10.233 std=0.061 p2p=0.411 crest=1.021 jerk=13.083 crossings=5 norm=n/a
+[  96.06s] [RIDE1] n=200 rms=10.584 std=0.032 p2p=0.175 crest=1.009 jerk=7.375 crossings=4 norm=n/a
+[  96.06s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.047 p2p=0.293 jerk=10.229 dis=0.58
+[  96.06s] [SYNC] pin=HIGH  t=218032624 us
+[  96.73s] [SYNC] pin=LOW  t=218532608 us
+[  97.18s] [RIDE2] n=200 rms=10.242 std=0.041 p2p=0.207 crest=1.011 jerk=10.165 crossings=4 norm=n/a
+[  97.18s] [RIDE1] n=200 rms=10.587 std=0.033 p2p=0.187 crest=1.009 jerk=8.037 crossings=6 norm=n/a
+[  97.18s] [FUSED] src=1+2 skew=0ms rms=10.415 std=0.037 p2p=0.197 jerk=9.101 dis=0.18
+[  97.18s] [SYNC] pin=HIGH  t=219032624 us
+[  97.39s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[  97.39s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[  97.39s] --- Acquisition stats (2s window) ---
+[  97.39s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4520 avg=5013 max=5577]  dropped=0
+[  97.39s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4554 avg=5013 max=5590]  dropped=0
+[  97.39s] GNSS: 0 polls, 0 with a fix
+[  97.39s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  97.39s] Free heap: 183688 bytes
+[  97.39s] 
+[  97.39s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[  97.60s] [SYNC] pin=LOW  t=219532628 us
+[  98.22s] [RIDE2] n=200 rms=10.240 std=0.036 p2p=0.180 crest=1.009 jerk=8.131 crossings=3 norm=n/a
+[  98.22s] [RIDE1] n=200 rms=10.582 std=0.032 p2p=0.159 crest=1.008 jerk=6.863 crossings=5 norm=n/a
+[  98.22s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.034 p2p=0.170 jerk=7.497 dis=0.09
+[  98.22s] [SYNC] pin=HIGH  t=220032624 us
+[  98.71s] [SYNC] pin=LOW  t=220532626 us
+[  99.17s] [RIDE1] n=200 rms=10.580 std=0.034 p2p=0.201 crest=1.009 jerk=7.687 crossings=2 norm=n/a
+[  99.17s] [RIDE2] n=200 rms=10.233 std=0.055 p2p=0.394 crest=1.022 jerk=12.662 crossings=2 norm=n/a
+[  99.17s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.045 p2p=0.298 jerk=10.175 dis=0.42
+[  99.17s] [SYNC] pin=HIGH  t=221032624 us
+[  99.38s] --- Acquisition stats (2s window) ---
+[  99.38s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4302 avg=5011 max=5758]  dropped=0
+[  99.38s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4277 avg=5010 max=5812]  dropped=0
+[  99.38s] GNSS: 0 polls, 0 with a fix
+[  99.38s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[  99.38s] Free heap: 183324 bytes
+[  99.38s] 
+[  99.59s] [SYNC] pin=LOW  t=221532628 us
+[ 100.21s] [RIDE1] n=200 rms=10.586 std=0.031 p2p=0.172 crest=1.008 jerk=7.216 crossings=4 norm=n/a
+[ 100.21s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.038 p2p=0.219 jerk=8.817 dis=0.26
+[ 100.21s] [RIDE2] n=200 rms=10.238 std=0.044 p2p=0.265 crest=1.013 jerk=10.418 crossings=4 norm=n/a
+[ 100.21s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.038 p2p=0.219 jerk=8.817 dis=0.26
+[ 100.21s] [SYNC] pin=HIGH  t=222032624 us
+[ 100.63s] [SYNC] pin=LOW  t=222532628 us
+[ 101.05s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.162 crest=1.008 jerk=7.099 crossings=4 norm=n/a
+[ 101.05s] [RIDE2] n=200 rms=10.234 std=0.043 p2p=0.228 crest=1.012 jerk=8.615 crossings=6 norm=n/a
+[ 101.05s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.039 p2p=0.195 jerk=7.857 dis=0.17
+[ 101.05s] [SYNC] pin=HIGH  t=223032624 us
+[ 101.27s] --- Acquisition stats (2s window) ---
+[ 101.27s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4653 avg=5012 max=5407]  dropped=0
+[ 101.27s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4640 avg=5012 max=5403]  dropped=0
+[ 101.27s] GNSS: 0 polls, 0 with a fix
+[ 101.27s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 101.27s] Free heap: 183324 bytes
+[ 101.27s] 
+[ 101.70s] [SYNC] pin=LOW  t=223532628 us
+[ 102.11s] [RIDE2] n=200 rms=10.237 std=0.056 p2p=0.346 crest=1.018 jerk=13.534 crossings=2 norm=n/a
+[ 102.11s] [RIDE1] n=200 rms=10.590 std=0.034 p2p=0.203 crest=1.008 jerk=7.954 crossings=7 norm=n/a
+[ 102.11s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.045 p2p=0.275 jerk=10.744 dis=0.46
+[ 102.11s] [SYNC] pin=HIGH  t=224032626 us
+[ 102.73s] [SYNC] pin=LOW  t=224532628 us
+[ 103.16s] [RIDE2] n=200 rms=10.233 std=0.036 p2p=0.182 crest=1.009 jerk=7.733 crossings=11 norm=n/a
+[ 103.16s] [RIDE1] n=200 rms=10.586 std=0.036 p2p=0.189 crest=1.009 jerk=7.541 crossings=6 norm=n/a
+[ 103.16s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.036 p2p=0.185 jerk=7.637 dis=0.01
+[ 103.16s] [SYNC] pin=HIGH  t=225032624 us
+[ 103.36s] --- Acquisition stats (2s window) ---
+[ 103.36s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4729 avg=5012 max=5416]  dropped=0
+[ 103.36s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4740 avg=5012 max=5394]  dropped=0
+[ 103.36s] GNSS: 0 polls, 0 with a fix
+[ 103.36s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 103.36s] Free heap: 183324 bytes
+[ 103.36s] 
+[ 103.57s] [SYNC] pin=LOW  t=225532626 us
+[ 104.27s] [RIDE2] n=200 rms=10.233 std=0.034 p2p=0.203 crest=1.010 jerk=7.782 crossings=4 norm=n/a
+[ 104.27s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.172 crest=1.008 jerk=7.175 crossings=7 norm=n/a
+[ 104.27s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.033 p2p=0.188 jerk=7.479 dis=0.02
+[ 104.27s] [SYNC] pin=HIGH  t=226032625 us
+[ 104.68s] [SYNC] pin=LOW  t=226532606 us
+[ 105.13s] [RIDE2] n=200 rms=10.237 std=0.038 p2p=0.213 crest=1.009 jerk=8.093 crossings=6 norm=n/a
+[ 105.13s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.178 crest=1.010 jerk=7.864 crossings=3 norm=n/a
+[ 105.13s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.037 p2p=0.196 jerk=7.978 dis=0.05
+[ 105.13s] [SYNC] pin=HIGH  t=227032624 us
+[ 105.34s] --- Acquisition stats (2s window) ---
+[ 105.34s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4783 avg=5012 max=5235]  dropped=0
+[ 105.34s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4792 avg=5012 max=5231]  dropped=0
+[ 105.34s] GNSS: 0 polls, 0 with a fix
+[ 105.34s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 105.34s] Free heap: 183324 bytes
+[ 105.34s] 
+[ 105.54s] [SYNC] pin=LOW  t=227532628 us
+[ 106.17s] [RIDE2] n=200 rms=10.239 std=0.034 p2p=0.198 crest=1.010 jerk=7.903 crossings=7 norm=n/a
+[ 106.17s] [RIDE1] n=200 rms=10.581 std=0.034 p2p=0.178 crest=1.008 jerk=7.515 crossings=3 norm=n/a
+[ 106.17s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.034 p2p=0.188 jerk=7.709 dis=0.01
+[ 106.17s] [SYNC] pin=HIGH  t=228032624 us
+[ 106.59s] [SYNC] pin=LOW  t=228532606 us
+[ 107.22s] [RIDE2] n=200 rms=10.238 std=0.035 p2p=0.163 crest=1.009 jerk=7.428 crossings=5 norm=n/a
+[ 107.22s] [RIDE1] n=200 rms=10.585 std=0.037 p2p=0.195 crest=1.009 jerk=8.542 crossings=3 norm=n/a
+[ 107.22s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.036 p2p=0.179 jerk=7.985 dis=0.05
+[ 107.22s] [SYNC] pin=HIGH  t=229032624 us
+[ 107.22s] --- Acquisition stats (2s window) ---
+[ 107.22s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4772 avg=5012 max=5235]  dropped=0
+[ 107.22s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4782 avg=5012 max=5231]  dropped=0
+[ 107.22s] GNSS: 0 polls, 0 with a fix
+[ 107.22s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 107.22s] Free heap: 183324 bytes
+[ 107.22s] 
+[ 107.64s] [SYNC] pin=LOW  t=229532626 us
+[ 108.05s] [RIDE2] n=200 rms=10.237 std=0.033 p2p=0.157 crest=1.009 jerk=7.250 crossings=3 norm=n/a
+[ 108.05s] [RIDE1] n=200 rms=10.586 std=0.034 p2p=0.176 crest=1.008 jerk=7.706 crossings=2 norm=n/a
+[ 108.05s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.034 p2p=0.166 jerk=7.478 dis=0.01
+[ 108.05s] [MQTT] CMQTTSTART gave no result: 
+[ 108.05s] [MQTT] Reconnect failed, next attempt in 120 s.
+[ 108.05s] [SYNC] pin=HIGH  t=230032624 us
+[ 108.46s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 108.46s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 108.46s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 108.67s] [SYNC] pin=LOW  t=230532626 us
+[ 109.09s] [RIDE2] n=200 rms=10.236 std=0.035 p2p=0.246 crest=1.012 jerk=7.091 crossings=5 norm=n/a
+[ 109.09s] [RIDE1] n=200 rms=10.581 std=0.032 p2p=0.177 crest=1.008 jerk=7.144 crossings=6 norm=n/a
+[ 109.09s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.034 p2p=0.211 jerk=7.117 dis=0.06
+[ 109.09s] [SYNC] pin=HIGH  t=231032624 us
+[ 109.30s] --- Acquisition stats (2s window) ---
+[ 109.30s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4488 avg=5012 max=5508]  dropped=0
+[ 109.30s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4482 avg=5012 max=5521]  dropped=0
+[ 109.30s] GNSS: 0 polls, 0 with a fix
+[ 109.30s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 109.30s] Free heap: 183312 bytes
+[ 109.30s] 
+[ 109.92s] [SYNC] pin=LOW  t=231532628 us
+[ 109.92s] [BMS] scan saw: 2e:40:f8:ce:c3:de (no name)
+[ 110.13s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.176 crest=1.009 jerk=7.694 crossings=4 norm=n/a
+[ 110.13s] [RIDE2] n=200 rms=10.231 std=0.033 p2p=0.177 crest=1.008 jerk=7.041 crossings=5 norm=n/a
+[ 110.13s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.033 p2p=0.177 jerk=7.367 dis=0.02
+[ 110.13s] [GNSS] poll timeout
+[ 110.54s] [SYNC] pin=HIGH  t=232032126 us
+[ 110.54s] [SYNC] pin=LOW  t=232532628 us
+[ 111.16s] [RIDE2] n=200 rms=10.234 std=0.035 p2p=0.224 crest=1.011 jerk=7.223 crossings=4 norm=n/a
+[ 111.16s] [RIDE1] n=200 rms=10.586 std=0.030 p2p=0.201 crest=1.008 jerk=6.963 crossings=5 norm=n/a
+[ 111.16s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.032 p2p=0.213 jerk=7.093 dis=0.10
+[ 111.16s] [SYNC] pin=HIGH  t=233032624 us
+[ 111.37s] --- Acquisition stats (2s window) ---
+[ 111.37s] IMU1: 400 samples (200.0 Hz)  dt_us[min=866 avg=5013 max=39217]  dropped=0
+[ 111.37s] IMU2: 400 samples (200.0 Hz)  dt_us[min=880 avg=5013 max=39361]  dropped=0
+[ 111.37s] GNSS: 0 polls, 0 with a fix
+[ 111.37s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 111.37s] Free heap: 183024 bytes
+[ 111.37s] 
+[ 111.58s] [SYNC] pin=LOW  t=233532628 us
+[ 112.20s] [RIDE1] n=200 rms=10.582 std=0.035 p2p=0.184 crest=1.009 jerk=7.952 crossings=2 norm=n/a
+[ 112.20s] [RIDE2] n=200 rms=10.235 std=0.036 p2p=0.168 crest=1.009 jerk=8.156 crossings=4 norm=n/a
+[ 112.20s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.036 p2p=0.176 jerk=8.054 dis=0.01
+[ 112.20s] [SYNC] pin=HIGH  t=234032624 us
+[ 112.62s] [SYNC] pin=LOW  t=234532626 us
+[ 113.03s] [RIDE2] n=200 rms=10.235 std=0.032 p2p=0.205 crest=1.012 jerk=6.886 crossings=3 norm=n/a
+[ 113.03s] [RIDE1] n=200 rms=10.585 std=0.031 p2p=0.181 crest=1.008 jerk=7.303 crossings=4 norm=n/a
+[ 113.03s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.031 p2p=0.193 jerk=7.095 dis=0.01
+[ 113.03s] [GNSS] poll timeout
+[ 113.24s] [SYNC] pin=HIGH  t=235032624 us
+[ 113.24s] --- Acquisition stats (2s window) ---
+[ 113.24s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4720 avg=5011 max=5375]  dropped=0
+[ 113.24s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4717 avg=5012 max=5354]  dropped=0
+[ 113.24s] GNSS: 0 polls, 0 with a fix
+[ 113.24s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 113.24s] Free heap: 183024 bytes
+[ 113.24s] 
+[ 113.66s] [SYNC] pin=LOW  t=235532628 us
+[ 114.07s] [RIDE1] n=200 rms=10.585 std=0.034 p2p=0.208 crest=1.011 jerk=7.916 crossings=5 norm=n/a
+[ 114.07s] [RIDE2] n=200 rms=10.239 std=0.037 p2p=0.210 crest=1.010 jerk=8.787 crossings=5 norm=n/a
+[ 114.07s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.035 p2p=0.209 jerk=8.351 dis=0.08
+[ 114.07s] [SYNC] pin=HIGH  t=236032624 us
+[ 114.74s] [SYNC] pin=LOW  t=236532610 us
+[ 115.15s] [RIDE1] n=200 rms=10.583 std=0.032 p2p=0.183 crest=1.010 jerk=6.976 crossings=3 norm=n/a
+[ 115.15s] [RIDE2] n=200 rms=10.238 std=0.052 p2p=0.405 crest=1.020 jerk=10.600 crossings=3 norm=n/a
+[ 115.15s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.042 p2p=0.294 jerk=8.788 dis=0.40
+[ 115.15s] [SYNC] pin=HIGH  t=237032624 us
+[ 115.37s] --- Acquisition stats (2s window) ---
+[ 115.37s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4612 avg=5012 max=5374]  dropped=0
+[ 115.37s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4589 avg=5012 max=5427]  dropped=0
+[ 115.37s] GNSS: 0 polls, 0 with a fix
+[ 115.37s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 115.37s] Free heap: 183024 bytes
+[ 115.37s] 
+[ 116.20s] [SYNC] pin=LOW  t=237532628 us
+[ 116.20s] [RIDE1] n=200 rms=10.588 std=0.064 p2p=0.523 crest=1.027 jerk=10.936 crossings=8 norm=n/a
+[ 116.20s] [RIDE2] n=200 rms=10.240 std=0.102 p2p=0.772 crest=1.043 jerk=17.048 crossings=6 norm=n/a
+[ 116.20s] [FUSED] src=1+2 skew=0ms rms=10.414 std=0.083 p2p=0.647 jerk=13.992 dis=0.45
+[ 116.20s] [GNSS] pol[SYNC] pin=HIGH  t=238032624 us
+[ 116.62s] [SYNC] pin=LOW  t=238532610 us
+[ 117.03s] [RIDE1] n=200 rms=10.583 std=0.037 p2p=0.221 crest=1.010 jerk=8.117 crossings=5 norm=n/a
+[ 117.03s] [RIDE2] n=200 rms=10.236 std=0.055 p2p=0.345 crest=1.021 jerk=10.907 crossings=8 norm=n/a
+[ 117.03s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.046 p2p=0.283 jerk=9.512 dis=0.36
+[ 117.03s] [SYNC] pin=HIGH  t=239032624 us
+[ 117.23s] --- Acquisition stats (2s window) ---
+[ 117.23s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4750 avg=5012 max=5267]  dropped=0
+[ 117.23s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4741 avg=5012 max=5248]  dropped=0
+[ 117.23s] GNSS: 0 polls, 0 with a fix
+[ 117.23s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 117.23s] Free heap: 183024 bytes
+[ 117.24s] 
+[ 117.65s] [SYNC] pin=LOW  t=239532626 us
+[ 118.06s] [RIDE2] n=200 rms=10.234 std=0.046 p2p=0.305 crest=1.016 jerk=9.561 crossings=4 norm=n/a
+[ 118.06s] [RIDE1] n=200 rms=10.581 std=0.035 p2p=0.178 crest=1.009 jerk=7.601 crossings=6 norm=n/a
+[ 118.06s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.041 p2p=0.242 jerk=8.581 dis=0.23
+[ 118.06s] [SYNC] pin=HIGH  t=240032624 us
+[ 118.69s] [SYNC] pin=LOW  t=240532608 us
+[ 119.11s] [RIDE2] n=200 rms=10.235 std=0.045 p2p=0.256 crest=1.013 jerk=10.011 crossings=7 norm=n/a
+[ 119.11s] [RIDE1] n=200 rms=10.584 std=0.031 p2p=0.175 crest=1.008 jerk=6.680 crossings=6 norm=n/a
+[ 119.11s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.038 p2p=0.216 jerk=8.345 dis=0.28
+[ 119.11s] 
+[ 119.11s] [SYNC] pin=HIGH  t=241032624 us
+[ 119.32s] --- Acquisition stats (2s window) ---
+[ 119.32s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4787 avg=5012 max=5238]  dropped=0
+[ 119.32s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4784 avg=5012 max=5241]  dropped=0
+[ 119.32s] GNSS: 0 polls, 0 with a fix
+[ 119.32s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 119.32s] Free heap: 183024 bytes
+[ 119.32s] 
+[ 119.74s] [SYNC] pin=LOW  t=241532622 us
+[ 119.74s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 119.74s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 119.94s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 120.15s] [RIDE2] n=200 rms=10.236 std=0.046 p2p=0.350 crest=1.016 jerk=10.116 crossings=1 norm=n/a
+[ 120.15s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.040 p2p=0.256 jerk=9.244 dis=0.23
+[ 120.15s] [RIDE1] n=200 rms=10.586 std=0.034 p2p=0.163 crest=1.007 jerk=8.373 crossings=3 norm=n/a
+[ 120.15s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.040 p2p=0.256 jerk=9.244 dis=0.23
+[ 120.15s] [SYNC] pin=HIGH  t=242032624 us
+[ 120.57s] [SYNC] pin=LOW  t=242532626 us
+[ 121.20s] [RIDE2] n=200 rms=10.237 std=0.045 p2p=0.293 crest=1.011 jerk=9.101 crossings=2 norm=n/a
+[ 121.20s] [RIDE1] n=200 rms=10.581 std=0.034 p2p=0.208 crest=1.010 jerk=7.424 crossings=5 norm=n/a
+[ 121.20s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.039 p2p=0.250 jerk=8.262 dis=0.22
+[ 121.20s] [SYNC] pin=HIGH  t=243032624 us
+[ 121.40s] --- Acquisition stats (2s window) ---
+[ 121.40s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4442 avg=5012 max=5838]  dropped=0
+[ 121.40s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4371 avg=5012 max=5735]  dropped=0
+[ 121.40s] GNSS: 0 polls, 0 with a fix
+[ 121.40s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 121.40s] Free heap: 183328 bytes
+[ 121.40s] 
+[ 122.23s] [SYNC] pin=LOW  t=243532628 us
+[ 122.23s] [RIDE1] n=200 rms=10.582 std=0.036 p2p=0.223 crest=1.013 jerk=8.300 crossings=6 norm=n/a
+[ 122.23s] [RIDE2] n=200 rms=10.239 std=0.056 p2p=0.377 crest=1.021 jerk=11.983 crossings=4 norm=n/a
+[ 122.23s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.046 p2p=0.300 jerk=10.141 dis=0.40
+[ 122.23s] [GNSS] poll timeout
+[ 122.64s] [SYNC] pin=HIGH  t=244032505 us
+[ 122.64s] [SYNC] pin=LOW  t=244532628 us
+[ 123.05s] [RIDE2] n=200 rms=10.235 std=0.057 p2p=0.331 crest=1.015 jerk=11.664 crossings=5 norm=n/a
+[ 123.05s] [RIDE1] n=200 rms=10.582 std=0.034 p2p=0.205 crest=1.010 jerk=7.552 crossings=4 norm=n/a
+[ 123.05s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.046 p2p=0.268 jerk=9.608 dis=0.46
+[ 123.05s] [SYNC] pin=HIGH  t=245032626 us
+[ 123.27s] --- Acquisition stats (2s window) ---
+[ 123.27s] IMU1: 400 samples (200.0 Hz)  dt_us[min=872 avg=5012 max=36743]  dropped=0
+[ 123.27s] IMU2: 400 samples (200.0 Hz)  dt_us[min=857 avg=5012 max=37081]  dropped=0
+[ 123.27s] GNSS: 0 polls, 0 with a fix
+[ 123.27s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 123.27s] Free heap: 183328 bytes
+[ 123.27s] 
+[ 123.69s] [SYNC] pin=LOW  t=245532628 us
+[ 124.11s] [RIDE1] n=200 rms=10.581 std=0.033 p2p=0.170 crest=1.007 jerk=7.933 crossings=2 norm=n/a
+[ 124.11s] [RIDE2] n=200 rms=10.239 std=0.051 p2p=0.273 crest=1.014 jerk=9.576 crossings=5 norm=n/a
+[ 124.11s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.042 p2p=0.221 jerk=8.754 dis=0.35
+[ 124.11s] [SYNC] pin=HIGH  t=246032624 us
+[ 124.53s] [SYNC] pin=LOW  t=246532626 us
+[ 125.16s] [RIDE2] n=200 rms=10.236 std=0.045 p2p=0.257 crest=1.012 jerk=10.209 crossings=4 norm=n/a
+[ 125.16s] [RIDE1] n=200 rms=10.581 std=0.034 p2p=0.175 crest=1.009 jerk=7.955 crossings=5 norm=n/a
+[ 125.16s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.039 p2p=0.216 jerk=9.082 dis=0.23
+[ 125.16s] [GNSS] poll timeout
+[ 125.16s] [SYNC] pin=HIGH  t=247032624 us
+[ 125.36s] --- Acquisition stats (2s window) ---
+[ 125.36s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4562 avg=5012 max=5601]  dropped=0
+[ 125.36s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4563 avg=5012 max=5521]  dropped=0
+[ 125.36s] GNSS: 0 polls, 0 with a fix
+[ 125.36s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 125.36s] Free heap: 183328 bytes
+[ 125.36s] 
+[ 125.57s] [SYNC] pin=LOW  t=247532624 us
+[ 126.19s] [RIDE2] n=200 rms=10.237 std=0.040 p2p=0.235 crest=1.011 jerk=8.773 crossings=5 norm=n/a
+[ 126.19s] [RIDE1] n=200 rms=10.581 std=0.031 p2p=0.193 crest=1.012 jerk=7.035 crossings=5 norm=n/a
+[ 126.19s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.036 p2p=0.214 jerk=7.904 dis=0.18
+[ 126.19s] [SYNC] pin=HIGH  t=248032622 us
+[ 126.61s] [SYNC] pin=LOW  t=248532610 us
+[ 127.03s] [RIDE2] n=200 rms=10.234 std=0.079 p2p=0.389 crest=1.020 jerk=11.325 crossings=5 norm=n/a
+[ 127.03s] [RIDE1] n=200 rms=10.587 std=0.033 p2p=0.200 crest=1.009 jerk=7.281 crossings=2 norm=n/a
+[ 127.03s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.056 p2p=0.294 jerk=9.303 dis=0.81
+[ 127.03s] [SYNC] pin=HIGH  t=249032624 us
+[ 127.24s] --- Acquisition stats (2s window) ---
+[ 127.24s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4795 avg=5012 max=5243]  dropped=0
+[ 127.24s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4800 avg=5012 max=5259]  dropped=0
+[ 127.24s] GNSS: 0 polls, 0 with a fix
+[ 127.24s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 127.24s] Free heap: 183328 bytes
+[ 127.24s] 
+[ 127.66s] [SYNC] pin=LOW  t=249532626 us
+[ 128.07s] [RIDE2] n=200 rms=10.235 std=0.056 p2p=0.314 crest=1.015 jerk=11.271 crossings=4 norm=n/a
+[ 128.07s] [RIDE1] n=200 rms=10.583 std=0.037 p2p=0.187 crest=1.008 jerk=8.844 crossings=2 norm=n/a
+[ 128.07s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.046 p2p=0.251 jerk=10.058 dis=0.37
+[ 128.07s] [SYNC] pin=HIGH  t=250032624 us
+[ 128.69s] [SYNC] pin=LOW  t=250532610 us
+[ 129.10s] [RIDE2] n=200 rms=10.234 std=0.043 p2p=0.280 crest=1.011 jerk=8.682 crossings=4 norm=n/a
+[ 129.10s] [RIDE1] n=200 rms=10.586 std=0.035 p2p=0.182 crest=1.009 jerk=8.116 crossings=4 norm=n/a
+[ 129.10s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.039 p2p=0.231 jerk=8.399 dis=0.15
+[ 129.10s] [SYNC] pin=HIGH  t=251032622 us
+[ 129.31s] --- Acquisition stats (2s window) ---
+[ 129.31s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4765 avg=5012 max=5238]  dropped=0
+[ 129.31s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4770 avg=5012 max=5233]  dropped=0
+[ 129.31s] GNSS: 0 polls, 0 with a fix
+[ 129.31s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 129.31s] Free heap: 183328 bytes
+[ 129.31s] 
+[ 129.73s] [SYNC] pin=LOW  t=251532626 us
+[ 130.15s] [RIDE2] n=200 rms=10.236 std=0.046 p2p=0.286 crest=1.015 jerk=9.729 crossings=5 norm=n/a
+[ 130.15s] [RIDE1] n=200 rms=10.584 std=0.037 p2p=0.186 crest=1.009 jerk=8.020 crossings=4 norm=n/a
+[ 130.15s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.041 p2p=0.236 jerk=8.875 dis=0.19
+[ 130.15s] [SYNC] pin=HIGH  t=252032624 us
+[ 130.56s] [SYNC] pin=LOW  t=252532610 us
+[ 131.00s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 131.00s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 131.00s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 131.20s] [RIDE2] n=200 rms=10.233 std=0.051 p2p=0.366 crest=1.015 jerk=11.281 crossings=4 norm=n/a
+[ 131.20s] [RIDE1] n=200 rms=10.583 std=0.034 p2p=0.197 crest=1.009 jerk=7.733 crossings=8 norm=n/a
+[ 131.20s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.043 p2p=0.281 jerk=9.507 dis=0.34
+[ 131.20s] [GNSS] poll timeout
+[ 131.20s] [SYNC] pin=HIGH  t=253032624 us
+[ 131.41s] --- Acquisition stats (2s window) ---
+[ 131.41s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4353 avg=5012 max=5860]  dropped=0
+[ 131.41s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4371 avg=5012 max=5955]  dropped=0
+[ 131.41s] GNSS: 0 polls, 0 with a fix
+[ 131.41s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 131.41s] Free heap: 183328 bytes
+[ 131.41s] 
+[ 131.62s] [SYNC] pin=LOW  t=253532628 us
+[ 132.04s] [RIDE2] n=200 rms=10.235 std=0.055 p2p=0.298 crest=1.013 jerk=11.530 crossings=2 norm=n/a
+[ 132.04s] [RIDE1] n=200 rms=10.583 std=0.035 p2p=0.207 crest=1.010 jerk=8.132 crossings=5 norm=n/a
+[ 132.04s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.045 p2p=0.253 jerk=9.831 dis=0.40
+[ 132.04s] [SYNC] pin=HIGH  t=254032624 us
+[ 132.45s] [BMS] scan saw: 2e:40:f8:ce:c3:de (no name)
+[ 132.65s] [SYNC] pin=LOW  t=254532628 us
+[ 133.06s] [RIDE1] n=200 rms=10.586 std=0.035 p2p=0.195 crest=1.010 jerk=8.109 crossings=7 norm=n/a
+[ 133.06s] [RIDE2] n=200 rms=10.235 std=0.049 p2p=0.320 crest=1.014 jerk=9.814 crossings=7 norm=n/a
+[ 133.06s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.042 p2p=0.258 jerk=8.962 dis=0.29
+[ 133.06s] [SYNC] pin=HIGH  t=255032624 us
+[ 133.26s] --- Acquisition stats (2s window) ---
+[ 133.26s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4424 avg=5012 max=5596]  dropped=0
+[ 133.26s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4575 avg=5012 max=5459]  dropped=0
+[ 133.26s] GNSS: 0 polls, 0 with a fix
+[ 133.26s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 133.26s] Free heap: 183028 bytes
+[ 133.26s] 
+[ 133.68s] [SYNC] pin=LOW  t=255532643 us
+[ 134.09s] [RIDE1] n=200 rms=10.582 std=0.033 p2p=0.181 crest=1.010 jerk=8.126 crossings=5 norm=n/a
+[ 134.09s] [RIDE2] n=200 rms=10.237 std=0.045 p2p=0.289 crest=1.014 jerk=9.765 crossings=4 norm=n/a
+[ 134.09s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.039 p2p=0.235 jerk=8.945 dis=0.26
+[ 134.09s] [GNSS] poll timeout
+[ 134.09s] [SYNC] pin=HIGH  t=256032654 us
+[ 134.71s] [SYNC] pin=LOW  t=256532628 us
+[ 135.15s] [RIDE2] n=200 rms=10.238 std=0.046 p2p=0.258 crest=1.015 jerk=9.624 crossings=8 norm=n/a
+[ 135.15s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.197 crest=1.010 jerk=7.495 crossings=4 norm=n/a
+[ 135.15s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.040 p2p=0.227 jerk=8.560 dis=0.27
+[ 135.15s] [SYNC] pin=HIGH  t=257032624 us
+[ 135.36s] --- Acquisition stats (2s window) ---
+[ 135.36s] IMU1: 400 samples (200.0 Hz)  dt_us[min=864 avg=5012 max=39364]  dropped=0
+[ 135.36s] IMU2: 400 samples (200.0 Hz)  dt_us[min=865 avg=5012 max=39243]  dropped=0
+[ 135.36s] GNSS: 0 polls, 0 with a fix
+[ 135.36s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 135.36s] Free heap: 183028 bytes
+[ 135.36s] 
+[ 135.56s] [SYNC] pin=LOW  t=257532628 us
+[ 136.17s] [RIDE2] n=200 rms=10.235 std=0.054 p2p=0.320 crest=1.019 jerk=11.109 crossings=4 norm=n/a
+[ 136.17s] [RIDE1] n=200 rms=10.581 std=0.033 p2p=0.192 crest=1.009 jerk=7.771 crossings=3 norm=n/a
+[ 136.17s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.044 p2p=0.256 jerk=9.440 dis=0.42
+[ 136.17s] [SYNC] pin=HIGH  t=258032624 us
+[ 136.59s] [SYNC] pin=LOW  t=258532610 us
+[ 137.21s] [RIDE2] n=200 rms=10.238 std=0.047 p2p=0.296 crest=1.016 jerk=8.675 crossings=5 norm=n/a
+[ 137.21s] [RIDE1] n=200 rms=10.584 std=0.036 p2p=0.224 crest=1.012 jerk=7.882 crossings=6 norm=n/a
+[ 137.21s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.041 p2p=0.260 jerk=8.279 dis=0.22
+[ 137.21s] [GNSS] poll timeout
+[ 137.21s] [SYNC] pin=HIGH  t=259032624 us
+[ 137.43s] --- Acquisition stats (2s window) ---
+[ 137.43s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4731 avg=5012 max=5256]  dropped=0
+[ 137.43s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4741 avg=5012 max=5273]  dropped=0
+[ 137.43s] GNSS: 0 polls, 0 with a fix
+[ 137.43s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 137.43s] Free heap: 183028 bytes
+[ 137.43s] 
+[ 137.64s] [SYNC] pin=LOW  t=259532622 us
+[ 138.06s] [RIDE2] n=200 rms=10.239 std=0.049 p2p=0.319 crest=1.014 jerk=10.301 crossings=6 norm=n/a
+[ 138.06s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.196 crest=1.010 jerk=8.464 crossings=3 norm=n/a
+[ 138.06s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.042 p2p=0.257 jerk=9.383 dis=0.30
+[ 138.06s] [SYNC] pin=HIGH  t=260032622 us
+[ 138.70s] [SYNC] pin=LOW  t=260532610 us
+[ 139.12s] [RIDE2] n=200 rms=10.233 std=0.048 p2p=0.351 crest=1.019 jerk=9.975 crossings=4 norm=n/a
+[ 139.12s] [RIDE1] n=200 rms=10.584 std=0.033 p2p=0.192 crest=1.009 jerk=7.926 crossings=5 norm=n/a
+[ 139.12s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.041 p2p=0.271 jerk=8.950 dis=0.30
+[ 139.12s] [SYNC] pin=HIGH  t=261032624 us
+[ 139.33s] --- Acquisition stats (2s window) ---
+[ 139.33s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4787 avg=5012 max=5244]  dropped=0
+[ 139.33s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4791 avg=5012 max=5267]  dropped=0
+[ 139.33s] GNSS: 0 polls, 0 with a fix
+[ 139.33s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 139.33s] Free heap: 183028 bytes
+[ 139.33s] 
+[ 139.54s] [SYNC] pin=LOW  t=261532626 us
+[ 140.17s] [RIDE2] n=200 rms=10.237 std=0.055 p2p=0.307 crest=1.015 jerk=11.098 crossings=6 norm=n/a
+[ 140.17s] [RIDE1] n=200 rms=10.587 std=0.031 p2p=0.180 crest=1.008 jerk=6.898 crossings=6 norm=n/a
+[ 140.17s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.043 p2p=0.243 jerk=8.998 dis=0.49
+[ 140.17s] [GNSS] poll timeout
+[ 140.17s] [SYNC] pin=HIGH  t=262032624 us
+[ 140.57s] [SYNC] pin=LOW  t=262532610 us
+[ 141.21s] [RIDE2] n=200 rms=10.240 std=0.053 p2p=0.321 crest=1.021 jerk=10.033 crossings=6 norm=n/a
+[ 141.21s] [RIDE1] n=200 rms=10.581 std=0.031 p2p=0.186 crest=1.009 jerk=7.678 crossings=4 norm=n/a
+[ 141.21s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.042 p2p=0.254 jerk=8.855 dis=0.45
+[ 141.21s] [SYNC] pin=HIGH  t=263032622 us
+[ 141.41s] --- Acquisition stats (2s window) ---
+[ 141.41s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4757 avg=5012 max=5242]  dropped=0
+[ 141.41s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4762 avg=5012 max=5265]  dropped=0
+[ 141.41s] GNSS: 0 polls, 0 with a fix
+[ 141.41s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 141.41s] Free heap: 183028 bytes
+[ 141.41s] 
+[ 141.61s] [SYNC] pin=LOW  t=263532626 us
+[ 142.05s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 142.05s] [RIDE2] n=200 rms=10.233 std=0.048 p2p=0.273 crest=1.016 jerk=10.147 crossings=6 norm=n/a
+[ 142.05s] [RIDE1] n=200 rms=10.581 std=0.031 p2p=0.192 crest=1.010 jerk=7.429 crossings=6 norm=n/a
+[ 142.05s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.039 p2p=0.233 jerk=8.788 dis=0.34
+[ 142.05s] [SYNC] pin=HIGH  t=264032624 us
+[ 142.26s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 142.26s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 142.68s] [SYNC] pin=LOW  t=264532628 us
+[ 143.10s] [RIDE2] n=200 rms=10.236 std=0.045 p2p=0.306 crest=1.016 jerk=10.107 crossings=5 norm=n/a
+[ 143.10s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.222 crest=1.011 jerk=8.147 crossings=2 norm=n/a
+[ 143.10s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.040 p2p=0.264 jerk=9.127 dis=0.21
+[ 143.10s] [GNSS] poll timeout
+[ 143.10s] [SYNC] pin=HIGH  t=265032624 us
+[ 143.31s] --- Acquisition stats (2s window) ---
+[ 143.31s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4397 avg=5012 max=5829]  dropped=0
+[ 143.31s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4401 avg=5012 max=5720]  dropped=0
+[ 143.31s] GNSS: 0 polls, 0 with a fix
+[ 143.31s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 143.31s] Free heap: 183304 bytes
+[ 143.31s] 
+[ 143.72s] [SYNC] pin=LOW  t=265532630 us
+[ 144.13s] [RIDE2] n=200 rms=10.236 std=0.056 p2p=0.313 crest=1.017 jerk=11.645 crossings=7 norm=n/a
+[ 144.13s] [RIDE1] n=200 rms=10.582 std=0.036 p2p=0.206 crest=1.010 jerk=8.029 crossings=1 norm=n/a
+[ 144.13s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.046 p2p=0.259 jerk=9.837 dis=0.40
+[ 144.13s] [SYNC] pin=HIGH  t=266032626 us
+[ 144.59s] [SYNC] pin=LOW  t=266532626 us
+[ 145.20s] [RIDE1] n=200 rms=10.579 std=0.038 p2p=0.196 crest=1.010 jerk=8.750 crossings=6 norm=n/a
+[ 145.20s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.048 p2p=0.230 jerk=10.437 dis=0.37
+[ 145.20s] [RIDE2] n=200 rms=10.236 std=0.057 p2p=0.264 crest=1.013 jerk=12.124 crossings=5 norm=n/a
+[ 145.20s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.048 p2p=0.230 jerk=10.437 dis=0.37
+[ 145.20s] [SYNC] pin=HIGH  t=267032626 us
+[ 145.41s] --- Acquisition stats (2s window) ---
+[ 145.41s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4447 avg=5012 max=5617]  dropped=0
+[ 145.41s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4430 avg=5012 max=5498]  dropped=0
+[ 145.41s] GNSS: 0 polls, 0 with a fix
+[ 145.41s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 145.41s] Free heap: 183304 bytes
+[ 145.41s] 
+[ 145.61s] [SYNC] pin=LOW  t=267532628 us
+[ 146.04s] [RIDE2] n=200 rms=10.237 std=0.041 p2p=0.275 crest=1.012 jerk=8.801 crossings=6 norm=n/a
+[ 146.04s] [RIDE1] n=200 rms=10.586 std=0.032 p2p=0.191 crest=1.008 jerk=7.402 crossings=8 norm=n/a
+[ 146.04s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.037 p2p=0.233 jerk=8.101 dis=0.18
+[ 146.04s] [GNSS] poll timeout
+[ 146.04s] [SYNC] pin=HIGH  t=268032554 us
+[ 146.66s] [SYNC] pin=LOW  t=268532628 us
+[ 147.29s] 036 p2p=0.205 crest=1.008 jerk=8.486 crossings=5 norm=n/a
+[ 147.29s] [RIDE2] n=200 rms=10.238 std=0.054 p2p=0.374 crest=1.015 jerk=11.186 crossings=4 norm=n/a
+[ 147.29s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.045 p2p=0.290 jerk=9.836 dis=0.36
+[ 147.29s] [SYNC] pin=HIGH  t=269032624 us
+[ 147.29s] --- Acquisition stats (2s window) ---
+[ 147.29s] IMU1: 400 samples (200.0 Hz)  dt_us[min=828 avg=5012 max=38671]  dropped=0
+[ 147.29s] IMU2: 400 samples (200.0 Hz)  dt_us[min=822 avg=5012 max=38366]  dropped=0
+[ 147.29s] GNSS: 0 polls, 0 with a fix
+[ 147.29s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 147.29s] Free heap: 183304 bytes
+[ 147.29s] 
+[ 147.70s] [SYNC] pin=LOW  t=269532626 us
+[ 148.11s] [RIDE1] n=200 rms=10.582 std=0.037 p2p=0.243 crest=1.013 jerk=8.066 crossings=2 norm=n/a
+[ 148.11s] [RIDE2] n=200 rms=10.238 std=0.055 p2p=0.417 crest=1.017 jerk=11.625 crossings=5 norm=n/a
+[ 148.11s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.046 p2p=0.330 jerk=9.845 dis=0.37
+[ 148.11s] [SYNC] pin=HIGH  t=270032624 us
+[ 148.73s] [SYNC] pin=LOW  t=270532608 us
+[ 149.14s] [RIDE1] n=200 rms=10.588 std=0.037 p2p=0.210 crest=1.010 jerk=8.358 crossings=6 norm=n/a
+[ 149.14s] [RIDE2] n=200 rms=10.236 std=0.086 p2p=0.563 crest=1.030 jerk=16.866 crossings=6 norm=n/a
+[ 149.14s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.061 p2p=0.387 jerk=12.612 dis=0.80
+[ 149.14s] [GNSS] poll timeout
+[ 149.14s] [SYNC] pin=HIGH  t=271032624 us
+[ 149.34s] --- Acquisition stats (2s window) ---
+[ 149.34s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4763 avg=5012 max=5247]  dropped=0
+[ 149.34s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4761 avg=5012 max=5253]  dropped=0
+[ 149.34s] GNSS: 0 polls, 0 with a fix
+[ 149.34s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 149.34s] Free heap: 183304 bytes
+[ 149.34s] 
+[ 149.56s] [SYNC] pin=LOW  t=271532624 us
+[ 150.17s] [RIDE1] n=200 rms=10.586 std=0.067 p2p=0.556 crest=1.027 jerk=12.009 crossings=4 norm=n/a
+[ 150.17s] [RIDE2] n=200 rms=10.239 std=0.129 p2p=0.879 crest=1.050 jerk=22.624 crossings=5 norm=n/a
+[ 150.17s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.098 p2p=0.718 jerk=17.317 dis=0.63
+[ 150.17s] [SYNC] pin=HIGH  t=272032624 us
+[ 150.59s] [SYNC] pin=LOW  t=272532612 us
+[ 151.22s] [RIDE1] n=200 rms=10.588 std=0.034 p2p=0.180 crest=1.009 jerk=7.456 crossings=2 norm=n/a
+[ 151.22s] [RIDE2] n=200 rms=10.234 std=0.060 p2p=0.356 crest=1.017 jerk=10.886 crossings=6 norm=n/a
+[ 151.22s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.047 p2p=0.268 jerk=9.171 dis=0.52
+[ 151.22s] [SYNC] pin=HIGH  t=273032624 us
+[ 151.44s] --- Acquisition stats (2s window) ---
+[ 151.44s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4790 avg=5012 max=5230]  dropped=0
+[ 151.44s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4788 avg=5012 max=5229]  dropped=0
+[ 151.44s] GNSS: 0 polls, 0 with a fix
+[ 151.44s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 151.44s] Free heap: 183304 bytes
+[ 151.44s] 
+[ 151.65s] [SYNC] pin=LOW  t=273532626 us
+[ 152.07s] [RIDE1] n=200 rms=10.586 std=0.034 p2p=0.175 crest=1.009 jerk=8.443 crossings=2 norm=n/a
+[ 152.07s] [RIDE2] n=200 rms=10.238 std=0.050 p2p=0.318 crest=1.015 jerk=9.931 crossings=4 norm=n/a
+[ 152.07s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.042 p2p=0.247 jerk=9.187 dis=0.32
+[ 152.07s] [GNSS] poll timeout
+[ 152.07s] [SYNC] pin=HIGH  t=274032624 us
+[ 152.71s] [SYNC] pin=LOW  t=274532610 us
+[ 153.31s] [RIDE1] n=200 rms=10.583 std=0.042 p2p=0.317 crest=1.015 jerk=8.649 crossings=5 norm=n/a
+[ 153.32s] [RIDE2] n=200 rms=10.238 std=0.094 p2p=0.612 crest=1.030 jerk=15.530 crossings=6 norm=n/a
+[ 153.32s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.068 p2p=0.465 jerk=12.090 dis=0.76
+[ 153.32s] [SYNC] pin=HIGH  t=275032624 us
+[ 153.32s] --- Acquisition stats (2s window) ---
+[ 153.32s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4721 avg=5012 max=5278]  dropped=0
+[ 153.32s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4743 avg=5012 max=5265]  dropped=0
+[ 153.32s] GNSS: 0 polls, 0 with a fix
+[ 153.32s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 153.32s] Free heap: 184272 bytes
+[ 153.32s] 
+[ 153.32s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 153.32s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 153.32s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 153.53s] [SYNC] pin=LOW  t=275532628 us
+[ 154.15s] [RIDE1] n=200 rms=10.586 std=0.036 p2p=0.253 crest=1.011 jerk=7.722 crossings=7 norm=n/a
+[ 154.15s] [RIDE2] n=200 rms=10.235 std=0.079 p2p=0.488 crest=1.021 jerk=15.812 crossings=6 norm=n/a
+[ 154.15s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.057 p2p=0.370 jerk=11.767 dis=0.75
+[ 154.15s] [SYNC] pin=HIGH  t=276032624 us
+[ 154.56s] [SYNC] pin=LOW  t=276532612 us
+[ 155.17s] [RIDE1] n=200 rms=10.580 std=0.035 p2p=0.203 crest=1.008 jerk=7.506 crossings=2 norm=n/a
+[ 155.17s] [RIDE2] n=200 rms=10.236 std=0.059 p2p=0.404 crest=1.018 jerk=11.635 crossings=5 norm=n/a
+[ 155.17s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.047 p2p=0.303 jerk=9.571 dis=0.47
+[ 155.17s] [GNSS] poll timeout
+[ 155.17s] [SYNC] pin=HIGH  t=277032624 us
+[ 155.38s] --- Acquisition stats (2s window) ---
+[ 155.38s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4535 avg=5012 max=5548]  dropped=0
+[ 155.38s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4567 avg=5012 max=5542]  dropped=0
+[ 155.38s] GNSS: 0 polls, 0 with a fix
+[ 155.38s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 155.38s] Free heap: 183304 bytes
+[ 155.38s] 
+[ 155.59s] [SYNC] pin=LOW  t=277532628 us
+[ 156.22s] [RIDE2] n=200 rms=10.238 std=0.056 p2p=0.437 crest=1.024 jerk=11.972 crossings=6 norm=n/a
+[ 156.22s] [RIDE1] n=200 rms=10.583 std=0.035 p2p=0.206 crest=1.009 jerk=7.957 crossings=6 norm=n/a
+[ 156.22s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.046 p2p=0.322 jerk=9.965 dis=0.42
+[ 156.22s] [SYNC] pin=HIGH  t=278032626 us
+[ 157.05s] [SYNC] pin=LOW  t=278532628 us
+[ 157.05s] [RIDE1] n=200 rms=10.588 std=0.042 p2p=0.351 crest=1.018 jerk=8.535 crossings=4 norm=n/a
+[ 157.05s] [RIDE2] n=200 rms=10.240 std=0.104 p2p=1.026 crest=1.048 jerk=15.521 crossings=5 norm=n/a
+[ 157.05s] [FUSED] src=1+2 skew=0ms rms=10.414 std=0.073 p2p=0.689 jerk=12.028 dis=0.85
+[ 157.05s] [SYNC] pin=HIGH  t=279032624 us
+[ 157.27s] --- Acquisition stats (2s window) ---
+[ 157.27s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4726 avg=5012 max=5274]  dropped=0
+[ 157.27s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4703 avg=5012 max=5271]  dropped=0
+[ 157.27s] GNSS: 0 polls, 0 with a fix
+[ 157.27s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 157.27s] Free heap: 183304 bytes
+[ 157.27s] 
+[ 157.68s] [SYNC] pin=LOW  t=279532628 us
+[ 158.09s] [RIDE1] n=200 rms=10.589 std=0.041 p2p=0.264 crest=1.009 jerk=7.865 crossings=3 norm=n/a
+[ 158.09s] [RIDE2] n=200 rms=10.243 std=0.144 p2p=0.852 crest=1.036 jerk=22.103 crossings=7 norm=n/a
+[ 158.09s] [FUSED] src=1+2 skew=0ms rms=10.416 std=0.092 p2p=0.558 jerk=14.984 dis=1.12
+[ 158.09s] [GNSS] poll timeout
+[ 158.09s] [SYNC] pin=HIGH  t=280032523 us
+[ 158.71s] [SYNC] pin=LOW  t=280532628 us
+[ 159.13s] [RIDE2] n=200 rms=10.239 std=0.057 p2p=0.414 crest=1.020 jerk=11.556 crossings=2 norm=n/a
+[ 159.13s] [RIDE1] n=200 rms=10.586 std=0.037 p2p=0.204 crest=1.009 jerk=8.680 crossings=5 norm=n/a
+[ 159.13s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.047 p2p=0.309 jerk=10.118 dis=0.41
+[ 159.13s] [SYNC] pin=HIGH  t=281032624 us
+[ 159.34s] --- Acquisition stats (2s window) ---
+[ 159.34s] IMU1: 401 samples (200.5 Hz)  dt_us[min=877 avg=5012 max=38823]  dropped=0
+[ 159.34s] IMU2: 401 samples (200.5 Hz)  dt_us[min=866 avg=5012 max=39010]  dropped=0
+[ 159.34s] GNSS: 0 polls, 0 with a fix
+[ 159.34s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 159.34s] Free heap: 183304 bytes
+[ 159.34s] 
+[ 159.55s] [SYNC] pin=LOW  t=281532628 us
+[ 160.18s] [RIDE2] n=200 rms=10.236 std=0.057 p2p=0.407 crest=1.018 jerk=11.122 crossings=6 norm=n/a
+[ 160.18s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.194 crest=1.010 jerk=7.535 crossings=4 norm=n/a
+[ 160.18s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.045 p2p=0.300 jerk=9.329 dis=0.45
+[ 160.18s] [SYNC] pin=HIGH  t=282032624 us
+[ 160.59s] [SYNC] pin=LOW  t=282532610 us
+[ 161.22s] [RIDE2] n=200 rms=10.234 std=0.052 p2p=0.388 crest=1.018 jerk=10.499 crossings=4 norm=n/a
+[ 161.22s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.195 crest=1.011 jerk=8.037 crossings=4 norm=n/a
+[ 161.22s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.043 p2p=0.292 jerk=9.268 dis=0.34
+[ 161.22s] [GNSS] poll timeout
+[ 161.22s] [SYNC] pin=HIGH  t=283032624 us
+[ 161.43s] --- Acquisition stats (2s window) ---
+[ 161.43s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4777 avg=5012 max=5248]  dropped=0
+[ 161.43s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4762 avg=5012 max=5245]  dropped=0
+[ 161.43s] GNSS: 0 polls, 0 with a fix
+[ 161.43s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 161.43s] Free heap: 183304 bytes
+[ 161.43s] 
+[ 161.64s] [SYNC] pin=LOW  t=283532624 us
+[ 162.06s] [RIDE1] n=200 rms=10.585 std=0.032 p2p=0.173 crest=1.009 jerk=7.648 crossings=9 norm=n/a
+[ 162.06s] [RIDE2] n=200 rms=10.234 std=0.074 p2p=0.460 crest=1.022 jerk=14.596 crossings=2 norm=n/a
+[ 162.06s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.053 p2p=0.317 jerk=11.122 dis=0.80
+[ 162.06s] [SYNC] pin=HIGH  t=284032624 us
+[ 162.68s] [SYNC] pin=LOW  t=284532610 us
+[ 163.09s] [RIDE2] n=200 rms=10.231 std=0.069 p2p=0.455 crest=1.026 jerk=13.977 crossings=7 norm=n/a
+[ 163.09s] [RIDE1] n=200 rms=10.589 std=0.035 p2p=0.204 crest=1.010 jerk=7.894 crossings=4 norm=n/a
+[ 163.09s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.052 p2p=0.329 jerk=10.936 dis=0.65
+[ 163.09s] [SYNC] pin=HIGH  t=285032624 us
+[ 163.30s] --- Acquisition stats (2s window) ---
+[ 163.30s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4768 avg=5012 max=5239]  dropped=0
+[ 163.30s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4788 avg=5012 max=5264]  dropped=0
+[ 163.30s] GNSS: 0 polls, 0 with a fix
+[ 163.30s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 163.30s] Free heap: 183304 bytes
+[ 163.30s] 
+[ 163.71s] [SYNC] pin=LOW  t=285532626 us
+[ 164.13s] [RIDE2] n=200 rms=10.237 std=0.047 p2p=0.266 crest=1.013 jerk=10.319 crossings=6 norm=n/a
+[ 164.13s] [RIDE1] n=200 rms=10.587 std=0.030 p2p=0.158 crest=1.009 jerk=6.992 crossings=6 norm=n/a
+[ 164.13s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.039 p2p=0.212 jerk=8.656 dis=0.34
+[ 164.13s] [GNSS] poll timeout
+[ 164.13s] [SYNC] pin=HIGH  t=286032624 us
+[ 164.54s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 164.54s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 164.54s] [SYNC] pin=LOW  t=286532626 us
+[ 164.76s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 165.17s] [RIDE2] n=200 rms=10.236 std=0.056 p2p=0.346 crest=1.016 jerk=12.871 crossings=6 norm=n/a
+[ 165.17s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.167 crest=1.006 jerk=7.480 crossings=5 norm=n/a
+[ 165.17s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.044 p2p=0.257 jerk=10.176 dis=0.47
+[ 165.17s] [SYNC] pin=HIGH  t=287032624 us
+[ 165.38s] --- Acquisition stats (2s window) ---
+[ 165.38s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4486 avg=5012 max=5657]  dropped=0
+[ 165.38s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4492 avg=5012 max=5677]  dropped=0
+[ 165.38s] GNSS: 0 polls, 0 with a fix
+[ 165.38s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 165.38s] Free heap: 183328 bytes
+[ 165.38s] 
+[ 165.58s] [SYNC] pin=LOW  t=287532628 us
+[ 166.21s] [RIDE2] n=200 rms=10.239 std=0.065 p2p=0.306 crest=1.015 jerk=13.582 crossings=6 norm=n/a
+[ 166.21s] [RIDE1] n=200 rms=10.580 std=0.035 p2p=0.207 crest=1.010 jerk=7.862 crossings=3 norm=n/a
+[ 166.21s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.050 p2p=0.257 jerk=10.722 dis=0.61
+[ 166.21s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.050 p2p=0.257 jerk=10.722 dis=0.61
+[ 166.21s] [SYNC] pin=HIGH  t=288032624 us
+[ 166.63s] [SYNC] pin=LOW  t=288532626 us
+[ 167.05s] [RIDE2] n=200 rms=10.237 std=0.054 p2p=0.304 crest=1.015 jerk=11.810 crossings=4 norm=n/a
+[ 167.05s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.188 crest=1.008 jerk=7.501 crossings=3 norm=n/a
+[ 167.05s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.044 p2p=0.246 jerk=9.655 dis=0.39
+[ 167.05s] [GNSS] poll timeout
+[ 167.05s] [SYNC] pin=HIGH  t=289032624 us
+[ 167.26s] --- Acquisition stats (2s window) ---
+[ 167.26s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4569 avg=5012 max=5425]  dropped=0
+[ 167.26s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4573 avg=5012 max=5523]  dropped=0
+[ 167.26s] GNSS: 0 polls, 0 with a fix
+[ 167.26s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 167.26s] Free heap: 183328 bytes
+[ 167.26s] 
+[ 167.67s] [SYNC] pin=LOW  t=289532630 us
+[ 168.08s] [RIDE2] n=200 rms=10.238 std=0.047 p2p=0.267 crest=1.012 jerk=10.220 crossings=3 norm=n/a
+[ 168.08s] [RIDE1] n=200 rms=10.584 std=0.037 p2p=0.198 crest=1.011 jerk=8.156 crossings=8 norm=n/a
+[ 168.08s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.042 p2p=0.232 jerk=9.188 dis=0.21
+[ 168.08s] [SYNC] pin=HIGH  t=290032624 us
+[ 168.71s] [SYNC] pin=LOW  t=290532626 us
+[ 169.12s] [RIDE2] n=200 rms=10.238 std=0.046 p2p=0.290 crest=1.013 jerk=9.747 crossings=4 norm=n/a
+[ 169.12s] [RIDE1] n=200 rms=10.583 std=0.034 p2p=0.188 crest=1.010 jerk=7.113 crossings=5 norm=n/a
+[ 169.12s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.040 p2p=0.239 jerk=8.430 dis=0.24
+[ 169.12s] [SYNC] pin=HIGH  t=291032626 us
+[ 169.32s] --- Acquisition stats (2s window) ---
+[ 169.32s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4537 avg=5012 max=5560]  dropped=0
+[ 169.32s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4545 avg=5012 max=5545]  dropped=0
+[ 169.32s] GNSS: 0 polls, 0 with a fix
+[ 169.32s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 169.32s] Free heap: 183328 bytes
+[ 169.32s] 
+[ 169.54s] [SYNC] pin=LOW  t=291532628 us
+[ 170.15s] [RIDE2] n=200 rms=10.239 std=0.057 p2p=0.262 crest=1.013 jerk=12.481 crossings=3 norm=n/a
+[ 170.15s] [RIDE1] n=200 rms=10.582 std=0.037 p2p=0.188 crest=1.007 jerk=7.177 crossings=5 norm=n/a
+[ 170.15s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.047 p2p=0.225 jerk=9.829 dis=0.41
+[ 170.15s] [GNSS] poll timeout
+[ 170.15s] [SYNC] pin=HIGH  t=292032497 us
+[ 170.58s] [SYNC] pin=LOW  t=292532629 us
+[ 171.20s] [RIDE1] n=200 rms=10.583 std=0.030 p2p=0.205 crest=1.007 jerk=6.661 crossings=6 norm=n/a
+[ 171.20s] [RIDE2] n=200 rms=10.236 std=0.061 p2p=0.400 crest=1.018 jerk=13.310 crossings=5 norm=n/a
+[ 171.20s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.046 p2p=0.302 jerk=9.986 dis=0.62
+[ 171.20s] [SYNC] pin=HIGH  t=293032624 us
+[ 171.40s] --- Acquisition stats (2s window) ---
+[ 171.40s] IMU1: 401 samples (200.5 Hz)  dt_us[min=816 avg=5012 max=38987]  dropped=0
+[ 171.40s] IMU2: 401 samples (200.5 Hz)  dt_us[min=847 avg=5012 max=38847]  dropped=0
+[ 171.40s] GNSS: 0 polls, 0 with a fix
+[ 171.40s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 171.40s] Free heap: 183328 bytes
+[ 171.40s] 
+[ 171.61s] [SYNC] pin=LOW  t=293532628 us
+[ 172.23s] [RIDE1] n=200 rms=10.586 std=0.033 p2p=0.159 crest=1.009 jerk=7.688 crossings=7 norm=n/a
+[ 172.23s] [RIDE2] n=200 rms=10.239 std=0.055 p2p=0.392 crest=1.018 jerk=11.281 crossings=4 norm=n/a
+[ 172.23s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.044 p2p=0.276 jerk=9.485 dis=0.44
+[ 172.23s] [SYNC] pin=HIGH  t=294032624 us
+[ 172.64s] [SYNC] pin=LOW  t=294532610 us
+[ 173.07s] [RIDE1] n=200 rms=10.583 std=0.030 p2p=0.152 crest=1.007 jerk=6.461 crossings=3 norm=n/a
+[ 173.07s] [RIDE2] n=200 rms=10.239 std=0.053 p2p=0.322 crest=1.015 jerk=11.482 crossings=8 norm=n/a
+[ 173.07s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.041 p2p=0.237 jerk=8.971 dis=0.46
+[ 173.07s] [GNSS] poll timeout
+[ 173.07s] [SYNC] pin=HIGH  t=295032624 us
+[ 173.28s] --- Acquisition stats (2s window) ---
+[ 173.28s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4785 avg=5012 max=5235]  dropped=0
+[ 173.28s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4781 avg=5012 max=5244]  dropped=0
+[ 173.28s] GNSS: 0 polls, 0 with a fix
+[ 173.28s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 173.28s] Free heap: 183328 bytes
+[ 173.28s] 
+[ 173.70s] [SYNC] pin=LOW  t=295532624 us
+[ 174.13s] [RIDE1] n=200 rms=10.585 std=0.036 p2p=0.170 crest=1.007 jerk=7.568 crossings=2 norm=n/a
+[ 174.13s] [RIDE2] n=200 rms=10.235 std=0.055 p2p=0.334 crest=1.019 jerk=11.745 crossings=4 norm=n/a
+[ 174.13s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.046 p2p=0.252 jerk=9.656 dis=0.39
+[ 174.13s] [SYNC] pin=HIGH  t=296032624 us
+[ 174.55s] [SYNC] pin=LOW  t=296532610 us
+[ 175.17s] [RIDE1] n=200 rms=10.584 std=0.033 p2p=0.197 crest=1.007 jerk=8.282 crossings=5 norm=n/a
+[ 175.17s] [RIDE2] n=200 rms=10.238 std=0.084 p2p=0.569 crest=1.025 jerk=16.747 crossings=8 norm=n/a
+[ 175.17s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.058 p2p=0.383 jerk=12.514 dis=0.86
+[ 175.17s] [SYNC] pin=HIGH  t=297032624 us
+[ 175.38s] --- Acquisition stats (2s window) ---
+[ 175.38s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4791 avg=5012 max=5265]  dropped=0
+[ 175.38s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4807 avg=5012 max=5242]  dropped=0
+[ 175.38s] GNSS: 0 polls, 0 with a fix
+[ 175.38s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 175.38s] Free heap: 183328 bytes
+[ 175.38s] 
+[ 175.58s] [SYNC] pin=LOW  t=297532626 us
+[ 175.78s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 175.78s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 175.78s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 176.20s] [RIDE2] n=200 rms=10.239 std=0.063 p2p=0.362 crest=1.017 jerk=13.417 crossings=6 norm=n/a
+[ 176.20s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.205 crest=1.010 jerk=8.013 crossings=6 norm=n/a
+[ 176.20s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.049 p2p=0.283 jerk=10.715 dis=0.56
+[ 176.20s] [GNSS] poll timeout
+[ 176.20s] [SYNC] pin=HIGH  t=298032626 us
+[ 176.61s] [SYNC] pin=LOW  t=298532628 us
+[ 177.23s] [RIDE2] n=200 rms=10.240 std=0.058 p2p=0.359 crest=1.016 jerk=12.251 crossings=6 norm=n/a
+[ 177.23s] [RIDE1] n=200 rms=10.586 std=0.033 p2p=0.163 crest=1.008 jerk=7.704 crossings=6 norm=n/a
+[ 177.23s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.046 p2p=0.261 jerk=9.978 dis=0.50
+[ 177.23s] [SYNC] pin=HIGH  t=299032624 us
+[ 177.43s] --- Acquisition stats (2s window) ---
+[ 177.43s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4349 avg=5012 max=5795]  dropped=0
+[ 177.43s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4327 avg=5012 max=5712]  dropped=0
+[ 177.43s] GNSS: 0 polls, 0 with a fix
+[ 177.43s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 177.43s] Free heap: 183328 bytes
+[ 177.43s] 
+[ 177.64s] [SYNC] pin=LOW  t=299532628 us
+[ 178.05s] [RIDE2] n=200 rms=10.232 std=0.052 p2p=0.366 crest=1.015 jerk=10.808 crossings=4 norm=n/a
+[ 178.05s] [RIDE1] n=200 rms=10.581 std=0.035 p2p=0.207 crest=1.009 jerk=8.162 crossings=7 norm=n/a
+[ 178.05s] [FUSED] src=1+2 skew=0ms rms=10.406 std=0.043 p2p=0.287 jerk=9.485 dis=0.33
+[ 178.05s] [SYNC] pin=HIGH  t=300032624 us
+[ 178.66s] [SYNC] pin=LOW  t=300532626 us
+[ 179.06s] [RIDE2] n=200 rms=10.238 std=0.068 p2p=0.417 crest=1.020 jerk=14.343 crossings=6 norm=n/a
+[ 179.06s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.176 crest=1.010 jerk=7.782 crossings=7 norm=n/a
+[ 179.06s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.051 p2p=0.296 jerk=11.063 dis=0.69
+[ 179.06s] [GNSS] poll timeout
+[ 179.06s] [SYNC] pin=HIGH  t=301032624 us
+[ 179.27s] --- Acquisition stats (2s window) ---
+[ 179.27s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4477 avg=5012 max=5582]  dropped=0
+[ 179.27s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4453 avg=5012 max=5561]  dropped=0
+[ 179.27s] GNSS: 0 polls, 0 with a fix
+[ 179.27s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 179.27s] Free heap: 183328 bytes
+[ 179.27s] 
+[ 179.68s] [SYNC] pin=LOW  t=301532628 us
+[ 180.10s] [RIDE2] n=200 rms=10.233 std=0.062 p2p=0.433 crest=1.018 jerk=13.200 crossings=4 norm=n/a
+[ 180.10s] [RIDE1] n=200 rms=10.583 std=0.037 p2p=0.207 crest=1.010 jerk=8.624 crossings=4 norm=n/a
+[ 180.10s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.050 p2p=0.320 jerk=10.912 dis=0.50
+[ 180.10s] [SYNC] pin=HIGH  t=302032626 us
+[ 180.73s] [SYNC] pin=LOW  t=302532610 us
+[ 181.13s] [RIDE1] n=200 rms=10.586 std=0.033 p2p=0.210 crest=1.009 jerk=8.077 crossings=3 norm=n/a
+[ 181.13s] [RIDE2] n=200 rms=10.237 std=0.049 p2p=0.378 crest=1.017 jerk=10.861 crossings=4 norm=n/a
+[ 181.13s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.041 p2p=0.294 jerk=9.469 dis=0.32
+[ 181.13s] [SYNC] pin=HIGH  t=303032624 us
+[ 181.34s] --- Acquisition stats (2s window) ---
+[ 181.34s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4715 avg=5012 max=5440]  dropped=0
+[ 181.34s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4728 avg=5012 max=5518]  dropped=0
+[ 181.34s] GNSS: 0 polls, 0 with a fix
+[ 181.34s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 181.34s] Free heap: 183328 bytes
+[ 181.34s] 
+[ 181.54s] [SYNC] pin=LOW  t=303532626 us
+[ 182.16s] [RIDE1] n=200 rms=10.580 std=0.035 p2p=0.177 crest=1.009 jerk=8.169 crossings=7 norm=n/a
+[ 182.16s] [RIDE2] n=200 rms=10.240 std=0.060 p2p=0.348 crest=1.015 jerk=13.149 crossings=9 norm=n/a
+[ 182.16s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.047 p2p=0.262 jerk=10.659 dis=0.50
+[ 182.16s] [SYNC] pin=HIGH  t=304032496 us
+[ 182.57s] [SYNC] pin=LOW  t=304532628 us
+[ 183.18s] [RIDE1] n=200 rms=10.584 std=0.036 p2p=0.198 crest=1.008 jerk=7.794 crossings=6 norm=n/a
+[ 183.18s] [RIDE2] n=200 rms=10.233 std=0.093 p2p=0.534 crest=1.024 jerk=17.027 crossings=7 norm=n/a
+[ 183.18s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.064 p2p=0.366 jerk=12.410 dis=0.89
+[ 183.18s] [SYNC] pin=HIGH  t=305032624 us
+[ 183.38s] --- Acquisition stats (2s window) ---
+[ 183.38s] IMU1: 400 samples (200.0 Hz)  dt_us[min=868 avg=5012 max=35590]  dropped=0
+[ 183.38s] IMU2: 400 samples (200.0 Hz)  dt_us[min=868 avg=5012 max=35504]  dropped=0
+[ 183.38s] GNSS: 0 polls, 0 with a fix
+[ 183.38s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 183.38s] Free heap: 183328 bytes
+[ 183.38s] 
+[ 184.21s] [SYNC] pin=LOW  t=305532626 us
+[ 184.21s] [RIDE2] n=200 rms=10.236 std=0.072 p2p=0.551 crest=1.025 jerk=13.465 crossings=5 norm=n/a
+[ 184.21s] [RIDE1] n=200 rms=10.585 std=0.036 p2p=0.181 crest=1.007 jerk=8.057 crossings=4 norm=n/a
+[ 184.21s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.054 p2p=0.366 jerk=10.761 dis=0.68
+[ 184.21s] [SYNC] pin=HIGH  t=306032624 us
+[ 184.62s] [SYNC] pin=LOW  t=306532608 us
+[ 185.03s] [RIDE2] n=200 rms=10.239 std=0.058 p2p=0.377 crest=1.019 jerk=11.912 crossings=8 norm=n/a
+[ 185.03s] [RIDE1] n=200 rms=10.582 std=0.034 p2p=0.192 crest=1.008 jerk=7.555 crossings=3 norm=n/a
+[ 185.03s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.046 p2p=0.284 jerk=9.733 dis=0.47
+[ 185.03s] [GNSS] pol[SYNC] pin=HIGH  t=307032622 us
+[ 185.44s] --- Acquisition stats (2s window) ---
+[ 185.44s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4783 avg=5012 max=5236]  dropped=0
+[ 185.44s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4787 avg=5012 max=5216]  dropped=0
+[ 185.44s] GNSS: 0 polls, 0 with a fix
+[ 185.44s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 185.44s] Free heap: 183328 bytes
+[ 185.44s] 
+[ 185.64s] [SYNC] pin=LOW  t=307532624 us
+[ 186.05s] [RIDE1] n=200 rms=10.584 std=0.032 p2p=0.168 crest=1.007 jerk=7.620 crossings=4 norm=n/a
+[ 186.05s] [RIDE2] n=200 rms=10.235 std=0.044 p2p=0.251 crest=1.012 jerk=9.395 crossings=7 norm=n/a
+[ 186.05s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.038 p2p=0.210 jerk=8.508 dis=0.23
+[ 186.68s] [SYNC] pin=HIGH  t=308032624 us
+[ 186.68s] [SYNC] pin=LOW  t=308532610 us
+[ 186.89s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 186.89s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 187.09s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 187.09s] [RIDE2] n=200 rms=10.239 std=0.071 p2p=0.563 crest=1.024 jerk=13.893 crossings=5 norm=n/a
+[ 187.09s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.160 crest=1.007 jerk=7.788 crossings=5 norm=n/a
+[ 187.09s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.052 p2p=0.362 jerk=10.840 dis=0.72
+[ 187.09s] [SYNC] pin=HIGH  t=309032624 us
+[ 187.29s] --- Acquisition stats (2s window) ---
+[ 187.29s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4559 avg=5012 max=5518]  dropped=0
+[ 187.29s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4547 avg=5012 max=5452]  dropped=0
+[ 187.29s] GNSS: 0 polls, 0 with a fix
+[ 187.29s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 187.29s] Free heap: 183312 bytes
+[ 187.29s] 
+[ 187.70s] [SYNC] pin=LOW  t=309532628 us
+[ 188.13s] [RIDE1] n=200 rms=10.583 std=0.034 p2p=0.208 crest=1.010 jerk=7.621 crossings=4 norm=n/a
+[ 188.13s] [RIDE2] n=200 rms=10.241 std=0.088 p2p=0.503 crest=1.022 jerk=18.550 crossings=6 norm=n/a
+[ 188.13s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.061 p2p=0.356 jerk=13.086 dis=0.89
+[ 188.13s] [GNSS] poll timeout
+[ 188.13s] [SYNC] pin=HIGH  t=310032626 us
+[ 188.55s] [SYNC] pin=LOW  t=310532628 us
+[ 189.17s] [RIDE1] n=200 rms=10.588 std=0.034 p2p=0.194 crest=1.007 jerk=7.986 crossings=7 norm=n/a
+[ 189.17s] [RIDE2] n=200 rms=10.238 std=0.052 p2p=0.278 crest=1.014 jerk=10.762 crossings=5 norm=n/a
+[ 189.17s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.043 p2p=0.236 jerk=9.374 dis=0.37
+[ 189.17s] [SYNC] pin=HIGH  t=311032624 us
+[ 189.37s] --- Acquisition stats (2s window) ---
+[ 189.37s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4740 avg=5012 max=5428]  dropped=0
+[ 189.37s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4749 avg=5012 max=5419]  dropped=0
+[ 189.37s] GNSS: 0 polls, 0 with a fix
+[ 189.37s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 189.37s] Free heap: 183312 bytes
+[ 189.37s] 
+[ 189.57s] [SYNC] pin=LOW  t=311532628 us
+[ 190.18s] [RIDE1] n=200 rms=10.582 std=0.034 p2p=0.196 crest=1.009 jerk=7.351 crossings=1 norm=n/a
+[ 190.18s] [RIDE2] n=200 rms=10.235 std=0.054 p2p=0.351 crest=1.017 jerk=11.747 crossings=7 norm=n/a
+[ 190.18s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.044 p2p=0.273 jerk=9.549 dis=0.39
+[ 190.18s] [SYNC] pin=HIGH  t=312032624 us
+[ 190.59s] [SYNC] pin=LOW  t=312532624 us
+[ 191.31s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.194 crest=1.009 jerk=7.945 crossings=4 norm=n/a
+[ 191.31s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.043 p2p=0.259 jerk=9.742 dis=0.37
+[ 191.31s] [RIDE2] n=200 rms=10.234 std=0.052 p2p=0.324 crest=1.019 jerk=11.540 crossings=6 norm=n/a
+[ 191.31s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.043 p2p=0.259 jerk=9.742 dis=0.37
+[ 191.31s] [GNSS] poll timeout
+[ 191.31s] [SYNC] pin=HIGH  t=313032624 us
+[ 191.51s] --- Acquisition stats (2s window) ---
+[ 191.51s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4425 avg=5012 max=5591]  dropped=0
+[ 191.51s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4440 avg=5012 max=5576]  dropped=0
+[ 191.51s] GNSS: 0 polls, 0 with a fix
+[ 191.51s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 191.51s] Free heap: 183312 bytes
+[ 191.51s] 
+[ 191.71s] [SYNC] pin=LOW  t=313532630 us
+[ 192.13s] [RIDE1] n=200 rms=10.585 std=0.031 p2p=0.169 crest=1.008 jerk=7.217 crossings=5 norm=n/a
+[ 192.13s] [RIDE2] n=200 rms=10.237 std=0.070 p2p=0.441 crest=1.024 jerk=14.317 crossings=4 norm=n/a
+[ 192.13s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.050 p2p=0.305 jerk=10.767 dis=0.78
+[ 192.13s] [SYNC] pin=HIGH  t=314032624 us
+[ 192.54s] [SYNC] pin=LOW  t=314532610 us
+[ 193.15s] [RIDE2] n=200 rms=10.233 std=0.070 p2p=0.484 crest=1.024 jerk=14.514 crossings=6 norm=n/a
+[ 193.15s] [RIDE1] n=200 rms=10.588 std=0.034 p2p=0.173 crest=1.008 jerk=7.913 crossings=6 norm=n/a
+[ 193.15s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.052 p2p=0.328 jerk=11.213 dis=0.69
+[ 193.15s] [SYNC] pin=HIGH  t=315032624 us
+[ 193.35s] --- Acquisition stats (2s window) ---
+[ 193.35s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4710 avg=5012 max=5272]  dropped=0
+[ 193.35s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4742 avg=5012 max=5374]  dropped=0
+[ 193.35s] GNSS: 0 polls, 0 with a fix
+[ 193.35s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 193.35s] Free heap: 183312 bytes
+[ 193.35s] 
+[ 193.56s] [SYNC] pin=LOW  t=315532626 us
+[ 194.18s] [RIDE2] n=200 rms=10.245 std=0.055 p2p=0.311 crest=1.014 jerk=12.578 crossings=5 norm=n/a
+[ 194.18s] [RIDE1] n=200 rms=10.584 std=0.038 p2p=0.232 crest=1.011 jerk=8.652 crossings=3 norm=n/a
+[ 194.18s] [FUSED] src=1+2 skew=0ms rms=10.414 std=0.046 p2p=0.271 jerk=10.615 dis=0.33
+[ 194.18s] [GNSS] poll timeout
+[ 194.18s] [SYNC] pin=HIGH  t=316032541 us
+[ 194.59s] [SYNC] pin=LOW  t=316532628 us
+[ 195.22s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.198 crest=1.011 jerk=7.619 crossings=3 norm=n/a
+[ 195.22s] [RIDE2] n=200 rms=10.239 std=0.054 p2p=0.305 crest=1.017 jerk=11.667 crossings=6 norm=n/a
+[ 195.22s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.044 p2p=0.252 jerk=9.643 dis=0.40
+[ 195.22s] [SYNC] pin=HIGH  t=317032624 us
+[ 195.42s] --- Acquisition stats (2s window) ---
+[ 195.42s] IMU1: 401 samples (200.5 Hz)  dt_us[min=802 avg=5012 max=39108]  dropped=0
+[ 195.42s] IMU2: 401 samples (200.5 Hz)  dt_us[min=881 avg=5012 max=39170]  dropped=0
+[ 195.42s] GNSS: 0 polls, 0 with a fix
+[ 195.42s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 195.42s] Free heap: 183312 bytes
+[ 195.42s] 
+[ 195.62s] [SYNC] pin=LOW  t=317532628 us
+[ 196.04s] [RIDE2] n=200 rms=10.234 std=0.064 p2p=0.417 crest=1.018 jerk=13.386 crossings=5 norm=n/a
+[ 196.04s] [RIDE1] n=200 rms=10.585 std=0.032 p2p=0.180 crest=1.009 jerk=7.201 crossings=3 norm=n/a
+[ 196.04s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.048 p2p=0.298 jerk=10.294 dis=0.64
+[ 196.04s] [SYNC] pin=HIGH  t=318032624 us
+[ 196.65s] [SYNC] pin=LOW  t=318532606 us
+[ 197.07s] [RIDE2] n=200 rms=10.234 std=0.068 p2p=0.416 crest=1.022 jerk=14.372 crossings=5 norm=n/a
+[ 197.07s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.163 crest=1.008 jerk=8.028 crossings=3 norm=n/a
+[ 197.07s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.050 p2p=0.289 jerk=11.200 dis=0.69
+[ 197.07s] [GNSS] poll timeout
+[ 197.07s] [SYNC] pin=HIGH  t=319032624 us
+[ 197.28s] --- Acquisition stats (2s window) ---
+[ 197.28s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4781 avg=5012 max=5239]  dropped=0
+[ 197.28s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4783 avg=5012 max=5235]  dropped=0
+[ 197.28s] GNSS: 0 polls, 0 with a fix
+[ 197.28s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 197.28s] Free heap: 183312 bytes
+[ 197.28s] 
+[ 197.69s] [SYNC] pin=LOW  t=319532624 us
+[ 198.11s] [RIDE1] n=200 rms=10.587 std=0.036 p2p=0.196 crest=1.010 jerk=7.804 crossings=6 norm=n/a
+[ 198.11s] [RIDE2] n=200 rms=10.236 std=0.049 p2p=0.351 crest=1.017 jerk=10.965 crossings=5 norm=n/a
+[ 198.11s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.043 p2p=0.273 jerk=9.384 dis=0.27
+[ 198.11s] [SYNC] pin=HIGH  t=320032626 us
+[ 198.11s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 198.32s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 198.32s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 198.73s] [SYNC] pin=LOW  t=320532628 us
+[ 199.15s] [RIDE1] n=200 rms=10.580 std=0.034 p2p=0.153 crest=1.007 jerk=7.497 crossings=2 norm=n/a
+[ 199.15s] [RIDE2] n=200 rms=10.237 std=0.070 p2p=0.448 crest=1.023 jerk=15.427 crossings=7 norm=n/a
+[ 199.15s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.052 p2p=0.300 jerk=11.462 dis=0.68
+[ 199.15s] [SYNC] pin=HIGH  t=321032624 us
+[ 199.35s] --- Acquisition stats (2s window) ---
+[ 199.35s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4602 avg=5012 max=5424]  dropped=0
+[ 199.35s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4604 avg=5012 max=5500]  dropped=0
+[ 199.35s] GNSS: 0 polls, 0 with a fix
+[ 199.35s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 199.35s] Free heap: 183324 bytes
+[ 199.35s] 
+[ 199.56s] [SYNC] pin=LOW  t=321532628 us
+[ 200.18s] [RIDE1] n=200 rms=10.583 std=0.032 p2p=0.170 crest=1.009 jerk=7.002 crossings=3 norm=n/a
+[ 200.18s] [RIDE2] n=200 rms=10.236 std=0.062 p2p=0.321 crest=1.015 jerk=13.454 crossings=5 norm=n/a
+[ 200.18s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.047 p2p=0.246 jerk=10.228 dis=0.61
+[ 200.18s] [GNSS] poll timeout
+[ 200.18s] [SYNC] pin=HIGH  t=322032626 us
+[ 200.60s] [SYNC] pin=LOW  t=322532628 us
+[ 201.21s] [RIDE1] n=200 rms=10.580 std=0.034 p2p=0.204 crest=1.010 jerk=8.001 crossings=4 norm=n/a
+[ 201.21s] [RIDE2] n=200 rms=10.236 std=0.049 p2p=0.255 crest=1.014 jerk=10.078 crossings=9 norm=n/a
+[ 201.21s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.041 p2p=0.229 jerk=9.039 dis=0.30
+[ 201.21s] [SYNC] pin=HIGH  t=323032626 us
+[ 201.43s] --- Acquisition stats (2s window) ---
+[ 201.43s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4547 avg=5012 max=5503]  dropped=0
+[ 201.43s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4569 avg=5012 max=5506]  dropped=0
+[ 201.43s] GNSS: 0 polls, 0 with a fix
+[ 201.43s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 201.43s] Free heap: 183324 bytes
+[ 201.43s] 
+[ 201.63s] [SYNC] pin=LOW  t=323532630 us
+[ 202.04s] [RIDE1] n=200 rms=10.582 std=0.033 p2p=0.188 crest=1.010 jerk=7.734 crossings=5 norm=n/a
+[ 202.04s] [RIDE2] n=200 rms=10.235 std=0.052 p2p=0.434 crest=1.017 jerk=10.476 crossings=4 norm=n/a
+[ 202.04s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.043 p2p=0.311 jerk=9.105 dis=0.38
+[ 202.04s] [SYNC] pin=HIGH  t=324032624 us
+[ 202.66s] [SYNC] pin=LOW  t=324532628 us
+[ 203.06s] [RIDE2] n=200 rms=10.238 std=0.059 p2p=0.436 crest=1.023 jerk=11.503 crossings=6 norm=n/a
+[ 203.06s] [RIDE1] n=200 rms=10.585 std=0.039 p2p=0.208 crest=1.010 jerk=8.776 crossings=2 norm=n/a
+[ 203.06s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.049 p2p=0.322 jerk=10.140 dis=0.40
+[ 203.06s] [GNSS] poll timeout
+[ 203.06s] [SYNC] pin=HIGH  t=325032624 us
+[ 203.47s] --- Acquisition stats (2s window) ---
+[ 203.47s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4338 avg=5012 max=5644]  dropped=0
+[ 203.47s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4320 avg=5012 max=5740]  dropped=0
+[ 203.47s] GNSS: 0 polls, 0 with a fix
+[ 203.47s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 203.47s] Free heap: 183324 bytes
+[ 203.47s] 
+[ 203.68s] [SYNC] pin=LOW  t=325532624 us
+[ 204.09s] [RIDE2] n=200 rms=10.238 std=0.066 p2p=0.431 crest=1.023 jerk=13.464 crossings=6 norm=n/a
+[ 204.09s] [RIDE1] n=200 rms=10.578 std=0.036 p2p=0.192 crest=1.009 jerk=7.940 crossings=2 norm=n/a
+[ 204.09s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.051 p2p=0.312 jerk=10.702 dis=0.60
+[ 204.09s] [SYNC] pin=HIGH  t=326032622 us
+[ 204.71s] [SYNC] pin=LOW  t=326532610 us
+[ 205.12s] [RIDE2] n=200 rms=10.234 std=0.063 p2p=0.293 crest=1.016 jerk=13.193 crossings=6 norm=n/a
+[ 205.12s] [RIDE1] n=200 rms=10.580 std=0.035 p2p=0.180 crest=1.009 jerk=7.532 crossings=5 norm=n/a
+[ 205.12s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.049 p2p=0.237 jerk=10.362 dis=0.56
+[ 205.12s] [SYNC] pin=HIGH  t=327032624 us
+[ 205.32s] --- Acquisition stats (2s window) ---
+[ 205.32s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4778 avg=5012 max=5254]  dropped=0
+[ 205.32s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4794 avg=5012 max=5277]  dropped=0
+[ 205.32s] GNSS: 0 polls, 0 with a fix
+[ 205.32s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 205.32s] Free heap: 183324 bytes
+[ 205.32s] 
+[ 205.74s] [SYNC] pin=LOW  t=327532626 us
+[ 206.16s] [RIDE2] n=200 rms=10.232 std=0.058 p2p=0.405 crest=1.020 jerk=11.474 crossings=5 norm=n/a
+[ 206.16s] [RIDE1] n=200 rms=10.586 std=0.031 p2p=0.165 crest=1.008 jerk=7.165 crossings=3 norm=n/a
+[ 206.16s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.045 p2p=0.285 jerk=9.319 dis=0.54
+[ 206.16s] [GNSS] poll timeout
+[ 206.16s] [SYNC] pin=HIGH  t=328032572 us
+[ 206.58s] [SYNC] pin=LOW  t=328532628 us
+[ 207.20s] [RIDE2] n=200 rms=10.237 std=0.061 p2p=0.376 crest=1.016 jerk=11.381 crossings=4 norm=n/a
+[ 207.20s] [RIDE1] n=200 rms=10.586 std=0.033 p2p=0.165 crest=1.008 jerk=7.820 crossings=3 norm=n/a
+[ 207.20s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.047 p2p=0.270 jerk=9.600 dis=0.56
+[ 207.20s] [SYNC] pin=HIGH  t=329032624 us
+[ 207.41s] --- Acquisition stats (2s window) ---
+[ 207.41s] IMU1: 401 samples (200.5 Hz)  dt_us[min=865 avg=5012 max=37400]  dropped=0
+[ 207.41s] IMU2: 401 samples (200.5 Hz)  dt_us[min=788 avg=5012 max=37479]  dropped=0
+[ 207.41s] GNSS: 0 polls, 0 with a fix
+[ 207.41s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 207.41s] Free heap: 183324 bytes
+[ 207.41s] 
+[ 207.62s] [SYNC] pin=LOW  t=329532628 us
+[ 208.04s] [RIDE2] n=200 rms=10.237 std=0.061 p2p=0.448 crest=1.026 jerk=12.120 crossings=5 norm=n/a
+[ 208.04s] [RIDE1] n=200 rms=10.582 std=0.033 p2p=0.201 crest=1.011 jerk=6.918 crossings=3 norm=n/a
+[ 208.04s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.047 p2p=0.324 jerk=9.519 dis=0.56
+[ 208.04s] [SYNC] pin=HIGH  t=330032624 us
+[ 208.65s] [SYNC] pin=LOW  t=330532608 us
+[ 209.06s] [RIDE2] n=200 rms=10.235 std=0.058 p2p=0.282 crest=1.013 jerk=11.819 crossings=3 norm=n/a
+[ 209.06s] [RIDE1] n=200 rms=10.583 std=0.036 p2p=0.232 crest=1.012 jerk=8.242 crossings=5 norm=n/a
+[ 209.06s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.047 p2p=0.257 jerk=10.030 dis=0.45
+[ 209.06s] [GNSS] poll timeout
+[ 209.06s] [SYNC] pin=HIGH  t=331032622 us
+[ 209.48s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 209.48s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 209.48s] --- Acquisition stats (2s window) ---
+[ 209.48s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4662 avg=5013 max=5505]  dropped=0
+[ 209.48s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4728 avg=5013 max=5413]  dropped=0
+[ 209.48s] GNSS: 0 polls, 0 with a fix
+[ 209.48s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 209.48s] Free heap: 183688 bytes
+[ 209.48s] 
+[ 209.48s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 209.68s] [SYNC] pin=LOW  t=331532628 us
+[ 210.10s] [RIDE1] n=200 rms=10.583 std=0.034 p2p=0.179 crest=1.009 jerk=7.571 crossings=5 norm=n/a
+[ 210.10s] [RIDE2] n=200 rms=10.235 std=0.050 p2p=0.294 crest=1.015 jerk=10.575 crossings=7 norm=n/a
+[ 210.10s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.042 p2p=0.236 jerk=9.073 dis=0.33
+[ 210.10s] [SYNC] pin=HIGH  t=332032626 us
+[ 210.71s] [SYNC] pin=LOW  t=332532626 us
+[ 211.13s] [RIDE2] n=200 rms=10.235 std=0.057 p2p=0.491 crest=1.028 jerk=10.093 crossings=4 norm=n/a
+[ 211.13s] [RIDE1] n=200 rms=10.582 std=0.036 p2p=0.204 crest=1.010 jerk=8.359 crossings=5 norm=n/a
+[ 211.13s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.046 p2p=0.347 jerk=9.226 dis=0.43
+[ 211.13s] [SYNC] pin=HIGH  t=333032626 us
+[ 211.34s] --- Acquisition stats (2s window) ---
+[ 211.34s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4397 avg=5011 max=5635]  dropped=0
+[ 211.34s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4416 avg=5011 max=5642]  dropped=0
+[ 211.34s] GNSS: 0 polls, 0 with a fix
+[ 211.34s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 211.34s] Free heap: 183328 bytes
+[ 211.34s] 
+[ 211.55s] [SYNC] pin=LOW  t=333532628 us
+[ 212.18s] [RIDE2] n=200 rms=10.234 std=0.058 p2p=0.490 crest=1.027 jerk=11.654 crossings=5 norm=n/a
+[ 212.18s] [RIDE1] n=200 rms=10.586 std=0.032 p2p=0.182 crest=1.009 jerk=7.276 crossings=3 norm=n/a
+[ 212.18s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.045 p2p=0.336 jerk=9.465 dis=0.52
+[ 212.18s] [GNSS] poll timeout
+[ 212.18s] [SYNC] pin=HIGH  t=334032624 us
+[ 212.59s] [SYNC] pin=LOW  t=334532628 us
+[ 213.21s] [RIDE1] n=200 rms=10.587 std=0.038 p2p=0.197 crest=1.009 jerk=8.756 crossings=4 norm=n/a
+[ 213.21s] [RIDE2] n=200 rms=10.241 std=0.055 p2p=0.355 crest=1.020 jerk=11.520 crossings=2 norm=n/a
+[ 213.21s] [FUSED] src=1+2 skew=0ms rms=10.414 std=0.046 p2p=0.276 jerk=10.138 dis=0.34
+[ 213.21s] [SYNC] pin=HIGH  t=335032624 us
+[ 213.41s] --- Acquisition stats (2s window) ---
+[ 213.41s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4725 avg=5012 max=5398]  dropped=0
+[ 213.41s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4733 avg=5012 max=5352]  dropped=0
+[ 213.41s] GNSS: 0 polls, 0 with a fix
+[ 213.41s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 213.41s] Free heap: 183328 bytes
+[ 213.41s] 
+[ 214.22s] [SYNC] pin=LOW  t=335532628 us
+[ 214.22s] [RIDE2] n=200 rms=10.240 std=0.078 p2p=0.450 crest=1.024 jerk=15.517 crossings=5 norm=n/a
+[ 214.22s] [RIDE1] n=200 rms=10.588 std=0.030 p2p=0.168 crest=1.008 jerk=6.713 crossings=7 norm=n/a
+[ 214.22s] [FUSED] src=1+2 skew=0ms rms=10.414 std=0.054 p2p=0.309 jerk=11.115 dis=0.90
+[ 214.22s] [SYNC] pin=HIGH  t=336032624 us
+[ 214.63s] [SYNC] pin=LOW  t=336532628 us
+[ 215.05s] [RIDE2] n=200 rms=10.237 std=0.069 p2p=0.512 crest=1.026 jerk=11.856 crossings=5 norm=n/a
+[ 215.05s] [RIDE1] n=200 rms=10.585 std=0.036 p2p=0.210 crest=1.011 jerk=8.487 crossings=8 norm=n/a
+[ 215.05s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.053 p2p=0.361 jerk=10.171 dis=0.62
+[ 215.05s] [GNSS] poll timeout
+[ 215.05s] [SYNC] pin=HIGH  t=337032624 us
+[ 215.46s] --- Acquisition stats (2s window) ---
+[ 215.46s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4736 avg=5012 max=5303]  dropped=0
+[ 215.46s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4713 avg=5012 max=5403]  dropped=0
+[ 215.46s] GNSS: 0 polls, 0 with a fix
+[ 215.46s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 215.46s] Free heap: 183328 bytes
+[ 215.46s] 
+[ 215.67s] [SYNC] pin=LOW  t=337532624 us
+[ 216.08s] [RIDE2] n=200 rms=10.235 std=0.066 p2p=0.441 crest=1.023 jerk=13.453 crossings=4 norm=n/a
+[ 216.08s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.201 crest=1.012 jerk=7.145 crossings=4 norm=n/a
+[ 216.08s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.050 p2p=0.321 jerk=10.299 dis=0.62
+[ 216.08s] [SYNC] pin=HIGH  t=338032624 us
+[ 216.70s] [SYNC] pin=LOW  t=338532610 us
+[ 217.13s] [RIDE2] n=200 rms=10.235 std=0.091 p2p=0.623 crest=1.029 jerk=17.339 crossings=7 norm=n/a
+[ 217.13s] [RIDE1] n=200 rms=10.588 std=0.033 p2p=0.178 crest=1.009 jerk=7.383 crossings=5 norm=n/a
+[ 217.13s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.062 p2p=0.400 jerk=12.361 dis=0.94
+[ 217.13s] [SYNC] pin=HIGH  t=339032624 us
+[ 217.35s] --- Acquisition stats (2s window) ---
+[ 217.35s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4786 avg=5012 max=5252]  dropped=0
+[ 217.35s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4786 avg=5012 max=5274]  dropped=0
+[ 217.35s] GNSS: 0 polls, 0 with a fix
+[ 217.35s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 217.35s] Free heap: 183328 bytes
+[ 217.35s] 
+[ 217.56s] [SYNC] pin=LOW  t=339532626 us
+[ 218.18s] [RIDE2] n=200 rms=10.239 std=0.081 p2p=0.558 crest=1.028 jerk=16.249 crossings=6 norm=n/a
+[ 218.18s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.169 crest=1.008 jerk=6.921 crossings=5 norm=n/a
+[ 218.18s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.057 p2p=0.363 jerk=11.585 dis=0.85
+[ 218.18s] [GNSS] poll timeout
+[ 218.18s] [SYNC] pin=HIGH  t=340032493 us
+[ 218.60s] [SYNC] pin=LOW  t=340532634 us
+[ 219.22s] [RIDE2] n=200 rms=10.240 std=0.062 p2p=0.348 crest=1.016 jerk=12.395 crossings=6 norm=n/a
+[ 219.22s] [RIDE1] n=200 rms=10.586 std=0.037 p2p=0.183 crest=1.009 jerk=7.840 crossings=6 norm=n/a
+[ 219.22s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.050 p2p=0.265 jerk=10.118 dis=0.51
+[ 219.22s] [SYNC] pin=HIGH  t=341032624 us
+[ 219.43s] --- Acquisition stats (2s window) ---
+[ 219.43s] IMU1: 400 samples (200.0 Hz)  dt_us[min=815 avg=5012 max=41756]  dropped=0
+[ 219.43s] IMU2: 400 samples (200.0 Hz)  dt_us[min=814 avg=5012 max=41554]  dropped=0
+[ 219.43s] GNSS: 0 polls, 0 with a fix
+[ 219.43s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 219.43s] Free heap: 183328 bytes
+[ 219.43s] 
+[ 219.64s] [SYNC] pin=LOW  t=341532626 us
+[ 220.05s] [RIDE1] n=200 rms=10.584 std=0.036 p2p=0.182 crest=1.009 jerk=8.250 crossings=5 norm=n/a
+[ 220.05s] [RIDE2] n=200 rms=10.236 std=0.049 p2p=0.336 crest=1.016 jerk=10.508 crossings=5 norm=n/a
+[ 220.05s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.043 p2p=0.259 jerk=9.379 dis=0.26
+[ 220.05s] [SYNC] pin=HIGH  t=342032624 us
+[ 220.46s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 220.46s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 220.67s] [SYNC] pin=LOW  t=342532626 us
+[ 220.67s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 221.08s] [RIDE1] n=200 rms=10.582 std=0.035 p2p=0.194 crest=1.011 jerk=7.899 crossings=7 norm=n/a
+[ 221.08s] [RIDE2] n=200 rms=10.236 std=0.081 p2p=0.599 crest=1.031 jerk=15.117 crossings=4 norm=n/a
+[ 221.08s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.058 p2p=0.396 jerk=11.508 dis=0.79
+[ 221.08s] [GNSS] poll timeout
+[ 221.08s] [SYNC] pin=HIGH  t=343032626 us
+[ 221.49s] --- Acquisition stats (2s window) ---
+[ 221.49s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4290 avg=5012 max=5736]  dropped=0
+[ 221.49s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4317 avg=5012 max=5851]  dropped=0
+[ 221.49s] GNSS: 0 polls, 0 with a fix
+[ 221.49s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 221.49s] Free heap: 183328 bytes
+[ 221.49s] 
+[ 221.69s] [SYNC] pin=LOW  t=343532628 us
+[ 222.10s] [RIDE1] n=200 rms=10.588 std=0.033 p2p=0.218 crest=1.011 jerk=7.286 crossings=4 norm=n/a
+[ 222.10s] [RIDE2] n=200 rms=10.237 std=0.079 p2p=0.426 crest=1.020 jerk=15.940 crossings=4 norm=n/a
+[ 222.10s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.056 p2p=0.322 jerk=11.613 dis=0.82
+[ 222.10s] [SYNC] pin=HIGH  t=344032641 us
+[ 222.71s] [SYNC] pin=LOW  t=344532630 us
+[ 223.12s] [RIDE2] n=200 rms=10.239 std=0.056 p2p=0.355 crest=1.018 jerk=11.513 crossings=8 norm=n/a
+[ 223.12s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.191 crest=1.009 jerk=7.919 crossings=8 norm=n/a
+[ 223.12s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.046 p2p=0.273 jerk=9.716 dis=0.40
+[ 223.12s] [SYNC] pin=HIGH  t=345032624 us
+[ 223.32s] --- Acquisition stats (2s window) ---
+[ 223.32s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4703 avg=5012 max=5290]  dropped=0
+[ 223.32s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4719 avg=5012 max=5341]  dropped=0
+[ 223.32s] GNSS: 0 polls, 0 with a fix
+[ 223.32s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 223.32s] Free heap: 183328 bytes
+[ 223.32s] 
+[ 223.74s] [SYNC] pin=LOW  t=345532628 us
+[ 224.16s] [RIDE2] n=200 rms=10.232 std=0.042 p2p=0.282 crest=1.015 jerk=8.420 crossings=4 norm=n/a
+[ 224.16s] [RIDE1] n=200 rms=10.581 std=0.033 p2p=0.180 crest=1.009 jerk=7.271 crossings=2 norm=n/a
+[ 224.16s] [FUSED] src=1+2 skew=0ms rms=10.406 std=0.037 p2p=0.231 jerk=7.845 dis=0.19
+[ 224.16s] [GNSS] poll timeout
+[ 224.16s] [SYNC] pin=HIGH  t=346032624 us
+[ 224.57s] [SYNC] pin=LOW  t=346532624 us
+[ 225.19s] [RIDE2] n=200 rms=10.235 std=0.055 p2p=0.385 crest=1.017 jerk=11.404 crossings=4 norm=n/a
+[ 225.19s] [RIDE1] n=200 rms=10.583 std=0.033 p2p=0.178 crest=1.008 jerk=7.654 crossings=5 norm=n/a
+[ 225.19s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.044 p2p=0.282 jerk=9.529 dis=0.44
+[ 225.19s] [SYNC] pin=HIGH  t=347032626 us
+[ 225.40s] --- Acquisition stats (2s window) ---
+[ 225.40s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4638 avg=5012 max=5548]  dropped=0
+[ 225.40s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4628 avg=5012 max=5532]  dropped=0
+[ 225.40s] GNSS: 0 polls, 0 with a fix
+[ 225.40s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 225.40s] Free heap: 183328 bytes
+[ 225.40s] 
+[ 225.61s] [SYNC] pin=LOW  t=347532628 us
+[ 226.22s] [RIDE1] n=200 rms=10.585 std=0.037 p2p=0.197 crest=1.009 jerk=8.347 crossings=5 norm=n/a
+[ 226.22s] [RIDE2] n=200 rms=10.239 std=0.106 p2p=0.587 crest=1.032 jerk=21.098 crossings=5 norm=n/a
+[ 226.22s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.072 p2p=0.392 jerk=14.723 dis=0.97
+[ 226.22s] [SYNC] pin=HIGH  t=348032624 us
+[ 226.63s] [SYNC] pin=LOW  t=348532608 us
+[ 227.03s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.158 crest=1.008 jerk=8.138 crossings=5 norm=n/a
+[ 227.03s] [RIDE2] n=200 rms=10.240 std=0.064 p2p=0.398 crest=1.020 jerk=12.909 crossings=5 norm=n/a
+[ 227.03s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.049 p2p=0.278 jerk=10.523 dis=0.60
+[ 227.03s] [GNSS] poll timeout
+[ 227.03s] [SYNC] pin=HIGH  t=349032624 us
+[ 227.44s] --- Acquisition stats (2s window) ---
+[ 227.44s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4701 avg=5012 max=5278]  dropped=0
+[ 227.44s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4722 avg=5012 max=5256]  dropped=0
+[ 227.44s] GNSS: 0 polls, 0 with a fix
+[ 227.44s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 227.44s] Free heap: 183328 bytes
+[ 227.44s] 
+[ 227.64s] [SYNC] pin=LOW  t=349532622 us
+[ 228.07s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.193 crest=1.009 jerk=7.952 crossings=4 norm=n/a
+[ 228.07s] [RIDE2] n=200 rms=10.239 std=0.051 p2p=0.321 crest=1.016 jerk=10.577 crossings=4 norm=n/a
+[ 228.07s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.043 p2p=0.257 jerk=9.264 dis=0.31
+[ 228.07s] [MQTT] Reconnecting...
+[ 228.07s] [SYNC] pin=HIGH  t=350032624 us
+[ 228.68s] [SYNC] pin=LOW  t=350532608 us
+[ 229.10s] [RIDE1] n=200 rms=10.577 std=0.035 p2p=0.217 crest=1.010 jerk=7.341 crossings=3 norm=n/a
+[ 229.10s] [RIDE2] n=200 rms=10.240 std=0.053 p2p=0.324 crest=1.019 jerk=10.814 crossings=5 norm=n/a
+[ 229.10s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.044 p2p=0.271 jerk=9.077 dis=0.37
+[ 229.10s] [SYNC] pin=HIGH  t=351032624 us
+[ 229.32s] --- Acquisition stats (2s window) ---
+[ 229.32s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4753 avg=5012 max=5299]  dropped=0
+[ 229.32s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4744 avg=5012 max=5311]  dropped=0
+[ 229.32s] GNSS: 0 polls, 0 with a fix
+[ 229.32s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 229.32s] Free heap: 183280 bytes
+[ 229.32s] 
+[ 229.73s] [SYNC] pin=LOW  t=351532628 us
+[ 230.15s] [RIDE1] n=200 rms=10.585 std=0.034 p2p=0.174 crest=1.008 jerk=7.317 crossings=4 norm=n/a
+[ 230.15s] [RIDE2] n=200 rms=10.238 std=0.089 p2p=0.578 crest=1.029 jerk=17.423 crossings=4 norm=n/a
+[ 230.15s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.061 p2p=0.376 jerk=12.370 dis=0.90
+[ 230.15s] [SYNC] pin=HIGH  t=352032624 us
+[ 230.56s] [SYNC] pin=LOW  t=352532608 us
+[ 231.18s] [RIDE1] n=200 rms=10.581 std=0.035 p2p=0.160 crest=1.007 jerk=8.001 crossings=5 norm=n/a
+[ 231.18s] [RIDE2] n=200 rms=10.229 std=0.068 p2p=0.492 crest=1.021 jerk=14.387 crossings=3 norm=n/a
+[ 231.18s] [FUSED] src=1+2 skew=0ms rms=10.405 std=0.051 p2p=0.326 jerk=11.194 dis=0.66
+[ 231.18s] [SYNC] pin=HIGH  t=353032624 us
+[ 231.39s] --- Acquisition stats (2s window) ---
+[ 231.39s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4778 avg=5012 max=5227]  dropped=0
+[ 231.39s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4768 avg=5012 max=5238]  dropped=0
+[ 231.39s] GNSS: 0 polls, 0 with a fix
+[ 231.39s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 231.39s] Free heap: 183280 bytes
+[ 231.39s] 
+[ 231.59s] [SYNC] pin=LOW  t=353532626 us
+[ 231.79s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 231.79s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 232.22s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 232.22s] [RIDE2] n=200 rms=10.237 std=0.054 p2p=0.309 crest=1.012 jerk=11.317 crossings=6 norm=n/a
+[ 232.22s] [RIDE1] n=200 rms=10.586 std=0.034 p2p=0.191 crest=1.008 jerk=7.709 crossings=6 norm=n/a
+[ 232.22s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.044 p2p=0.250 jerk=9.513 dis=0.40
+[ 232.22s] [SYNC] pin=HIGH  t=354032624 us
+[ 232.63s] [SYNC] pin=LOW  t=354532626 us
+[ 233.05s] [RIDE2] n=200 rms=10.232 std=0.055 p2p=0.401 crest=1.019 jerk=11.127 crossings=4 norm=n/a
+[ 233.05s] [RIDE1] n=200 rms=10.588 std=0.034 p2p=0.191 crest=1.010 jerk=7.356 crossings=7 norm=n/a
+[ 233.05s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.044 p2p=0.296 jerk=9.241 dis=0.42
+[ 233.05s] [SYNC] pin=HIGH  t=355032624 us
+[ 233.46s] --- Acquisition stats (2s window) ---
+[ 233.46s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4562 avg=5012 max=5575]  dropped=0
+[ 233.46s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4529 avg=5012 max=5565]  dropped=0
+[ 233.46s] GNSS: 0 polls, 0 with a fix
+[ 233.46s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 233.46s] Free heap: 183324 bytes
+[ 233.46s] 
+[ 233.67s] [SYNC] pin=LOW  t=355532628 us
+[ 234.08s] [RIDE2] n=200 rms=10.243 std=0.088 p2p=0.608 crest=1.031 jerk=16.172 crossings=6 norm=n/a
+[ 234.08s] [RIDE1] n=200 rms=10.587 std=0.033 p2p=0.184 crest=1.008 jerk=7.668 crossings=4 norm=n/a
+[ 234.08s] [FUSED] src=1+2 skew=0ms rms=10.415 std=0.060 p2p=0.396 jerk=11.920 dis=0.91
+[ 234.08s] [SYNC] pin=HIGH  t=356032624 us
+[ 234.69s] [SYNC] pin=LOW  t=356532628 us
+[ 235.11s] [RIDE2] n=200 rms=10.230 std=0.080 p2p=0.500 crest=1.025 jerk=17.078 crossings=7 norm=n/a
+[ 235.11s] [RIDE1] n=200 rms=10.588 std=0.035 p2p=0.193 crest=1.009 jerk=7.722 crossings=5 norm=n/a
+[ 235.11s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.057 p2p=0.346 jerk=12.400 dis=0.79
+[ 235.11s] [SYNC] pin=HIGH  t=357032626 us
+[ 235.31s] --- Acquisition stats (2s window) ---
+[ 235.31s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4615 avg=5012 max=5421]  dropped=0
+[ 235.31s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4601 avg=5012 max=5428]  dropped=0
+[ 235.31s] GNSS: 0 polls, 0 with a fix
+[ 235.31s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 235.31s] Free heap: 183324 bytes
+[ 235.31s] 
+[ 235.72s] [SYNC] pin=LOW  t=357532628 us
+[ 236.13s] [RIDE2] n=200 rms=10.239 std=0.052 p2p=0.334 crest=1.017 jerk=10.316 crossings=4 norm=n/a
+[ 236.13s] [RIDE1] n=200 rms=10.583 std=0.033 p2p=0.185 crest=1.008 jerk=7.336 crossings=4 norm=n/a
+[ 236.13s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.042 p2p=0.260 jerk=8.826 dis=0.38
+[ 236.13s] [SYNC] pin=HIGH  t=358032624 us
+[ 237.17s] [SYNC] pin=LOW  t=358532626 us
+[ 237.17s] [RIDE1] n=200 rms=10.591 std=0.037 p2p=0.208 crest=1.009 jerk=7.882 crossings=3 norm=n/a
+[ 237.17s] [RIDE2] n=200 rms=10.235 std=0.050 p2p=0.325 crest=1.014 jerk=10.259 crossings=4 norm=n/a
+[ 237.17s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.043 p2p=0.267 jerk=9.071 dis=0.27
+[ 237.17s] [SYNC] pin=HIGH  t=359032624 us
+[ 237.37s] --- Acquisition stats (2s window) ---
+[ 237.37s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4584 avg=5012 max=5392]  dropped=0
+[ 237.37s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4634 avg=5012 max=5348]  dropped=0
+[ 237.37s] GNSS: 0 polls, 0 with a fix
+[ 237.37s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 237.37s] Free heap: 183324 bytes
+[ 237.37s] 
+[ 237.58s] [SYNC] pin=LOW  t=359532626 us
+[ 238.19s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.197 crest=1.009 jerk=8.271 crossings=4 norm=n/a
+[ 238.19s] [RIDE2] n=200 rms=10.236 std=0.068 p2p=0.430 crest=1.024 jerk=13.155 crossings=6 norm=n/a
+[ 238.19s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.051 p2p=0.313 jerk=10.713 dis=0.65
+[ 238.19s] [SYNC] pin=HIGH  t=360032624 us
+[ 238.60s] [SYNC] pin=LOW  t=360532608 us
+[ 239.24s] [RIDE1] n=200 rms=10.584 std=0.033 p2p=0.217 crest=1.012 jerk=7.636 crossings=4 norm=n/a
+[ 239.24s] [RIDE2] n=200 rms=10.235 std=0.076 p2p=0.490 crest=1.026 jerk=14.992 crossings=5 norm=n/a
+[ 239.24s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.054 p2p=0.354 jerk=11.314 dis=0.79
+[ 239.24s] [SYNC] pin=HIGH  t=361032624 us
+[ 239.44s] --- Acquisition stats (2s window) ---
+[ 239.44s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4790 avg=5012 max=5217]  dropped=0
+[ 239.44s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4781 avg=5012 max=5227]  dropped=0
+[ 239.44s] GNSS: 0 polls, 0 with a fix
+[ 239.44s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 239.44s] Free heap: 183324 bytes
+[ 239.44s] 
+[ 239.65s] [SYNC] pin=LOW  t=361532626 us
+[ 240.07s] [RIDE1] n=200 rms=10.581 std=0.034 p2p=0.174 crest=1.008 jerk=7.952 crossings=3 norm=n/a
+[ 240.07s] [RIDE2] n=200 rms=10.234 std=0.060 p2p=0.382 crest=1.017 jerk=11.200 crossings=5 norm=n/a
+[ 240.07s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.047 p2p=0.278 jerk=9.576 dis=0.52
+[ 240.07s] [SYNC] pin=HIGH  t=362032624 us
+[ 240.69s] [SYNC] pin=LOW  t=362532608 us
+[ 241.11s] [RIDE1] n=200 rms=10.585 std=0.034 p2p=0.211 crest=1.010 jerk=7.326 crossings=8 norm=n/a
+[ 241.11s] [RIDE2] n=200 rms=10.236 std=0.054 p2p=0.370 crest=1.018 jerk=11.883 crossings=6 norm=n/a
+[ 241.11s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.044 p2p=0.290 jerk=9.604 dis=0.39
+[ 241.11s] [SYNC] pin=HIGH  t=363032624 us
+[ 241.31s] --- Acquisition stats (2s window) ---
+[ 241.31s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4776 avg=5012 max=5236]  dropped=0
+[ 241.31s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4771 avg=5012 max=5247]  dropped=0
+[ 241.31s] GNSS: 0 polls, 0 with a fix
+[ 241.31s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 241.31s] Free heap: 183324 bytes
+[ 241.31s] 
+[ 241.73s] [SYNC] pin=LOW  t=363532626 us
+[ 242.14s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.173 crest=1.009 jerk=7.597 crossings=7 norm=n/a
+[ 242.14s] [RIDE2] n=200 rms=10.235 std=0.062 p2p=0.417 crest=1.017 jerk=13.093 crossings=7 norm=n/a
+[ 242.14s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.048 p2p=0.295 jerk=10.345 dis=0.59
+[ 242.14s] [SYNC] pin=HIGH  t=364032624 us
+[ 242.55s] [SYNC] pin=LOW  t=364532608 us
+[ 242.96s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 242.96s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 242.96s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 243.16s] [RIDE1] n=200 rms=10.583 std=0.034 p2p=0.176 crest=1.008 jerk=7.599 crossings=6 norm=n/a
+[ 243.16s] [RIDE2] n=200 rms=10.238 std=0.115 p2p=0.582 crest=1.030 jerk=24.119 crossings=4 norm=n/a
+[ 243.16s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.074 p2p=0.379 jerk=15.859 dis=1.08
+[ 243.16s] [SYNC] pin=HIGH  t=365032624 us
+[ 243.37s] --- Acquisition stats (2s window) ---
+[ 243.37s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4523 avg=5012 max=5629]  dropped=0
+[ 243.37s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4521 avg=5012 max=5650]  dropped=0
+[ 243.37s] GNSS: 0 polls, 0 with a fix
+[ 243.37s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 243.37s] Free heap: 183304 bytes
+[ 243.37s] 
+[ 243.58s] [SYNC] pin=LOW  t=365532630 us
+[ 244.19s] [RIDE1] n=200 rms=10.583 std=0.033 p2p=0.173 crest=1.008 jerk=7.495 crossings=3 norm=n/a
+[ 244.19s] [RIDE2] n=200 rms=10.236 std=0.056 p2p=0.375 crest=1.018 jerk=11.567 crossings=4 norm=n/a
+[ 244.19s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.045 p2p=0.274 jerk=9.531 dis=0.45
+[ 244.19s] [SYNC] pin=HIGH  t=366032624 us
+[ 244.62s] [SYNC] pin=LOW  t=366532628 us
+[ 245.03s] [RIDE1] n=200 rms=10.585 std=0.035 p2p=0.153 crest=1.007 jerk=7.655 crossings=4 norm=n/a
+[ 245.03s] [RIDE2] n=200 rms=10.239 std=0.048 p2p=0.322 crest=1.014 jerk=9.626 crossings=5 norm=n/a
+[ 245.03s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.042 p2p=0.238 jerk=8.641 dis=0.26
+[ 245.23s] [SYNC] pin=HIGH  t=367032624 us
+[ 245.44s] --- Acquisition stats (2s window) ---
+[ 245.44s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4594 avg=5012 max=5412]  dropped=0
+[ 245.44s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4599 avg=5012 max=5405]  dropped=0
+[ 245.44s] GNSS: 0 polls, 0 with a fix
+[ 245.44s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 245.44s] Free heap: 183304 bytes
+[ 245.44s] 
+[ 246.06s] [SYNC] pin=LOW  t=367532628 us
+[ 246.06s] [RIDE1] n=200 rms=10.581 std=0.035 p2p=0.155 crest=1.008 jerk=6.887 crossings=5 norm=n/a
+[ 246.06s] [RIDE2] n=200 rms=10.234 std=0.049 p2p=0.329 crest=1.011 jerk=9.979 crossings=3 norm=n/a
+[ 246.06s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.042 p2p=0.242 jerk=8.433 dis=0.28
+[ 246.06s] [SYNC] pin=HIGH  t=368032626 us
+[ 246.67s] [SYNC] pin=LOW  t=368532624 us
+[ 247.08s] [RIDE1] n=200 rms=10.584 std=0.033 p2p=0.168 crest=1.008 jerk=7.404 crossings=4 norm=n/a
+[ 247.08s] [RIDE2] n=200 rms=10.233 std=0.092 p2p=0.661 crest=1.032 jerk=17.810 crossings=3 norm=n/a
+[ 247.08s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.063 p2p=0.415 jerk=12.607 dis=0.93
+[ 247.08s] [SYNC] pin=HIGH  t=369032626 us
+[ 247.50s] --- Acquisition stats (2s window) ---
+[ 247.50s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4529 avg=5013 max=5525]  dropped=0
+[ 247.50s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4531 avg=5013 max=5475]  dropped=0
+[ 247.50s] GNSS: 0 polls, 0 with a fix
+[ 247.50s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 247.50s] Free heap: 183304 bytes
+[ 247.50s] 
+[ 247.70s] [SYNC] pin=LOW  t=369532628 us
+[ 248.11s] [RIDE2] n=200 rms=10.238 std=0.067 p2p=0.456 crest=1.021 jerk=13.166 crossings=6 norm=n/a
+[ 248.11s] [RIDE1] n=200 rms=10.586 std=0.035 p2p=0.197 crest=1.008 jerk=7.140 crossings=3 norm=n/a
+[ 248.11s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.051 p2p=0.327 jerk=10.153 dis=0.62
+[ 248.11s] [SYNC] pin=HIGH  t=370032624 us
+[ 248.73s] [SYNC] pin=LOW  t=370532608 us
+[ 249.14s] [RIDE2] n=200 rms=10.237 std=0.057 p2p=0.400 crest=1.017 jerk=11.597 crossings=4 norm=n/a
+[ 249.14s] [RIDE1] n=200 rms=10.584 std=0.038 p2p=0.182 crest=1.010 jerk=8.987 crossings=8 norm=n/a
+[ 249.14s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.047 p2p=0.291 jerk=10.292 dis=0.37
+[ 249.14s] [SYNC] pin=HIGH  t=371032624 us
+[ 249.34s] --- Acquisition stats (2s window) ---
+[ 249.34s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4584 avg=5011 max=5421]  dropped=0
+[ 249.34s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4604 avg=5011 max=5403]  dropped=0
+[ 249.34s] GNSS: 0 polls, 0 with a fix
+[ 249.34s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 249.34s] Free heap: 183304 bytes
+[ 249.34s] 
+[ 249.55s] [SYNC] pin=LOW  t=371532626 us
+[ 250.17s] [RIDE1] n=200 rms=10.585 std=0.052 p2p=0.428 crest=1.022 jerk=9.925 crossings=4 norm=n/a
+[ 250.17s] [RIDE2] n=200 rms=10.239 std=0.117 p2p=0.863 crest=1.045 jerk=19.254 crossings=8 norm=n/a
+[ 250.17s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.085 p2p=0.646 jerk=14.590 dis=0.77
+[ 250.17s] [SYNC] pin=HIGH  t=372032624 us
+[ 250.58s] [SYNC] pin=LOW  t=372532608 us
+[ 251.20s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.207 crest=1.009 jerk=7.289 crossings=4 norm=n/a
+[ 251.20s] [RIDE2] n=200 rms=10.238 std=0.081 p2p=0.418 crest=1.020 jerk=13.381 crossings=5 norm=n/a
+[ 251.20s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.058 p2p=0.313 jerk=10.335 dis=0.82
+[ 251.20s] [SYNC] pin=HIGH  t=373032624 us
+[ 251.40s] --- Acquisition stats (2s window) ---
+[ 251.40s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4787 avg=5012 max=5226]  dropped=0
+[ 251.40s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4777 avg=5012 max=5234]  dropped=0
+[ 251.40s] GNSS: 0 polls, 0 with a fix
+[ 251.40s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 251.40s] Free heap: 183304 bytes
+[ 251.40s] 
+[ 251.61s] [SYNC] pin=LOW  t=373532626 us
+[ 252.23s] [RIDE1] n=200 rms=10.583 std=0.046 p2p=0.323 crest=1.019 jerk=8.670 crossings=5 norm=n/a
+[ 252.23s] [RIDE2] n=200 rms=10.236 std=0.099 p2p=0.667 crest=1.030 jerk=17.465 crossings=6 norm=n/a
+[ 252.23s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.072 p2p=0.495 jerk=13.067 dis=0.72
+[ 252.23s] [SYNC] pin=HIGH  t=374032624 us
+[ 252.66s] [SYNC] pin=LOW  t=374532608 us
+[ 253.08s] [RIDE1] n=200 rms=10.587 std=0.037 p2p=0.193 crest=1.009 jerk=8.174 crossings=5 norm=n/a
+[ 253.08s] [RIDE2] n=200 rms=10.236 std=0.067 p2p=0.422 crest=1.023 jerk=12.891 crossings=5 norm=n/a
+[ 253.08s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.052 p2p=0.308 jerk=10.533 dis=0.58
+[ 253.08s] [MQTT] CMQTTSTART gave no result: 
+[ 253.08s] [MQTT] Reconnect failed, next attempt in 240 s.
+[ 253.08s] [SYNC] pin=HIGH  t=375032624 us
+[ 253.49s] --- Acquisition stats (2s window) ---
+[ 253.49s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4792 avg=5012 max=5296]  dropped=0
+[ 253.49s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4730 avg=5012 max=5308]  dropped=0
+[ 253.49s] GNSS: 0 polls, 0 with a fix
+[ 253.49s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 253.49s] Free heap: 183304 bytes
+[ 253.49s] 
+[ 253.70s] [SYNC] pin=LOW  t=375532624 us
+[ 254.11s] [RIDE1] n=200 rms=10.581 std=0.033 p2p=0.189 crest=1.009 jerk=7.000 crossings=3 norm=n/a
+[ 254.11s] [RIDE2] n=200 rms=10.241 std=0.070 p2p=0.387 crest=1.019 jerk=14.043 crossings=2 norm=n/a
+[ 254.11s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.051 p2p=0.288 jerk=10.522 dis=0.71
+[ 254.11s] [SYNC] pin=HIGH  t=376032626 us
+[ 254.11s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 254.32s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 254.32s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 254.73s] [SYNC] pin=LOW  t=376532628 us
+[ 255.15s] [RIDE2] n=200 rms=10.235 std=0.065 p2p=0.432 crest=1.017 jerk=12.103 crossings=4 norm=n/a
+[ 255.15s] [RIDE1] n=200 rms=10.581 std=0.037 p2p=0.193 crest=1.009 jerk=8.328 crossings=3 norm=n/a
+[ 255.15s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.051 p2p=0.313 jerk=10.216 dis=0.55
+[ 255.15s] [GNSS] poll timeout
+[ 255.15s] [SYNC] pin=HIGH  t=377032554 us
+[ 255.35s] --- Acquisition stats (2s window) ---
+[ 255.35s] IMU1: 400 samples (200.0 Hz)  dt_us[min=853 avg=5012 max=36588]  dropped=0
+[ 255.35s] IMU2: 400 samples (200.0 Hz)  dt_us[min=863 avg=5012 max=36580]  dropped=0
+[ 255.35s] GNSS: 0 polls, 0 with a fix
+[ 255.35s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 255.35s] Free heap: 183328 bytes
+[ 255.35s] 
+[ 255.56s] [SYNC] pin=LOW  t=377532629 us
+[ 256.18s] [RIDE1] n=200 rms=10.585 std=0.036 p2p=0.192 crest=1.008 jerk=8.383 crossings=7 norm=n/a
+[ 256.18s] [RIDE2] n=200 rms=10.232 std=0.074 p2p=0.437 crest=1.019 jerk=15.708 crossings=4 norm=n/a
+[ 256.18s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.055 p2p=0.315 jerk=12.046 dis=0.68
+[ 256.18s] [SYNC] pin=HIGH  t=378032624 us
+[ 256.59s] [SYNC] pin=LOW  t=378532610 us
+[ 257.22s] [RIDE2] n=200 rms=10.234 std=0.053 p2p=0.366 crest=1.018 jerk=10.994 crossings=7 norm=n/a
+[ 257.22s] [RIDE1] n=200 rms=10.583 std=0.036 p2p=0.185 crest=1.009 jerk=8.238 crossings=3 norm=n/a
+[ 257.22s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.044 p2p=0.275 jerk=9.616 dis=0.33
+[ 257.22s] [SYNC] pin=HIGH  t=379032626 us
+[ 257.43s] --- Acquisition stats (2s window) ---
+[ 257.43s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4508 avg=5012 max=5556]  dropped=0
+[ 257.43s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4512 avg=5012 max=5538]  dropped=0
+[ 257.43s] GNSS: 0 polls, 0 with a fix
+[ 257.43s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 257.43s] Free heap: 183328 bytes
+[ 257.43s] 
+[ 257.64s] [SYNC] pin=LOW  t=379532628 us
+[ 258.06s] [RIDE2] n=200 rms=10.239 std=0.059 p2p=0.362 crest=1.019 jerk=13.655 crossings=7 norm=n/a
+[ 258.06s] [RIDE1] n=200 rms=10.589 std=0.032 p2p=0.214 crest=1.011 jerk=7.129 crossings=5 norm=n/a
+[ 258.06s] [FUSED] src=1+2 skew=0ms rms=10.414 std=0.046 p2p=0.288 jerk=10.392 dis=0.54
+[ 258.06s] [GNSS] poll timeout
+[ 258.06s] [SYNC] pin=HIGH  t=380032626 us
+[ 258.67s] [SYNC] pin=LOW  t=380532628 us
+[ 259.08s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.238 crest=1.011 jerk=7.333 crossings=7 norm=n/a
+[ 259.08s] [RIDE2] n=200 rms=10.233 std=0.060 p2p=0.360 crest=1.019 jerk=13.080 crossings=3 norm=n/a
+[ 259.08s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.046 p2p=0.299 jerk=10.206 dis=0.54
+[ 259.08s] [SYNC] pin=HIGH  t=381032624 us
+[ 259.50s] --- Acquisition stats (2s window) ---
+[ 259.50s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4490 avg=5012 max=5634]  dropped=0
+[ 259.50s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4489 avg=5012 max=5643]  dropped=0
+[ 259.50s] GNSS: 0 polls, 0 with a fix
+[ 259.50s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 259.50s] Free heap: 183328 bytes
+[ 259.50s] 
+[ 259.71s] [SYNC] pin=LOW  t=381532626 us
+[ 260.13s] [RIDE1] n=200 rms=10.585 std=0.034 p2p=0.172 crest=1.009 jerk=7.772 crossings=4 norm=n/a
+[ 260.13s] [RIDE2] n=200 rms=10.240 std=0.101 p2p=0.557 crest=1.028 jerk=19.153 crossings=6 norm=n/a
+[ 260.13s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.068 p2p=0.365 jerk=13.463 dis=1.00
+[ 260.13s] [SYNC] pin=HIGH  t=382032624 us
+[ 260.54s] [SYNC] pin=LOW  t=382532608 us
+[ 261.16s] [RIDE1] n=200 rms=10.583 std=0.033 p2p=0.168 crest=1.008 jerk=7.855 crossings=4 norm=n/a
+[ 261.16s] [RIDE2] n=200 rms=10.236 std=0.063 p2p=0.323 crest=1.016 jerk=13.892 crossings=6 norm=n/a
+[ 261.16s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.048 p2p=0.245 jerk=10.873 dis=0.59
+[ 261.16s] [GNSS] poll timeout
+[ 261.16s] [SYNC] pin=HIGH  t=383032624 us
+[ 261.37s] --- Acquisition stats (2s window) ---
+[ 261.37s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4746 avg=5012 max=5277]  dropped=0
+[ 261.37s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4778 avg=5012 max=5254]  dropped=0
+[ 261.37s] GNSS: 0 polls, 0 with a fix
+[ 261.37s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 261.37s] Free heap: 183328 bytes
+[ 261.37s] 
+[ 261.58s] [SYNC] pin=LOW  t=383532622 us
+[ 262.19s] [RIDE1] n=200 rms=10.584 std=0.035 p2p=0.200 crest=1.009 jerk=8.543 crossings=5 norm=n/a
+[ 262.19s] [RIDE2] n=200 rms=10.238 std=0.052 p2p=0.394 crest=1.017 jerk=11.573 crossings=4 norm=n/a
+[ 262.19s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.043 p2p=0.297 jerk=10.058 dis=0.34
+[ 262.60s] [SYNC] pin=HIGH  t=384032624 us
+[ 262.60s] [SYNC] pin=LOW  t=384532610 us
+[ 263.22s] [RIDE1] n=200 rms=10.584 std=0.036 p2p=0.203 crest=1.009 jerk=8.425 crossings=3 norm=n/a
+[ 263.22s] [RIDE2] n=200 rms=10.235 std=0.053 p2p=0.291 crest=1.013 jerk=11.064 crossings=5 norm=n/a
+[ 263.22s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.045 p2p=0.247 jerk=9.745 dis=0.33
+[ 263.22s] [SYNC] pin=HIGH  t=385032624 us
+[ 263.42s] --- Acquisition stats (2s window) ---
+[ 263.42s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4799 avg=5012 max=5232]  dropped=0
+[ 263.42s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4786 avg=5012 max=5246]  dropped=0
+[ 263.42s] GNSS: 0 polls, 0 with a fix
+[ 263.42s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 263.42s] Free heap: 183328 bytes
+[ 263.42s] 
+[ 263.63s] [SYNC] pin=LOW  t=385532626 us
+[ 264.04s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.194 crest=1.009 jerk=7.601 crossings=4 norm=n/a
+[ 264.04s] [RIDE2] n=200 rms=10.231 std=0.085 p2p=0.585 crest=1.025 jerk=17.174 crossings=8 norm=n/a
+[ 264.04s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.059 p2p=0.389 jerk=12.388 dis=0.88
+[ 264.04s] [GNSS] poll timeout
+[ 264.04s] [SYNC] pin=HIGH  t=386032624 us
+[ 264.68s] [SYNC] pin=LOW  t=386532610 us
+[ 265.09s] [RIDE1] n=200 rms=10.579 std=0.038 p2p=0.188 crest=1.009 jerk=7.846 crossings=5 norm=n/a
+[ 265.09s] [RIDE2] n=200 rms=10.240 std=0.067 p2p=0.425 crest=1.021 jerk=13.589 crossings=4 norm=n/a
+[ 265.09s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.053 p2p=0.306 jerk=10.717 dis=0.56
+[ 265.09s] [SYNC] pin=HIGH  t=387032624 us
+[ 265.50s] --- Acquisition stats (2s window) ---
+[ 265.50s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4276 avg=5012 max=5751]  dropped=0
+[ 265.50s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4247 avg=5012 max=5858]  dropped=0
+[ 265.50s] GNSS: 0 polls, 0 with a fix
+[ 265.50s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 265.50s] Free heap: 184272 bytes
+[ 265.50s] 
+[ 265.50s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 265.50s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 265.50s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 265.72s] [SYNC] pin=LOW  t=387532629 us
+[ 266.13s] [RIDE2] n=200 rms=10.236 std=0.048 p2p=0.276 crest=1.016 jerk=10.487 crossings=8 norm=n/a
+[ 266.13s] [RIDE1] n=200 rms=10.580 std=0.035 p2p=0.211 crest=1.010 jerk=8.351 crossings=6 norm=n/a
+[ 266.13s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.041 p2p=0.244 jerk=9.419 dis=0.25
+[ 266.13s] [SYNC] pin=HIGH  t=388032624 us
+[ 266.56s] [SYNC] pin=LOW  t=388532624 us
+[ 267.17s] [RIDE2] n=200 rms=10.237 std=0.049 p2p=0.333 crest=1.016 jerk=11.144 crossings=5 norm=n/a
+[ 267.17s] [RIDE1] n=200 rms=10.584 std=0.031 p2p=0.162 crest=1.007 jerk=6.909 crossings=5 norm=n/a
+[ 267.17s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.040 p2p=0.247 jerk=9.027 dis=0.37
+[ 267.17s] [GNSS] poll timeout
+[ 267.17s] [SYNC] pin=HIGH  t=389032545 us
+[ 267.37s] --- Acquisition stats (2s window) ---
+[ 267.37s] IMU1: 400 samples (200.0 Hz)  dt_us[min=861 avg=5012 max=39475]  dropped=0
+[ 267.37s] IMU2: 400 samples (200.0 Hz)  dt_us[min=853 avg=5012 max=39455]  dropped=0
+[ 267.37s] GNSS: 0 polls, 0 with a fix
+[ 267.37s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 267.37s] Free heap: 183312 bytes
+[ 267.37s] 
+[ 267.57s] [SYNC] pin=LOW  t=389532629 us
+[ 268.20s] [RIDE2] n=200 rms=10.238 std=0.032 p2p=0.163 crest=1.007 jerk=7.241 crossings=4 norm=n/a
+[ 268.20s] [RIDE1] n=200 rms=10.583 std=0.034 p2p=0.168 crest=1.008 jerk=7.509 crossings=7 norm=n/a
+[ 268.20s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.033 p2p=0.166 jerk=7.375 dis=0.04
+[ 268.20s] [SYNC] pin=HIGH  t=390032624 us
+[ 268.61s] [SYNC] pin=LOW  t=390532628 us
+[ 269.04s] [RIDE2] n=200 rms=10.241 std=0.038 p2p=0.196 crest=1.009 jerk=7.630 crossings=2 norm=n/a
+[ 269.04s] [RIDE1] n=200 rms=10.582 std=0.031 p2p=0.171 crest=1.008 jerk=7.847 crossings=8 norm=n/a
+[ 269.04s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.034 p2p=0.183 jerk=7.739 dis=0.15
+[ 269.04s] [SYNC] pin=HIGH  t=391032624 us
+[ 269.45s] --- Acquisition stats (2s window) ---
+[ 269.45s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4602 avg=5012 max=5404]  dropped=0
+[ 269.45s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4606 avg=5012 max=5402]  dropped=0
+[ 269.45s] GNSS: 0 polls, 0 with a fix
+[ 269.45s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 269.45s] Free heap: 183312 bytes
+[ 269.45s] 
+[ 270.08s] [SYNC] pin=LOW  t=391532628 us
+[ 270.08s] [RIDE2] n=200 rms=10.234 std=0.034 p2p=0.180 crest=1.008 jerk=7.931 crossings=3 norm=n/a
+[ 270.08s] [RIDE1] n=200 rms=10.578 std=0.033 p2p=0.179 crest=1.008 jerk=7.551 crossings=3 norm=n/a
+[ 270.08s] [FUSED] src=1+2 skew=0ms rms=10.406 std=0.033 p2p=0.179 jerk=7.741 dis=0.03
+[ 270.08s] [GNSS] poll timeout
+[ 270.08s] [SYNC] pin=HIGH  t=392032624 us
+[ 270.70s] [SYNC] pin=LOW  t=392532628 us
+[ 271.12s] [RIDE2] n=200 rms=10.233 std=0.036 p2p=0.196 crest=1.010 jerk=8.315 crossings=4 norm=n/a
+[ 271.12s] [RIDE1] n=200 rms=10.580 std=0.034 p2p=0.168 crest=1.007 jerk=7.784 crossings=4 norm=n/a
+[ 271.12s] [FUSED] src=1+2 skew=0ms rms=10.407 std=0.035 p2p=0.182 jerk=8.049 dis=0.04
+[ 271.12s] [SYNC] pin=HIGH  t=393032624 us
+[ 271.32s] --- Acquisition stats (2s window) ---
+[ 271.32s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4672 avg=5012 max=5452]  dropped=0
+[ 271.32s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4692 avg=5012 max=5470]  dropped=0
+[ 271.32s] GNSS: 0 polls, 0 with a fix
+[ 271.32s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 271.32s] Free heap: 183312 bytes
+[ 271.32s] 
+[ 271.53s] [SYNC] pin=LOW  t=393532626 us
+[ 272.16s] [RIDE2] n=200 rms=10.235 std=0.031 p2p=0.164 crest=1.007 jerk=6.974 crossings=5 norm=n/a
+[ 272.16s] [RIDE1] n=200 rms=10.583 std=0.032 p2p=0.179 crest=1.006 jerk=7.171 crossings=4 norm=n/a
+[ 272.16s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.032 p2p=0.171 jerk=7.073 dis=0.02
+[ 272.16s] [SYNC] pin=HIGH  t=394032624 us
+[ 272.57s] [SYNC] pin=LOW  t=394532608 us
+[ 273.19s] [RIDE2] n=200 rms=10.234 std=0.041 p2p=0.238 crest=1.011 jerk=8.612 crossings=5 norm=n/a
+[ 273.19s] [RIDE1] n=200 rms=10.584 std=0.033 p2p=0.191 crest=1.007 jerk=7.573 crossings=3 norm=n/a
+[ 273.19s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.037 p2p=0.215 jerk=8.093 dis=0.16
+[ 273.19s] [GNSS] poll timeout
+[ 273.19s] [SYNC] pin=HIGH  t=395032624 us
+[ 273.40s] --- Acquisition stats (2s window) ---
+[ 273.40s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4761 avg=5012 max=5263]  dropped=0
+[ 273.40s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4732 avg=5012 max=5293]  dropped=0
+[ 273.40s] GNSS: 0 polls, 0 with a fix
+[ 273.40s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 273.40s] Free heap: 183312 bytes
+[ 273.40s] 
+[ 273.61s] [SYNC] pin=LOW  t=395532624 us
+[ 274.02s] [RIDE1] n=200 rms=10.583 std=0.035 p2p=0.224 crest=1.009 jerk=7.966 crossings=7 norm=n/a
+[ 274.02s] [RIDE2] n=200 rms=10.240 std=0.034 p2p=0.226 crest=1.008 jerk=7.979 crossings=5 norm=n/a
+[ 274.02s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.035 p2p=0.225 jerk=7.973 dis=0.03
+[ 274.24s] [SYNC] pin=HIGH  t=396032624 us
+[ 274.65s] [SYNC] pin=LOW  t=396532610 us
+[ 275.08s] [RIDE2] n=200 rms=10.238 std=0.032 p2p=0.157 crest=1.007 jerk=7.251 crossings=2 norm=n/a
+[ 275.08s] [RIDE1] n=200 rms=10.591 std=0.035 p2p=0.199 crest=1.009 jerk=8.001 crossings=4 norm=n/a
+[ 275.08s] [FUSED] src=1+2 skew=0ms rms=10.415 std=0.034 p2p=0.178 jerk=7.626 dis=0.06
+[ 275.08s] [SYNC] pin=HIGH  t=397032624 us
+[ 275.49s] --- Acquisition stats (2s window) ---
+[ 275.49s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4768 avg=5012 max=5257]  dropped=0
+[ 275.49s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4794 avg=5012 max=5242]  dropped=0
+[ 275.49s] GNSS: 0 polls, 0 with a fix
+[ 275.49s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 275.49s] Free heap: 183312 bytes
+[ 275.49s] 
+[ 275.69s] [SYNC] pin=LOW  t=397532628 us
+[ 276.11s] [RIDE2] n=200 rms=10.232 std=0.036 p2p=0.189 crest=1.009 jerk=7.909 crossings=4 norm=n/a
+[ 276.11s] [RIDE1] n=200 rms=10.587 std=0.035 p2p=0.182 crest=1.008 jerk=8.259 crossings=4 norm=n/a
+[ 276.11s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.035 p2p=0.186 jerk=8.084 dis=0.01
+[ 276.11s] [GNSS] poll timeout
+[ 276.11s] [SYNC] pin=HIGH  t=398032624 us
+[ 276.53s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 276.53s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 276.53s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 276.53s] [SYNC] pin=LOW  t=398532626 us
+[ 277.16s] [RIDE2] n=200 rms=10.237 std=0.044 p2p=0.228 crest=1.012 jerk=9.277 crossings=6 norm=n/a
+[ 277.16s] [RIDE1] n=200 rms=10.583 std=0.035 p2p=0.190 crest=1.010 jerk=7.759 crossings=5 norm=n/a
+[ 277.16s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.040 p2p=0.209 jerk=8.518 dis=0.18
+[ 277.16s] [SYNC] pin=HIGH  t=399032624 us
+[ 277.36s] --- Acquisition stats (2s window) ---
+[ 277.36s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4562 avg=5012 max=5430]  dropped=0
+[ 277.36s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4551 avg=5012 max=5454]  dropped=0
+[ 277.36s] GNSS: 0 polls, 0 with a fix
+[ 277.36s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 277.36s] Free heap: 183328 bytes
+[ 277.36s] 
+[ 277.58s] [SYNC] pin=LOW  t=399532628 us
+[ 278.20s] [RIDE2] n=200 rms=10.238 std=0.040 p2p=0.241 crest=1.012 jerk=8.222 crossings=6 norm=n/a
+[ 278.20s] [RIDE1] n=200 rms=10.585 std=0.033 p2p=0.207 crest=1.009 jerk=7.182 crossings=6 norm=n/a
+[ 278.20s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.036 p2p=0.224 jerk=7.702 dis=0.13
+[ 278.20s] [SYNC] pin=HIGH  t=400032624 us
+[ 278.61s] [SYNC] pin=LOW  t=400532626 us
+[ 279.04s] [RIDE1] n=200 rms=10.581 std=0.033 p2p=0.172 crest=1.008 jerk=8.021 crossings=4 norm=n/a
+[ 279.04s] [RIDE2] n=200 rms=10.236 std=0.033 p2p=0.154 crest=1.008 jerk=7.857 crossings=7 norm=n/a
+[ 279.04s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.033 p2p=0.163 jerk=7.939 dis=0.00
+[ 279.04s] [GNSS] poll timeout
+[ 279.04s] [SYNC] pin=HIGH  t=401032546 us
+[ 279.45s] --- Acquisition stats (2s window) ---
+[ 279.45s] IMU1: 401 samples (200.5 Hz)  dt_us[min=852 avg=5012 max=36167]  dropped=0
+[ 279.45s] IMU2: 401 samples (200.5 Hz)  dt_us[min=842 avg=5012 max=36118]  dropped=0
+[ 279.45s] GNSS: 0 polls, 0 with a fix
+[ 279.45s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 279.45s] Free heap: 183328 bytes
+[ 279.45s] 
+[ 279.66s] [SYNC] pin=LOW  t=401532628 us
+[ 280.07s] [RIDE1] n=200 rms=10.587 std=0.032 p2p=0.173 crest=1.009 jerk=7.343 crossings=5 norm=n/a
+[ 280.07s] [RIDE2] n=200 rms=10.236 std=0.031 p2p=0.192 crest=1.010 jerk=6.663 crossings=4 norm=n/a
+[ 280.07s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.032 p2p=0.183 jerk=7.003 dis=0.02
+[ 280.07s] [SYNC] pin=HIGH  t=402032624 us
+[ 280.70s] [SYNC] pin=LOW  t=402532626 us
+[ 281.10s] [RIDE2] n=200 rms=10.234 std=0.039 p2p=0.201 crest=1.009 jerk=8.326 crossings=6 norm=n/a
+[ 281.10s] [RIDE1] n=200 rms=10.589 std=0.034 p2p=0.202 crest=1.008 jerk=7.443 crossings=2 norm=n/a
+[ 281.10s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.037 p2p=0.201 jerk=7.884 dis=0.11
+[ 281.10s] [SYNC] pin=HIGH  t=403032624 us
+[ 281.52s] --- Acquisition stats (2s window) ---
+[ 281.52s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4553 avg=5012 max=5475]  dropped=0
+[ 281.52s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4560 avg=5012 max=5485]  dropped=0
+[ 281.52s] GNSS: 0 polls, 0 with a fix
+[ 281.52s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 281.52s] Free heap: 183328 bytes
+[ 281.52s] 
+[ 281.73s] [SYNC] pin=LOW  t=403532628 us
+[ 282.15s] [RIDE2] n=200 rms=10.231 std=0.034 p2p=0.174 crest=1.008 jerk=7.811 crossings=1 norm=n/a
+[ 282.15s] [RIDE1] n=200 rms=10.585 std=0.036 p2p=0.187 crest=1.009 jerk=8.362 crossings=3 norm=n/a
+[ 282.15s] [FUSED] src=1+2 skew=0ms rms=10.408 std=0.035 p2p=0.180 jerk=8.086 dis=0.03
+[ 282.15s] [GNSS] poll timeout
+[ 282.15s] [SYNC] pin=HIGH  t=404032624 us
+[ 282.56s] [SYNC] pin=LOW  t=404532608 us
+[ 283.19s] [RIDE2] n=200 rms=10.238 std=0.033 p2p=0.182 crest=1.010 jerk=7.445 crossings=5 norm=n/a
+[ 283.19s] [RIDE1] n=200 rms=10.582 std=0.032 p2p=0.191 crest=1.009 jerk=7.502 crossings=3 norm=n/a
+[ 283.19s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.033 p2p=0.186 jerk=7.474 dis=0.02
+[ 283.19s] [SYNC] pin=HIGH  t=405032624 us
+[ 283.39s] --- Acquisition stats (2s window) ---
+[ 283.39s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4714 avg=5012 max=5397]  dropped=0
+[ 283.39s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4713 avg=5012 max=5386]  dropped=0
+[ 283.39s] GNSS: 0 polls, 0 with a fix
+[ 283.39s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 283.39s] Free heap: 183328 bytes
+[ 283.39s] 
+[ 283.60s] [SYNC] pin=LOW  t=405532626 us
+[ 284.21s] [RIDE2] n=200 rms=10.234 std=0.052 p2p=0.448 crest=1.024 jerk=10.445 crossings=5 norm=n/a
+[ 284.21s] [RIDE1] n=200 rms=10.584 std=0.034 p2p=0.180 crest=1.009 jerk=7.530 crossings=2 norm=n/a
+[ 284.21s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.043 p2p=0.314 jerk=8.988 dis=0.37
+[ 284.21s] [SYNC] pin=HIGH  t=406032624 us
+[ 284.63s] [SYNC] pin=LOW  t=406532610 us
+[ 285.05s] [RIDE2] n=200 rms=10.236 std=0.057 p2p=0.322 crest=1.014 jerk=12.327 crossings=3 norm=n/a
+[ 285.05s] [RIDE1] n=200 rms=10.582 std=0.036 p2p=0.196 crest=1.010 jerk=7.632 crossings=4 norm=n/a
+[ 285.05s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.047 p2p=0.259 jerk=9.979 dis=0.43
+[ 285.05s] [GNSS] poll timeout
+[ 285.05s] [SYNC] pin=HIGH  t=407032624 us
+[ 285.45s] --- Acquisition stats (2s window) ---
+[ 285.45s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4785 avg=5012 max=5233]  dropped=0
+[ 285.45s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4785 avg=5012 max=5207]  dropped=0
+[ 285.45s] GNSS: 0 polls, 0 with a fix
+[ 285.45s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 285.45s] Free heap: 183328 bytes
+[ 285.45s] 
+[ 285.66s] [SYNC] pin=LOW  t=407532624 us
+[ 286.06s] [RIDE2] n=200 rms=10.236 std=0.056 p2p=0.447 crest=1.022 jerk=10.454 crossings=5 norm=n/a
+[ 286.06s] [RIDE1] n=200 rms=10.582 std=0.032 p2p=0.177 crest=1.008 jerk=7.361 crossings=2 norm=n/a
+[ 286.06s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.044 p2p=0.312 jerk=8.908 dis=0.47
+[ 286.06s] [SYNC] pin=HIGH  t=408032624 us
+[ 286.68s] [SYNC] pin=LOW  t=408532612 us
+[ 287.10s] [RIDE2] n=200 rms=10.239 std=0.054 p2p=0.378 crest=1.021 jerk=11.337 crossings=7 norm=n/a
+[ 287.10s] [RIDE1] n=200 rms=10.586 std=0.031 p2p=0.173 crest=1.008 jerk=7.758 crossings=9 norm=n/a
+[ 287.10s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.042 p2p=0.275 jerk=9.547 dis=0.45
+[ 287.10s] [SYNC] pin=HIGH  t=409032624 us
+[ 287.52s] --- Acquisition stats (2s window) ---
+[ 287.52s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4766 avg=5012 max=5244]  dropped=0
+[ 287.52s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4769 avg=5012 max=5238]  dropped=0
+[ 287.52s] GNSS: 0 polls, 0 with a fix
+[ 287.52s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 287.52s] Free heap: 183328 bytes
+[ 287.52s] 
+[ 287.73s] [SYNC] pin=LOW  t=409532626 us
+[ 287.73s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 287.73s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 287.93s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 288.15s] [RIDE1] n=200 rms=10.585 std=0.032 p2p=0.179 crest=1.009 jerk=6.517 crossings=2 norm=n/a
+[ 288.15s] [RIDE2] n=200 rms=10.238 std=0.062 p2p=0.544 crest=1.026 jerk=11.765 crossings=5 norm=n/a
+[ 288.15s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.047 p2p=0.361 jerk=9.141 dis=0.61
+[ 288.15s] [GNSS] poll timeout
+[ 288.15s] [SYNC] pin=HIGH  t=410032379 us
+[ 288.56s] [SYNC] pin=LOW  t=410532626 us
+[ 289.17s] [RIDE2] n=200 rms=10.235 std=0.092 p2p=0.496 crest=1.026 jerk=16.727 crossings=6 norm=n/a
+[ 289.17s] [RIDE1] n=200 rms=10.584 std=0.054 p2p=0.409 crest=1.019 jerk=9.988 crossings=5 norm=n/a
+[ 289.17s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.073 p2p=0.453 jerk=13.357 dis=0.51
+[ 289.17s] [SYNC] pin=HIGH  t=411032624 us
+[ 289.38s] --- Acquisition stats (2s window) ---
+[ 289.38s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4266 avg=5012 max=5852]  dropped=0
+[ 289.38s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4239 avg=5012 max=5889]  dropped=0
+[ 289.38s] GNSS: 0 polls, 0 with a fix
+[ 289.38s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 289.38s] Free heap: 183328 bytes
+[ 289.38s] 
+[ 289.59s] [SYNC] pin=LOW  t=411532628 us
+[ 290.21s] [RIDE1] n=200 rms=10.587 std=0.035 p2p=0.179 crest=1.008 jerk=7.438 crossings=4 norm=n/a
+[ 290.21s] [RIDE2] n=200 rms=10.235 std=0.053 p2p=0.281 crest=1.014 jerk=11.525 crossings=6 norm=n/a
+[ 290.21s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.044 p2p=0.230 jerk=9.482 dis=0.37
+[ 290.21s] [SYNC] pin=HIGH  t=412032624 us
+[ 290.63s] [SYNC] pin=LOW  t=412532628 us
+[ 291.05s] [RIDE2] n=200 rms=10.239 std=0.061 p2p=0.404 crest=1.019 jerk=12.441 crossings=5 norm=n/a
+[ 291.05s] [RIDE1] n=200 rms=10.583 std=0.036 p2p=0.201 crest=1.011 jerk=7.736 crossings=4 norm=n/a
+[ 291.05s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.049 p2p=0.303 jerk=10.089 dis=0.50
+[ 291.05s] [GNSS] poll timeout
+[ 291.05s] [SYNC] pin=HIGH  t=413032514 us
+[ 291.45s] --- Acquisition stats (2s window) ---
+[ 291.45s] IMU1: 400 samples (200.0 Hz)  dt_us[min=849 avg=5012 max=38086]  dropped=0
+[ 291.45s] IMU2: 400 samples (200.0 Hz)  dt_us[min=793 avg=5012 max=38172]  dropped=0
+[ 291.45s] GNSS: 0 polls, 0 with a fix
+[ 291.45s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 291.45s] Free heap: 183328 bytes
+[ 291.45s] 
+[ 291.67s] [SYNC] pin=LOW  t=413532628 us
+[ 292.08s] [RIDE1] n=200 rms=10.587 std=0.035 p2p=0.178 crest=1.009 jerk=8.633 crossings=5 norm=n/a
+[ 292.08s] [RIDE2] n=200 rms=10.232 std=0.068 p2p=0.441 crest=1.021 jerk=13.398 crossings=5 norm=n/a
+[ 292.08s] [FUSED] src=1+2 skew=0ms rms=10.410 std=0.051 p2p=0.310 jerk=11.015 dis=0.62
+[ 292.08s] [SYNC] pin=HIGH  t=414032626 us
+[ 292.70s] [SYNC] pin=LOW  t=414532626 us
+[ 293.12s] [RIDE2] n=200 rms=10.238 std=0.054 p2p=0.373 crest=1.022 jerk=10.794 crossings=3 norm=n/a
+[ 293.12s] [RIDE1] n=200 rms=10.581 std=0.037 p2p=0.208 crest=1.009 jerk=8.390 crossings=4 norm=n/a
+[ 293.12s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.045 p2p=0.290 jerk=9.592 dis=0.35
+[ 293.12s] [SYNC] pin=HIGH  t=415032624 us
+[ 293.53s] --- Acquisition stats (2s window) ---
+[ 293.53s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4452 avg=5012 max=5574]  dropped=0
+[ 293.53s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4477 avg=5012 max=5552]  dropped=0
+[ 293.53s] GNSS: 0 polls, 0 with a fix
+[ 293.53s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 293.53s] Free heap: 183328 bytes
+[ 293.53s] 
+[ 293.53s] [SYNC] pin=LOW  t=415532628 us
+[ 294.16s] [RIDE2] n=200 rms=10.238 std=0.056 p2p=0.356 crest=1.024 jerk=10.977 crossings=6 norm=n/a
+[ 294.16s] [RIDE1] n=200 rms=10.581 std=0.041 p2p=0.248 crest=1.013 jerk=8.694 crossings=7 norm=n/a
+[ 294.16s] [FUSED] src=1+2 skew=0ms rms=10.409 std=0.048 p2p=0.302 jerk=9.835 dis=0.30
+[ 294.16s] [GNSS] poll timeout
+[ 294.16s] [SYNC] pin=HIGH  t=416032624 us
+[ 294.57s] [SYNC] pin=LOW  t=416532610 us
+[ 295.19s] [RIDE2] n=200 rms=10.239 std=0.049 p2p=0.311 crest=1.015 jerk=9.860 crossings=6 norm=n/a
+[ 295.19s] [RIDE1] n=200 rms=10.583 std=0.033 p2p=0.180 crest=1.008 jerk=7.374 crossings=5 norm=n/a
+[ 295.19s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.041 p2p=0.246 jerk=8.617 dis=0.31
+[ 295.19s] [SYNC] pin=HIGH  t=417032622 us
+[ 295.40s] --- Acquisition stats (2s window) ---
+[ 295.40s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4768 avg=5012 max=5241]  dropped=0
+[ 295.40s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4752 avg=5012 max=5265]  dropped=0
+[ 295.40s] GNSS: 0 polls, 0 with a fix
+[ 295.40s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 295.40s] Free heap: 183328 bytes
+[ 295.40s] 
+[ 295.60s] [SYNC] pin=LOW  t=417532626 us
+[ 296.21s] [RIDE2] n=200 rms=10.237 std=0.058 p2p=0.416 crest=1.024 jerk=10.169 crossings=6 norm=n/a
+[ 296.21s] [RIDE1] n=200 rms=10.585 std=0.034 p2p=0.212 crest=1.011 jerk=7.430 crossings=5 norm=n/a
+[ 296.21s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.046 p2p=0.314 jerk=8.800 dis=0.48
+[ 296.21s] [SYNC] pin=HIGH  t=418032624 us
+[ 296.62s] [SYNC] pin=LOW  t=418532606 us
+[ 297.02s] [RIDE2] n=200 rms=10.236 std=0.072 p2p=0.480 crest=1.027 jerk=11.699 crossings=7 norm=n/a
+[ 297.02s] [RIDE1] n=200 rms=10.586 std=0.039 p2p=0.241 crest=1.009 jerk=8.126 crossings=3 norm=n/a
+[ 297.02s] [FUSED] src=1+2 skew=0ms rms=10.411 std=0.056 p2p=0.361 jerk=9.913 dis=0.60
+[ 297.23s] [GNSS] poll timeout
+[ 297.23s] [SYNC] pin=HIGH  t=419032624 us
+[ 297.44s] --- Acquisition stats (2s window) ---
+[ 297.44s] IMU1: 400 samples (200.0 Hz)  dt_us[min=4766 avg=5012 max=5254]  dropped=0
+[ 297.44s] IMU2: 400 samples (200.0 Hz)  dt_us[min=4786 avg=5012 max=5217]  dropped=0
+[ 297.44s] GNSS: 0 polls, 0 with a fix
+[ 297.44s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 297.44s] Free heap: 183328 bytes
+[ 297.44s] 
+[ 297.65s] [SYNC] pin=LOW  t=419532622 us
+[ 298.06s] [RIDE2] n=200 rms=10.238 std=0.056 p2p=0.305 crest=1.014 jerk=11.768 crossings=6 norm=n/a
+[ 298.06s] [RIDE1] n=200 rms=10.585 std=0.036 p2p=0.164 crest=1.008 jerk=8.836 crossings=2 norm=n/a
+[ 298.06s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.046 p2p=0.234 jerk=10.302 dis=0.39
+[ 298.06s] [SYNC] pin=HIGH  t=420032622 us
+[ 298.69s] [SYNC] pin=LOW  t=420532610 us
+[ 298.89s] [BMS] scan saw: 06:ef:41:e6:ab:33 (no name)
+[ 298.89s] [BMS] scan saw: 5d:1d:b9:b1:d7:cd (SAM)
+[ 298.89s] [BMS] scan saw: 09:c5:63:f1:93:96 (no name)
+[ 299.10s] [RIDE1] n=200 rms=10.585 std=0.040 p2p=0.239 crest=1.013 jerk=8.526 crossings=4 norm=n/a
+[ 299.10s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.064 p2p=0.424 jerk=11.321 dis=0.75
+[ 299.10s] [RIDE2] n=200 rms=10.240 std=0.088 p2p=0.610 crest=1.036 jerk=14.116 crossings=6 norm=n/a
+[ 299.10s] [FUSED] src=1+2 skew=0ms rms=10.413 std=0.064 p2p=0.424 jerk=11.321 dis=0.75
+[ 299.10s] [SYNC] pin=HIGH  t=421032626 us
+[ 299.52s] --- Acquisition stats (2s window) ---
+[ 299.52s] IMU1: 401 samples (200.5 Hz)  dt_us[min=4499 avg=5012 max=5776]  dropped=0
+[ 299.52s] IMU2: 401 samples (200.5 Hz)  dt_us[min=4552 avg=5012 max=5646]  dropped=0
+[ 299.52s] GNSS: 0 polls, 0 with a fix
+[ 299.52s] BMS: connected=no valid=0 checksum_fail=0 disconnects=0 reconnects=0 dropped=0
+[ 299.52s] Free heap: 183312 bytes
+[ 299.52s] 
+[ 299.73s] [SYNC] pin=LOW  t=421532630 us
+[ 300.14s] [RIDE1] n=200 rms=10.587 std=0.033 p2p=0.159 crest=1.008 jerk=7.614 crossings=4 norm=n/a
+[ 300.14s] [RIDE2] n=200 rms=10.237 std=0.063 p2p=0.400 crest=1.019 jerk=11.147 crossings=5 norm=n/a
+[ 300.14s] [FUSED] src=1+2 skew=0ms rms=10.412 std=0.048 p2p=0.279 jerk=9.381 dis=0.61
+[ 300.14s] [GNSS] poll timeout
+[ 300.14s] [SYNC] pin=HIGH  t=422032624 us

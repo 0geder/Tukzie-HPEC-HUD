@@ -11,7 +11,7 @@
 #include <Preferences.h>
 #include <LittleFS.h>
 
-#define FIRMWARE_VERSION "v0.5.0"
+#define FIRMWARE_VERSION "v0.5.3"
 
 // ============================================================
 // SW-7 ESP32-S3 Firmware v0.4.0
@@ -443,6 +443,11 @@ struct GnssFix {
   float longitude_deg;
   float altitude_m;
   float speed_reported;   // units NOT confirmed - see parseGnssInfo() comment
+  float course_deg;       // course over ground
+  float hdop;             // horizontal dilution of precision (lower is better)
+  uint8_t satellites;     // satellites used, summed over the constellations reported
+  uint32_t utc_date;      // ddmmyy as sent by the modem
+  float utc_time;         // hhmmss.ss as sent by the modem
 };
 
 // ============================================================
@@ -479,6 +484,9 @@ volatile uint32_t bmsReconnectCount = 0;
 volatile uint32_t bmsDropped = 0;
 volatile BmsSample latestBmsSample = {};
 volatile GnssFix latestGnssFix = {};
+// "!gnssraw" toggles printing the modem's raw +CGNSSINFO reply on every
+// poll, for checking the parser without sending extra AT commands.
+volatile bool gnssPrintRaw = false;
 
 static ImuTaskConfig imu1Config;
 static ImuTaskConfig imu2Config;
@@ -1159,60 +1167,143 @@ float nmeaToDecimalDegrees(const String& value) {
   return degrees + (minutes / 60.0f);
 }
 
-// Field order below is a WORKING HYPOTHESIS, revised after a live capture
-// on 04 Sep 2026 against the actual module. The originally assumed
-// 13-field SIMCom A76XX layout was wrong for this firmware: a real
-// no-fix response came back as
-//   +CGNSSINFO: ,,,,,,,,
-// i.e. 9 comma-separated fields, not 13. That confirms the field COUNT
-// but NOT the field ORDER - an all-empty response carries no positional
-// evidence. The mapping assumed below is:
-//   <mode>,<lat>,<N/S>,<lon>,<E/W>,<date>,<UTC-time>,<alt>,<speed>
+// Field layout CONFIRMED against a real fix on 29 Sep 2026 (rooftop, 3D
+// fix after 51 s, log BenchTest/logs/2026-09-29_gnss_rooftop.log). A with-fix
+// reply from this module is, for example:
+//   +CGNSSINFO: 3,15,,09,02,33.9801178,S,18.4654350,E,290926,214739.00,82.4,0.000,69.44,1.68,0.86,1.44
+// i.e. <mode>,<GPS sats>,<GLONASS sats>,<BeiDou sats>,<Galileo sats>,
+//      <lat>,<N/S>,<lon>,<E/W>,<date ddmmyy>,<UTC hhmmss.ss>,<alt m>,
+//      <speed>,<course>,<PDOP>,<HDOP>,<VDOP>
+// 17 fields, with latitude and longitude in DECIMAL degrees (not NMEA
+// ddmm.mmmm). The manual (v1.09) documents a 16-field variant without the
+// Galileo count, and the earlier no-fix reply had 9 empty fields, so the
+// satellite block is not a fixed length. The parser therefore locates the
+// hemisphere letter and reads every other field relative to it, which fits
+// all of these layouts. The previous parser assumed the 9-field layout was
+// <mode>,<lat>,... and read the satellite counts as the position.
 //
-// !! STILL NEEDS CONFIRMING AGAINST A WITH-FIX RESPONSE !! (outdoors,
-// see the GNSS position-fix test in the methodology) before any of these
-// values are trusted quantitatively - including the speed field's units
-// (knots vs km/h are not yet known). Field count is checked defensively
-// below, and the raw string is always logged alongside the parsed
-// result, so a wrong mapping is recoverable from the log, not lost.
+// Speed units are still NOT confirmed: the fix was stationary (0.000). The
+// manual gives knots; check against a known speed on the road test before
+// the speed-normalised index is trusted.
+// True if v is digits with exactly one decimal point and at least
+// minDecimals digits after it (a value with dropped characters fails).
+static bool gnssDecimalShape(const String& v, int maxInt, int minDecimals) {
+  int dot = v.indexOf('.');
+  if (dot < 1 || dot > maxInt || v.indexOf('.', dot + 1) >= 0) return false;
+  if ((int)v.length() - dot - 1 < minDecimals) return false;
+  for (int i = 0; i < (int)v.length(); i++) {
+    if (i != dot && !isDigit(v[i])) return false;
+  }
+  return true;
+}
+
+static bool gnssValidCoordinate(const String& v, float limit, float* out) {
+  if (v.length() == 0) return false;
+  float x = v.toFloat();
+  // Decimal degrees on this module; accept NMEA ddmm.mmmm too, which some
+  // firmware versions send (a value above the limit can only be ddmm).
+  if (x > limit) x = nmeaToDecimalDegrees(v);
+  if (!(x >= 0.0f && x <= limit)) return false;
+  *out = x;
+  return true;
+}
+
 bool parseGnssInfo(const String& raw, GnssFix* out) {
   int start = raw.indexOf("+CGNSSINFO:");
   if (start == -1) {
     return false;
   }
   String body = raw.substring(start + strlen("+CGNSSINFO:"));
+  int eol = body.indexOf('\n');
+  if (eol >= 0) body = body.substring(0, eol);
   body.trim();
 
-  const int kExpectedFields = 9;
-  String tokens[kExpectedFields];
-  int n = splitFields(body, tokens, kExpectedFields);
-
-  if (n < kExpectedFields) {
-    Serial.printf("[GNSS] unexpected field count (%d, expected %d) - raw: %s\n",
-                  n, kExpectedFields, body.c_str());
+  const int kMaxFields = 24;
+  String t[kMaxFields];
+  int n = splitFields(body, t, kMaxFields);
+  if (n < 9) {
+    Serial.printf("[GNSS] unexpected field count (%d, expected at least 9) - raw: %s\n", n, body.c_str());
     return false;
   }
 
   out->timestamp_us = esp_timer_get_time();
-  out->fix_mode = tokens[0].length() ? tokens[0].toInt() : 0;
-  out->valid = out->fix_mode > 0 && tokens[1].length() > 0 && tokens[3].length() > 0;
+  out->fix_mode = t[0].length() ? t[0].toInt() : 0;
+  out->valid = false;
+  out->latitude_deg = out->longitude_deg = out->altitude_m = NAN;
+  out->speed_reported = out->course_deg = out->hdop = NAN;
+  out->satellites = 0;
+  out->utc_date = 0;
+  out->utc_time = NAN;
 
-  if (out->valid) {
-    float lat = nmeaToDecimalDegrees(tokens[1]);
-    if (tokens[2] == "S") lat = -lat;
-    float lon = nmeaToDecimalDegrees(tokens[3]);
-    if (tokens[4] == "W") lon = -lon;
-    out->latitude_deg = lat;
-    out->longitude_deg = lon;
-    out->altitude_m = tokens[7].length() ? tokens[7].toFloat() : NAN;
-    out->speed_reported = tokens[8].length() ? tokens[8].toFloat() : NAN;
-  } else {
-    out->latitude_deg = NAN;
-    out->longitude_deg = NAN;
-    out->altitude_m = NAN;
-    out->speed_reported = NAN;
+  if (out->fix_mode == 0) {
+    return true;  // well-formed no-fix reply
   }
 
+  // Find the latitude hemisphere; latitude is the field before it.
+  int h = -1;
+  for (int i = 2; i < n; i++) {
+    if (t[i] == "N" || t[i] == "S") { h = i; break; }
+  }
+  if (h < 2 || h + 2 >= n || !(t[h + 2] == "E" || t[h + 2] == "W")) {
+    Serial.printf("[GNSS] fix reply without a readable position - raw: %s\n", body.c_str());
+    return true;  // counts as no usable fix, but the reply itself parsed
+  }
+
+  // A with-fix reply is 16 to 18 fields (with or without the Galileo count,
+  // and with or without one trailing field seen while a fix settles, when
+  // the course is empty) and has the hemisphere at index 6 or 7. Anything else, or a coordinate,
+  // date or time with the wrong shape, is treated as a damaged reply.
+  bool shapeOk = (h == 6 || h == 7) && (n == h + 11 || n == h + 12) &&
+                 gnssDecimalShape(t[h - 1], 2, 6) && gnssDecimalShape(t[h + 1], 3, 6) &&
+                 t[h + 3].length() == 6 && gnssDecimalShape(t[h + 4], 6, 1);
+  if (!shapeOk) {
+    Serial.printf("[GNSS] damaged fix reply ignored - raw: %s\n", body.c_str());
+    return true;
+  }
+
+  float lat, lon;
+  if (!gnssValidCoordinate(t[h - 1], 90.0f, &lat) || !gnssValidCoordinate(t[h + 1], 180.0f, &lon)) {
+    Serial.printf("[GNSS] coordinates out of range - raw: %s\n", body.c_str());
+    return true;
+  }
+  out->latitude_deg = (t[h] == "S") ? -lat : lat;
+  out->longitude_deg = (t[h + 2] == "W") ? -lon : lon;
+
+  // A dropped digit can still leave a well-shaped number (33.98 read as
+  // 3.98). Reject a fix that is further from the previous accepted fix than
+  // 100 m/s (360 km/h) allows for the time between them. The first fix, and
+  // one after a gap of more than 60 s, are accepted without this check.
+  static bool havePrev = false;
+  static float prevLat = 0, prevLon = 0;
+  static int64_t prevUs = 0;
+  if (havePrev) {
+    float dt = (out->timestamp_us - prevUs) / 1e6f;
+    float dN = (out->latitude_deg - prevLat) * 111320.0f;
+    float dE = (out->longitude_deg - prevLon) * 111320.0f * cosf(prevLat * (float)M_PI / 180.0f);
+    float jump = sqrtf(dN * dN + dE * dE);
+    if (dt < 60.0f && jump > 100.0f * (dt > 1.0f ? dt : 1.0f)) {
+      Serial.printf("[GNSS] implausible jump of %.0f m in %.1f s ignored - raw: %s\n", jump, dt, body.c_str());
+      out->latitude_deg = out->longitude_deg = NAN;
+      return true;
+    }
+  }
+  havePrev = true;
+  prevLat = out->latitude_deg;
+  prevLon = out->longitude_deg;
+  prevUs = out->timestamp_us;
+
+  int sats = 0;
+  for (int i = 1; i < h - 1; i++) {
+    if (t[i].length()) sats += t[i].toInt();
+  }
+  out->satellites = sats > 255 ? 255 : sats;
+  if (h + 3 < n && t[h + 3].length()) out->utc_date = (uint32_t)t[h + 3].toInt();
+  if (h + 4 < n && t[h + 4].length()) out->utc_time = t[h + 4].toFloat();
+  if (h + 5 < n && t[h + 5].length()) out->altitude_m = t[h + 5].toFloat();
+  if (h + 6 < n && t[h + 6].length()) out->speed_reported = t[h + 6].toFloat();
+  if (h + 7 < n && t[h + 7].length()) out->course_deg = t[h + 7].toFloat();
+  if (h + 9 < n && t[h + 9].length()) out->hdop = t[h + 9].toFloat();
+  out->valid = true;
   return true;
 }
 
@@ -1239,12 +1330,22 @@ void pollAndParseGnss() {
     return;
   }
 
+  if (gnssPrintRaw) {
+    int r = response.indexOf("+CGNSSINFO:");
+    if (r >= 0) {
+      int e = response.indexOf('\n', r);
+      String line = response.substring(r, e >= 0 ? e : response.length());
+      line.trim();
+      Serial.printf("[GNSS] raw %s\n", line.c_str());
+    }
+  }
+
   GnssFix fix;
   if (parseGnssInfo(response, &fix)) {
     if (fix.valid) {
-      Serial.printf("[GNSS] fix mode=%d lat=%.6f lon=%.6f alt=%.1fm speed=%.1f\n",
+      Serial.printf("[GNSS] fix mode=%d lat=%.6f lon=%.6f alt=%.1fm speed=%.3f sats=%u hdop=%.2f\n",
                     fix.fix_mode, fix.latitude_deg, fix.longitude_deg,
-                    fix.altitude_m, fix.speed_reported);
+                    fix.altitude_m, fix.speed_reported, (unsigned)fix.satellites, fix.hdop);
     } else {
       Serial.printf("[GNSS] no fix yet (mode=%d)\n", fix.fix_mode);
     }
@@ -1256,6 +1357,11 @@ void pollAndParseGnss() {
     latestGnssFix.longitude_deg = fix.longitude_deg;
     latestGnssFix.altitude_m = fix.altitude_m;
     latestGnssFix.speed_reported = fix.speed_reported;
+    latestGnssFix.course_deg = fix.course_deg;
+    latestGnssFix.hdop = fix.hdop;
+    latestGnssFix.satellites = fix.satellites;
+    latestGnssFix.utc_date = fix.utc_date;
+    latestGnssFix.utc_time = fix.utc_time;
 
     // Queue is not expected to fill at a 3 s poll rate, but don't block
     // the modem task if it somehow does.
@@ -1647,6 +1753,7 @@ String buildTelemetryJson() {
 //   !log off     stop local flash logging (flash-write stall test)
 //   !log on      start it again
 //   !mqtt        try to reconnect MQTT now
+//   !gnssraw     toggle printing the raw GNSS reply on every poll
 //   !recal       erase both stored IMU calibrations and restart; the board
 //                must be kept still for the ~2 s calibration after boot
 // ============================================================
@@ -1654,7 +1761,7 @@ void handleLocalCommand(String line) {
   line.trim();
   line.toLowerCase();
   if (line == "!help") {
-    Serial.println("[CMD] !status  !log off  !log on  !mqtt  !recal");
+    Serial.println("[CMD] !status  !log off  !log on  !mqtt  !gnssraw  !recal");
   } else if (line == "!status") {
     Serial.printf("[CMD] firmware %s\n", FIRMWARE_VERSION);
     Serial.printf("[CMD] local log: %s, %u lines written, %u failures\n",
@@ -1677,6 +1784,9 @@ void handleLocalCommand(String line) {
   } else if (line == "!log on") {
     localLogEnabled = true;
     Serial.println("[CMD] local flash logging on");
+  } else if (line == "!gnssraw") {
+    gnssPrintRaw = !gnssPrintRaw;
+    Serial.printf("[CMD] raw GNSS replies %s\n", gnssPrintRaw ? "on" : "off");
   } else if (line == "!mqtt") {
     mqttNextAttemptMs = millis();
     mqttConnected = false;
@@ -1695,16 +1805,51 @@ void handleLocalCommand(String line) {
   }
 }
 
+// True if the modem answers "AT" with OK within about 0.7 s, on any of
+// `tries` attempts.
+static bool modemResponds(int tries) {
+  for (int i = 0; i < tries; i++) {
+    while (Serial1.available()) Serial1.read();
+    Serial1.println("AT");
+    String r;
+    unsigned long t0 = millis();
+    while (millis() - t0 < 700) {
+      while (Serial1.available()) r += static_cast<char>(Serial1.read());
+      if (r.indexOf("OK") >= 0) return true;
+      vTaskDelay(pdMS_TO_TICKS(5));
+    }
+  }
+  return false;
+}
+
 void ModemTask(void* pvParameters) {
   Serial1.begin(MODEM_BAUD, SERIAL_8N1, A7670X_RX_PIN, A7670X_TX_PIN);
 
   pinMode(A7670X_RESET_PIN, OUTPUT);
   digitalWrite(A7670X_RESET_PIN, LOW);
   pinMode(A7670X_PWRKEY_PIN, OUTPUT);
-  digitalWrite(A7670X_PWRKEY_PIN, HIGH);
-  delay(3000);
   digitalWrite(A7670X_PWRKEY_PIN, LOW);
-  delay(5000);
+  vTaskDelay(pdMS_TO_TICKS(200));
+
+  // The power key TOGGLES the modem. The modem keeps its own supply when
+  // only the ESP32 resets (after reprogramming, or a software restart), so
+  // an unconditional pulse at every boot switched an already-running modem
+  // OFF: seen on 29 Sep 2026, when every GNSS poll and MQTT command went
+  // unanswered after a reflash. Pulse only if the modem does not answer.
+  if (modemResponds(3)) {
+    Serial.println("[MODEM] already on, power key not pulsed");
+  } else {
+    Serial.println("[MODEM] no reply, pulsing power key");
+    digitalWrite(A7670X_PWRKEY_PIN, HIGH);
+    delay(3000);
+    digitalWrite(A7670X_PWRKEY_PIN, LOW);
+    bool up = false;
+    for (int i = 0; i < 20 && !up; i++) {
+      delay(1000);
+      up = modemResponds(1);
+    }
+    Serial.println(up ? "[MODEM] on" : "[MODEM] still not answering after 20 s");
+  }
 
   const char* testCommands[] = {
       "AT", "AT+CPIN?", "AT+CSQ", "AT+CREG?", "AT+CGREG?", "AT+CPSI?"};
@@ -1806,6 +1951,15 @@ void ModemTask(void* pvParameters) {
           if (mqttConnected) Serial.println("[MQTT] Connection lost (modem URC), will reconnect.");
           mqttConnected = false;
           mqttNextAttemptMs = millis() + 5000;
+        }
+        // +CGEV: ... PDN ACT means the network data connection is back.
+        // Seen on 30 Sep 2026: after AT+CFUN=1 the network returned in 2.4 s
+        // but the reconnect waited 36 s for its backoff timer. Retry soon
+        // instead, and restart the backoff from its minimum.
+        if (!mqttConnected && modemLine.indexOf("+CGEV:") >= 0 && modemLine.indexOf("PDN ACT") >= 0) {
+          Serial.println("[MQTT] Network data connection back, reconnecting shortly.");
+          mqttRetryDelayMs = MQTT_RETRY_MIN_MS;
+          mqttNextAttemptMs = millis() + 2000;
         }
         modemLine = "";
       } else if (modemLine.length() < 120) {

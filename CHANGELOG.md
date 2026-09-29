@@ -20,6 +20,23 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 ---
 
 
+## 2026-09-30
+
+GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
+
+### (this commit) GNSS parser, modem power-up, fast reconnect, test procedures
+
+- `HUDTelemetryUnit/src/main.cpp` v0.5.1: GNSS parser rewritten for the real reply (17 fields, decimal degrees), locating the hemisphere letter and reading fields relative to it; satellites, course, HDOP, date and time added to the fix. Why: the old 9-field mapping, fitted to an empty no-fix reply, read satellite counts as the position (first fix reported at 0.25, 0.10).
+- v0.5.1: strict shape checks and a 100 m/s jump check before a reply is accepted as a fix; `!gnssraw` prints the raw reply on every poll. Why: replies garbled by a competing query were otherwise accepted; the raw printing avoids that competition in future tests.
+- v0.5.2: the modem power key is pulsed at boot only if the modem does not answer AT. Why: the key toggles the modem, so the unconditional pulse switched a running modem off after a reflash (a whole capture got no replies).
+- v0.5.3: the 18-field reply (empty course, one trailing value) is accepted. Why: 18 valid replies were rejected in the v0.5.2 capture.
+- v0.5.3: reconnect a few seconds after the modem reports the data connection back (+CGEV ... PDN ACT), with the backoff reset. Why: in v0.5.0 the reconnect waited 36 s for its backoff although the network was back in 2.4 s; now about 5 s.
+- `BenchTest/gnss_capture.py`, `BenchTest/signal_loss_test.py`: new test scripts. Why: repeatable GNSS and signal-loss tests.
+- `BenchTest/capture_log.ps1`, `BenchTest/analyse_log.py`, `CameraDetection/tests/`, `DashboardIntegration/tests/`: test scripts moved from the scratch folder into the repo. Why: the student asked for the testing to be recorded; every test in TEST_PROCEDURES.md can now be rerun.
+- `BenchTest/TEST_PROCEDURES.md`: method, pass criteria, results and evidence for every test. Why: same.
+- `Report/Methodology.tex`: new subsection on the outdoor fix and confirmed field layout, the power-key fault, and the signal-loss results; two remaining hard-coded section numbers turned into \ref. Why: record the results; keep references correct.
+- `Report/appendixc.tex`: three evidence rows. Why: keep the evidence index complete.
+
 ## 2026-09-29
 
 Report captures all implemented work, marked tested or untested; length pass deferred. Firmware v0.5.0 flashed and bench-tested; flash-write stall confirmed.
