@@ -24,6 +24,10 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 Report captures all implemented work, marked tested or untested; length pass deferred. Firmware v0.5.0 flashed and bench-tested; flash-write stall confirmed.
 
+### (this commit) Note dashboard design references
+
+- `PROJECT_LOG.md`, 4.3 Dashboard integration: two design references the student shared (a Medium article on the evolution of car dashboards and a Figma community autonomous-vehicle dashboard). Why: the student asked for them to be noted, for the dashboard direction replacing the HUD.
+
 ### (this commit) Report clean-up pass
 
 - `Report/Methodology.tex`: drafting notes removed or rewritten ("Chapter 2/Chapter 3 as appropriate", "before the report claims which physical pack", "the student observed", "for the report"). Why: they read as carelessness to an examiner (Planning/report-review.md).

@@ -375,6 +375,10 @@ Known limitations:
 
 ### 4.3 Dashboard integration (DashboardIntegration/)
 
+Design references noted by the student (29 Sept 2026), for the dashboard direction that is replacing the HUD (pending the supervisor). Not yet reviewed in detail:
+- A. S. Suryavanshi, "Driving into the Future: The Evolution of Car Dashboards", Medium: https://medium.com/@aushijsingh.suryavanshi/driving-into-the-future-the-evolution-of-car-dashboards-c9a9c7f22f3c. A blog post, not peer reviewed, so useful as background but not as a citation for a claim in the report.
+- "Smart Autonomous Vehicle Dashboard: Real-Time Interactive System", Figma Community file: https://www.figma.com/community/file/1582306361195081977/smart-autonomous-vehicle-dashboard-real-time-interactive-system. A design example for laying out camera, hazard and vehicle-state information on one screen.
+
 What it does:
 - front_camera_page.py is a FrontCameraPage for the vac-work PySide6 dashboard on the Pi 5 (Tukzie-Vac-Work-2026/Dashboard Team/Dashboard+ASIS).
 - A QtNetwork MJPEG reader decodes only the newest frame and streams only while the page is visible.
