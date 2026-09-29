@@ -84,10 +84,27 @@ across the bench. Keep it technical, not playful.
 
 ## Variant B: minimal (paste after the shared description)
 
-Make it calm and minimal, like a precise lab instrument: mostly neutral
-greys with a single accent, generous whitespace, thin hairline dividers
-instead of heavy cards, one clear type scale, and no decoration. Status is
-shown by small dots and short labels, and colour appears only where
-something needs attention (an alert, a fault, a disconnected link). The
-charts are thin-line and quiet. Everything should still fit on one screen
-with light scrolling.
+Make it calm and minimal, like a precise lab instrument. Follow these
+rules strictly:
+- Three colours only, in a 60-30-10 split: one neutral background (60%),
+  one neutral for text and lines in two or three tints (30%), and one
+  accent (10%) used only for interactive elements and the single most
+  important live value. Alert states (immediate, warning) may use one
+  extra signal colour each, and only on the alert itself.
+- One typeface in two weights (regular and semibold) on a fixed type scale
+  of four sizes: large value, section title, body, caption. Hierarchy comes
+  from size, weight and spacing, never from extra colours.
+- An 8 px spacing grid, one column grid across the page, and every panel
+  edge aligned to it. Generous whitespace instead of boxes: thin hairline
+  dividers, no heavy cards, no shadows, one small corner radius used
+  everywhere.
+- Status shown by a small dot plus a short word ("live", "no link",
+  "fault"); colour appears only where something needs attention.
+- Progressive disclosure: the camera, the alerts and the six status lines
+  are visible first; the per-sensor table, the serial log and the
+  not-yet-connected sensors sit lower or collapse.
+- Charts are thin single-weight lines in the neutral tints, with only the
+  fused series in the accent colour, a faint grid and direct labels on the
+  lines instead of a separate legend where possible.
+- No icons unless they replace a word, no decoration, no gradients.
+Everything should still fit on one screen with light scrolling.
