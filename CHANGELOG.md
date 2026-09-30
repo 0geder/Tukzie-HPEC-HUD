@@ -28,6 +28,7 @@ GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss reco
 
 - Pi: current `hazard_detector.py` deployed (the Pi had an older copy without `--threads` and `--timing-log`; the old copy kept as `hazard_detector_old.py`). Why: needed for C4.
 - `BenchTest/logs/2026-09-30_c4_latency/`: three one-minute latency runs. `Report/Methodology.tex`: results and Table tab:camera-latency replace the "not yet measured" sentence; `TEST_PROCEDURES.md` C4; Appendix C row. Why: the brief asks for edge latency.
+- `CameraDetection/tof_reader.py`: reads one or three VL53L0X micro-sensors, waking them one at a time through XSHUT to give each its own address. Why: the micromouse schematic identifies the stand-in part as VL53L0X; untested until the Pi's I2C is on.
 - `CameraDetection/tof_probe.py`: identifies the stand-in ToF chip from its model-ID register. Why: the micromouse sensors are unmarked, and each chip needs a different driver.
 - `Planning/camera-tof-next-prompt.md`: the plan for this piece of work. `Planning/mounting-and-enclosures.md` added earlier.
 - `PROJECT_LOG.md`: optocoupler identified from photos as a bestep PC817 module. Why: closes the part-number question in D31.
