@@ -27,6 +27,7 @@ GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss reco
 ### (this commit) Pi sync-edge logger, I2C voltage check
 
 - `CameraDetection/sync_logger.py`: new Pi-side logger for the ESP32 sync pulse, using gpiod kernel edge timestamps on the monotonic clock (the camera's clock), with a gpiozero fallback and an interval summary. Why: the earlier logger was not in the repo, and the road test needs it.
+- `BenchTest/logs/2026-09-30_sync_edges_run*.csv`: first logged sync runs on the Pi (run 1 noisy for 16 s, run 2 clean, 500.06 ms median). Why: evidence for C6.
 - `BenchTest/TEST_PROCEDURES.md`: C6 wiring, logger command and pass criteria; new T8 for the I2C line voltage (about 3.3 V on the bench). Why: record how the link is tested and the voltage result.
 
 ### (9e4387d) GNSS parser, modem power-up, fast reconnect, test procedures

@@ -98,7 +98,7 @@ say what each test is for and what counts as a pass.
 - Wiring: ESP32 J5 pin 5 (GPIO15) to Pi physical pin 11 (GPIO17), plus a ground wire (Pi pin 9 to ESP32 GND). Both are 3.3 V logic, so they connect directly.
 - Logger: `python3 CameraDetection/sync_logger.py --duration 60 --out sync_edges.csv` records every edge with the Pi's monotonic clock (kernel timestamps through gpiod) and prints the interval summary. Run it alongside the camera or detector so both use the same clock.
 - Pass: about 2 edges per second; median interval 500 ms; no intervals outside 500 +/- 20 ms. Zero edges means the wire or ground is loose (seen once on the bench).
-- Result: offset bounded under about 1 s (see Methodology, time synchronisation). Logger checked offline against a fake GPIO (30 Sep 2026); not yet run on the Pi. Wire check (30 Sep 2026): 20 edges in 9.95 s, one edge every 500 ms as expected.
+- Result: offset bounded under about 1 s (see Methodology, time synchronisation). Logger checked offline against a fake GPIO (30 Sep 2026); not yet run on the Pi. Wire check (30 Sep 2026): 20 edges in 9.95 s, one edge every 500 ms as expected. Logger on the Pi (30 Sep 2026, gpiod v2 kernel timestamps, 60 s each): run 1, 159 edges with 50 intervals out of range, all between 5 and 21 s into the run (bursts of extra edges down to 0.03 ms apart, consistent with a disturbed contact), clean for the last 39 s; run 2, 121 edges, median 500.06 ms, range 499.72 to 500.41 ms, 0 out of range. Evidence: `BenchTest/logs/2026-09-30_sync_edges_run1_noisy.csv`, `..._run2.csv`.
 
 ## Bench tools
 
