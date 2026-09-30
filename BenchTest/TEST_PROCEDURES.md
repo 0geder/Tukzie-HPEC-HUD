@@ -85,9 +85,11 @@ say what each test is for and what counts as a pass.
 - Method: runbook step 5 with the colour cards in `Colour Cards/` (blue, red, green, grey, plus plain white paper), held together about 1 m from the camera.
 - Pass: blue shows blue; grey and white look neutral. If both the live view and the Pi's own preview are reddish, try the `ov5647_noir.json` tuning.
 
-### C4. Latency (planned)
+### C4. Latency
 - Method: runbook step 7, three one-minute runs (no preview, with preview, one thread), keeping the `[timing]` lines and CSVs.
 - Pass: to be set from the measurements and the speed argument in the report.
+- Result (30 Sep 2026, current detector deployed to the Pi first; bench, no objects): 4 threads 19.5 fps, total median 102 ms, p95 120 ms, max 136 ms (queue 52, pre 12, inference 36, alert logic 0.1); with the live-view server (no viewer) 17.3 fps, 105 / 127 ms; 1 thread 7.0 fps, 186 / 207 ms (inference 126 ms). 65.7 C, no throttling. The earlier 7 fps live runs match the 1-thread figure.
+- Evidence: `BenchTest/logs/2026-09-30_c4_latency/` (per-frame CSVs and console output).
 
 ### C5. Distance calibration and object coverage (planned)
 - Method: runbook steps 4 and 6 with a tape measure (2, 4, 6, 8 m; facing and side-on; person and bicycle first).

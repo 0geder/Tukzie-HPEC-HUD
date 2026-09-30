@@ -21,6 +21,7 @@ This appendix indexes the raw evidence behind the bench results reported in Chap
 30 Sep 2026 & GNSS outdoor fix with the corrected parser (v0.5.2), raw replies printed by the firmware & 3D fix after 105\,s from a cold start; 23 to 25 satellites; over 104 fixes, median 2.7\,m and 95\% within 11.0\,m of the phone's position & \texttt{BenchTest/logs/ 2026-09-30\_gnss\_rooftop\_v052.log} \\ \hline
 30 Sep 2026 & MQTT recovery from a 60\,s radio-off period (\texttt{AT+CFUN=4}, then \texttt{AT+CFUN=1}), v0.5.0 and v0.5.3 & Loss detected in 0.8 to 20.7\,s; retries at 30 and 60\,s; reconnect 36\,s after the radio returned in v0.5.0, about 5\,s in v0.5.3; no failed publishes afterwards & \texttt{BenchTest/logs/ 2026-09-30\_signal\_loss\_test.log}, \texttt{..\_v053.log} \\ \hline
 30 Sep 2026 & Sync-pulse edges logged on the Pi (GPIO17, kernel timestamps), two 60\,s runs & Run 1: 16\,s burst of spurious edges, consistent with a disturbed contact; run 2: 121 edges, median interval 500.06\,ms, range 499.72 to 500.41\,ms & \texttt{BenchTest/logs/ 2026-09-30\_sync\_edges\_run1\_noisy.csv}, \texttt{..\_run2.csv} \ \hline
+30 Sep 2026 & Camera detector latency on the Pi, three 60\,s runs (4 threads, 4 threads with live view, 1 thread) & Median 102, 105 and 186\,ms from sensor readout to result; 19.5, 17.3 and 7.0 frames per second; no throttling & \texttt{BenchTest/logs/ 2026-09-30\_c4\_latency/} \ \hline
 \end{longtable}
 
 \begin{figure}[htbp]

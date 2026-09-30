@@ -24,7 +24,15 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Pi sync-edge logger, I2C voltage check
+### (this commit) Camera latency measured, ToF probe, optocoupler identified
+
+- Pi: current `hazard_detector.py` deployed (the Pi had an older copy without `--threads` and `--timing-log`; the old copy kept as `hazard_detector_old.py`). Why: needed for C4.
+- `BenchTest/logs/2026-09-30_c4_latency/`: three one-minute latency runs. `Report/Methodology.tex`: results and Table tab:camera-latency replace the "not yet measured" sentence; `TEST_PROCEDURES.md` C4; Appendix C row. Why: the brief asks for edge latency.
+- `CameraDetection/tof_probe.py`: identifies the stand-in ToF chip from its model-ID register. Why: the micromouse sensors are unmarked, and each chip needs a different driver.
+- `Planning/camera-tof-next-prompt.md`: the plan for this piece of work. `Planning/mounting-and-enclosures.md` added earlier.
+- `PROJECT_LOG.md`: optocoupler identified from photos as a bestep PC817 module. Why: closes the part-number question in D31.
+
+### (a03861a) Pi sync-edge logger, I2C voltage check
 
 - `CameraDetection/sync_logger.py`: new Pi-side logger for the ESP32 sync pulse, using gpiod kernel edge timestamps on the monotonic clock (the camera's clock), with a gpiozero fallback and an interval summary. Why: the earlier logger was not in the repo, and the road test needs it.
 - `BenchTest/logs/2026-09-30_sync_edges_run*.csv`: first logged sync runs on the Pi (run 1 noisy for 16 s, run 2 clean, 500.06 ms median). Why: evidence for C6.

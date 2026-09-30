@@ -1,0 +1,25 @@
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+[4:54:17.585083943] [2923]  INFO Camera camera_manager.cpp:340 libcamera v0.7.2+rpt20260817
+[4:54:17.603675862] [2929]  INFO RPI pipeline_base.cpp:1133 Using configuration file '/usr/share/libcamera/pipeline/rpi/vc4/rpi_apps.yaml'
+[4:54:17.625730489] [2929]  INFO IPAProxy ipa_proxy.cpp:184 Using tuning file /usr/share/libcamera/ipa/rpi/vc4/ov5647.json
+[4:54:17.631946308] [2929]  INFO Camera camera_manager.cpp:223 Adding camera '/base/soc/i2c0mux/i2c@1/ov5647@36' for pipeline handler rpi/vc4
+[4:54:17.632070438] [2929]  INFO RPI vc4.cpp:445 Registered camera /base/soc/i2c0mux/i2c@1/ov5647@36 to Unicam device /dev/media3 and ISP device /dev/media1
+[4:54:17.638598278] [2923]  INFO Camera camera.cpp:1216 configuring streams: (0) 640x480-RGB888/sRGB (1) 640x480-SGBRG10_CSI2P/RAW
+[4:54:17.639048003] [2929]  INFO RPI vc4.cpp:620 Sensor: /base/soc/i2c0mux/i2c@1/ov5647@36 - Selected sensor format: 640x480-SGBRG10_1X10/RAW - Selected unicam format: 640x480-pGAA/RAW
+Model loaded: detect.tflite (input 300x300, 4 inference threads)
+WARNING: focal_length_px=600.0 is UNCALIBRATED - distance estimates are order-of-magnitude only until calibrated.
+Watching for: bicycle, bus, car, dog, motorcycle, person, truck
+Alert log (class/band/confidence/timestamp/status only): alerts.jsonl
+[timing] 17.8 fps | queue p50=51 p95=70 max=73 | pre p50=12 p95=14 max=16 | infer p50=36 p95=38 max=39 | post p50=0 p95=0 max=0 | total p50=102 p95=119 max=124 (ms)
+[timing] 19.1 fps | queue p50=52 p95=70 max=78 | pre p50=12 p95=14 max=14 | infer p50=36 p95=49 max=52 | post p50=0 p95=0 max=0 | total p50=102 p95=123 max=133 (ms)
+[timing] 19.6 fps | queue p50=55 p95=70 max=75 | pre p50=12 p95=14 max=15 | infer p50=36 p95=38 max=40 | post p50=0 p95=0 max=0 | total p50=103 p95=119 max=126 (ms)
+[timing] 19.6 fps | queue p50=52 p95=71 max=73 | pre p50=12 p95=14 max=15 | infer p50=36 p95=38 max=40 | post p50=0 p95=0 max=0 | total p50=101 p95=119 max=127 (ms)
+[timing] 19.6 fps | queue p50=55 p95=72 max=74 | pre p50=12 p95=14 max=15 | infer p50=36 p95=38 max=41 | post p50=0 p95=0 max=0 | total p50=104 p95=120 max=128 (ms)
+[timing] 19.5 fps | queue p50=53 p95=72 max=77 | pre p50=12 p95=14 max=14 | infer p50=36 p95=38 max=40 | post p50=0 p95=0 max=0 | total p50=102 p95=121 max=127 (ms)
+[timing] 19.6 fps | queue p50=49 p95=69 max=71 | pre p50=12 p95=14 max=14 | infer p50=36 p95=38 max=42 | post p50=0 p95=0 max=0 | total p50=98 p95=118 max=120 (ms)
+[timing] 19.6 fps | queue p50=51 p95=71 max=76 | pre p50=12 p95=14 max=14 | infer p50=36 p95=39 max=41 | post p50=0 p95=0 max=0 | total p50=101 p95=120 max=124 (ms)
+[timing] 19.0 fps | queue p50=56 p95=71 max=75 | pre p50=12 p95=14 max=14 | infer p50=36 p95=46 max=59 | post p50=0 p95=0 max=0 | total p50=106 p95=122 max=135 (ms)
+[timing] 19.6 fps | queue p50=51 p95=71 max=74 | pre p50=12 p95=14 max=14 | infer p50=36 p95=38 max=43 | post p50=0 p95=0 max=0 | total p50=100 p95=120 max=124 (ms)
+[timing] 19.6 fps | queue p50=52 p95=70 max=72 | pre p50=12 p95=14 max=15 | infer p50=36 p95=38 max=40 | post p50=0 p95=0 max=0 | total p50=100 p95=118 max=122 (ms)
+
+Stopped. 1161 frames in 60.0s (19.3 fps average).
