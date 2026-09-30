@@ -56,6 +56,11 @@ monitor before running a script.
 - Result (30 Sep 2026): loss detected 0.8 s (modem report) or 20.7 s (three failed publishes) after the radio went off; retries at 30 and 60 s; reconnect 36 s after the radio returned in v0.5.0, about 5 s in v0.5.3, which reconnects as soon as the modem reports the data connection back. No failed publishes afterwards.
 - Evidence: `BenchTest/logs/2026-09-30_signal_loss_test.log` (v0.5.0), `BenchTest/logs/2026-09-30_signal_loss_test_v053.log` (v0.5.3).
 
+### T8. I2C line voltage
+- Method: board powered, multimeter on 20 V DC, black probe on GND, red probe on the IMU's SDA and then SCL pins with the bus idle.
+- Pass: about 3.3 V (pull-ups to 3.3 V, safe for the ESP32 inputs; 5 V would mean the module's pull-ups go to 5 V).
+- Result (30 Sep 2026, bench): about 3.3 V. To repeat on the vehicle wiring after mounting.
+
 ### T7. BMS link on the vehicle (planned)
 - Method: on the vehicle with the pack on, watch `[BMS] scan saw:` lines for the configured address; if absent, record the addresses seen.
 - Pass: connection and checksum-valid frames; pack voltage matches a meter reading.
@@ -90,7 +95,10 @@ say what each test is for and what counts as a pass.
 
 ### C6. Camera to IMU time alignment
 - Method: sync pulse from the ESP32 (GPIO15, toggling every 500 ms) to the Pi (GPIO17), with a lens-cover test for the camera clock offset. Quick wiring check on the Pi: `time gpiomon -c gpiochip0 -n 20 17 > /dev/null`, expecting about 10 s.
-- Result: offset bounded under about 1 s (see Methodology, time synchronisation). The Pi-side edge logger is to be rewritten and saved in the repo before the road test.
+- Wiring: ESP32 J5 pin 5 (GPIO15) to Pi physical pin 11 (GPIO17), plus a ground wire (Pi pin 9 to ESP32 GND). Both are 3.3 V logic, so they connect directly.
+- Logger: `python3 CameraDetection/sync_logger.py --duration 60 --out sync_edges.csv` records every edge with the Pi's monotonic clock (kernel timestamps through gpiod) and prints the interval summary. Run it alongside the camera or detector so both use the same clock.
+- Pass: about 2 edges per second; median interval 500 ms; no intervals outside 500 +/- 20 ms. Zero edges means the wire or ground is loose (seen once on the bench).
+- Result: offset bounded under about 1 s (see Methodology, time synchronisation). Logger checked offline against a fake GPIO (30 Sep 2026); not yet run on the Pi.
 
 ## Bench tools
 

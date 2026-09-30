@@ -24,7 +24,12 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) GNSS parser, modem power-up, fast reconnect, test procedures
+### (this commit) Pi sync-edge logger, I2C voltage check
+
+- `CameraDetection/sync_logger.py`: new Pi-side logger for the ESP32 sync pulse, using gpiod kernel edge timestamps on the monotonic clock (the camera's clock), with a gpiozero fallback and an interval summary. Why: the earlier logger was not in the repo, and the road test needs it.
+- `BenchTest/TEST_PROCEDURES.md`: C6 wiring, logger command and pass criteria; new T8 for the I2C line voltage (about 3.3 V on the bench). Why: record how the link is tested and the voltage result.
+
+### (9e4387d) GNSS parser, modem power-up, fast reconnect, test procedures
 
 - `HUDTelemetryUnit/src/main.cpp` v0.5.1: GNSS parser rewritten for the real reply (17 fields, decimal degrees), locating the hemisphere letter and reading fields relative to it; satellites, course, HDOP, date and time added to the fix. Why: the old 9-field mapping, fitted to an empty no-fix reply, read satellite counts as the position (first fix reported at 0.25, 0.10).
 - v0.5.1: strict shape checks and a 100 m/s jump check before a reply is accepted as a fix; `!gnssraw` prints the raw reply on every poll. Why: replies garbled by a competing query were otherwise accepted; the raw printing avoids that competition in future tests.
