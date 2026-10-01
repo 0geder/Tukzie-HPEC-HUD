@@ -24,7 +24,13 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Deck, poster, talking points and question preparation brought up to date
+### (this commit) YOLO benchmark prepared for the Pi 4
+
+- `CameraDetection/yolo_bench.py`: runs a YOLO model (detect or segment) on the live camera and reports fps and per-stage latency measured as in hazard_detector.py (SensorTimestamp to result); for -seg models the total includes converting masks to polygons; no frames stored. Why: the student wants to evaluate YOLO and Roboflow models; this gives numbers comparable with SSD-MobileNet's 19.5 fps and 102 ms.
+- `CameraDetection/run_yolo_bench.sh`: separate venv, NCNN export of YOLO11n and YOLO11n-seg at 320 and 640, four 60 s runs. Why: one command once the Pi is back; the detector's venv is untouched.
+- `BenchTest/TEST_PROCEDURES.md`: C8 (planned).
+
+### (7ce35ee) Deck, poster, talking points and question preparation brought up to date
 
 - `Presentation/source/build_deck.js`: slides 3 to 12 updated with the results to 1 Oct (camera latency, GNSS outdoors, signal-loss recovery, sync kernel timestamps, log read-back, colour fix, ToF stand-in, dashboard page); new dashboard slide replaces the field-test placeholder; found-and-fixed slide lists the six faults found since; RQ2 marked "Revised: dashboard"; the title is a single constant, unchanged until the supervisor agrees. It now also writes `SW7_Talking_Points.md` from the speaker notes (1,485 words, about 10 minutes). Why: the deck dated from 29 Sept and said the HUD was to be built.
 - `Presentation/source/build_poster.js`: aim, system caption, bench-result figures, found-and-fixed and conclusions updated the same way. Why: same.

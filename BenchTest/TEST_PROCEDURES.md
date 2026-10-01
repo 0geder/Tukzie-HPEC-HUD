@@ -127,6 +127,12 @@ say what each test is for and what counts as a pass.
 
 ## Bench tools
 
+### C8. YOLO comparison on the Pi 4 (planned)
+- Why: decide with measurements whether a YOLO model (boxes, or polygons with -seg) can replace or join SSD-MobileNet on the Pi 4, and what polygons cost.
+- Method: stop the detector; copy `CameraDetection/yolo_bench.py` and `run_yolo_bench.sh` to `~/yolo_bench` on the Pi and run `bash run_yolo_bench.sh`. It builds its own venv (ultralytics, ncnn), exports YOLO11n and YOLO11n-seg to NCNN at 320 and 640, and runs each for 60 s with the NoIR tuning and saturation 1.8. Timing as in C4: queue from SensorTimestamp, then pre, inference, post, total sensor to result; no frames stored.
+- Pass: not a pass/fail test. Record fps and median/p95 total for each of the four runs next to SSD-MobileNet (19.5 fps, 102/120 ms). A model is usable for live alerts if it keeps the alert onset (three frames plus latency) under about 0.5 s.
+- Results: `results/` on the Pi, copied to `BenchTest/logs/`.
+
 ### B1. Bench console replay
 - Method: inject a recorded log into `BenchTest/sw7_console.html` as `window.REPLAY_LINES` and screenshot it with headless Edge (the replay figure in Appendix C).
 - Pass: every card and chart matches the log.
