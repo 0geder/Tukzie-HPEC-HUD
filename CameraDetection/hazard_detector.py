@@ -397,6 +397,10 @@ def main():
     parser.add_argument("--tuning", default=None,
                          help="Camera tuning file, e.g. ov5647_noir.json for a module with no "
                               "infrared filter (pink or red cast). Default: the standard tuning")
+    parser.add_argument("--saturation", type=float, default=None,
+                        help="Colour saturation (libcamera control, 1.0 = normal). The module "
+                             "has no infrared filter, so colours come out washed out even with "
+                             "the NoIR tuning; about 1.5 to 2.0 restores some of it")
     parser.add_argument("--threads", type=int, default=4,
                          help="CPU threads for inference (the Pi 4 has 4 cores)")
     parser.add_argument("--verbose", action="store_true",
@@ -434,6 +438,9 @@ def main():
     picam2.configure(picam2.create_preview_configuration(
         main={"size": (args.width, args.height), "format": "RGB888"}))
     picam2.start()
+    if args.saturation is not None:
+        picam2.set_controls({"Saturation": args.saturation})
+        print(f"Camera saturation: {args.saturation}")
 
     print(f"Model loaded: {args.model} (input {input_width}x{input_height}, {args.threads} inference threads)")
     print(f"WARNING: focal_length_px={args.focal_length_px} is UNCALIBRATED - "

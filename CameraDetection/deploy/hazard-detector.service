@@ -19,7 +19,7 @@ Type=simple
 User=ogeder
 WorkingDirectory=/home/ogeder/hazard_detector
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/home/ogeder/hazard_detector/venv/bin/python3 /home/ogeder/hazard_detector/hazard_detector.py --preview --preview-host 0.0.0.0 --log-path /home/ogeder/hazard_detector/alerts.jsonl
+ExecStart=/home/ogeder/hazard_detector/venv/bin/python3 /home/ogeder/hazard_detector/hazard_detector.py --tuning ov5647_noir.json --saturation 1.8 --preview --preview-host 0.0.0.0 --log-path /home/ogeder/hazard_detector/alerts.jsonl
 Restart=on-failure
 RestartSec=3
 # SIGTERM is handled in the script: the camera and live view are released

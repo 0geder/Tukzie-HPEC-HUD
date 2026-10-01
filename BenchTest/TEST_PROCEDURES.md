@@ -95,9 +95,11 @@ say what each test is for and what counts as a pass.
 - Pass: single missed frames do not clear an alert; a single near frame does not escalate it; a sustained approach does; the alert clears when the object leaves; `/alerts` empties after clearing; handing a frame to the preview does not block; timings are recorded.
 - Result (28 to 30 Sep 2026): all pass.
 
-### C3. Colour check (planned)
+### C3. Colour check
 - Method: runbook step 5 with the colour cards in `Colour Cards/` (blue, red, green, grey, plus plain white paper), held together about 1 m from the camera.
 - Pass: blue shows blue; grey and white look neutral. If both the live view and the Pi's own preview are reddish, try the `ov5647_noir.json` tuning.
+- Result (1 Oct 2026): `rpicam-still` with the standard tuning: white wall strongly pink; with `ov5647_noir.json`: neutral. Detector frames (standard tuning) also pink, so the module has no IR-cut filter (student confirms the camera is the cause). With `--tuning ov5647_noir.json` alone: neutral but washed out, blue card RGB 120/124/125. With `--saturation 1.8` added: blue card 1/83/218, red box 213/7/56, white wall 202/217/214. Detector now started with both (service file updated). Red, green and grey cards not checked individually; recheck outdoors in daylight.
+- Evidence: `Report/evidence/c3/` (default.jpg, noir.jpg, detector_view.jpg, detector_view_noir.jpg, card_blue.jpg, card_blue_sat18.jpg).
 
 ### C4. Latency
 - Method: runbook step 7, three one-minute runs (no preview, with preview, one thread), keeping the `[timing]` lines and CSVs.

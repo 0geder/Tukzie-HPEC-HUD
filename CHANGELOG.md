@@ -24,7 +24,13 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Dashboard camera page tested against the live detector
+### (this commit) Camera colour fixed: NoIR tuning plus saturation
+
+- `CameraDetection/hazard_detector.py`: `--saturation` option (libcamera Saturation control). Why: the module has no IR-cut filter; with the NoIR tuning the cast goes but colours are washed out (blue card almost grey); 1.8 restores them.
+- `CameraDetection/deploy/hazard-detector.service`: starts with `--tuning ov5647_noir.json --saturation 1.8`. Why: the measured fix.
+- `Report/evidence/c3/`, TEST_PROCEDURES C3, Methodology colour-cast result, Appendix C row.
+
+### (290b476) Dashboard camera page tested against the live detector
 
 - `DashboardIntegration/tests/test_front_camera_page_live.py`: runs the page offscreen against the Pi's detector for 60 s, counting decoded frames and status changes. Result: live in 0.6 s, 14.2 frames/s decoded, offline state shown when the detector stops. Why: the page had only been tested against fakes.
 - `Report/evidence/2026-10-01_dashboard_page_live.png`; TEST_PROCEDURES B2; Methodology and Appendix C. Why: record it.

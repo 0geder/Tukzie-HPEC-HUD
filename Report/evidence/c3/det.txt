@@ -1,0 +1,17 @@
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+[4:23:34.856855085] [4241]  INFO Camera camera_manager.cpp:340 libcamera v0.7.2+rpt20260817
+[4:23:34.875689897] [4248]  INFO RPI pipeline_base.cpp:1133 Using configuration file '/usr/share/libcamera/pipeline/rpi/vc4/rpi_apps.yaml'
+[4:23:34.898951730] [4248]  INFO IPAProxy ipa_proxy.cpp:184 Using tuning file /usr/share/libcamera/ipa/rpi/vc4/ov5647.json
+[4:23:34.905356721] [4248]  INFO Camera camera_manager.cpp:223 Adding camera '/base/soc/i2c0mux/i2c@1/ov5647@36' for pipeline handler rpi/vc4
+[4:23:34.905439471] [4248]  INFO RPI vc4.cpp:445 Registered camera /base/soc/i2c0mux/i2c@1/ov5647@36 to Unicam device /dev/media0 and ISP device /dev/media3
+[4:23:34.912337317] [4241]  INFO Camera camera.cpp:1216 configuring streams: (0) 640x480-RGB888/sRGB (1) 640x480-SGBRG10_CSI2P/RAW
+[4:23:34.913563665] [4248]  INFO RPI vc4.cpp:620 Sensor: /base/soc/i2c0mux/i2c@1/ov5647@36 - Selected sensor format: 640x480-SGBRG10_1X10/RAW - Selected unicam format: 640x480-pGAA/RAW
+Model loaded: detect.tflite (input 300x300, 4 inference threads)
+WARNING: focal_length_px=600.0 is UNCALIBRATED - distance estimates are order-of-magnitude only until calibrated.
+Watching for: bicycle, bus, car, dog, motorcycle, person, truck
+Alert log (class/band/confidence/timestamp/status only): alerts.jsonl
+Live view: open http://localhost:8080 in this Pi's browser
+[timing] 13.7 fps | queue p50=40 p95=49 max=58 | pre p50=12 p95=17 max=32 | infer p50=43 p95=50 max=54 | post p50=0 p95=0 max=1 | total p50=96 p95=110 max=120 (ms)
+[timing] 14.8 fps | queue p50=40 p95=51 max=53 | pre p50=12 p95=15 max=17 | infer p50=45 p95=50 max=55 | post p50=0 p95=0 max=0 | total p50=97 p95=108 max=113 (ms)
+
+Stopped. 174 frames in 12.0s (14.5 fps average).
