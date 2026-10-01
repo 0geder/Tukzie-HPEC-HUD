@@ -24,7 +24,13 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Camera colour fixed: NoIR tuning plus saturation
+### (this commit) Dashboard page shows a live person alert
+
+- `Report/evidence/2026-10-01_dashboard_page_person.png`: page with a red Person, Immediate row against the live detector. Why: last open part of the dashboard live test (B2).
+- `Report/Methodology.tex` dashboard paragraph: person-alert result added; a `ef` that had lost its backslash (shown as "Appendix ef") fixed; stale sentence saying the page had not been run against the live detector removed. Why: the text contradicted the results above it.
+- `Report/appendixc.tex`, `BenchTest/TEST_PROCEDURES.md` B2: person-alert row and result.
+
+### (88ec05d) Camera colour fixed: NoIR tuning plus saturation
 
 - `CameraDetection/hazard_detector.py`: `--saturation` option (libcamera Saturation control). Why: the module has no IR-cut filter; with the NoIR tuning the cast goes but colours are washed out (blue card almost grey); 1.8 restores them.
 - `CameraDetection/deploy/hazard-detector.service`: starts with `--tuning ov5647_noir.json --saturation 1.8`. Why: the measured fix.
