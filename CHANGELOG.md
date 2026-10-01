@@ -24,7 +24,12 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Stand-in ToF running on the Pi
+### (this commit) Dashboard camera page tested against the live detector
+
+- `DashboardIntegration/tests/test_front_camera_page_live.py`: runs the page offscreen against the Pi's detector for 60 s, counting decoded frames and status changes. Result: live in 0.6 s, 14.2 frames/s decoded, offline state shown when the detector stops. Why: the page had only been tested against fakes.
+- `Report/evidence/2026-10-01_dashboard_page_live.png`; TEST_PROCEDURES B2; Methodology and Appendix C. Why: record it.
+
+### (9dbf398) Stand-in ToF running on the Pi
 
 - Pi: Blinka and the VL53L0X driver installed in the detector's venv; `tof_probe.py` and `tof_reader.py` deployed. Micromouse sensor board wired through its J2 header. Probe: VL53L0X. Reader: three sensors at about 31 readings/s each. Why: stand-in for the VL53L5CX (not yet arrived).
 - `BenchTest/logs/2026-10-01_tof_three_sensors.csv`; TEST_PROCEDURES C7; Methodology ToF stand-in result; Appendix C row. Why: record the first run.

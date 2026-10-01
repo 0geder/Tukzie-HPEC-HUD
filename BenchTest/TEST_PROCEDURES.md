@@ -132,4 +132,6 @@ say what each test is for and what counts as a pass.
 ### B2. Dashboard camera page, offscreen
 - Method: `DashboardIntegration/tests/test_front_camera_page.py` (setup in its header).
 - Pass: newest frame chosen from a chunked stream; alerts listed and cleared; responsive and "Camera offline, retrying" against an unreachable address.
-- Result (28 Sep 2026): passes. Not yet tested on the Pi 5 or against the live detector.
+- Result (28 Sep 2026): passes. Not yet tested on the Pi 5.
+- Live (1 Oct 2026, `DashboardIntegration/tests/test_front_camera_page_live.py` on the laptop, detector on the Pi 4 with `--preview --preview-host 0.0.0.0`, 50 s): page Live 0.6 s after start; 638 frames decoded in 45 s (14.2 per second, detector 14.8 fps); longest gap 0.22 s; frame rate and latency shown (14.7 fps, 76 to 87 ms); 'Camera offline, retrying' within a second of the detector stopping. No alerts (nobody in view), so the alert list against live detections is still to check. Note: start the detector in the foreground of the SSH session; started with nohup from SSH it did not serve.
+- Evidence: `Report/evidence/2026-10-01_dashboard_page_live.png`.
