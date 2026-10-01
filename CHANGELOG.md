@@ -24,7 +24,14 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Firmware v0.5.4 and v0.6.0: BMS checksum, buffered log, signal quality, Hall counter
+### (this commit) Firmware v0.6.1 to v0.6.3: log read-back, JSON NaN fix
+
+- `HUDTelemetryUnit/src/main.cpp` v0.6.1 to v0.6.3: `!log dump` (records as LOG|index|length|record, paced 4 ms per record) and `!log clear`. Why: the stored log had never been read back, and it was at 2.2 MB of the 3 MB cap, where it would be deleted.
+- v0.6.3: nan and inf in the telemetry JSON written as null. Why: the read-back found 5,545 of 6,020 records invalid as JSON (position fields before a fix); the same text went to MQTT.
+- `BenchTest/log_dump.py`: multi-pass dump with index and length checks. Why: a single pass lost records to other tasks' output on the same serial link. `BenchTest/logs/2026-10-01_telemetry_log_dump*.jsonl`: the recovered log (also holds the only complete BMS readings so far, 14 records from 30 Sep).
+- `Report/Methodology.tex`: read-back result replaces "not yet done"; BMS checksum confirmed from the log. TEST_PROCEDURES T10 and T7; Appendix C row.
+
+### (55dee14) Firmware v0.5.4 and v0.6.0: BMS checksum, buffered log, signal quality, Hall counter
 
 - `HUDTelemetryUnit/src/main.cpp` v0.5.4: BMS checksum now sums status, length and data, not the register byte; rejected frames printed raw. Why: on the vehicle the only three frames received were all rejected; the query frame's own checksum shows the rule.
 - v0.6.0: log lines buffered in RAM and written in one append about once a minute (and before `!recal`); `!log flush`; flush timing in `!status`. Why: each flash write pauses the IMU tasks (33 to 40 ms every 10 s in v0.5.0); now about once a minute.

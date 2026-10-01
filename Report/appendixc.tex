@@ -23,6 +23,7 @@ This appendix indexes the raw evidence behind the bench results reported in Chap
 30 Sep 2026 & Sync-pulse edges logged on the Pi (GPIO17, kernel timestamps), two 60\,s runs & Run 1: 16\,s burst of spurious edges, consistent with a disturbed contact; run 2: 121 edges, median interval 500.06\,ms, range 499.72 to 500.41\,ms & \texttt{BenchTest/logs/ 2026-09-30\_sync\_edges\_run1\_noisy.csv}, \texttt{..\_run2.csv} \\ \hline
 30 Sep 2026 & Camera detector latency on the Pi, three 60\,s runs (4 threads, 4 threads with live view, 1 thread) & Median 102, 105 and 186\,ms from sensor readout to result; 19.5, 17.3 and 7.0 frames per second; no throttling & \texttt{BenchTest/logs/ 2026-09-30\_c4\_latency/} \\ \hline
 1 Oct 2026 & Firmware v0.6.0 bench run, 330\,s, logging on throughout (buffered log, signal quality, Hall counter in loopback) & Five flushes; all ten gaps over 10\,ms (37 to 40\,ms) within 3.5\,s after a flush; worst gap otherwise 5.9\,ms; no dropped samples; Hall counter 2.00 edges/s; CSQ 24 to 26 & \texttt{BenchTest/logs/ 2026-10-01\_v060\_bench\_test.log} \\ \hline
+1 Oct 2026 & Read-back of the stored telemetry log (firmware v0.6.3, \texttt{BenchTest/log\_dump.py}, four passes) & 6,020 records recovered complete; 5,545 contained \texttt{nan} (invalid JSON, fixed in v0.6.3); 14 records with a valid BMS reading (74.78\,V, 60\%) from 30 Sep; log then cleared & \texttt{BenchTest/logs/ 2026-10-01\_telemetry\_log\_dump.jsonl}, \texttt{..clean.jsonl} \\ \hline
 \end{longtable}
 
 \begin{figure}[htbp]

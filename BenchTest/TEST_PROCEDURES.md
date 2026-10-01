@@ -67,9 +67,15 @@ monitor before running a script.
 - Result (1 Oct 2026): 5 flushes (71 to 202 ms each); 10 windows with a gap over 10 ms (37 to 40 ms, both IMUs at each flush), all within 3.5 s after a flush; worst gap otherwise 5.9 ms; 200.0 to 200.5 Hz, 0 dropped; Hall 666 edges in 333.3 s = 2.00 edges/s; CSQ 24 to 26 (about -65 dBm). Log file 2.18 MB of the 3 MB cap.
 - Evidence: `BenchTest/logs/2026-10-01_v060_bench_test.log`.
 
+### T10. Stored log read-back
+- Method: `python BenchTest/log_dump.py COM10 <out.jsonl> [--clear]`: sends `!log dump` (records printed as LOG|index|length|record, paced), keeps intact records, repeats up to four passes until every index is present, checks JSON, saves the records as stored and a .clean.jsonl with nan replaced by null; `--clear` then sends `!log clear`.
+- Pass: every index up to the firmware's line count received intact; every record parses.
+- Result (1 Oct 2026, v0.6.3): 6,020 records (2.2 MB, about 16.7 h) complete after four passes (the one index missing was a record written during the dump). 5,545 contained nan and were not valid JSON as stored (fixed in v0.6.3); all parse after nan -> null. 14 records with a valid BMS reading (74.78 V, 0.00 A, 60%) from the 30 Sep v0.5.4 session. Log cleared afterwards.
+- Evidence: `BenchTest/logs/2026-10-01_telemetry_log_dump.jsonl`, `.clean.jsonl`.
+
 ### T7. BMS link on the vehicle (planned)
 - Method: on the vehicle with the pack on, watch `[BMS] scan saw:` lines for the configured address; if absent, record the addresses seen.
-- Result so far (30 Sep 2026): pack seen as DB24SA01L24S150ABU at the configured address, weak signal (-93 dBm at the laptop, -88 dBm on a phone). One connection, three frames, all rejected: checksum formula wrong (included the register byte). Fixed in v0.5.4, which also prints rejected frames raw; not yet confirmed against a real frame. Next: place the board within about 1 m of the pack's Bluetooth module; compare with the phone app.
+- Result so far (30 Sep 2026): pack seen as DB24SA01L24S150ABU at the configured address, weak signal (-93 dBm at the laptop, -88 dBm on a phone). One connection, three frames, all rejected: checksum formula wrong (included the register byte). Fixed in v0.5.4, which also prints rejected frames raw. Confirmed by the stored log (T10): 14 records with a valid reading, 74.78 V, 0.00 A, 60%, later in the same session; still to compare with the phone app. Next: place the board within about 1 m of the pack's Bluetooth module; compare with the phone app.
 - Evidence: `BenchTest/logs/2026-09-30_bms_vehicle_v054*.log`, `BenchTest/bms_probe.py` (laptop, read-only).
 - Pass: connection and checksum-valid frames; pack voltage matches a meter reading.
 

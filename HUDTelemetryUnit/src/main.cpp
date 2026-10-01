@@ -11,7 +11,7 @@
 #include <Preferences.h>
 #include <LittleFS.h>
 
-#define FIRMWARE_VERSION "v0.6.0"
+#define FIRMWARE_VERSION "v0.6.3"
 
 // ============================================================
 // SW-7 ESP32-S3 Firmware v0.4.0
@@ -1895,7 +1895,15 @@ String buildTelemetryJson() {
            latestGnssFix.valid ? "true" : "false", latestGnssFix.latitude_deg,
            latestGnssFix.longitude_deg, latestGnssFix.speed_reported,
            (int)cellCsqRaw, (float)hallEdgesPerSecond, rpm);
-  return String(buf);
+  // JSON has no NaN or infinity: before a GNSS fix, for example, the
+  // position fields are NaN and printf writes "nan", which made every
+  // such record invalid JSON up to v0.6.2 (found reading the log back).
+  String json(buf);
+  json.replace(":-nan", ":null");
+  json.replace(":nan", ":null");
+  json.replace(":-inf", ":null");
+  json.replace(":inf", ":null");
+  return json;
 }
 
 // ============================================================
@@ -1909,6 +1917,8 @@ String buildTelemetryJson() {
 //   !log off     stop local flash logging (flash-write stall test)
 //   !log on      start it again
 //   !log flush   write the buffered log lines to flash now
+//   !log dump    print the stored log (BenchTest/log_dump.py saves it)
+//   !log clear   delete the stored log file
 //   !mqtt        try to reconnect MQTT now
 //   !gnssraw     toggle printing the raw GNSS reply on every poll
 //   !recal       erase both stored IMU calibrations and restart; the board
@@ -1918,7 +1928,7 @@ void handleLocalCommand(String line) {
   line.trim();
   line.toLowerCase();
   if (line == "!help") {
-    Serial.println("[CMD] !status  !log off  !log on  !log flush  !mqtt  !gnssraw  !recal");
+    Serial.println("[CMD] !status  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !recal");
   } else if (line == "!status") {
     Serial.printf("[CMD] firmware %s\n", FIRMWARE_VERSION);
     Serial.printf("[CMD] local log: %s, %u lines written, %u failures\n",
@@ -1953,6 +1963,38 @@ void handleLocalCommand(String line) {
     Serial.println("[CMD] local flash logging OFF");
   } else if (line == "!log flush") {
     flushLocalLog();
+  } else if (line == "!log dump") {
+    // Prints the stored log, one "LOG|<line>" per record in a single
+    // write each, so the lines can be picked out of the other tasks'
+    // output on the laptop (BenchTest/log_dump.py). The end marker gives
+    // the line and byte counts for a completeness check.
+    flushLocalLog();
+    File f = LittleFS.open(LOCAL_LOG_PATH, "r");
+    if (!f) {
+      Serial.println("[LOGDUMP] no log file");
+    } else {
+      Serial.printf("[LOGDUMP] begin %u bytes\n", (unsigned)f.size());
+      uint32_t n = 0, bytes = 0;
+      while (f.available()) {
+        String rec = f.readStringUntil('\n');
+        bytes += rec.length() + 1;
+        if (rec.endsWith("\r")) rec.remove(rec.length() - 1);  // older lines end in CRLF
+        // Index and length prefix: other tasks' output can land inside a
+        // line, so the laptop keeps only lines whose length matches and
+        // repeats the dump to fill any gaps by index. Paced so the USB
+        // serial buffer is not overrun.
+        Serial.printf("LOG|%u|%u|%s\n", (unsigned)n, (unsigned)rec.length(), rec.c_str());
+        n++;
+        vTaskDelay(pdMS_TO_TICKS(4));
+      }
+      f.close();
+      Serial.printf("[LOGDUMP] end %u lines %u bytes\n", (unsigned)n, (unsigned)bytes);
+    }
+  } else if (line == "!log clear") {
+    flushLocalLog();
+    LittleFS.remove(LOCAL_LOG_PATH);
+    localLogFileBytes = 0;
+    Serial.println("[CMD] local log file deleted");
   } else if (line == "!log on") {
     localLogEnabled = true;
     Serial.println("[CMD] local flash logging on");
