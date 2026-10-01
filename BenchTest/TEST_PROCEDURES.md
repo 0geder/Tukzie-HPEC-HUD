@@ -61,8 +61,16 @@ monitor before running a script.
 - Pass: about 3.3 V (pull-ups to 3.3 V, safe for the ESP32 inputs; 5 V would mean the module's pull-ups go to 5 V).
 - Result (30 Sep 2026, bench): about 3.3 V. To repeat on the vehicle wiring after mounting.
 
+### T9. Firmware v0.6.0: buffered logging, signal quality, Hall counter
+- Method: `python BenchTest/v060_bench_test.py COM10 <log> 330`: resets the board, `!status`, 330 s with logging on, `!status`. Board still. Hall counter in bench loopback on the sync pin (HALL_INPUT_PIN = SYNC_PULSE_PIN).
+- Pass: gaps over 10 ms only at a log flush (about once a minute); no dropped samples; Hall count between the two `!status` = 2.00 edges/s; a CSQ value shown.
+- Result (1 Oct 2026): 5 flushes (71 to 202 ms each); 10 windows with a gap over 10 ms (37 to 40 ms, both IMUs at each flush), all within 3.5 s after a flush; worst gap otherwise 5.9 ms; 200.0 to 200.5 Hz, 0 dropped; Hall 666 edges in 333.3 s = 2.00 edges/s; CSQ 24 to 26 (about -65 dBm). Log file 2.18 MB of the 3 MB cap.
+- Evidence: `BenchTest/logs/2026-10-01_v060_bench_test.log`.
+
 ### T7. BMS link on the vehicle (planned)
 - Method: on the vehicle with the pack on, watch `[BMS] scan saw:` lines for the configured address; if absent, record the addresses seen.
+- Result so far (30 Sep 2026): pack seen as DB24SA01L24S150ABU at the configured address, weak signal (-93 dBm at the laptop, -88 dBm on a phone). One connection, three frames, all rejected: checksum formula wrong (included the register byte). Fixed in v0.5.4, which also prints rejected frames raw; not yet confirmed against a real frame. Next: place the board within about 1 m of the pack's Bluetooth module; compare with the phone app.
+- Evidence: `BenchTest/logs/2026-09-30_bms_vehicle_v054*.log`, `BenchTest/bms_probe.py` (laptop, read-only).
 - Pass: connection and checksum-valid frames; pack voltage matches a meter reading.
 
 ## Camera and detector (Raspberry Pi 4)

@@ -24,7 +24,15 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Camera latency measured, ToF probe, optocoupler identified
+### (this commit) Firmware v0.5.4 and v0.6.0: BMS checksum, buffered log, signal quality, Hall counter
+
+- `HUDTelemetryUnit/src/main.cpp` v0.5.4: BMS checksum now sums status, length and data, not the register byte; rejected frames printed raw. Why: on the vehicle the only three frames received were all rejected; the query frame's own checksum shows the rule.
+- v0.6.0: log lines buffered in RAM and written in one append about once a minute (and before `!recal`); `!log flush`; flush timing in `!status`. Why: each flash write pauses the IMU tasks (33 to 40 ms every 10 s in v0.5.0); now about once a minute.
+- v0.6.0: `AT+CSQ` every publish cycle, in `!status` and the JSON (`cell.csq`). Why: map coverage on the road test and explain failed publishes.
+- v0.6.0: Hall pulse counter (PCNT, both edges, 12.5 us filter, read every second), in `!status` and the JSON (`hall.eps`, `hall.rpm`, null until the pole-pair count is set). Bench loopback on the sync pin until the optocoupler tap is wired. Why: motor speed for RQ4 and powertrain monitoring.
+- `BenchTest/v060_bench_test.py`, `BenchTest/bms_probe.py`: new tests. `TEST_PROCEDURES.md` T9 and T7 result. `Report/Methodology.tex`: BMS checksum fault, Motor speed tap section, buffered-log result, I2C voltage, ToF stand-in. Appendix C row.
+
+### (b1b3c56) Camera latency measured, ToF probe, optocoupler identified
 
 - Pi: current `hazard_detector.py` deployed (the Pi had an older copy without `--threads` and `--timing-log`; the old copy kept as `hazard_detector_old.py`). Why: needed for C4.
 - `BenchTest/logs/2026-09-30_c4_latency/`: three one-minute latency runs. `Report/Methodology.tex`: results and Table tab:camera-latency replace the "not yet measured" sentence; `TEST_PROCEDURES.md` C4; Appendix C row. Why: the brief asks for edge latency.

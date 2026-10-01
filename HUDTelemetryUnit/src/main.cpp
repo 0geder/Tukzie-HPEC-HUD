@@ -11,7 +11,7 @@
 #include <Preferences.h>
 #include <LittleFS.h>
 
-#define FIRMWARE_VERSION "v0.5.3"
+#define FIRMWARE_VERSION "v0.6.0"
 
 // ============================================================
 // SW-7 ESP32-S3 Firmware v0.4.0
@@ -851,11 +851,12 @@ void SyncTask(void* pvParameters) {
 // Frame layout: [0]=0xDD  [1]=register  [2]=status  [3]=data length N
 //               [4 .. 4+N-1]=data  [4+N,4+N+1]=checksum (big-endian)
 //               [4+N+2]=0x77 terminator
-// Checksum = (0x10000 - sum(bytes[1..3] + data bytes)) & 0xFFFF. This
-// formula is drawn from community-documented reverse-engineering of the
-// JBD protocol, not a vendor datasheet - treat a persistent checksum
-// failure as a signal to re-derive it from a freshly captured raw frame
-// rather than assuming the frame itself is bad.
+// Checksum = (0x10000 - sum(bytes[2..3] + data bytes)) & 0xFFFF, i.e.
+// status, length and data, NOT the register byte [1]. Same rule as the
+// query: DD A5 03 00 FF FD 77 sums only 03 00 (0x10000 - 3 = 0xFFFD), not
+// the A5. Up to v0.5.3 the register byte was included, so every real
+// frame failed by exactly 3 (first seen on the vehicle 30 Sep 2026: three
+// frames received, all rejected). Rejected frames are now printed raw.
 bool validateBmsFrame(const uint8_t* packet, size_t length, uint8_t* outDataLen) {
   if (length < 7) {
     return false;
@@ -872,7 +873,7 @@ bool validateBmsFrame(const uint8_t* packet, size_t length, uint8_t* outDataLen)
     return false;
   }
 
-  uint16_t sum = packet[1] + packet[2] + packet[3];
+  uint16_t sum = packet[2] + packet[3];
   for (uint8_t i = 0; i < dataLen; i++) {
     sum += packet[4 + i];
   }
@@ -993,7 +994,12 @@ static void bmsNotifyCallback(BLERemoteCharacteristic* characteristic, uint8_t* 
     parseBmsData(bmsRxBuffer, outDataLen, true);
   } else {
     bmsChecksumFailures++;
-    Serial.println("[BMS] frame failed length/checksum validation, discarded");
+    Serial.printf("[BMS] frame failed length/checksum validation, discarded (%u bytes):",
+                  (unsigned)bmsRxIndex);
+    for (size_t i = 0; i < bmsRxIndex; i++) {
+      Serial.printf(" %02X", bmsRxBuffer[i]);
+    }
+    Serial.println();
   }
   bmsRxIndex = 0;
 }
@@ -1654,6 +1660,24 @@ volatile bool localLogEnabled = true;
 uint32_t localLogAppendCount = 0;
 uint32_t localLogAppendFailures = 0;
 
+// Lines are collected in RAM and written to flash in one go about once a
+// minute (v0.6.0). Every flash write or erase suspends the cache on both
+// cores, so code running from flash, including the IMU tasks, pauses; the
+// v0.5.0 bench test measured 33 to 40 ms acquisition gaps at every 10 s
+// append, and 5.9 ms worst case with logging off. One write per minute
+// gives the same pause about six times less often, and the file size is
+// kept in RAM so no extra open or stat is needed. Cost: up to a minute of
+// lines is lost if power is cut before a flush.
+#define LOCAL_LOG_FLUSH_INTERVAL_MS 60000
+#define LOCAL_LOG_BUFFER_BYTES 8192
+static String localLogBuffer;
+static uint32_t localLogBufferedLines = 0;
+static size_t localLogFileBytes = 0;
+static unsigned long localLogLastFlushMs = 0;
+uint32_t localLogFlushCount = 0;
+uint32_t localLogLastFlushUs = 0;
+uint32_t localLogMaxFlushUs = 0;
+
 bool initLocalLog() {
   // true = format the partition if mount fails (e.g. first boot on a chip
   // that has never had this partition table before). Same trust model as
@@ -1666,34 +1690,159 @@ bool initLocalLog() {
   }
   Serial.printf("[LOG] LittleFS mounted. Total: %u bytes, used: %u bytes\n",
                 (unsigned)LittleFS.totalBytes(), (unsigned)LittleFS.usedBytes());
+  if (LittleFS.exists(LOCAL_LOG_PATH)) {
+    File existing = LittleFS.open(LOCAL_LOG_PATH, "r");
+    localLogFileBytes = existing ? existing.size() : 0;
+    if (existing) existing.close();
+  }
+  localLogBuffer.reserve(LOCAL_LOG_BUFFER_BYTES);
+  localLogLastFlushMs = millis();
   return true;
+}
+
+// Writes the buffered lines to flash in a single append.
+void flushLocalLog() {
+  if (!localLogReady || localLogBuffer.length() == 0) return;
+  uint32_t t0 = micros();
+  if (localLogFileBytes + localLogBuffer.length() > LOCAL_LOG_MAX_BYTES) {
+    // Provisional: truncate rather than rotate to a second file. This
+    // loses the oldest data rather than preserving it, which is an
+    // honest limitation of this first version, not a hidden one - see
+    // the comment above this section.
+    LittleFS.remove(LOCAL_LOG_PATH);
+    localLogFileBytes = 0;
+    Serial.println("[LOG] Local log exceeded size cap, truncated.");
+  }
+  File f = LittleFS.open(LOCAL_LOG_PATH, "a");
+  uint32_t lines = localLogBufferedLines;
+  if (!f) {
+    localLogAppendFailures += lines;
+  } else {
+    size_t written = f.print(localLogBuffer);
+    f.close();
+    if (written == localLogBuffer.length()) {
+      localLogAppendCount += lines;
+      localLogFileBytes += written;
+    } else {
+      localLogAppendFailures += lines;
+    }
+  }
+  localLogLastFlushUs = micros() - t0;
+  if (localLogLastFlushUs > localLogMaxFlushUs) localLogMaxFlushUs = localLogLastFlushUs;
+  localLogFlushCount++;
+  Serial.printf("[LOG] flushed %u lines, %u bytes in %.1f ms\n", (unsigned)lines,
+                (unsigned)localLogBuffer.length(), localLogLastFlushUs / 1000.0f);
+  localLogBuffer = "";
+  localLogBufferedLines = 0;
+  localLogLastFlushMs = millis();
 }
 
 void appendLocalLog(const String& jsonLine) {
   if (!localLogReady || !localLogEnabled) return;
+  localLogBuffer += jsonLine;
+  localLogBuffer += '\n';
+  localLogBufferedLines++;
+  if (localLogBuffer.length() >= LOCAL_LOG_BUFFER_BYTES - 700 ||
+      millis() - localLogLastFlushMs >= LOCAL_LOG_FLUSH_INTERVAL_MS) {
+    flushLocalLog();
+  }
+}
 
-  if (LittleFS.exists(LOCAL_LOG_PATH)) {
-    File existing = LittleFS.open(LOCAL_LOG_PATH, "r");
-    size_t currentSize = existing ? existing.size() : 0;
-    if (existing) existing.close();
-    if (currentSize > LOCAL_LOG_MAX_BYTES) {
-      // Provisional: truncate rather than rotate to a second file. This
-      // loses the oldest data rather than preserving it, which is an
-      // honest limitation of this first version, not a hidden one - see
-      // the comment above this section.
-      LittleFS.remove(LOCAL_LOG_PATH);
-      Serial.println("[LOG] Local log exceeded size cap, truncated.");
+// ============================================================
+// Cellular signal strength (v0.6.0). AT+CSQ every publish cycle, so the
+// road test records where coverage is weak along the route. CSQ 0..31
+// maps to about -113 + 2*CSQ dBm (A76XX AT manual); 99 means unknown.
+// ============================================================
+volatile int cellCsqRaw = -1;
+
+void pollSignalQuality() {
+  Serial1.println("AT+CSQ");
+  String response;
+  unsigned long startWait = millis();
+  while (millis() - startWait < 1000) {
+    while (Serial1.available()) {
+      response += static_cast<char>(Serial1.read());
     }
+    if (response.indexOf("OK") >= 0 || response.indexOf("ERROR") >= 0) break;
+    vTaskDelay(pdMS_TO_TICKS(1));
   }
+  int p = response.indexOf("+CSQ:");
+  if (p < 0) return;
+  int v = response.substring(p + 5).toInt();
+  if (v >= 0 && v <= 99) cellCsqRaw = v;
+}
 
-  File f = LittleFS.open(LOCAL_LOG_PATH, "a");
-  if (!f) {
-    localLogAppendFailures++;
-    return;
+// ============================================================
+// Motor Hall-sensor pulse counting (v0.6.0), for the optocoupler tap.
+// The PC817 module's output (pull-up to VCC, transistor to GND) goes to
+// HALL_INPUT_PIN; the hardware pulse counter counts both edges, so
+// counting never touches the IMU tasks. One Hall wire gives one cycle per
+// pole pair per motor revolution, i.e. 2 * pole_pairs edges per rev.
+//
+// Until the tap is wired, HALL_INPUT_PIN is the sync-pulse pin itself, as
+// a bench loopback: the counter must then read exactly 2 edges/s (the
+// sync output toggles every 500 ms). Change it to the real pin, and set
+// HALL_POLE_PAIRS from the motor, before the vehicle test; with pole
+// pairs 0 the rpm is not computed.
+// ============================================================
+#include "driver/pcnt.h"
+#define HALL_INPUT_PIN SYNC_PULSE_PIN
+#define HALL_LOOPBACK (HALL_INPUT_PIN == SYNC_PULSE_PIN)
+#define HALL_POLE_PAIRS 0
+#define HALL_PCNT_UNIT PCNT_UNIT_0
+#define HALL_FILTER_APB_CYCLES 1000  // 12.5 us at 80 MHz: ignores contact noise
+
+volatile uint32_t hallTotalEdges = 0;
+volatile float hallEdgesPerSecond = 0.0f;
+
+float hallRpm() {
+  if (HALL_POLE_PAIRS == 0) return NAN;
+  return hallEdgesPerSecond / (2.0f * HALL_POLE_PAIRS) * 60.0f;
+}
+
+bool initHallCounter() {
+  pcnt_config_t cfg = {};
+  cfg.pulse_gpio_num = HALL_INPUT_PIN;
+  cfg.ctrl_gpio_num = PCNT_PIN_NOT_USED;
+  cfg.channel = PCNT_CHANNEL_0;
+  cfg.unit = HALL_PCNT_UNIT;
+  cfg.pos_mode = PCNT_COUNT_INC;   // rising edge
+  cfg.neg_mode = PCNT_COUNT_INC;   // falling edge
+  cfg.lctrl_mode = PCNT_MODE_KEEP;
+  cfg.hctrl_mode = PCNT_MODE_KEEP;
+  cfg.counter_h_lim = 32767;
+  cfg.counter_l_lim = 0;
+  if (pcnt_unit_config(&cfg) != ESP_OK) return false;
+  pcnt_set_filter_value(HALL_PCNT_UNIT, HALL_FILTER_APB_CYCLES);
+  pcnt_filter_enable(HALL_PCNT_UNIT);
+  if (HALL_LOOPBACK) {
+    // pcnt_unit_config makes the pin an input only; keep the sync output.
+    gpio_set_direction((gpio_num_t)HALL_INPUT_PIN, GPIO_MODE_INPUT_OUTPUT);
+  } else {
+    gpio_pullup_en((gpio_num_t)HALL_INPUT_PIN);  // opto output is open-collector
   }
-  f.println(jsonLine);
-  f.close();
-  localLogAppendCount++;
+  pcnt_counter_pause(HALL_PCNT_UNIT);
+  pcnt_counter_clear(HALL_PCNT_UNIT);
+  pcnt_counter_resume(HALL_PCNT_UNIT);
+  return true;
+}
+
+// Reads and clears the counter once a second. At most 32767 edges per
+// second before the counter limit, far above a hub motor's Hall rate.
+void HallTask(void* pvParameters) {
+  TickType_t lastWake = xTaskGetTickCount();
+  unsigned long lastUs = micros();
+  for (;;) {
+    vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(1000));
+    int16_t count = 0;
+    pcnt_get_counter_value(HALL_PCNT_UNIT, &count);
+    pcnt_counter_clear(HALL_PCNT_UNIT);
+    unsigned long now = micros();
+    float dt = (now - lastUs) / 1e6f;
+    lastUs = now;
+    hallTotalEdges += (uint32_t)count;
+    hallEdgesPerSecond = dt > 0 ? count / dt : 0.0f;
+  }
 }
 
 // Compact JSON combining the latest known state from every subsystem
@@ -1719,15 +1868,21 @@ String buildTelemetryJson() {
   char dis[16];
   if (isnan(fz.std_disagreement)) snprintf(dis, sizeof(dis), "null");
   else snprintf(dis, sizeof(dis), "%.3f", fz.std_disagreement);
+  char rpm[16];
+  float rpmValue = hallRpm();
+  if (isnan(rpmValue)) snprintf(rpm, sizeof(rpm), "null");
+  else snprintf(rpm, sizeof(rpm), "%.1f", rpmValue);
 
-  char buf[640];
+  char buf[768];
   snprintf(buf, sizeof(buf),
            "{"
            "\"imu1\":{\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"crest\":%.3f,\"jerk\":%.3f,\"crossings\":%u},"
            "\"imu2\":{\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"crest\":%.3f,\"jerk\":%.3f,\"crossings\":%u},"
            "\"fused\":{\"src\":%u,\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"jerk\":%.3f,\"dis\":%s},"
            "\"bms\":{\"v\":%.2f,\"i\":%.2f,\"soc\":%u,\"checksum_ok\":%s},"
-           "\"gnss\":{\"valid\":%s,\"lat\":%.6f,\"lon\":%.6f,\"speed\":%.1f}"
+           "\"gnss\":{\"valid\":%s,\"lat\":%.6f,\"lon\":%.6f,\"speed\":%.1f},"
+           "\"cell\":{\"csq\":%d},"
+           "\"hall\":{\"eps\":%.1f,\"rpm\":%s}"
            "}",
            r1.rms_mps2, r1.std_mps2, r1.peak_to_peak_mps2, r1.crest_factor,
            r1.mean_abs_jerk_mps3, (unsigned)r1.threshold_crossings,
@@ -1738,7 +1893,8 @@ String buildTelemetryJson() {
            latestBmsSample.pack_voltage_v, latestBmsSample.current_a,
            (unsigned)latestBmsSample.soc_pct, latestBmsSample.checksum_ok ? "true" : "false",
            latestGnssFix.valid ? "true" : "false", latestGnssFix.latitude_deg,
-           latestGnssFix.longitude_deg, latestGnssFix.speed_reported);
+           latestGnssFix.longitude_deg, latestGnssFix.speed_reported,
+           (int)cellCsqRaw, (float)hallEdgesPerSecond, rpm);
   return String(buf);
 }
 
@@ -1752,6 +1908,7 @@ String buildTelemetryJson() {
 //   !status      logging, MQTT and calibration state
 //   !log off     stop local flash logging (flash-write stall test)
 //   !log on      start it again
+//   !log flush   write the buffered log lines to flash now
 //   !mqtt        try to reconnect MQTT now
 //   !gnssraw     toggle printing the raw GNSS reply on every poll
 //   !recal       erase both stored IMU calibrations and restart; the board
@@ -1761,12 +1918,24 @@ void handleLocalCommand(String line) {
   line.trim();
   line.toLowerCase();
   if (line == "!help") {
-    Serial.println("[CMD] !status  !log off  !log on  !mqtt  !gnssraw  !recal");
+    Serial.println("[CMD] !status  !log off  !log on  !log flush  !mqtt  !gnssraw  !recal");
   } else if (line == "!status") {
     Serial.printf("[CMD] firmware %s\n", FIRMWARE_VERSION);
     Serial.printf("[CMD] local log: %s, %u lines written, %u failures\n",
                   !localLogReady ? "not mounted" : (localLogEnabled ? "on" : "OFF"),
                   (unsigned)localLogAppendCount, (unsigned)localLogAppendFailures);
+    Serial.printf("[CMD] log buffer: %u lines waiting, %u flushes, last %.1f ms, max %.1f ms, file %u bytes\n",
+                  (unsigned)localLogBufferedLines, (unsigned)localLogFlushCount,
+                  localLogLastFlushUs / 1000.0f, localLogMaxFlushUs / 1000.0f,
+                  (unsigned)localLogFileBytes);
+    if (cellCsqRaw == 99 || cellCsqRaw < 0) {
+      Serial.println("[CMD] signal: unknown");
+    } else {
+      Serial.printf("[CMD] signal: CSQ %d (about %d dBm)\n", cellCsqRaw, -113 + 2 * cellCsqRaw);
+    }
+    Serial.printf("[CMD] hall: %u edges total, %.1f edges/s, %.1f rpm (pole pairs %u)\n",
+                  (unsigned)hallTotalEdges, hallEdgesPerSecond, hallRpm(),
+                  (unsigned)HALL_POLE_PAIRS);
     Serial.printf("[CMD] mqtt: %s, %u published, %u failed, %u connect attempts",
                   mqttConnected ? "connected" : "not connected",
                   (unsigned)mqttPublishCount, (unsigned)mqttPublishFailures,
@@ -1779,8 +1948,11 @@ void handleLocalCommand(String line) {
     Serial.printf("[CMD] IMU scale factors: imu1=%.4f imu2=%.4f\n",
                   rideChar1Config.mag_scale, rideChar2Config.mag_scale);
   } else if (line == "!log off") {
+    flushLocalLog();
     localLogEnabled = false;
     Serial.println("[CMD] local flash logging OFF");
+  } else if (line == "!log flush") {
+    flushLocalLog();
   } else if (line == "!log on") {
     localLogEnabled = true;
     Serial.println("[CMD] local flash logging on");
@@ -1792,6 +1964,7 @@ void handleLocalCommand(String line) {
     mqttConnected = false;
     Serial.println("[CMD] MQTT reconnect requested");
   } else if (line == "!recal") {
+    flushLocalLog();
     imuCalPrefs.begin("imucal", false);
     imuCalPrefs.remove("imu1");
     imuCalPrefs.remove("imu2");
@@ -1926,6 +2099,7 @@ void ModemTask(void* pvParameters) {
       lastMqttPublish = millis();
       // Built and logged locally on this cadence regardless of MQTT state -
       // the "logged locally" obligation does not depend on connectivity.
+      pollSignalQuality();
       String payload = buildTelemetryJson();
       appendLocalLog(payload);
       if (mqttConnected) {
@@ -2037,6 +2211,17 @@ void setup() {
   xTaskCreatePinnedToCore(ImuTask, "Imu2Task", 4096, &imu2Config, 3, &Imu2TaskHandle, 1);
   xTaskCreatePinnedToCore(StatsTask, "StatsTask", 4096, nullptr, 2, &StatsTaskHandle, 1);
   xTaskCreatePinnedToCore(SyncTask, "SyncTask", 2048, nullptr, 2, &SyncTaskHandle, 1);
+  // After SyncTask has set its pin as an output, so that in loopback the
+  // counter's input setup keeps the output enabled (see initHallCounter).
+  vTaskDelay(pdMS_TO_TICKS(50));
+  if (initHallCounter()) {
+    xTaskCreatePinnedToCore(HallTask, "HallTask", 2048, nullptr, 1, nullptr, 0);
+    Serial.printf("[HALL] pulse counter on GPIO%d%s, pole pairs %d\n", HALL_INPUT_PIN,
+                  HALL_LOOPBACK ? " (bench loopback on the sync pin: expect 2 edges/s)" : "",
+                  HALL_POLE_PAIRS);
+  } else {
+    Serial.println("[HALL] pulse counter setup failed");
+  }
   xTaskCreatePinnedToCore(BmsTask, "BmsTask", 8192, nullptr, 1, &BmsTaskHandle, 0);
   xTaskCreatePinnedToCore(RideCharacterizationTask, "RideChar1Task", 4096, &rideChar1Config, 1, &RideChar1TaskHandle, 1);
   xTaskCreatePinnedToCore(RideCharacterizationTask, "RideChar2Task", 4096, &rideChar2Config, 1, &RideChar2TaskHandle, 1);

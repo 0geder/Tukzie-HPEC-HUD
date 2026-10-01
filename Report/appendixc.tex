@@ -22,6 +22,7 @@ This appendix indexes the raw evidence behind the bench results reported in Chap
 30 Sep 2026 & MQTT recovery from a 60\,s radio-off period (\texttt{AT+CFUN=4}, then \texttt{AT+CFUN=1}), v0.5.0 and v0.5.3 & Loss detected in 0.8 to 20.7\,s; retries at 30 and 60\,s; reconnect 36\,s after the radio returned in v0.5.0, about 5\,s in v0.5.3; no failed publishes afterwards & \texttt{BenchTest/logs/ 2026-09-30\_signal\_loss\_test.log}, \texttt{..\_v053.log} \\ \hline
 30 Sep 2026 & Sync-pulse edges logged on the Pi (GPIO17, kernel timestamps), two 60\,s runs & Run 1: 16\,s burst of spurious edges, consistent with a disturbed contact; run 2: 121 edges, median interval 500.06\,ms, range 499.72 to 500.41\,ms & \texttt{BenchTest/logs/ 2026-09-30\_sync\_edges\_run1\_noisy.csv}, \texttt{..\_run2.csv} \\ \hline
 30 Sep 2026 & Camera detector latency on the Pi, three 60\,s runs (4 threads, 4 threads with live view, 1 thread) & Median 102, 105 and 186\,ms from sensor readout to result; 19.5, 17.3 and 7.0 frames per second; no throttling & \texttt{BenchTest/logs/ 2026-09-30\_c4\_latency/} \\ \hline
+1 Oct 2026 & Firmware v0.6.0 bench run, 330\,s, logging on throughout (buffered log, signal quality, Hall counter in loopback) & Five flushes; all ten gaps over 10\,ms (37 to 40\,ms) within 3.5\,s after a flush; worst gap otherwise 5.9\,ms; no dropped samples; Hall counter 2.00 edges/s; CSQ 24 to 26 & \texttt{BenchTest/logs/ 2026-10-01\_v060\_bench\_test.log} \\ \hline
 \end{longtable}
 
 \begin{figure}[htbp]
