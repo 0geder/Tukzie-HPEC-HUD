@@ -7,9 +7,16 @@ set -euo pipefail
 cd ~/yolo_bench
 if [ ! -d venv ]; then
   python3 -m venv --system-site-packages venv
-  venv/bin/pip install --upgrade pip
-  venv/bin/pip install ultralytics ncnn
+  if [ -d wheels ]; then
+    # packages downloaded on the laptop and copied here: no internet needed
+    venv/bin/pip install --no-index --find-links wheels ultralytics ncnn
+  else
+    venv/bin/pip install --upgrade pip
+    venv/bin/pip install ultralytics ncnn
+  fi
 fi
+# Models converted on the laptop are copied in as <model>_<size>_ncnn_model;
+# the export below runs only for any that are missing (needs internet).
 for m in yolo11n yolo11n-seg; do
   for s in 320 640; do
     [ -d "${m}_${s}_ncnn_model" ] && continue

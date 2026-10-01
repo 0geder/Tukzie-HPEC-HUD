@@ -24,7 +24,12 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) YOLO benchmark prepared for the Pi 4
+### (this commit) Colab notebook to train a YOLO11n pothole detector
+
+- `CameraDetection/training/train_pothole_yolo11n.ipynb` (built by `make_notebook.py`): downloads a public Roboflow Universe pothole dataset (API key from Colab secrets), fine-tunes COCO-pretrained YOLO11n with checkpoints on Google Drive, evaluates on the test split at 640 and 320, writes a training record (dataset, settings, versions, mAP, precision, recall) and exports NCNN for the Pi. Why: the student chose Colab over Roboflow hosted training (no credits used, the weights are ours, and the training can be described exactly in the report). No vehicle camera frames are used.
+- `CameraDetection/run_yolo_bench.sh`: installs from a copied `wheels` folder when present, so the Pi needs no internet.
+
+### (fe45792) YOLO benchmark prepared for the Pi 4
 
 - `CameraDetection/yolo_bench.py`: runs a YOLO model (detect or segment) on the live camera and reports fps and per-stage latency measured as in hazard_detector.py (SensorTimestamp to result); for -seg models the total includes converting masks to polygons; no frames stored. Why: the student wants to evaluate YOLO and Roboflow models; this gives numbers comparable with SSD-MobileNet's 19.5 fps and 102 ms.
 - `CameraDetection/run_yolo_bench.sh`: separate venv, NCNN export of YOLO11n and YOLO11n-seg at 320 and 640, four 60 s runs. Why: one command once the Pi is back; the detector's venv is untouched.
