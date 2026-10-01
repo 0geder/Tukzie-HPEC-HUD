@@ -116,6 +116,13 @@ say what each test is for and what counts as a pass.
 - Pass: about 2 edges per second; median interval 500 ms; no intervals outside 500 +/- 20 ms. Zero edges means the wire or ground is loose (seen once on the bench).
 - Result: offset bounded under about 1 s (see Methodology, time synchronisation). Logger checked offline against a fake GPIO (30 Sep 2026); not yet run on the Pi. Wire check (30 Sep 2026): 20 edges in 9.95 s, one edge every 500 ms as expected. Logger on the Pi (30 Sep 2026, gpiod v2 kernel timestamps, 60 s each): run 1, 159 edges with 50 intervals out of range, all between 5 and 21 s into the run (bursts of extra edges down to 0.03 ms apart, consistent with a disturbed contact), clean for the last 39 s; run 2, 121 edges, median 500.06 ms, range 499.72 to 500.41 ms, 0 out of range. Evidence: `BenchTest/logs/2026-09-30_sync_edges_run1_noisy.csv`, `..._run2.csv`.
 
+### C7. Stand-in ToF (micromouse sensor board, three VL53L0X)
+- Wiring: sensor board J2 pin 3 (3V3) to Pi pin 1, J2 GND (pin 23) to Pi pin 6, J2 31 (SDA) to Pi 3, J2 32 (SCL) to Pi 5, XSHUT1/2/3 (J2 21/9/7) to Pi 15/16/18 (GPIO22/23/24). VDD (LED supply) not connected. Continuity-check each pin first. Pi I2C on (`sudo raspi-config nonint do_i2c 0`).
+- Method: `venv/bin/python tof_probe.py`, then `venv/bin/python tof_reader.py --duration 15 --csv tof.csv`. Then a hand at about 15 cm in front of each sensor in turn to confirm which is left, ahead and right, and a tape measure at 0.2, 0.5, 1.0 and 1.5 m.
+- Pass: chip identified; three sensors answer; readings change with the hand on the matching sensor; within about 5% of the tape below 1 m.
+- Result (1 Oct 2026): chip VL53L0X; all three addressed and read at about 31 readings/s each; centre 267 to 300 mm, right 24 to 38 mm (something close in front of it), left 8190 every reading (no target in range, sensor answering). Hand test and tape check not yet done.
+- Evidence: `BenchTest/logs/2026-10-01_tof_three_sensors.csv`.
+
 ## Bench tools
 
 ### B1. Bench console replay

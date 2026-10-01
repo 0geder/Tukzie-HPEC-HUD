@@ -24,6 +24,7 @@ This appendix indexes the raw evidence behind the bench results reported in Chap
 30 Sep 2026 & Camera detector latency on the Pi, three 60\,s runs (4 threads, 4 threads with live view, 1 thread) & Median 102, 105 and 186\,ms from sensor readout to result; 19.5, 17.3 and 7.0 frames per second; no throttling & \texttt{BenchTest/logs/ 2026-09-30\_c4\_latency/} \\ \hline
 1 Oct 2026 & Firmware v0.6.0 bench run, 330\,s, logging on throughout (buffered log, signal quality, Hall counter in loopback) & Five flushes; all ten gaps over 10\,ms (37 to 40\,ms) within 3.5\,s after a flush; worst gap otherwise 5.9\,ms; no dropped samples; Hall counter 2.00 edges/s; CSQ 24 to 26 & \texttt{BenchTest/logs/ 2026-10-01\_v060\_bench\_test.log} \\ \hline
 1 Oct 2026 & Read-back of the stored telemetry log (firmware v0.6.3, \texttt{BenchTest/log\_dump.py}, four passes) & 6,020 records recovered complete; 5,545 contained \texttt{nan} (invalid JSON, fixed in v0.6.3); 14 records with a valid BMS reading (74.78\,V, 60\%) from 30 Sep; log then cleared & \texttt{BenchTest/logs/ 2026-10-01\_telemetry\_log\_dump.jsonl}, \texttt{..clean.jsonl} \\ \hline
+1 Oct 2026 & Stand-in ToF: micromouse sensor board on the Pi (three VL53L0X, \texttt{tof\_probe.py}, \texttt{tof\_reader.py}) & Chip confirmed VL53L0X; three sensors addressed and read at about 31 per second each; centre 267 to 300\,mm, right 24 to 38\,mm, left 8190 (no target) throughout & \texttt{BenchTest/logs/ 2026-10-01\_tof\_three\_sensors.csv} \\ \hline
 \end{longtable}
 
 \begin{figure}[htbp]

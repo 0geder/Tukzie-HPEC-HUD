@@ -24,7 +24,12 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Firmware v0.6.1 to v0.6.3: log read-back, JSON NaN fix
+### (this commit) Stand-in ToF running on the Pi
+
+- Pi: Blinka and the VL53L0X driver installed in the detector's venv; `tof_probe.py` and `tof_reader.py` deployed. Micromouse sensor board wired through its J2 header. Probe: VL53L0X. Reader: three sensors at about 31 readings/s each. Why: stand-in for the VL53L5CX (not yet arrived).
+- `BenchTest/logs/2026-10-01_tof_three_sensors.csv`; TEST_PROCEDURES C7; Methodology ToF stand-in result; Appendix C row. Why: record the first run.
+
+### (80b3c77) Firmware v0.6.1 to v0.6.3: log read-back, JSON NaN fix
 
 - `HUDTelemetryUnit/src/main.cpp` v0.6.1 to v0.6.3: `!log dump` (records as LOG|index|length|record, paced 4 ms per record) and `!log clear`. Why: the stored log had never been read back, and it was at 2.2 MB of the 3 MB cap, where it would be deleted.
 - v0.6.3: nan and inf in the telemetry JSON written as null. Why: the read-back found 5,545 of 6,020 records invalid as JSON (position fields before a fix); the same text went to MQTT.
