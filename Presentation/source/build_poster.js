@@ -62,7 +62,7 @@ let b = panel(1, "Background", XL, yL, h1);
 bullets([
   "Electric cargo trikes are a low-cost route to last-mile freight in African cities, but their ride and road conditions go unmeasured.",
   "Head-down displays draw the driver's eyes off the road; single glances should stay under 2 s.",
-  "Aim: a low-cost unit that characterises the trike's ride at the edge and shows only safety-relevant data head-up.",
+  "Aim: a low-cost unit that characterises the trike's ride at the edge and gives the driver only safety-relevant alerts.",
 ], b, h1 - 2.5);
 
 // 2 System
@@ -71,7 +71,7 @@ const imgW = COLW - 1.4, imgH = imgW * 1349 / 1845;
 let h2 = 2.2 + imgH + 1.3;
 b = panel(2, "System", XL, yL, h2);
 s.addImage({ path: A("bench_labelled.png"), x: b.x, y: b.y, w: imgW, h: imgH });
-s.addText("Bench setup: ESP32-S3 telemetry unit with LTE modem, two IMUs, GNSS and BLE battery link; Raspberry Pi 4 camera, time-aligned by a sync-pulse wire.", {
+s.addText("Bench setup: ESP32-S3 telemetry unit with LTE modem, two IMUs, GNSS, BLE battery link and Hall counter; Raspberry Pi 4 with camera detector and three distance sensors, time-aligned by a sync-pulse wire.", {
   x: b.x, y: b.y + imgH + 0.15, w: b.w, h: 1.0, fontFace: FONT, fontSize: 24, italic: true, color: C.muted, isTextBox: true, margin: 0,
 });
 
@@ -108,8 +108,8 @@ let h4 = 2.2 + 2 * statH + 0.4 + 0.6 + chartH + 1.3;
 b = panel(4, "Bench results", XR, yR, h4);
 const stats = [
   ["200 Hz", "both IMUs, zero dropped samples"],
-  ["8%", "gap between the two IMUs, calibrated down to noise"],
-  ["< 1 s", "camera aligned to the IMU data"],
+  ["102 ms", "median camera latency, sensor to result, at 19.5 fps"],
+  ["2.7 m", "median GNSS error against a phone, 104 fixes"],
   ["149 / 149", "windows fused from both IMUs"],
 ];
 const statW = (b.w - 0.5) / 2;
@@ -127,23 +127,24 @@ s.addText("Recorded 150 s bench session: board still, then disturbed by hand fro
 
 // 5 Faults found and fixed
 yR += h4 + GAP;
-let h5 = 7.9;
+let h5 = 9.0;
 b = panel(5, "Found and fixed", XR, yR, h5);
 bullets([
-  "GNSS reply: assumed 13 fields, measured 9; the manual documents 16, with speed in knots.",
-  "Battery (BLE) service lookup was wrong; fixed, and the frame decoding matched an independent parser byte for byte.",
-  "The microSD chip-select is not fitted, so logging moved to the processor's own flash.",
-  "A boot loop traced to a flash-size mismatch with the 16 MB partition table.",
-], b, h5 - 2.5, 30);
+  "GNSS reply layout differed from the one assumed, so satellite counts were read as the position; the parser was rewritten.",
+  "Battery checksum included one byte too many, so every real frame failed; fixed and confirmed on the pack.",
+  "Flash writes stalled both IMUs (proved by switching the log off); the log is now buffered and written once a minute.",
+  "Pink image: the camera has no infrared filter; the NoIR tuning plus saturation 1.8 restores the colours.",
+  "Stored records held nan, which is not valid JSON; now written as null.",
+], b, h5 - 2.5, 27);
 
 // 6 Conclusions
 yR += h5 + GAP;
 let h6 = H - 3.1 - yR;
 b = panel(6, "Conclusions and next steps", XR, yR, h6);
 bullets([
-  "Every subsystem runs together on the target board, with dual-IMU fusion verified live.",
-  "Next: recalibrate the IMUs and run the on-vehicle field test, then integrate the time-of-flight and air-quality sensors and build the HUD.",
-], b, h6 - 2.5, 30);
+  "Every subsystem runs together on the target board; camera alerts reach the existing dashboard in about 0.1 s.",
+  "Next: mount on the trike, recalibrate in place, and run the field test for the ride and latency questions.",
+], b, h6 - 2.5, 27);
 
 // ---- footer ----
 s.addImage({ path: A("uct_logo.png"), x: M, y: H - 2.75, w: 2.3, h: 2.34 });
@@ -151,5 +152,5 @@ s.addText("Department of Electrical Engineering, University of Cape Town   |   E
   x: M + 2.9, y: H - 2.1, w: W - 2 * M - 2.9, h: 1.0, fontFace: FONT, fontSize: 28, color: C.navy, valign: "middle", isTextBox: true, margin: 0,
 });
 
-const out = process.argv[2] || path.join(__dirname, "SW7_Poster_A1.pptx");
+const out = process.argv[2] || path.join(__dirname, "..", "SW7_Poster_A1.pptx");
 pres.writeFile({ fileName: out }).then((f) => console.log("wrote", f));

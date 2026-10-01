@@ -24,7 +24,15 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Dashboard page shows a live person alert
+### (this commit) Deck, poster, talking points and question preparation brought up to date
+
+- `Presentation/source/build_deck.js`: slides 3 to 12 updated with the results to 1 Oct (camera latency, GNSS outdoors, signal-loss recovery, sync kernel timestamps, log read-back, colour fix, ToF stand-in, dashboard page); new dashboard slide replaces the field-test placeholder; found-and-fixed slide lists the six faults found since; RQ2 marked "Revised: dashboard"; the title is a single constant, unchanged until the supervisor agrees. It now also writes `SW7_Talking_Points.md` from the speaker notes (1,485 words, about 10 minutes). Why: the deck dated from 29 Sept and said the HUD was to be built.
+- `Presentation/source/build_poster.js`: aim, system caption, bench-result figures, found-and-fixed and conclusions updated the same way. Why: same.
+- `Presentation/SW7_QA_Prep.md`: likely examiner questions with answers from the report, logs and code, the gaps to state plainly, and numbers to know. Why: student's request to be ready for technical questions.
+- `Presentation/source/assets/dashboard_person.png`: dashboard page screenshot for the new slide.
+- `Report/Methodology.tex`: sensor configuration now states that the 260 Hz filter is above the 100 Hz Nyquist frequency, so content from 100 to 260 Hz can alias, and the fix (faster sampling and decimation); ride features now state that the RMS of the magnitude includes gravity, that the standard deviation is the vibration level, and that ISO 2631-1 frequency weighting is not implemented. Why: both found while preparing the questions; they are limitations an examiner may raise.
+
+### (51362d2) Dashboard page shows a live person alert
 
 - `Report/evidence/2026-10-01_dashboard_page_person.png`: page with a red Person, Immediate row against the live detector. Why: last open part of the dashboard live test (B2).
 - `Report/Methodology.tex` dashboard paragraph: person-alert result added; a `ef` that had lost its backslash (shown as "Appendix ef") fixed; stale sentence saying the page had not been run against the live detector removed. Why: the text contradicted the results above it.

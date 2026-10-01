@@ -106,8 +106,9 @@ Report
 - Rebuild the PDF.
 
 Presentation
-- Update slide 10 (says the detector has not run live) and slide 12 (says "Build and evaluate the HUD").
-- Replace the slide 12 placeholder with field results.
+- Deck, poster and talking points brought up to date on 1 Oct 2026 (results to 1 Oct, dashboard slide replaces the field-test placeholder, RQ2 marked "Revised: dashboard"). Title unchanged until the supervisor replies; then change TITLE in build_deck.js and build_poster.js.
+- After the field test: add its results (replace or merge a slide; the deck is capped at 12).
+- Question preparation: Presentation/SW7_QA_Prep.md. Still missing for it: power budget and bill of materials.
 
 Repo
 - Update README.md: it still says the camera is untested live and the HUD is "not built yet".
