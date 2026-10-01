@@ -28,7 +28,7 @@ GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss reco
 
 - `CameraDetection/hazard_detector.py`: `--saturation` option (libcamera Saturation control). Why: the module has no IR-cut filter; with the NoIR tuning the cast goes but colours are washed out (blue card almost grey); 1.8 restores them.
 - `CameraDetection/deploy/hazard-detector.service`: starts with `--tuning ov5647_noir.json --saturation 1.8`. Why: the measured fix.
-- `Report/evidence/c3/`, TEST_PROCEDURES C3, Methodology colour-cast result, Appendix C row.
+- `Report/evidence/c3/`, TEST_PROCEDURES C3, Methodology colour-cast result and Table tab:colour-cards (all five cards measured), Appendix C row.
 
 ### (290b476) Dashboard camera page tested against the live detector
 
