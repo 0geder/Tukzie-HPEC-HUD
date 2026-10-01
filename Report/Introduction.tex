@@ -7,11 +7,11 @@ Rapid urbanisation is increasing demand for efficient passenger transport and ur
 
 The relevance of this platform is particularly clear in sub-Saharan African cities, where three-wheelers already support urban goods movement. A 2025 study of medium-size cargo delivery routes in Dar es Salaam found that an electric tricycle reduced operating cost per kilometre by approximately 45.5\% relative to a motorcycle, 62.5\% relative to a petrol tuk-tuk, and 86\% relative to a light-duty car \cite{sebwa2025}. The reported values are route- and price-specific rather than universal forecasts, but they show why locally appropriate electric freight platforms warrant further engineering and field validation.
 
-Traditional vehicle telemetry systems have relied heavily on ``Head-Down Displays'' (HDDs) or post-processing of logged data, both of which present significant limitations. HDDs require drivers to divert their gaze from the road, contributing to cognitive overload and attention capture, a phenomenon where the driver's focus shifts away from critical environmental cues \cite{liu2003, hauslschmid2015}. NHTSA guidance recommends that individual visual-manual glances away from the roadway should not exceed two seconds, with no more than twelve seconds of cumulative off-road glance time for a task \cite{nhtsa2013}. This provides a measurable human-factors constraint, although it does not imply that every head-up presentation is inherently safe. Post-processing delays maintenance interventions and prevents real-time decision-making.
+Traditional vehicle telemetry systems have relied heavily on ``Head-Down Displays'' (HDDs) or post-processing of logged data, both of which present significant limitations. HDDs require drivers to divert their gaze from the road, contributing to cognitive overload and attention capture, a phenomenon where the driver's focus shifts away from critical environmental cues \cite{liu2003, hauslschmid2015}. NHTSA guidance recommends that individual visual-manual glances away from the roadway should not exceed two seconds, with no more than twelve seconds of cumulative off-road glance time for a task \cite{nhtsa2013}. This provides a measurable human-factors constraint on any driver display, head-up or head-down: what is shown must be sparse enough to be read within a short glance, and a head-up position alone does not make a presentation safe. Post-processing delays maintenance interventions and prevents real-time decision-making.
 
 Recent advances in High-Performance Embedded Computing (HPEC) have enabled edge-based signal processing in vehicular applications, allowing for real-time sensor fusion and on-vehicle analytics \cite{barnell2018}. Simultaneously, Head-Up Display (HUD) technology has matured, offering the potential to reduce downward glances by projecting selected information into the driver's forward field of view \cite{mareska2022, canomarin2016}. However, the integration of these technologies, particularly for low-cost, three-wheeled electric vehicles in developing contexts, remains an open challenge.
 
-This study addresses this gap by developing an integrated HPEC telemetry unit and windshield HUD for the TUKZIE Rev 0, enabling real-time ride-smoothness characterisation and driver feedback.
+This study addresses this gap by developing an HPEC telemetry unit for the TUKZIE Rev 0, integrated with the vehicle's existing dashboard, enabling real-time ride-smoothness characterisation and safety alerts to the driver. The original brief specified a windshield HUD. During the project it was replaced, with the supervisor's agreement, by integration with the existing dashboard: the dashboard already shows the information a HUD would have carried, a second display would compete for the driver's attention \cite{zhu2021}, and the programme's move towards autonomy makes the camera's hazard alerts more useful than a second screen (Section~\ref{sec:dashboard-page}).
 
 The intended outcome is an integrated prototype demonstrated on the target or a representative vehicle under relevant operating conditions. This corresponds to a target of Technology Readiness Level 6, at which a representative prototype is demonstrated in a relevant environment \cite{kimmel2020}. It does not imply production qualification or approval for unrestricted road deployment.
 
@@ -27,7 +27,7 @@ Specifically, this study investigates the following research questions:
 
 \begin{enumerate}
 \item How accurately and repeatably can a low-cost edge-processing system characterise the trike's dynamic response to road- and powertrain-induced excitation in real time, using inertial sensors on a 72V electric cargo trike?
-\item Which HUD information hierarchy, layout, and update strategy can present safety-critical telemetry while limiting visual clutter and driver distraction?
+\item Which information hierarchy, layout, and update strategy can present safety-critical telemetry and hazard alerts on the vehicle's existing dashboard while limiting visual clutter and driver distraction?
 \item What end-to-end latency, data-loss, and recovery performance can be achieved across sensor acquisition, edge processing, local logging, and 4G/LTE synchronisation?
 \item Which time- and frequency-domain features most effectively separate road-induced vibration from repeatable motor and powertrain vibration?
 \end{enumerate}
@@ -45,8 +45,8 @@ Table~\ref{tab:requirements-mapping} maps each research question to a concrete s
 \hline
 \textbf{RQ} & \textbf{Requirement} & \textbf{Verification method} & \textbf{Status} \\ \hline
 RQ1 & Dual-IMU acquisition at $\geq$160\,Hz (ISO~2631-1 bound) with per-sensor magnitude agreement to within measurement noise & Deterministic 200\,Hz acquisition (Section~\ref{sec:dual-imu-architecture}); per-sensor calibration against true gravity, cross-checked under a dynamic disturbance (Section~\ref{sec:imu-magnitude-calibration}) & Bench-verified \\ \hline
-RQ2 & HUD presents safety-critical telemetry without exceeding NHTSA off-road glance-time guidance & Information-hierarchy design and on-vehicle glance-time observation & Outstanding \\ \hline
-RQ3 & Bounded end-to-end latency, quantified data loss, and recovery across acquisition, edge processing, local logging, and cellular sync & Queue drop-counters and jitter instrumentation (Section~\ref{sec:acquisition-instrumentation}); local LittleFS logging decoupled from MQTT connection state; end-to-end MQTT publish against a real broker (Section~\ref{sec:mqtt-networking}) & Acquisition and MQTT bench-verified; local-log read-back and on-vehicle recovery testing outstanding \\ \hline
+RQ2 & The existing dashboard presents safety-critical alerts without exceeding NHTSA off-road glance-time guidance & Sparse alert page in the dashboard's own status colours, tested against the live camera (Section~\ref{sec:dashboard-page}); on-vehicle glance-time observation & Page bench-verified; glance time outstanding \\ \hline
+RQ3 & Bounded end-to-end latency, quantified data loss, and recovery across acquisition, edge processing, local logging, and cellular sync & Queue drop-counters and jitter instrumentation (Section~\ref{sec:acquisition-instrumentation}); local LittleFS logging decoupled from MQTT connection state; end-to-end MQTT publish against a real broker (Section~\ref{sec:mqtt-networking}) & Acquisition, camera latency, signal-loss recovery and local-log read-back bench-verified; on-vehicle testing outstanding \\ \hline
 RQ4 & Time/frequency-domain features that separate road-induced from powertrain-induced vibration & Closed-form self-test of feature computation against a synthetic signal (Section~\ref{sec:ride-characterisation}); real-vehicle feature comparison against known road/powertrain events & Self-test only; real-vehicle validation outstanding \\ \hline
 \end{tabular}
 \end{table}
@@ -71,7 +71,7 @@ This study focuses exclusively on the TUKZIE Rev 0, a 72\,V electric cargo trike
 \item A forward-facing camera, time-synchronised to the inertial acquisition path, providing a visual record against which detected dynamic-response events can be labelled and interpreted (for example, distinguishing a pothole from an intersection or a deliberate manoeuvre), and running a pretrained object-detection model to report predefined road-relevant object categories and an approximate distance band (Section~\ref{sec:hazard-detection}).
 \item A non-visual, non-machine-learning proximity sensor (an 8$\times$8-zone time-of-flight distance sensor) providing live nearby-object distance and rough left/centre/right position to the driver, adopted as a second, physically independent measurement that operates regardless of the camera detector's own status and involves no camera image or learned model.
 \item A multithreaded software architecture for real-time sensor fusion, telemetry processing, and dynamic-response indexing.
-\item An optical Head-Up Display subsystem projecting critical telemetry (speed, battery state of charge, and navigation) and safety alerts onto the trike's windshield.
+\item A camera page for the vehicle's existing dashboard, showing the live view and the active hazard alerts in the dashboard's own status colours, in place of the optical windshield Head-Up Display of the original brief (Section~\ref{sec:dashboard-page}).
 \item A 4G/LTE communication link for central database synchronisation.
 \end{itemize}
 
@@ -82,7 +82,7 @@ The software architecture follows a modular design, with separate threads for:
 \begin{itemize}
 \item High-frequency sensor polling (both IMUs at 200\,Hz, above the 160\,Hz minimum in Table~\ref{tab:requirements-mapping}).
 \item Compute-heavy signal-processing algorithms (ride characterisation).
-\item Graphical HUD rendering.
+\item The driver display (the dashboard page, on the dashboard's own computer).
 \item Networking stack (MQTT over 4G LTE Cat-1).
 \end{itemize}
 
@@ -96,7 +96,7 @@ The following limitations are acknowledged:
 \item The study is limited to a single vehicle platform (TUKZIE Rev 0), which may affect generalisability to other vehicle types or configurations.
 \item Sensor calibration assumes nominal operating conditions; significant environmental variations (extreme temperatures and humidity) may affect accuracy.
 \item Edge-processing latency measurements are conducted in controlled test environments; real-world performance may vary with network conditions and electromagnetic interference.
-\item The HUD subsystem uses projected-display technology on the existing windshield, not full holographic or augmented-reality integration \cite{mareska2022}.
+\item The driver display is the vehicle's existing head-down dashboard. A windshield head-up display, which would keep the driver's gaze nearer the road \cite{mareska2022}, is not built in this project.
 \item Time constraints limit extensive field testing to urban routes only; rural and off-road conditions are not evaluated.
 \item The system is designed as a removable module to ensure that the vehicle can be quickly returned to a standard setup without obstructions \cite{winberg2026}.
 \item The 4G/LTE communication depends on network availability; data synchronisation may be delayed in areas with poor coverage.

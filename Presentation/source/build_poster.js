@@ -18,7 +18,7 @@ const XL = M, XR = M + COLW + GAP;
 const pres = new pptxgen();
 pres.defineLayout({ name: "A1P", width: W, height: H });
 pres.layout = "A1P";
-pres.title = "SW7 poster: Embedded telemetry unit and windshield HUD for the TUKZIE Rev 0";
+pres.title = "SW7 poster: Embedded HPEC telemetry unit and dashboard integration for the TUKZIE Rev 0";
 const s = pres.addSlide();
 s.background = { color: C.white };
 
@@ -28,7 +28,7 @@ s.addImage({ path: A("uct_banner.jpg"), x: 0, y: 0, w: W, h: BANNER_H, sizing: {
 s.addText("EEE4022S Final Year Project 2026, Department of Electrical Engineering, University of Cape Town", {
   x: M, y: 0.45, w: W - 2 * M, h: 0.8, fontFace: FONT, fontSize: 30, color: C.white, align: "center", isTextBox: true, margin: 0,
 });
-s.addText("An Embedded Telemetry Unit and Windshield HUD\nfor the TUKZIE Rev 0 Electric Cargo Trike", {
+s.addText("Development of an Embedded HPEC Telemetry Unit\nand Dashboard Integration for the TUKZIE Rev 0 Platform", {
   x: M, y: 1.35, w: W - 2 * M, h: 3.3, fontFace: FONT, fontSize: 78, bold: true, color: C.white, align: "center", valign: "middle",
   isTextBox: true, margin: 0, shadow: { type: "outer", color: "000000", blur: 8, offset: 3, angle: 45, opacity: 0.55 },
 });

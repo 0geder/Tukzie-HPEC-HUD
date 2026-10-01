@@ -2,7 +2,7 @@
 
 Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here.
 
-12 slides, 10 minutes plus questions. 1485 words in total, about 9.9 minutes at 150 words a minute.
+12 slides, 10 minutes plus questions. 1488 words in total, about 9.9 minutes at 150 words a minute.
 
 ## Slide 1: Title (92 words)
 
@@ -12,9 +12,9 @@ Good morning. I'm Samson Okuthe, and my project is SW-7, supervised by Associate
 
 Two facts frame the project. First, electric trikes can make economic sense for freight in African cities: on the routes a 2025 study examined in Dar es Salaam, an electric cargo tricycle cut operating cost per kilometre by 45.5 percent against a motorcycle and up to 86 percent against a light car. Second, anything that pulls the driver's eyes off the road is a risk. NHTSA guidance says a single glance away should not exceed two seconds, so the driver should see only short, safety-relevant alerts. The open problem is bringing edge telemetry and that kind of sparse driver information together on a low-cost trike, and measuring whether each part works.
 
-## Slide 3: Aim and research questions (133 words)
+## Slide 3: Aim and research questions (136 words)
 
-The aim is a low-cost unit that characterises the trike's ride at the edge and gives the driver only safety-relevant information. I split that into four research questions, and I've marked honestly where each one stands. RQ1, two IMUs at 200 hertz agreeing within noise, is verified on the bench. RQ3, bounded latency, measured data loss and recovery, is also verified on the bench: no dropped samples, a measured camera latency, and automatic recovery after the signal is cut. It still needs the moving vehicle. RQ4, separating road from powertrain vibration, passes its self-tests but needs road data. RQ2 was revised during the project. The trike already has a dashboard that shows what a HUD would show, and a second display adds distraction, so the camera's alerts now go on that dashboard instead.
+The aim is a low-cost unit that characterises the trike's ride at the edge and gives the driver only safety-relevant information. I split that into four research questions, and I've marked honestly where each one stands. RQ1, two IMUs at 200 hertz agreeing within noise, is verified on the bench. RQ3, bounded latency, measured data loss and recovery, is also verified on the bench: no dropped samples, a measured camera latency, and automatic recovery after the signal is cut. It still needs the moving vehicle. RQ4, separating road from powertrain vibration, passes its self-tests but needs road data. RQ2 changed during the project, with my supervisor's agreement. The trike already has a dashboard that shows what a HUD would show, and a second display adds distraction, so the camera's alerts now go on that dashboard instead.
 
 ## Slide 4: The system on the bench (131 words)
 

@@ -24,7 +24,16 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Colab notebook to train a YOLO11n pothole detector
+### (this commit) Title and RQ2 changed to dashboard integration
+
+- `Report/Project Report Template.tex`: title now "Development of an Embedded HPEC Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0 Platform"; project statement and draft abstract rewritten for the dashboard and brought up to date (19.5 fps and 102 ms, GNSS 2.7 m, recovery, log read-back). Why: supervisor agreed on 1 Oct 2026 to replace the HUD with dashboard integration and suggested this title; formal change requested from the course coordinator.
+- `Report/Introduction.tex`: the HUD-to-dashboard change and its reasons stated; RQ2 and its row in the requirements table now about the existing dashboard (status: page bench-verified, glance time outstanding); RQ3 status updated; HUD deliverable, software thread and limitation replaced. Why: same.
+- `Report/Literature.tex`: the HUD section renamed "Driver-display design, attention, and visual workload" and a paragraph added applying the glance and complexity findings to a head-down dashboard (zhu2021 on extra screens); HUD wording in the edge and gap paragraphs made display-neutral. Why: the reviewed literature still applies and now supports the decision.
+- `Report/Results.tex`, `Discussion.tex`, `Methodology.tex`: RQ2 section and discussion theme refer to the dashboard page; `sec:dashboard-page` label added.
+- `Presentation/source/build_deck.js`, `build_poster.js`: new title (deck title 34 pt to fit two lines), RQ2 row and badge "Page tested", notes say the change was agreed with the supervisor. `Presentation/SW7_QA_Prep.md`: answer updated.
+- Report now 79 pages (was 78).
+
+### (5de6a2a) Colab notebook to train a YOLO11n pothole detector
 
 - `CameraDetection/training/train_pothole_yolo11n.ipynb` (built by `make_notebook.py`): downloads a public Roboflow Universe pothole dataset (API key from Colab secrets), fine-tunes COCO-pretrained YOLO11n with checkpoints on Google Drive, evaluates on the test split at 640 and 320, writes a training record (dataset, settings, versions, mAP, precision, recall) and exports NCNN for the Pi. Why: the student chose Colab over Roboflow hosted training (no credits used, the weights are ours, and the training can be described exactly in the report). No vehicle camera frames are used.
 - `CameraDetection/run_yolo_bench.sh`: installs from a copied `wheels` folder when present, so the Pi needs no internet.

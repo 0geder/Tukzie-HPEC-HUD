@@ -12,9 +12,9 @@ const C = {
 const FONT = "Calibri";
 const W = 13.333, H = 7.5, M = 0.6;
 
-// The HUD was replaced by the vehicle's existing dashboard (student's decision, emailed to the supervisor 1 Oct 2026).
-// The title stays as in the report until the supervisor agrees; then change TITLE here and in build_poster.js.
-const TITLE = "An Embedded Telemetry Unit and Windshield HUD\nfor the TUKZIE Rev 0 Electric Cargo Trike";
+// The HUD was replaced by integration with the vehicle's existing dashboard (supervisor agreed 1 Oct 2026;
+// formal title change requested from the course coordinator). Keep TITLE the same in build_poster.js.
+const TITLE = "Development of an Embedded HPEC Telemetry Unit\nand Dashboard Integration for the TUKZIE Rev 0 Platform";
 
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE";
@@ -74,7 +74,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   txt(s, "EEE4022S Final Year Project 2026, Department of Electrical Engineering, University of Cape Town",
     { x: M, y: 0.35, w: W - 2 * M, h: 0.4, fontSize: 15, color: C.white, align: "center", shadow: shadow() });
   txt(s, TITLE,
-    { x: M, y: 0.85, w: W - 2 * M, h: 1.6, fontSize: 38, bold: true, color: C.white, align: "center", valign: "middle", shadow: shadow() });
+    { x: M, y: 0.85, w: W - 2 * M, h: 1.6, fontSize: 34, bold: true, color: C.white, align: "center", valign: "middle", shadow: shadow() });
   txt(s, "Samson Okuthe (OKTSAM001)",
     { x: M, y: 2.5, w: W - 2 * M, h: 0.45, fontSize: 20, bold: true, color: C.white, align: "center", shadow: shadow() });
   txt(s, "Supervisor: A/Prof. Simon Winberg   |   Co-supervisor: Sampath Jayalath   |   Project SW-7",
@@ -109,10 +109,10 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
     "RQ1, two IMUs at 200 hertz agreeing within noise, is verified on the bench. " +
     "RQ3, bounded latency, measured data loss and recovery, is also verified on the bench: no dropped samples, a measured camera latency, and automatic recovery after the signal is cut. It still needs the moving vehicle. " +
     "RQ4, separating road from powertrain vibration, passes its self-tests but needs road data. " +
-    "RQ2 was revised during the project. The trike already has a dashboard that shows what a HUD would show, and a second display adds distraction, so the camera's alerts now go on that dashboard instead.");
+    "RQ2 changed during the project, with my supervisor's agreement. The trike already has a dashboard that shows what a HUD would show, and a second display adds distraction, so the camera's alerts now go on that dashboard instead.");
   const rows = [
     ["RQ1", "Acquire two IMUs at 200 Hz (at least 160 Hz for ISO 2631-1) with the sensors agreeing within noise", "Bench-verified", "solid"],
-    ["RQ2", "Show safety-critical data to the driver without exceeding the 2 s glance guidance", "Revised: dashboard", "dash"],
+    ["RQ2", "Show safety-critical alerts on the existing dashboard without exceeding the 2 s glance guidance", "Page tested", "dash"],
     ["RQ3", "Bounded latency, measured data loss and recovery from sensor through to the cellular link", "Bench-verified", "solid"],
     ["RQ4", "Ride features that separate road-induced from powertrain vibration", "Self-test only", "solid"],
   ];

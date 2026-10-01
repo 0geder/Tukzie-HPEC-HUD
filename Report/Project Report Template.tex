@@ -47,7 +47,7 @@
 \thispagestyle{empty}
 {\Huge \begin{center}
 % Modify the line below to insert your title.
-Development of an Embedded HPEC Telemetry Unit and Windshield HUD for the TUKZIE Rev 0 Platform
+Development of an Embedded HPEC Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0 Platform
 \hrule
 \end{center}}
 
@@ -121,7 +121,7 @@ Word count of the body of the report (Chapters 1 to 7, excluding tables, figures
 {\Large Terms of Reference}\\
 \hrule
 
-This project (SW-7) is to develop a high-performance embedded computing (HPEC) telemetry unit and windshield head-up display for the TUKZIE Rev 0 electric cargo trike, capable of acquiring synchronised inertial, battery, positioning and camera data, characterising the vehicle's dynamic response at the edge, preserving telemetry under intermittent cellular connectivity, and presenting a minimal set of safety-relevant information to the driver.
+This project (SW-7) is to develop a high-performance embedded computing (HPEC) telemetry unit for the TUKZIE Rev 0 electric cargo trike, integrated with the vehicle's existing dashboard, capable of acquiring synchronised inertial, battery, positioning and camera data, characterising the vehicle's dynamic response at the edge, preserving telemetry under intermittent cellular connectivity, and presenting a minimal set of safety-relevant information to the driver on that dashboard.
 
 
 \fancyfoot[C]{\thepage}
@@ -141,7 +141,7 @@ I thank my supervisor, A/Prof. Simon Winberg, and co-supervisor, Sampath Jayalat
 % Place your abstract here.
 \textit{Draft abstract, to be revised once field results are available.}
 
-This report describes the development of an embedded telemetry unit and windshield head-up display for the TUKZIE Rev 0, a 72\,V electric cargo trike. An ESP32-S3 with an integrated LTE modem acquires data from two inertial measurement units at 200\,Hz, the vehicle's battery-management system over Bluetooth Low Energy, and GNSS, computes time-domain ride-characterisation features at the edge, logs telemetry locally, and publishes it over MQTT. A Raspberry Pi 4 camera, time-synchronised to the inertial stream, provides a visual record, and an object detector reporting approximate distance bands has been implemented and run on live bench footage at about 7 frames per second, with distance calibration outstanding, to be complemented by a multi-zone time-of-flight sensor. Bench validation to date shows deterministic 200\,Hz acquisition with no dropped samples, per-sensor calibration reducing an 8\% disagreement between nominally identical accelerometers to within measurement noise, sub-second alignment between camera and inertial data, and a complete cellular publish path to a live broker. On-vehicle field testing, which the ride-characterisation and HUD research questions depend on, is the principal outstanding work.
+This report describes the development of an embedded telemetry unit for the TUKZIE Rev 0, a 72\,V electric cargo trike, and its integration with the vehicle's existing dashboard. An ESP32-S3 with an integrated LTE modem acquires data from two inertial measurement units at 200\,Hz, the vehicle's battery-management system over Bluetooth Low Energy, and GNSS, computes time-domain ride-characterisation features at the edge, logs telemetry locally, and publishes it over MQTT. A Raspberry Pi 4, time-synchronised to the inertial stream by a pulse wire, runs a pretrained object detector that reports road users in coarse distance bands, with three time-of-flight sensors for close range, and a page written for the existing dashboard shows its live view and alerts in place of the windshield head-up display in the original brief. Bench validation to date shows deterministic 200\,Hz acquisition with no dropped samples, per-sensor calibration reducing an 8\% disagreement between nominally identical accelerometers to within measurement noise, GNSS positions a median of 2.7\,m from a reference, automatic recovery of the cellular link within about 5\,s of the signal returning, a complete read-back of the local log, and a median of 102\,ms from camera readout to detection at 19.5 frames per second. On-vehicle field testing, which the ride-characterisation research questions and the glance-time question depend on, is the principal outstanding work.
 
 
 \newpage
