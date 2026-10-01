@@ -31,6 +31,28 @@ RUN_DIR = '/content/drive/MyDrive/SW7_training'
 os.makedirs(RUN_DIR, exist_ok=True)
 """),
 code("""
+# 2b. South African pothole dataset straight from Kaggle (Nienaber, Kroon and Booysen, Stellenbosch University,
+#     SATC 2015; CC0 1.0). Needs Colab secrets KAGGLE_USERNAME and KAGGLE_KEY (kaggle.com > Settings > API >
+#     Create New Token gives both). This cell only downloads and shows the layout, so the label format can be
+#     checked before it is converted or uploaded to Roboflow.
+!pip -q install kagglehub
+import os, glob
+from google.colab import userdata
+os.environ['KAGGLE_USERNAME'] = userdata.get('KAGGLE_USERNAME')
+os.environ['KAGGLE_KEY'] = userdata.get('KAGGLE_KEY')
+import kagglehub
+SA_DIR = kagglehub.dataset_download('sovitrath/road-pothole-images-for-pothole-detection')
+print('downloaded to', SA_DIR)
+for root, dirs, files in os.walk(SA_DIR):
+    depth = root[len(SA_DIR):].count(os.sep)
+    if depth > 3: continue
+    exts = sorted({os.path.splitext(f)[1].lower() for f in files})
+    print('  ' * depth + os.path.basename(root) + '/', len(files), 'files', exts)
+labels = [f for f in glob.glob(SA_DIR + '/**/*', recursive=True) if f.lower().endswith(('.txt', '.xml', '.json', '.csv'))]
+print(len(labels), 'label-like files; first one:', labels[:1])
+if labels: print(open(labels[0]).read()[:600])
+"""),
+code("""
 # 3. Dataset from Roboflow Universe (fill in from the dataset's download code)
 WORKSPACE = 'gerapothole'            # example: https://universe.roboflow.com/gerapothole/pothole-detection-yolov8
 PROJECT   = 'pothole-detection-yolov8'
