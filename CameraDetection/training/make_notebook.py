@@ -32,14 +32,22 @@ os.makedirs(RUN_DIR, exist_ok=True)
 """),
 code("""
 # 2b. South African pothole dataset straight from Kaggle (Nienaber, Kroon and Booysen, Stellenbosch University,
-#     SATC 2015; CC0 1.0). Needs Colab secrets KAGGLE_USERNAME and KAGGLE_KEY (kaggle.com > Settings > API >
-#     Create New Token gives both). This cell only downloads and shows the layout, so the label format can be
-#     checked before it is converted or uploaded to Roboflow.
-!pip -q install kagglehub
+#     SATC 2015; CC0 1.0). Needs a Colab secret: KAGGLE_API_TOKEN (kaggle.com > Settings > API Tokens >
+#     Generate New Token), or the legacy pair KAGGLE_USERNAME and KAGGLE_KEY from kaggle.json.
+#     This cell only downloads and shows the layout, so the label format can be checked before it is
+#     converted or uploaded to Roboflow.
+!pip -q install -U "kagglehub>=0.4.1"
 import os, glob
 from google.colab import userdata
-os.environ['KAGGLE_USERNAME'] = userdata.get('KAGGLE_USERNAME')
-os.environ['KAGGLE_KEY'] = userdata.get('KAGGLE_KEY')
+def secret(name):
+    try: return userdata.get(name)
+    except Exception: return None
+if secret('KAGGLE_API_TOKEN'):
+    os.environ['KAGGLE_API_TOKEN'] = secret('KAGGLE_API_TOKEN')
+elif secret('KAGGLE_USERNAME') and secret('KAGGLE_KEY'):
+    os.environ['KAGGLE_USERNAME'] = secret('KAGGLE_USERNAME'); os.environ['KAGGLE_KEY'] = secret('KAGGLE_KEY')
+else:
+    print('No Kaggle secret found; trying without (works for some public datasets).')
 import kagglehub
 SA_DIR = kagglehub.dataset_download('sovitrath/road-pothole-images-for-pothole-detection')
 print('downloaded to', SA_DIR)
