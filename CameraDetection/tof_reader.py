@@ -12,7 +12,7 @@ a Pi GPIO; the script holds all low, then wakes them one at a time and
 moves each to its own address. With one sensor (--single) no XSHUT wire is
 needed.
 
-Wiring (Pi physical pins): 3V3 pin 1, GND pin 9, SDA pin 3, SCL pin 5,
+Wiring (Pi physical pins): 3V3 pin 1, GND pin 6 (pin 9 is the ESP32 sync ground), SDA pin 3, SCL pin 5,
 XSHUT left/ahead/right to GPIO22/23/24 (pins 15, 16, 18).
 Enable I2C first: sudo raspi-config nonint do_i2c 0
 Install: venv/bin/pip install adafruit-blinka adafruit-circuitpython-vl53l0x
