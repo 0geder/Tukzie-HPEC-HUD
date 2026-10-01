@@ -120,8 +120,8 @@ say what each test is for and what counts as a pass.
 - Wiring: sensor board J2 pin 3 (3V3) to Pi pin 1, J2 GND (pin 23) to Pi pin 6, J2 31 (SDA) to Pi 3, J2 32 (SCL) to Pi 5, XSHUT1/2/3 (J2 21/9/7) to Pi 15/16/18 (GPIO22/23/24). VDD (LED supply) not connected. Continuity-check each pin first. Pi I2C on (`sudo raspi-config nonint do_i2c 0`).
 - Method: `venv/bin/python tof_probe.py`, then `venv/bin/python tof_reader.py --duration 15 --csv tof.csv`. Then a hand at about 15 cm in front of each sensor in turn to confirm which is left, ahead and right, and a tape measure at 0.2, 0.5, 1.0 and 1.5 m.
 - Pass: chip identified; three sensors answer; readings change with the hand on the matching sensor; within about 5% of the tape below 1 m.
-- Result (1 Oct 2026): chip VL53L0X; all three addressed and read at about 31 readings/s each; centre 267 to 300 mm, right 24 to 38 mm (something close in front of it), left 8190 every reading (no target in range, sensor answering). Hand test and tape check not yet done.
-- Evidence: `BenchTest/logs/2026-10-01_tof_three_sensors.csv`.
+- Result (1 Oct 2026): chip VL53L0X; all three addressed and read at about 31 readings/s each; centre 267 to 300 mm, right 24 to 38 mm (something close in front of it), left 8190 every reading (no target in range, sensor answering). Cover test (1 Oct 2026, board untouched, each sensor covered by a fingertip in turn): left 27 to 46 mm, then centre 40 to 43 mm, then right 20 to 24 mm, in the order covered, so the labels match the physical sensors; afterwards about 690, 330 and 595 mm to the room. Tape check not yet done.
+- Evidence: `BenchTest/logs/2026-10-01_tof_three_sensors.csv`, `..._tof_hand_test.csv`, `..._tof_cover_test.csv`.
 
 ## Bench tools
 
