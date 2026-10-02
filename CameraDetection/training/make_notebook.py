@@ -62,9 +62,11 @@ if labels: print(open(labels[0]).read()[:600])
 """),
 code("""
 # 3. Dataset from Roboflow Universe (fill in from the dataset's download code)
-WORKSPACE = 'gerapothole'            # example: https://universe.roboflow.com/gerapothole/pothole-detection-yolov8
-PROJECT   = 'pothole-detection-yolov8'
-VERSION   = 1
+# Run 1 dataset: 8,016 images, 5 classes (Pothole, Manhole, Open Manhole, Speed Bump, Unmarked Bump), CC BY 4.0;
+# v23 is the unaugmented version (v25 is the same images tripled by augmentation). Uploader's model: mAP50 37.8%.
+WORKSPACE = 'pothole-detection-1nczj'
+PROJECT   = 'real-time-road-anomalies-detection-in-different-weather-conditions-and-lightning'
+VERSION   = 23
 DATASET_URL = f'https://universe.roboflow.com/{WORKSPACE}/{PROJECT}'
 
 from google.colab import userdata
