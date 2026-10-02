@@ -60,6 +60,79 @@ labels = [f for f in glob.glob(SA_DIR + '/**/*', recursive=True) if f.lower().en
 print(len(labels), 'label-like files; first one:', labels[:1])
 if labels: print(open(labels[0]).read()[:600])
 """),
+code(r"""
+# 2c. Inspect the South African dataset fully
+import os, glob, csv
+from PIL import Image
+for root, dirs, files in os.walk(SA_DIR):
+    d = root[len(SA_DIR):].count(os.sep)
+    exts = sorted({os.path.splitext(f)[1].lower() for f in files})
+    print('  ' * d + os.path.basename(root) + '/', len(files), 'files', exts)
+for f in glob.glob(SA_DIR + '/**/*.csv', recursive=True) + glob.glob(SA_DIR + '/**/*.txt', recursive=True):
+    rows = open(f).read().splitlines()
+    print('\n==', f.replace(SA_DIR, ''), len(rows), 'lines'); print('\n'.join(rows[:4]))
+"""),
+code(r"""
+# 2d. Convert the South African labels to YOLO format (full frames) and measure pothole sizes.
+#     Annotation lines: '<path with spaces>.bmp <n> x y w h ...' in pixels (top-left x, y).
+#     Result on 2 Oct 2026: 3680x2760 images; median pothole 100x26 px, i.e. 17x4.5 px at 640 input;
+#     pothole centres between 0.48 and 0.62 of the image height.
+import os, glob, random, re, statistics as st, yaml
+from PIL import Image
+OUT = '/content/sa_yolo'
+root = glob.glob(SA_DIR + '/**/Dataset 1 (Simplex)/Dataset 1 (Simplex)', recursive=True)[0]
+imgs = {os.path.splitext(os.path.basename(p))[0]: p for p in glob.glob(root + '/**/*.[jJ][pP][gG]', recursive=True)}
+names = ['Potholes']                    # class list of the dataset the model is trained on
+if os.path.exists('/content/dataset/data.yaml'):
+    names = yaml.safe_load(open('/content/dataset/data.yaml'))['names']
+names = list(names.values()) if isinstance(names, dict) else list(names)
+POT = next(i for i, n in enumerate(names) if 'pothole' in n.lower())
+ann = {}
+for txt in glob.glob(root + '/*.txt'):
+    for line in open(txt).read().splitlines():
+        m = re.match(r'^(.*?\.(?:bmp|jpg|jpeg|png))\s+(.*)$', line.strip().replace('\\', '/'), re.I)
+        if not m: continue
+        nums = m.group(2).split()
+        stem, n = os.path.splitext(os.path.basename(m.group(1)))[0], int(nums[0])
+        v = list(map(int, nums[1:1 + 4 * n]))
+        ann[stem] = [tuple(v[i:i + 4]) for i in range(0, len(v), 4)]
+W, H = Image.open(next(iter(imgs.values()))).size
+boxes = [b for bs in ann.values() for b in bs]
+print('images:', len(imgs), '| annotated:', len(ann), '| boxes:', len(boxes), '| size:', (W, H))
+q = lambda v: [round(x) for x in st.quantiles(v, n=10)[::4]]
+print('width px p10/p50/p90', q([b[2] for b in boxes]), '-> at 640:', [round(x * 640 / W, 1) for x in q([b[2] for b in boxes])])
+print('height px p10/p50/p90', q([b[3] for b in boxes]), '-> at 640:', [round(x * 640 / W, 1) for x in q([b[3] for b in boxes])])
+print('centre y / H p10/p50/p90', [round(x, 2) for x in st.quantiles([(b[1] + b[3] / 2) / H for b in boxes], n=10)[::4]])
+split_of = lambda p: 'test' if '/Test data/' in p.replace('\\', '/') else 'train'
+random.seed(0)
+pos = [s for s, p in imgs.items() if split_of(p) == 'train' and ann.get(s)]
+neg = [s for s, p in imgs.items() if split_of(p) == 'train' and not ann.get(s)]
+neg = random.sample(neg, min(len(neg), len(pos)))
+train = pos + neg; random.shuffle(train); nval = len(train) * 15 // 100
+plan = {'val': train[:nval], 'train': train[nval:], 'test': [s for s, p in imgs.items() if split_of(p) == 'test']}
+for sp, stems in plan.items():
+    os.makedirs(f'{OUT}/{sp}/images', exist_ok=True); os.makedirs(f'{OUT}/{sp}/labels', exist_ok=True)
+    for s in stems:
+        dst = f'{OUT}/{sp}/images/{s}.jpg'
+        if not os.path.exists(dst): os.symlink(imgs[s], dst)
+        with open(f'{OUT}/{sp}/labels/{s}.txt', 'w') as f:
+            for x, y, w, h in ann.get(s, []):
+                f.write(f'{POT} {(x + w / 2) / W:.6f} {(y + h / 2) / H:.6f} {w / W:.6f} {h / H:.6f}\n')
+    print(sp, len(stems), 'images,', sum(len(ann.get(s, [])) for s in stems), 'potholes')
+SA_YAML = f'{OUT}/data.yaml'
+yaml.safe_dump({'path': OUT, 'train': 'train/images', 'val': 'val/images', 'test': 'test/images', 'names': names}, open(SA_YAML, 'w'))
+"""),
+code(r"""
+# 2e. An existing pothole model on the South African test images at three input sizes (no training):
+#     shows the gap between the training photos and South African roads, and the effect of resolution.
+from ultralytics import YOLO
+MODEL_TO_TEST = f'{RUN_DIR}/yolo11n_pothole_640/weights/best.pt'    # run 1
+m = YOLO(MODEL_TO_TEST)
+for sz in (640, 1280, 1920):
+    r = m.val(data=SA_YAML, split='test', imgsz=sz, batch=8, plots=False, verbose=False,
+              project=RUN_DIR, name=f'SA_test_{sz}', exist_ok=True)
+    print(f'imgsz {sz}: mAP50 {r.box.map50:.3f}  mAP50-95 {r.box.map:.3f}  P {r.box.mp:.3f}  R {r.box.mr:.3f}')
+"""),
 code("""
 # 3. Dataset from Roboflow Universe (fill in from the dataset's download code)
 # Run 1 dataset: 8,016 images, 5 classes (Pothole, Manhole, Open Manhole, Speed Bump, Unmarked Bump), CC BY 4.0;
