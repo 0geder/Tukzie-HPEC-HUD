@@ -1,59 +1,160 @@
-# Front camera page for the TUKZIE dashboard
+# SW-7 add-ons for the TUKZIE dashboard
 
-An add-on page for the vac-work dashboard (PySide6,
-`Tukzie-Vac-Work-2026/Dashboard Team/Dashboard+ASIS`) that shows the SW-7
-forward camera and its hazard alerts. It is kept here, outside the
-dashboard repo, so the dashboard team can review it before anything in
-their code changes.
+Three add-ons for the vehicle dashboard (PySide6, the dashboard team's
+`Tukzie-Vac-Work-2026/Dashboard Team/Tukzie-Dashboard/v1.0-validated`):
 
-## What it does
+| File | Goes to | What it does |
+|---|---|---|
+| `front_camera_page.py` | `app/pages/` | Front camera page: live view and hazard alerts from the Pi 4 detector |
+| `live_data_provider.py` | `app/data/` | Polls the Pi 4 telemetry bridge and feeds real values into the dashboard state |
+| `ride_quality_card.py` | `app/widgets/` | Compact card with the telemetry the dashboard has no fields for |
 
-- Shows the live view from the Raspberry Pi 4 detector
-  (`CameraDetection/hazard_detector.py --preview`), with the detections
-  the model makes drawn on the image.
-- Lists the current alerts (class and distance band) in the dashboard's
-  own status colours: red immediate, amber warning, green monitoring.
+They are kept here, outside the dashboard repo, so the dashboard team can
+review them before anything in their code changes. The telemetry contract is
+in `TELEMETRY_LINK.md`. All three use QtNetwork and QtWidgets only, not
+QtWebEngine (the Navigation page's WebEngine view has crashed on the Pi 5,
+per the dashboard README), and all colours come from the dashboard's `THEME`.
+
+## Front camera page
+
+- Shows the live view from the Pi 4 detector
+  (`CameraDetection/hazard_detector.py --preview`), with detections drawn on.
+- Lists current alerts (class and distance band) in the dashboard's status
+  colours: red immediate, amber warning, green monitoring.
 - Shows the detector's frame rate and sensor-to-result latency.
-- Emits `alerts_changed(list)`, so other pages (for example a toast on the
-  driving page) can react to alerts without showing the video.
+- Emits `alerts_changed(list)`, so other pages can react to alerts.
+- Streams video only while the page is on screen, keeps only the newest
+  frame, and reconnects every 3 s if the camera drops out.
 
-It uses QtNetwork and QtWidgets only, not QtWebEngine (the Navigation
-page's WebEngine view has crashed on the Pi 5, per the dashboard README).
-Video streams only while the page is on screen, only the newest frame is
-decoded, and the page reconnects every 3 s if the camera drops out.
+Endpoints: `GET /stream` (MJPEG) and `GET /alerts` (JSON, `{"active": [...],
+"fps": 7.0, "latency_ms": 182}`). Address: `TUKZIE_CAMERA_URL`, default
+`http://pi4-camera.local:8080`.
 
-## Endpoints it reads (served by the detector)
+## Live-data provider
 
-| Endpoint | Content |
-|---|---|
-| `GET /stream` | MJPEG: the camera image with detections drawn on it |
-| `GET /alerts` | JSON: `{"active": [...], "fps": 7.0, "latency_ms": 182}`; each active alert has `class`, `distance_band`, `confidence`, `timestamp`, `alert_status` |
+`LiveDataProvider(manager)` polls `GET <bridge>/telemetry` every 500 ms
+(address `TUKZIE_TELEMETRY_URL`, default `http://192.168.137.82:8081`) and
+calls `VehicleStateManager.ingest_live_state(state, source="sw7_telemetry")`.
 
-The camera address is taken from the `TUKZIE_CAMERA_URL` environment
-variable, default `http://pi4-camera.local:8080`.
+`ingest_live_state()` replaces the dashboard state as a whole, it does not
+merge, so each call gets a complete `VehicleState`:
 
-## Wiring it in (four small edits for the dashboard team)
+| Bridge field | VehicleState field | Note |
+|---|---|---|
+| `esp32.soc` | `soc_pct`, `signal_validity["soc"]` | null keeps the last known value, marked invalid |
+| `esp32.v * esp32.i / 1000` | `signed_battery_power_kw`; `battery_power_kw = max(0, kW)` | null if either is null; sign not yet checked on the vehicle |
+| `esp32.lat`, `esp32.lon` | `latitude`, `longitude`, `gps_timestamp` | only when `fix` is true, otherwise None |
+| `esp32.fix` | `signal_validity["gps"]` | |
+| `tof.ahead_mm` | `front_obstacle_distance_m`, `signal_validity["front_obstacle"]` | the ahead sensor only, in metres (a side reading must not raise a front warning); None if ToF is null or older than 3 s |
+| `esp32.spd_raw` | not mapped | units unconfirmed; `speed_kmh` stays 0 and `signal_validity["speed"]` is False |
 
-1. Copy `front_camera_page.py` into `app/pages/`.
+Gear, indicator, headlights and parking brake are copied from the manager's
+simulation state, so the keyboard and controller still set them. Every other
+field keeps the `VehicleState` default and is marked invalid in
+`signal_validity` (speed, battery temperature, rear obstacle, weather, road
+surface, door, seatbelt, tyres).
 
-2. `app/pages/dashboard_main.py`, with the other page imports:
+Nothing is ingested when the bridge cannot be reached, the reply is not
+JSON, `esp32` is null, or `esp32.age_ms` is missing or above 3000. The
+dashboard's own 2500 ms watchdog then returns it to simulation and shows its
+usual "simulation resumed" toast.
+
+Signals: `telemetry_updated(object)` carries the raw `/telemetry` dict on
+every poll, or None when the bridge is unreachable; `link_changed(str)` is
+"live", "stale" or "offline".
+
+## Ride quality card
+
+Shows vibration (`vib`, m/s2), IMU disagreement, IMU1/IMU2 sample rates and
+drops, motor rpm, raw GNSS speed (units unconfirmed), modem signal quality
+(`csq` of 31, amber below 10), MQTT up or down, ToF left, ahead and right in
+metres (amber under 1 m), and the ESP32 record age, with a pill that reads
+Live, ESP32 stale or Offline. Values turn grey when not live, and the card goes
+Offline by itself if nothing arrives for 3 s.
+
+It is a card, not a page, placed on the Diagnostics page under the main
+diagnostics card. Reasons: the bottom bar is icon-only with one icon per page,
+and these figures are engineering health data like the rest of Diagnostics,
+not something the driver needs on a separate screen; the Diagnostics page
+already scrolls, so it costs two lines there and no new icon or page id. The
+card is self-contained, so it can move to the Driving page or a page of its
+own later. See `tests/ride_card.png`.
+
+## Wiring it in (edits for the dashboard team)
+
+Each edit below is exact: find the existing line, add or change as shown.
+The same edits are in `tests/dashboard_patches.py`, and the test applies them
+to a copy of v1.0-validated and starts the patched dashboard, so they are
+checked against the current files.
+
+1. Copy the three files: `front_camera_page.py` to `app/pages/`,
+   `live_data_provider.py` to `app/data/`, `ride_quality_card.py` to
+   `app/widgets/`.
+
+2. `app/pages/dashboard_main.py`
+
+   a. Imports. After `from ..data.data_provider import VehicleStateManager` (line 18) add:
+   ```python
+   from ..data.live_data_provider import LiveDataProvider
+   ```
+   After `from .driving_page import DrivingPage` (line 27) add:
    ```python
    from .front_camera_page import FrontCameraPage
    ```
-   and where the pages are created:
-   ```python
-   self.front_camera = FrontCameraPage()
-   ```
-   then add `"camera": self.front_camera` to `self.page_by_id`, and
-   `"camera"` to `self.page_ids` (for example after `"navigation"`).
 
-3. `app/widgets/nav_bar.py`, add a button to `NAV_ITEMS`:
+   b. After `self.settings = SettingsPage(self.saved_settings)` (line 74) add:
    ```python
-   ('camera','camera','Front camera'),
+           self.front_camera = FrontCameraPage()
    ```
 
-4. `app/widgets/icon_registry.py`, add a drawer and register it in
-   `DRAWERS` as `'camera': camera`:
+   c. In `self.page_by_id`, change `"settings": self.settings,` (line 79) to:
+   ```python
+               "settings": self.settings, "camera": self.front_camera,
+   ```
+
+   d. Line 81, add `"camera"` after `"navigation"` in `page_ids`:
+   ```python
+           self.page_ids = ["driving", "analytics", "diagnostics", "navigation", "camera", "reverse", "charging", "settings"]
+   ```
+
+   e. Line 85, add `"camera"` after `"navigation"` in `normal_ids` too. The
+   older steps missed this list; without it the side arrows skip the camera
+   page and its nav button never shows as selected (lines 147 and 156).
+   ```python
+           self.normal_ids = ["driving", "analytics", "diagnostics", "navigation", "camera", "charging", "settings"]
+   ```
+
+   f. After `self._apply_theme(); self.switch_page_id("driving"); self.vehicle_data.start()` (line 120) add:
+   ```python
+           self.telemetry = LiveDataProvider(self.vehicle_data, parent=self)
+           self.telemetry.telemetry_updated.connect(self.diagnostics.ride_card.set_telemetry)
+           self.telemetry.start()
+   ```
+
+   g. In `closeEvent` (line 282), change
+   `for fn, name in ((self.vehicle_data.stop, "vehicle data"),` to:
+   ```python
+           for fn, name in ((self.telemetry.stop, "telemetry"), (self.vehicle_data.stop, "vehicle data"),
+   ```
+   (the rest of that line stays as it is).
+
+3. `app/pages/diagnostics_page.py`
+
+   After `from ..widgets.themed_surfaces import ThemedPageSurface, ThemedCard` (line 8) add:
+   ```python
+   from ..widgets.ride_quality_card import RideQualityCard
+   ```
+   After `        root.addWidget(card)` (line 21) add:
+   ```python
+           self.ride_card=RideQualityCard();root.addWidget(self.ride_card)
+   ```
+
+4. `app/widgets/nav_bar.py`, in `NAV_ITEMS` after `('navigation','navigation','Navigation'),` add:
+   ```python
+       ('camera','camera','Front camera'),
+   ```
+
+5. `app/widgets/icon_registry.py`, just before `DRAWERS: dict[str, DrawFn] = {` add:
    ```python
    def camera(p,r,c):
        _setup(p,c,max(1.6,r.width()*.065))
@@ -62,24 +163,44 @@ variable, default `http://pi4-camera.local:8080`.
        p.drawRect(QRectF(r.left()+r.width()*.36,r.top()+r.height()*.20,r.width()*.22,r.height()*.10))
        p.drawEllipse(body.center(),r.width()*.14,r.width()*.14)
    ```
+   and in `DRAWERS` change `'speaker': speaker,` to:
+   ```python
+       'speaker': speaker, 'camera': camera,
+   ```
 
-On the Pi 5, if `pi4-camera.local` does not resolve on the vehicle
-network, set the address before starting the dashboard, for example
-`export TUKZIE_CAMERA_URL=http://192.168.1.50:8080`.
+On the Pi 5, set the Pi 4's addresses before starting the dashboard if the
+defaults do not resolve on the vehicle network, for example:
+```sh
+export TUKZIE_TELEMETRY_URL=http://192.168.137.82:8081
+export TUKZIE_CAMERA_URL=http://192.168.137.82:8080
+```
 
-## Tested
+## Tests
 
-Offscreen on a laptop with PySide6 6.11.2, inside a copy of the
-dashboard's `app` package, with the dashboard's own stylesheet:
+`tests/test_live_data_provider.py` (run with `python
+DashboardIntegration/tests/test_live_data_provider.py`): copies
+v1.0-validated's `app` into a scratch folder, adds the three files, applies
+the edits above to the copy, and starts a local HTTP server that serves
+`/telemetry` like the bridge. Offscreen, with PySide6 6.11.2 (Essentials) on a
+laptop, it checks:
 
-- The frame parser picks the newest complete JPEG from a multipart
-  stream, keeps a partial frame for the next chunk, and ignores junk.
-- The page decodes a stream fed in uneven 1777-byte chunks, lists two
-  alerts, clears them, and emits `alerts_changed` only when the list
-  changes.
-- Pointed at an address that never answers, the UI stays responsive and
-  reports "Camera offline, retrying" within 7 s.
-- The camera icon drawer in step 4 renders correctly at 96 px.
+- Normal values reach `ingest_live_state()` mapped as in the table above,
+  with `speed_kmh` left at 0, and the dashboard switches to live mode.
+- Null fields map to None or keep the last state of charge, marked invalid.
+- With `esp32.age_ms` 4500, with `esp32` null, with bad JSON and with the
+  server stopped, polling continues, nothing is ingested, and the dashboard
+  falls back to simulation by itself.
+- The ride card shows the values, ESP32 stale, Offline, and goes Offline
+  after 3 s without updates. `tests/ride_card.png` is its live state.
+- The patched `DashboardMain` starts, goes live from the bridge, fills the
+  ride card on the Diagnostics page, and puts the camera page after
+  Navigation in the page order and arrows.
 
-Not yet tested: on the Pi 5 itself, against the live detector, and the
-four wiring edits above (they touch the dashboard team's files).
+With PySide6-Essentials only, the test gives the reverse camera page a silent
+`QSoundEffect` stub, because `QtMultimedia` is in PySide6-Addons.
+
+`tests/test_front_camera_page.py` and `tests/test_front_camera_page_live.py`
+are the earlier camera page tests (run from a scratch copy of the app).
+
+Not yet tested: on the Pi 5 itself, against the real bridge and ESP32, and
+the edits above in the dashboard team's own repo.

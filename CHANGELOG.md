@@ -24,7 +24,15 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Firmware v0.7.0: 1 Hz DASH line for the dashboard; telemetry link contract
+### (this commit) Dashboard live-data provider and ride-quality card
+
+- `DashboardIntegration/live_data_provider.py`: polls the Pi 4 bridge (`TUKZIE_TELEMETRY_URL`, default http://192.168.137.82:8081) every 500 ms and passes a complete VehicleState to `ingest_live_state` (which replaces the state and stops the simulation): soc_pct, signed and positive battery power from v and i, latitude and longitude only with a fix, GPS validity, front_obstacle_distance_m from the ahead ToF sensor only; speed not mapped (units unconfirmed); gear, indicator, headlights and parking brake kept from the simulator so the controls still work. Nothing is ingested when the bridge is down, the JSON is bad or the ESP32 data is older than 3 s, so the dashboard's own fallback takes over. Why: the dashboard had no live input.
+- Ahead-only obstacle distance: decided 2 Oct so that a side reading (a parked car) does not raise a front-obstacle warning; README and TELEMETRY_LINK.md updated.
+- `DashboardIntegration/ride_quality_card.py`: card on the Diagnostics page with vibration, IMU disagreement, rates and drops, motor rpm, raw GNSS speed, signal, MQTT, ToF left, ahead and right, ESP32 age, and live, stale and offline states. Why: the dashboard has no fields for the ride data.
+- `DashboardIntegration/README.md`: rewritten for the v1.0-validated dashboard, with the 13 exact edits (including the missed normal_ids) for the dashboard team to review; none applied to their repository.
+- `DashboardIntegration/tests/test_live_data_provider.py`, `dashboard_patches.py`, `ride_card.png`: offscreen test that applies the 13 edits to a copy of v1.0-validated and runs it against a fake bridge (live, nulls, stale, bad JSON, server down, ride card, nav order); passes.
+
+### (7c87d09) Firmware v0.7.0: 1 Hz DASH line for the dashboard; telemetry link contract
 
 - `DashboardIntegration/TELEMETRY_LINK.md`: contract for ESP32 (USB serial DASH line, 1 Hz) to Pi 4 bridge (HTTP :8081 /telemetry, with ToF) to Pi 5 dashboard live-data provider, and the field mapping. Why: the dashboard has no live input (simulated data only); the ESP32 and Pi 4 share the front enclosure, so the Pi 4 is the gateway and the driver's display does not depend on cellular coverage.
 - `HUDTelemetryUnit/src/main.cpp` (v0.7.0): `DashTask` (core 0, priority 1, 1000 ms) prints `DASH {json}` with seq, up_ms, fw, soc, v, i, bms_age_s, fix, lat, lon, spd_raw, vib, vib_dis, imu_hz, drops, rpm, csq, mqtt; NaN as null; fixed 400-byte buffer, one Serial.write; `!dash on|off`, state in `!status`. StatsTask publishes the IMU rates (two float stores). Builds clean (RAM 14.9%, flash 15.9%); not yet flashed. Why: the dashboard's 2.5 s stale timeout needs data faster than the 10 s MQTT cycle.

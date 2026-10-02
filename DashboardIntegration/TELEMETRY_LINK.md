@@ -65,7 +65,7 @@ The line must be built without heap-heavy String concatenation in a timing-criti
 | `esp32.fix` | GPS entry of `signal_validity` | |
 | `esp32.spd_raw` | `speed_kmh` | NOT mapped until the units are confirmed; shown on the ride card only |
 | `esp32.rpm` | (ride card) | |
-| `tof.ahead_mm / 1000` | `front_obstacle_distance_m` | nearest valid of the three if the field expects one value |
+| `tof.ahead_mm / 1000` | `front_obstacle_distance_m` | ahead sensor only (decided 2 Oct: side readings must not raise a front-obstacle warning) |
 | `esp32.vib`, `vib_dis`, `imu_hz`, `drops`, `csq`, `mqtt` | ride-quality card (new) | the dashboard has no fields for these |
 
 Parts of the dashboard state with no source here (gear, throttle, brake, tyres, doors, motor temperature) are left to the existing behaviour. When the bridge cannot be reached, or `esp32.age_ms` exceeds 3000, the provider stops sending, so the dashboard's own stale-data fallback takes over.
