@@ -53,3 +53,32 @@ OS). Check it from the Pi 5 with `ping pi4-camera.local`. On the phone
 hotspot `.local` names did not resolve, and the address changes when the
 Pi reconnects, so there set `TUKZIE_CAMERA_URL` on the Pi 5 to the
 current IP from `hostname -I` on the Pi 4.
+
+## Telemetry bridge (port 8081)
+
+`telemetry_bridge.py` serves `GET /telemetry` for the Pi 5 dashboard: the
+ESP32's latest `DASH` line from USB serial plus the three ToF sensors (see
+`DashboardIntegration/TELEMETRY_LINK.md`). It runs from the same folder and
+venv as the detector.
+
+Laptop PowerShell, from the `Tukzie-HPEC-HUD` folder:
+
+```
+scp -i ~/.ssh/pi4_camera_key CameraDetection/telemetry_bridge.py CameraDetection/tof_reader.py CameraDetection/deploy/telemetry-bridge.service ogeder@<pi-ip>:~/hazard_detector/
+```
+
+Pi terminal:
+
+```
+~/hazard_detector/venv/bin/pip install pyserial adafruit-blinka adafruit-circuitpython-vl53l0x
+cd ~/hazard_detector && venv/bin/python3 telemetry_bridge.py --duration 20
+sudo cp ~/hazard_detector/telemetry-bridge.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now telemetry-bridge
+curl -s http://localhost:8081/telemetry
+```
+
+pyserial is optional: without it the bridge reads the tty directly. The
+ToF libraries are only needed for the sensors; without them `tof` is null.
+Logs: `journalctl -u telemetry-bridge -f`. Stop the service before running
+`tof_reader.py` by hand, since both use the same sensors.

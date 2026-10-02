@@ -27,19 +27,38 @@ ADDRESSES = {"left": 0x30, "ahead": 0x31, "right": 0x32}
 OUT_OF_RANGE_MM = 8000   # the VL53L0X reports about 8190 when nothing returns
 
 
-def open_sensors(single):
+def clean_mm(mm):
+    """A range reading in mm, or None when there is no valid return
+    (0, about 8190 for nothing in range, or not a number)."""
+    if mm is None or isinstance(mm, bool):
+        return None
+    try:
+        mm = int(mm)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return None if mm <= 0 or mm >= OUT_OF_RANGE_MM else mm
+
+
+def open_sensors(single, handles=None):
+    """Return {name: VL53L0X}. If a list is passed as handles, the I2C bus
+    and XSHUT pins are appended to it so a long-running caller (the
+    telemetry bridge) can release them with deinit() before retrying."""
     import board
     import busio
     import digitalio
     import adafruit_vl53l0x
 
     i2c = busio.I2C(board.SCL, board.SDA)
+    if handles is not None:
+        handles.append(i2c)
     if single:
         return {"ahead": adafruit_vl53l0x.VL53L0X(i2c)}
 
     pins = {}
     for name, gpio in XSHUT.items():
         p = digitalio.DigitalInOut(getattr(board, "D%d" % gpio))
+        if handles is not None:
+            handles.append(p)
         p.switch_to_output(value=False)
         pins[name] = p
     time.sleep(0.05)
@@ -73,8 +92,7 @@ def main():
         while time.monotonic() - t0 < a.duration:
             vals = {}
             for name, s in sensors.items():
-                mm = s.range
-                vals[name] = None if mm == 0 or mm >= OUT_OF_RANGE_MM else mm
+                vals[name] = clean_mm(s.range)
             n += 1
             print("  ".join("%s %5s" % (k, "-" if v is None else "%d mm" % v) for k, v in vals.items()))
             if out:

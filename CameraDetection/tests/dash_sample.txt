@@ -1,0 +1,13 @@
+ESP-ROM:esp32s3-20210327
+[telemetry] IMU1 ok, IMU2 ok, BMS polling every 1 s
+DASH {"seq":41,"up_ms":41012,"fw":"0.7.0","soc":60,"v":74.8,"i":0.0,"bms_age_s":0.3,"fix":false,"lat":null,"lon":null,"spd_raw":null,"vib":0.12,"vib_dis":0.03,"imu_hz":[200.1,200.2],"drops":[0,0],"rpm":null,"csq":18,"mqtt":false}
+DASH {"seq":42,"up_ms":42012,"fw":"0.7.0","soc":60,"v":74.79,"i":0.0,"bms_age_s":0.4,"fix":false,"lat":null,"lon":null,"spd_raw":null,"vib":0.14,"vib_dis":0.04,"imu_hz":[200.0,200.1],"drops":[0,0],"rpm":null,"csq":18,"mqtt":false}
+DASH {"seq":43,"up_ms":43012,"fw":"0.7.0","soc":60,"v":74.78,"i":0.0,"bms_age_s":0.5,"fix":false,"lat":null,"lon":null,"spd_raw":null,"vib":0.16,"vib_dis":0.03,"imu_hz":[200.1,200.2],"drops":[0,0],"rpm":null,"csq":18,"mqtt":true}
+DASH {"seq":44,"up_ms":44012,"fw":"0.7.0","soc":60,"v":74.77,"i":0.0,"bms_age_s":0.3,"fix":true,"lat":-33.95767,"lon":18.46123,"spd_raw":0.3,"vib":0.18,"vib_dis":0.04,"imu_hz":[200.0,200.1],"drops":[0,0],"rpm":null,"csq":18,"mqtt":true}
+DASH {"seq":45,"up_ms":45012,"fw":"0.7.0","soc":60,"v":74.76,"i":0.0,"bms_age_s":0.4,"fix":true,"lat":-33.95766,"lon":18.46124,"spd_raw":0.4,"vib":0.12,"vib_dis":0.03,"imu_hz":[200.1,200.2],"drops":[0,0],"rpm":null,"csq":18,"mqtt":true}
+[mqtt] published telemetry/sw7 (312 bytes)
+DASH {"seq":46,"up_ms":46012,"fw":"0.7.0","soc":60,"v":74.75,"i":-1.2,"bms_age_s":0.5,"fix":true,"lat":-33.95765,"lon":18.46125,"spd_raw":0.5,"vib":0.14,"vib_dis":0.04,"imu_hz":[200.0,200.1],"drops":[0,0],"rpm":null,"csq":18,"mqtt":true}
+DASH {"seq":47,"up_ms":47012,"fw":"0.7.0","soc":60,"v":74.74,"i":-1.2,"bms_age_s":0.3,"fix":true,"lat":-33.95764,"lon":18.46126,"spd_raw":0.6,"vib":0.16,"vib_dis":0.03,"imu_hz":[200.1,200.2],"drops":[1,0],"rpm":null,"csq":18,"mqtt":true}
+DASH {"seq":48,"up_ms":48012,"fw":"0.7.0","soc":59,"v":74.73,"i":-1.2,"bms_age_s":0.4,"fix":true,"lat":-33.95763,"lon":18.46127,"spd_raw":0.7,"vib":0.18,"vib_dis":0.04,"imu_hz":[200.0,200.1],"drops":[1,0],"rpm":null,"csq":18,"mqtt":true}
+DASH {"seq":49,"up_ms":49012,"fw":"0.7.0","soc":59,"v":74.72,"i":-1.2,"bms_age_s":0.5,"fix":true,"lat":-33.95762,"lon":18.46128,"spd_raw":0.8,"vib":0.12,"vib_dis":0.03,"imu_hz":[200.1,200.2],"drops":[1,0],"rpm":null,"csq":17,"mqtt":true}
+DASH {"seq":50,"up_ms":50012,"fw":"0.7.0","soc":59,"v":74.71,"i":-1.2,"bms_age_s":0.3,"fix":true,"lat":-33.95761,"lon":18.46129,"spd_raw":0.9,"vib":0.14,"vib_dis":0.04,"imu_hz":[200.0,200.1],"drops":[1,0],"rpm":null,"csq":17,"mqtt":true}
