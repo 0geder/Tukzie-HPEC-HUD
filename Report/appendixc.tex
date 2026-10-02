@@ -29,6 +29,7 @@ This appendix indexes the raw evidence behind the bench results reported in Chap
 1 Oct 2026 & Dashboard camera page against the live detector with a person in view, 40\,s & Red ``Person, Immediate'' alert listed 0.5\,s after start, matching the box on the video; 15.4 frames per second, 109 to 118\,ms; clearing not seen (person stayed in view) & \texttt{Report/evidence/ 2026-10-01\_dashboard\_page\_person.png} \\ \hline
 1 Oct 2026 & Camera colour check (C3): stills with the standard and the NoIR tuning, detector frames with NoIR tuning and saturation 1.8 & Standard tuning: white wall pink; NoIR tuning: neutral but washed out (blue card 120, 124, 125); with saturation 1.8: blue 1, 86, 216; red 222, 8, 77; green 6, 124, 103; grey 124, 129, 138; white 186, 199, 197 (slightly cool) & \texttt{Report/evidence/c3/} \\ \hline
 2 Oct 2026 & First pothole model: YOLO11n fine-tuned in Colab (T4) on a public 608-image pothole dataset, test split at 640 and 320 & mAP@50 59.7\% (P 0.66, R 0.50) at 640; 55.0\% at 320; 46 epochs, 15 min & \texttt{CameraDetection/training/ runs/run1\_gerapothole\_640/} \\ \hline
+2 Oct 2026 & First pothole model on the South African test split (605 images, 1,238 potholes) at 640, 1280 and 1920 input; labels checked visually & mAP@50 0.000 at all three sizes, recall at most 1.2\%; label positions confirmed correct & Colab session notebook (to be saved) \\ \hline
 \end{longtable}
 
 \begin{figure}[htbp]
