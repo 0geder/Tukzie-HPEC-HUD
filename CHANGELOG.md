@@ -24,7 +24,13 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Dashboard link verified through the Pi 4; YOLO via NCNN without PyTorch; documented
+### (this commit) Integrated dashboard copy on the Pi 5: native map without the web engine, screen kept on
+
+- `DashboardIntegration/tests/dashboard_patches.py`: 14th edit, in navigation_page.py: the web map is not created when "Native fallback" is selected. Why: on the Pi 5 the Leaflet web map segfaults on the real display, and it was created in the background even in native mode, so choosing Native fallback did not stop the crash. Dashboard test still passes.
+- `DashboardIntegration/deploy/start_sw7_dashboard.sh`: starts the separate copy (~/Dashboard_sw7) full screen with the Pi 4 camera and telemetry addresses, and disables X11 screen blanking and DPMS. Why: the screen went off after 600 s with no touch (X11 screensaver and DPMS), which must not happen while riding.
+- On the Pi 5 (2 Oct): ~/Dashboard_sw7 made from the team's v1.1 (all 13 integration edits fit v1.1 unchanged), the map edit applied, map display set to Native fallback in that copy's settings (global section). Result: no web-engine process in our copy and no crash on the map page; the map area is empty indoors because the GNSS has no fix, so there is no position to load roads around. Open: a "waiting for GPS fix" message; battery shows the simulator's last value (82%) while the BMS has not reported, to be changed to unavailable.
+
+### (d06b0a2) Dashboard link verified through the Pi 4; YOLO via NCNN without PyTorch; documented
 
 - `CameraDetection/ncnn_bench.py`: YOLO11 NCNN models run with the ncnn package only (numpy letterbox, decode, per-class NMS; masks and polygons for -seg), same camera and SensorTimestamp timing as C4. Why: the PyTorch download for the Pi failed repeatedly over the campus network; NCNN alone is also the lighter deployment. Trial: 7.9 fps, 175 ms median sensor to result at 320 input.
 - `Report/Methodology.tex`: subsection "Telemetry link to the dashboard" (why the dashboard needed a live input, the Pi 4 gateway design, mapping, bench and live results) and the YOLO trial; `Report/appendixc.tex`: two evidence rows; `BenchTest/TEST_PROCEDURES.md`: T12 (bridge live on the Pi 4, pass; MQTT not connecting open) and C8a (NCNN trial). `Presentation/SW7_QA_Prep.md`: four new answers.

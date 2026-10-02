@@ -23,6 +23,14 @@ CAMERA_DRAWER = '''def camera(p,r,c):
 '''
 
 PATCHES = (
+    # navigation_page.py: never create the web map when "Native fallback" is selected. On the Pi 5 the
+    # Leaflet web map segfaults on the real display (PI5_MAP_CRASH.md), and it was created in the
+    # background even when the native map was shown, so selecting Native fallback did not prevent the crash.
+    ("app/pages/navigation_page.py",
+     '        if QWebEngineView is None:\n'
+     '            print("[WebEngine] QWebEngineView is None - falling back to offline map.")\n',
+     '        if QWebEngineView is None or str(self.preferences.get("map_display_provider", "")) == "Native fallback":\n'
+     '            print("[WebEngine] web map not created (unavailable or Native fallback selected) - using the native map.")\n'),
     # dashboard_main.py: imports
     ("app/pages/dashboard_main.py",
      "from ..data.data_provider import VehicleStateManager\n",
