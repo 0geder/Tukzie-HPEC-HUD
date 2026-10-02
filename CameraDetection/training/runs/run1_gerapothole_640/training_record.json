@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-02",
+  "dataset": "https://universe.roboflow.com/gerapothole/pothole-detection-yolov8",
+  "version": 1,
+  "model": "yolo11n.pt (COCO-pretrained)",
+  "epochs_max": 60,
+  "imgsz": 640,
+  "batch": 32,
+  "patience": 15,
+  "seed": 0,
+  "eval_split": "test",
+  "results": {
+    "640": {
+      "mAP50": 0.597,
+      "mAP50_95": 0.236,
+      "precision": 0.66,
+      "recall": 0.502
+    },
+    "320": {
+      "mAP50": 0.55,
+      "mAP50_95": 0.217,
+      "precision": 0.695,
+      "recall": 0.448
+    }
+  },
+  "ultralytics": "8.4.171",
+  "torch": "2.11.0+cu130",
+  "gpu": "Tesla T4"
+}

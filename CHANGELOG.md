@@ -24,7 +24,13 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Title and RQ2 changed to dashboard integration
+### (this commit) First pothole model trained in Colab (run 1)
+
+- `CameraDetection/training/runs/run1_gerapothole_640/`: YOLO11n fine-tuned on the 608-image GeraPotHole set (1 class); test mAP@50 59.7% at 640 (P 0.66, R 0.50), 55.0% at 320; 46 epochs, 15 min on a T4; NCNN models at 320 and 640, best.pt, curves, training record. Why: first road-hazard model; COCO has no road-surface classes. The run used the notebook's example dataset because cell 3 was left at its default.
+- `Report/Methodology.tex`: subsection "A first road-hazard model" with these results and their limits (same-source test images, not yet on South African roads, the Pi or the vehicle camera). `Report/appendixc.tex`: evidence row.
+- `CameraDetection/training/make_notebook.py`: run folder named by dataset and version, so a new dataset no longer resumes an earlier run's checkpoint; exported model folders carry the same name.
+
+### (30450ab) Title and RQ2 changed to dashboard integration
 
 - `Report/Project Report Template.tex`: title now "Development of an Embedded HPEC Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0 Platform"; project statement and draft abstract rewritten for the dashboard and brought up to date (19.5 fps and 102 ms, GNSS 2.7 m, recovery, log read-back). Why: supervisor agreed on 1 Oct 2026 to replace the HUD with dashboard integration and suggested this title; formal change requested from the course coordinator.
 - `Report/Introduction.tex`: the HUD-to-dashboard change and its reasons stated; RQ2 and its row in the requirements table now about the existing dashboard (status: page bench-verified, glance time outstanding); RQ3 status updated; HUD deliverable, software thread and limitation replaced. Why: same.

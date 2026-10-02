@@ -84,7 +84,7 @@ code("""
 # 4. Train. Settings are recorded in cell 6. Re-running resumes from the last checkpoint on Drive.
 from ultralytics import YOLO
 EPOCHS, IMGSZ, BATCH, PATIENCE = 60, 640, 32, 15
-NAME = f'yolo11n_pothole_{IMGSZ}'
+NAME = f'yolo11n_{PROJECT[:24]}_v{VERSION}_{IMGSZ}'   # one folder per dataset and version, so a new dataset never resumes an old run
 last = f'{RUN_DIR}/{NAME}/weights/last.pt'
 if os.path.exists(last):
     model = YOLO(last); model.train(resume=True)
@@ -124,7 +124,7 @@ out = f'/content/{NAME}_pi'
 os.makedirs(out, exist_ok=True)
 for sz in (320, IMGSZ):
     p = YOLO(best).export(format='ncnn', imgsz=sz)
-    shutil.move(p, f'{out}/yolo11n_pothole_{sz}_ncnn_model')
+    shutil.move(p, f"{out}/{NAME.rsplit('_', 1)[0]}_{sz}_ncnn_model")
 for f in ('training_record.json', 'results.csv', 'results.png', 'weights/best.pt'):
     src = f'{RUN_DIR}/{NAME}/{f}'
     if os.path.exists(src): shutil.copy(src, out)
