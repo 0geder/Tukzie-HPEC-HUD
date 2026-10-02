@@ -13,7 +13,7 @@ const FONT = "Calibri";
 const W = 13.333, H = 7.5, M = 0.6;
 
 // The HUD was replaced by integration with the vehicle's existing dashboard (supervisor agreed 1 Oct 2026;
-// formal title change requested from the course coordinator). Keep TITLE the same in build_poster.js.
+// title change captured by the course coordinator 2 Oct 2026). Keep TITLE the same in build_poster.js.
 const TITLE = "Development of an Embedded HPEC Telemetry Unit\nand Dashboard Integration for the TUKZIE Rev 0 Platform";
 
 const pres = new pptxgen();
