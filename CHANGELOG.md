@@ -24,7 +24,12 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) Dashboard live-data provider and ride-quality card
+### (this commit) Dashboard link verified through the Pi 4; YOLO via NCNN without PyTorch; documented
+
+- `CameraDetection/ncnn_bench.py`: YOLO11 NCNN models run with the ncnn package only (numpy letterbox, decode, per-class NMS; masks and polygons for -seg), same camera and SensorTimestamp timing as C4. Why: the PyTorch download for the Pi failed repeatedly over the campus network; NCNN alone is also the lighter deployment. Trial: 7.9 fps, 175 ms median sensor to result at 320 input.
+- `Report/Methodology.tex`: subsection "Telemetry link to the dashboard" (why the dashboard needed a live input, the Pi 4 gateway design, mapping, bench and live results) and the YOLO trial; `Report/appendixc.tex`: two evidence rows; `BenchTest/TEST_PROCEDURES.md`: T12 (bridge live on the Pi 4, pass; MQTT not connecting open) and C8a (NCNN trial). `Presentation/SW7_QA_Prep.md`: four new answers.
+
+### (e3202b9) Dashboard live-data provider and ride-quality card
 
 - `DashboardIntegration/live_data_provider.py`: polls the Pi 4 bridge (`TUKZIE_TELEMETRY_URL`, default http://192.168.137.82:8081) every 500 ms and passes a complete VehicleState to `ingest_live_state` (which replaces the state and stops the simulation): soc_pct, signed and positive battery power from v and i, latitude and longitude only with a fix, GPS validity, front_obstacle_distance_m from the ahead ToF sensor only; speed not mapped (units unconfirmed); gear, indicator, headlights and parking brake kept from the simulator so the controls still work. Nothing is ingested when the bridge is down, the JSON is bad or the ESP32 data is older than 3 s, so the dashboard's own fallback takes over. Why: the dashboard had no live input.
 - Ahead-only obstacle distance: decided 2 Oct so that a side reading (a parked car) does not raise a front-obstacle warning; README and TELEMETRY_LINK.md updated.

@@ -78,6 +78,16 @@ monitor before running a script.
 - Pass: one line per second, no missing sequence numbers, every line valid JSON with all contract fields, under 400 bytes, IMUs still at 200 Hz with no drops.
 - Result (2 Oct 2026, bench, laptop COM10): 40 lines in 40 s, seq 13 to 52, none missing, all valid JSON, all 18 fields, longest 272 bytes; arrival gaps 0.55 to 1.45 s at the laptop (read-side buffering; sequence complete); imu_hz 200.0 and 200.0, drops 0 and 0; vib 0.034 m/s2 at rest; csq 22; BMS and GNSS null indoors (pack out of range, no fix), MQTT not yet connected 54 s after boot. Pass.
 
+### T12. Telemetry bridge on the Pi 4 (dashboard link)
+- Method: ESP32 (v0.7.0) on the Pi 4's USB (`/dev/ttyACM0`), run `CameraDetection/telemetry_bridge.py`, fetch `http://<pi4>:8081/telemetry` from the laptop over the hotspot.
+- Pass: contract JSON (`DashboardIntegration/TELEMETRY_LINK.md` section 2) with a live ESP32 record under 3 s old, ToF distances, no bad lines; opening the port does not reset the ESP32.
+- Result (2 Oct 2026): replay trial on the Pi with real ToF (11 lines, 0 bad, clean stop); live: esp32 record 370 ms old (fw 0.7.0, imu_hz 200.5 and 200.5, drops 0, vib 0.038, csq 22), tof left 149, ahead 37, right 154 mm, 14 lines 0 bad; ESP32 seq already 64 when the bridge started, so no reset on open. Pass. Open: mqtt false more than a minute after boot (here and on the laptop), to investigate; boot service not yet installed (needs sudo).
+
+### C8a. YOLO11n via NCNN without PyTorch (trial)
+- Why: the PyTorch download for the Pi failed repeatedly over the campus network; NCNN alone is also the lighter deployment.
+- Method: `CameraDetection/ncnn_bench.py` (ncnn package, numpy letterbox, decode, NMS; masks and polygons for -seg), same camera settings and SensorTimestamp timing as C4.
+- Result (2 Oct 2026, 15 s trial, YOLO11n COCO, 320 input, 4 threads): 7.9 fps; queue 48 ms, pre 7 ms, inference 111 ms, post 2 ms (medians); total 175 ms median, 258 ms p95; CPU 64.3 C. No detections (nothing in view; to recheck with a person in view). Full 60 s runs for 320/640 and -seg still to do.
+
 ### T7. BMS link on the vehicle (planned)
 - Method: on the vehicle with the pack on, watch `[BMS] scan saw:` lines for the configured address; if absent, record the addresses seen.
 - Result so far (30 Sep 2026): pack seen as DB24SA01L24S150ABU at the configured address, weak signal (-93 dBm at the laptop, -88 dBm on a phone). One connection, three frames, all rejected: checksum formula wrong (included the register byte). Fixed in v0.5.4, which also prints rejected frames raw. Confirmed by the stored log (T10): 14 records with a valid reading, 74.78 V, 0.00 A, 60%, later in the same session; still to compare with the phone app. Next: place the board within about 1 m of the pack's Bluetooth module; compare with the phone app.

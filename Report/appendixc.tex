@@ -30,6 +30,8 @@ This appendix indexes the raw evidence behind the bench results reported in Chap
 1 Oct 2026 & Camera colour check (C3): stills with the standard and the NoIR tuning, detector frames with NoIR tuning and saturation 1.8 & Standard tuning: white wall pink; NoIR tuning: neutral but washed out (blue card 120, 124, 125); with saturation 1.8: blue 1, 86, 216; red 222, 8, 77; green 6, 124, 103; grey 124, 129, 138; white 186, 199, 197 (slightly cool) & \texttt{Report/evidence/c3/} \\ \hline
 2 Oct 2026 & First pothole model: YOLO11n fine-tuned in Colab (T4) on a public 608-image pothole dataset, test split at 640 and 320 & mAP@50 59.7\% (P 0.66, R 0.50) at 640; 55.0\% at 320; 46 epochs, 15 min & \texttt{CameraDetection/training/ runs/run1\_gerapothole\_640/} \\ \hline
 2 Oct 2026 & First pothole model on the South African test split (605 images, 1,238 potholes) at 640, 1280 and 1920 input; labels checked visually & mAP@50 0.000 at all three sizes, recall at most 1.2\%; label positions confirmed correct & Colab session notebook (to be saved) \\ \hline
+2 Oct 2026 & Firmware v0.7.0 DASH line on the bench (40 s) and through the Raspberry Pi~4 bridge to a laptop & 40 lines in 40 s, none missing, all valid JSON, max 272 bytes; IMUs 200 Hz, 0 drops; bridge served live record (0.37 s old) and ToF distances & \texttt{BenchTest/TEST\_PROCEDURES.md} T11, T12 \\ \hline
+2 Oct 2026 & YOLO11n (COCO) via NCNN on the Raspberry Pi~4, 320 input, 4 threads, 15 s trial & 7.9 fps; inference 111 ms median; 175 ms sensor to result (p95 258 ms) & \texttt{CameraDetection/ ncnn\_bench.py} \\ \hline
 \end{longtable}
 
 \begin{figure}[htbp]

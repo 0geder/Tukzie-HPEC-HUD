@@ -198,6 +198,18 @@ The detector serves its active alerts as a small JSON record (the five fields pl
 Polling twice a second adds delay, doesn't it?
 Yes: up to 0.5 s on top of the detector's 0.2 s, so about 0.7 s worst case to the screen. Pushing alerts (a websocket or server-sent events) or polling faster would cut that. The page test showed the alert 0.5 s after the page opened.
 
+How does the telemetry reach the dashboard?
+The dashboard had no live input at all: every page ran on simulated data. The telemetry unit now prints one compact JSON line per second on USB to the Pi 4, which sits in the same front box. A bridge on the Pi 4 serves that, plus the three ToF distances, over the local network, and a live-data provider in the dashboard reads it twice a second. So the driver's display does not depend on mobile coverage. Tested: 40 of 40 lines in 40 s, IMUs unaffected at 200 Hz, live record 0.37 s old at the laptop.
+
+Why not send it straight to the Pi 5, or use the MQTT data?
+MQTT runs every 10 s over LTE, but the dashboard falls back to simulation after 2.5 s without data, and coverage drops. The ESP32 and Pi 4 already share the front box, so the Pi 4 is the natural gateway: the dashboard gets everything (camera, alerts, telemetry) from one link.
+
+Why is the speed on the dashboard zero?
+Deliberately not mapped yet: the GNSS speed units (knots per the manual) are not confirmed on this modem. It is shown raw on the ride card until checked against a known speed.
+
+Did you try YOLO?
+Yes, measured, not assumed. YOLO11n via NCNN on the Pi 4 (no PyTorch): 7.9 fps and 175 ms median from sensor to result at 320 input, against SSD-MobileNet's 19.5 fps and 102 ms. A pothole model trained in Colab reached 59.7% mAP@50 on its own test images but 0% on South African street images, so local training data and a higher-resolution crop of the road ahead are needed.
+
 Has it run on the real dashboard?
 Not yet. It was tested inside a copy of the dashboard's code on a laptop, against the live camera. Adding it to the dashboard needs four small edits to the dashboard team's files, which are left for that team to review.
 
