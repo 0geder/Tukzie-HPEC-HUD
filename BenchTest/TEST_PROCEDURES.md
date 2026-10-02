@@ -81,7 +81,7 @@ monitor before running a script.
 ### T12. Telemetry bridge on the Pi 4 (dashboard link)
 - Method: ESP32 (v0.7.0) on the Pi 4's USB (`/dev/ttyACM0`), run `CameraDetection/telemetry_bridge.py`, fetch `http://<pi4>:8081/telemetry` from the laptop over the hotspot.
 - Pass: contract JSON (`DashboardIntegration/TELEMETRY_LINK.md` section 2) with a live ESP32 record under 3 s old, ToF distances, no bad lines; opening the port does not reset the ESP32.
-- Result (2 Oct 2026): replay trial on the Pi with real ToF (11 lines, 0 bad, clean stop); live: esp32 record 370 ms old (fw 0.7.0, imu_hz 200.5 and 200.5, drops 0, vib 0.038, csq 22), tof left 149, ahead 37, right 154 mm, 14 lines 0 bad; ESP32 seq already 64 when the bridge started, so no reset on open. Pass. Open: mqtt false more than a minute after boot (here and on the laptop), to investigate; boot service not yet installed (needs sudo).
+- Result (2 Oct 2026): replay trial on the Pi with real ToF (11 lines, 0 bad, clean stop); live: esp32 record 370 ms old (fw 0.7.0, imu_hz 200.5 and 200.5, drops 0, vib 0.038, csq 22), tof left 149, ahead 37, right 154 mm, 14 lines 0 bad; ESP32 seq already 64 when the bridge started, so no reset on open. Pass. Boot service installed and enabled on 2 Oct 2026 (16:46): active, serial and all three ToF sensors opened, 443 lines 0 bad, ESP32 record 340 ms old, imu 200.5 and 200.5 Hz, 0 drops. MQTT, false in the first minute, was connected by then (seq 1237), so the earlier false was slow registration, not a fault.
 
 ### C8a. YOLO11n via NCNN without PyTorch (trial)
 - Why: the PyTorch download for the Pi failed repeatedly over the campus network; NCNN alone is also the lighter deployment.
