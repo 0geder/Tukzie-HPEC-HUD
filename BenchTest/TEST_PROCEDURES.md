@@ -73,6 +73,11 @@ monitor before running a script.
 - Result (1 Oct 2026, v0.6.3): 6,020 records (2.2 MB, about 16.7 h) complete after four passes (the one index missing was a record written during the dump). 5,545 contained nan and were not valid JSON as stored (fixed in v0.6.3); all parse after nan -> null. 14 records with a valid BMS reading (74.78 V, 0.00 A, 60%) from the 30 Sep v0.5.4 session. Log cleared afterwards.
 - Evidence: `BenchTest/logs/2026-10-01_telemetry_log_dump.jsonl`, `.clean.jsonl`.
 
+### T11. Firmware v0.7.0 DASH line (dashboard link)
+- Method: flash v0.7.0, read the USB serial port for 40 s, parse every line starting with `DASH ` as JSON, check the period, sequence numbers, fields and length (`DashboardIntegration/TELEMETRY_LINK.md` section 1).
+- Pass: one line per second, no missing sequence numbers, every line valid JSON with all contract fields, under 400 bytes, IMUs still at 200 Hz with no drops.
+- Result (2 Oct 2026, bench, laptop COM10): 40 lines in 40 s, seq 13 to 52, none missing, all valid JSON, all 18 fields, longest 272 bytes; arrival gaps 0.55 to 1.45 s at the laptop (read-side buffering; sequence complete); imu_hz 200.0 and 200.0, drops 0 and 0; vib 0.034 m/s2 at rest; csq 22; BMS and GNSS null indoors (pack out of range, no fix), MQTT not yet connected 54 s after boot. Pass.
+
 ### T7. BMS link on the vehicle (planned)
 - Method: on the vehicle with the pack on, watch `[BMS] scan saw:` lines for the configured address; if absent, record the addresses seen.
 - Result so far (30 Sep 2026): pack seen as DB24SA01L24S150ABU at the configured address, weak signal (-93 dBm at the laptop, -88 dBm on a phone). One connection, three frames, all rejected: checksum formula wrong (included the register byte). Fixed in v0.5.4, which also prints rejected frames raw. Confirmed by the stored log (T10): 14 records with a valid reading, 74.78 V, 0.00 A, 60%, later in the same session; still to compare with the phone app. Next: place the board within about 1 m of the pack's Bluetooth module; compare with the phone app.
