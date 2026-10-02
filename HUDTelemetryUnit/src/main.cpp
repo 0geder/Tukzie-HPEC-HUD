@@ -11,10 +11,10 @@
 #include <Preferences.h>
 #include <LittleFS.h>
 
-#define FIRMWARE_VERSION "v0.6.3"
+#define FIRMWARE_VERSION "v0.7.0"
 
 // ============================================================
-// SW-7 ESP32-S3 Firmware v0.4.0
+// SW-7 ESP32-S3 Firmware (version: FIRMWARE_VERSION above)
 // Dual-IMU deterministic acquisition + A7670X modem/GNSS + Pi sync pulse
 // ============================================================
 
@@ -497,11 +497,16 @@ TaskHandle_t Imu2TaskHandle;
 TaskHandle_t StatsTaskHandle;
 TaskHandle_t SyncTaskHandle;
 TaskHandle_t BmsTaskHandle;
+TaskHandle_t DashTaskHandle;
 
 volatile uint32_t imu1Dropped = 0;
 volatile uint32_t imu2Dropped = 0;
 volatile uint32_t imu1CharDropped = 0;
 volatile uint32_t imu2CharDropped = 0;
+// Achieved sample rate per IMU over StatsTask's last 2 s report window
+// (v0.7.0), published for DashTask. 0 when a sensor produced no samples.
+volatile float imu1RateHz = 0.0f;
+volatile float imu2RateHz = 0.0f;
 
 QueueHandle_t imu1CharQueue;
 QueueHandle_t imu2CharQueue;
@@ -660,6 +665,8 @@ void StatsTask(void* pvParameters) {
     if (xTaskGetTickCount() - lastReport >= reportInterval) {
       lastReport = xTaskGetTickCount();
       float elapsed_s = reportInterval / 1000.0f;
+      imu1RateHz = imu1Count / elapsed_s;
+      imu2RateHz = imu2Count / elapsed_s;
 
       Serial.println("--- Acquisition stats (2s window) ---");
       if (imu1Count > 0) {
@@ -1907,6 +1914,115 @@ String buildTelemetryJson() {
 }
 
 // ============================================================
+// Dashboard line (v0.7.0), section 1 of DashboardIntegration/TELEMETRY_LINK.md.
+// Once a second, one line "DASH {json}\n" on the USB serial console, read by
+// the Pi 4 telemetry bridge, which ignores every other line. The field names
+// and types are a contract shared with the bridge and the dashboard: change
+// them only together with that document.
+//
+// Its own low-priority task on core 0, so the line keeps its 1 s cadence
+// while ModemTask is blocked for seconds in an AT command, and core 1 (IMU
+// acquisition) is never involved. Built in a fixed static buffer with
+// snprintf, no String, and written with a single Serial.write so this task
+// does not split its own line (there is no print lock in this firmware, so
+// another task's output can still land next to it, not inside it).
+// Shared state is read the same way buildTelemetryJson() reads it: the
+// fused ride result under rideMux, everything else as plain volatile reads.
+// ============================================================
+#define DASH_PERIOD_MS 1000
+#define DASH_LINE_MAX 400  // bytes including "DASH " and the newline, per the contract
+
+// Runtime switch (serial command "!dash off" / "!dash on"), default on.
+volatile bool dashEnabled = true;
+uint32_t dashLineCount = 0;
+uint32_t dashTruncatedCount = 0;
+
+// Writes v with fmt into out, or "null" when v is NaN or infinite, since
+// JSON has neither (same rule as the replace() pass in buildTelemetryJson).
+static void dashNum(char* out, size_t n, const char* fmt, float v) {
+  if (!isfinite(v)) snprintf(out, n, "null");
+  else snprintf(out, n, fmt, v);
+}
+
+void DashTask(void* pvParameters) {
+  static char line[DASH_LINE_MAX];
+  uint32_t seq = 0;
+  TickType_t lastWake = xTaskGetTickCount();
+
+  for (;;) {
+    vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(DASH_PERIOD_MS));
+    if (!dashEnabled) continue;
+
+    const int64_t nowUs = esp_timer_get_time();
+
+    // BMS: parseBmsData() only runs for a frame that passed the checksum, so
+    // a non-zero timestamp means at least one valid frame has arrived.
+    const int64_t bmsTs = latestBmsSample.timestamp_us;
+    const bool haveBms = bmsTs > 0;
+    char soc[8], v[16], cur[16], bmsAge[16];
+    if (haveBms) snprintf(soc, sizeof(soc), "%u", (unsigned)latestBmsSample.soc_pct);
+    else snprintf(soc, sizeof(soc), "null");
+    dashNum(v, sizeof(v), "%.2f", haveBms ? latestBmsSample.pack_voltage_v : NAN);
+    dashNum(cur, sizeof(cur), "%.2f", haveBms ? latestBmsSample.current_a : NAN);
+    dashNum(bmsAge, sizeof(bmsAge), "%.1f", haveBms ? (nowUs - bmsTs) / 1e6f : NAN);
+
+    // GNSS: position only with a valid fix (the parser leaves it NaN otherwise).
+    const bool fix = latestGnssFix.valid;
+    char lat[16], lon[16], spd[16];
+    dashNum(lat, sizeof(lat), "%.6f", fix ? latestGnssFix.latitude_deg : NAN);
+    dashNum(lon, sizeof(lon), "%.6f", fix ? latestGnssFix.longitude_deg : NAN);
+    dashNum(spd, sizeof(spd), "%.3f", latestGnssFix.speed_reported);
+
+    // Fused vibration: null until the first fused window, or once the last
+    // one is older than the fusion stale limit (both IMUs stopped).
+    int64_t fzTs;
+    float fzStd, fzDis;
+    portENTER_CRITICAL(&rideMux);
+    fzTs = latestFusedRide.window_end_timestamp_us;
+    fzStd = latestFusedRide.std_mps2;
+    fzDis = latestFusedRide.std_disagreement;
+    portEXIT_CRITICAL(&rideMux);
+    const bool fzFresh = fzTs > 0 && (nowUs - fzTs) <= RIDE_FUSION_STALE_US;
+    char vib[16], vibDis[16];
+    dashNum(vib, sizeof(vib), "%.3f", fzFresh ? fzStd : NAN);
+    dashNum(vibDis, sizeof(vibDis), "%.3f", fzFresh ? fzDis : NAN);
+
+    char rpm[16];
+    dashNum(rpm, sizeof(rpm), "%.1f", hallRpm());
+
+    // CSQ 99 is the modem's "unknown"; -1 means no reply parsed yet.
+    const int csqRaw = cellCsqRaw;
+    char csq[8];
+    if (csqRaw < 0 || csqRaw > 31) snprintf(csq, sizeof(csq), "null");
+    else snprintf(csq, sizeof(csq), "%d", csqRaw);
+
+    const char* fw = FIRMWARE_VERSION;
+    if (fw[0] == 'v') fw++;  // the contract carries the bare number, e.g. "0.7.0"
+
+    int len = snprintf(line, sizeof(line),
+                       "DASH {\"seq\":%lu,\"up_ms\":%lld,\"fw\":\"%s\","
+                       "\"soc\":%s,\"v\":%s,\"i\":%s,\"bms_age_s\":%s,"
+                       "\"fix\":%s,\"lat\":%s,\"lon\":%s,\"spd_raw\":%s,"
+                       "\"vib\":%s,\"vib_dis\":%s,\"imu_hz\":[%.1f,%.1f],\"drops\":[%lu,%lu],"
+                       "\"rpm\":%s,\"csq\":%s,\"mqtt\":%s}\n",
+                       (unsigned long)seq, (long long)(nowUs / 1000), fw,
+                       soc, v, cur, bmsAge,
+                       fix ? "true" : "false", lat, lon, spd,
+                       vib, vibDis, (float)imu1RateHz, (float)imu2RateHz,
+                       (unsigned long)imu1Dropped, (unsigned long)imu2Dropped,
+                       rpm, csq, mqttConnected ? "true" : "false");
+    if (len < 0 || len >= (int)sizeof(line)) {
+      // A cut line would be invalid JSON; skip it rather than send half.
+      dashTruncatedCount++;
+      continue;
+    }
+    Serial.write(reinterpret_cast<const uint8_t*>(line), (size_t)len);
+    seq++;
+    dashLineCount++;
+  }
+}
+
+// ============================================================
 // Local serial commands.
 //
 // Everything typed on the USB serial console is still passed straight to
@@ -1921,6 +2037,8 @@ String buildTelemetryJson() {
 //   !log clear   delete the stored log file
 //   !mqtt        try to reconnect MQTT now
 //   !gnssraw     toggle printing the raw GNSS reply on every poll
+//   !dash off    stop the once-a-second DASH line for the Pi 4 bridge
+//   !dash on     start it again (default on)
 //   !recal       erase both stored IMU calibrations and restart; the board
 //                must be kept still for the ~2 s calibration after boot
 // ============================================================
@@ -1928,7 +2046,7 @@ void handleLocalCommand(String line) {
   line.trim();
   line.toLowerCase();
   if (line == "!help") {
-    Serial.println("[CMD] !status  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !recal");
+    Serial.println("[CMD] !status  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !dash off  !dash on  !recal");
   } else if (line == "!status") {
     Serial.printf("[CMD] firmware %s\n", FIRMWARE_VERSION);
     Serial.printf("[CMD] local log: %s, %u lines written, %u failures\n",
@@ -1957,6 +2075,9 @@ void handleLocalCommand(String line) {
     Serial.println();
     Serial.printf("[CMD] IMU scale factors: imu1=%.4f imu2=%.4f\n",
                   rideChar1Config.mag_scale, rideChar2Config.mag_scale);
+    Serial.printf("[CMD] dash line: %s, %u lines sent, %u skipped as too long\n",
+                  dashEnabled ? "on" : "OFF", (unsigned)dashLineCount,
+                  (unsigned)dashTruncatedCount);
   } else if (line == "!log off") {
     flushLocalLog();
     localLogEnabled = false;
@@ -1998,6 +2119,12 @@ void handleLocalCommand(String line) {
   } else if (line == "!log on") {
     localLogEnabled = true;
     Serial.println("[CMD] local flash logging on");
+  } else if (line == "!dash off") {
+    dashEnabled = false;
+    Serial.println("[CMD] DASH line OFF");
+  } else if (line == "!dash on") {
+    dashEnabled = true;
+    Serial.println("[CMD] DASH line on");
   } else if (line == "!gnssraw") {
     gnssPrintRaw = !gnssPrintRaw;
     Serial.printf("[CMD] raw GNSS replies %s\n", gnssPrintRaw ? "on" : "off");
@@ -2265,6 +2392,7 @@ void setup() {
     Serial.println("[HALL] pulse counter setup failed");
   }
   xTaskCreatePinnedToCore(BmsTask, "BmsTask", 8192, nullptr, 1, &BmsTaskHandle, 0);
+  xTaskCreatePinnedToCore(DashTask, "DashTask", 4096, nullptr, 1, &DashTaskHandle, 0);
   xTaskCreatePinnedToCore(RideCharacterizationTask, "RideChar1Task", 4096, &rideChar1Config, 1, &RideChar1TaskHandle, 1);
   xTaskCreatePinnedToCore(RideCharacterizationTask, "RideChar2Task", 4096, &rideChar2Config, 1, &RideChar2TaskHandle, 1);
 }

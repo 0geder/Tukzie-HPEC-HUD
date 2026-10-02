@@ -24,7 +24,12 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss recovery tested; test procedures written.
 
-### (this commit) First pothole model trained in Colab (run 1)
+### (this commit) Firmware v0.7.0: 1 Hz DASH line for the dashboard; telemetry link contract
+
+- `DashboardIntegration/TELEMETRY_LINK.md`: contract for ESP32 (USB serial DASH line, 1 Hz) to Pi 4 bridge (HTTP :8081 /telemetry, with ToF) to Pi 5 dashboard live-data provider, and the field mapping. Why: the dashboard has no live input (simulated data only); the ESP32 and Pi 4 share the front enclosure, so the Pi 4 is the gateway and the driver's display does not depend on cellular coverage.
+- `HUDTelemetryUnit/src/main.cpp` (v0.7.0): `DashTask` (core 0, priority 1, 1000 ms) prints `DASH {json}` with seq, up_ms, fw, soc, v, i, bms_age_s, fix, lat, lon, spd_raw, vib, vib_dis, imu_hz, drops, rpm, csq, mqtt; NaN as null; fixed 400-byte buffer, one Serial.write; `!dash on|off`, state in `!status`. StatsTask publishes the IMU rates (two float stores). Builds clean (RAM 14.9%, flash 15.9%); not yet flashed. Why: the dashboard's 2.5 s stale timeout needs data faster than the 10 s MQTT cycle.
+
+### (6c95e5c) First pothole model trained in Colab (run 1)
 
 - `CameraDetection/training/runs/run1_gerapothole_640/`: YOLO11n fine-tuned on the 608-image GeraPotHole set (1 class); test mAP@50 59.7% at 640 (P 0.66, R 0.50), 55.0% at 320; 46 epochs, 15 min on a T4; NCNN models at 320 and 640, best.pt, curves, training record. Why: first road-hazard model; COCO has no road-surface classes. The run used the notebook's example dataset because cell 3 was left at its default.
 - `Report/Methodology.tex`: subsection "A first road-hazard model" with these results and their limits (same-source test images, not yet on South African roads, the Pi or the vehicle camera). `Report/appendixc.tex`: evidence row.
