@@ -14,6 +14,15 @@ the three VL53L0X ToF sensors with the code in tof_reader.py, and serves:
                   "lines": 1234, "bad_lines": 2}}
   GET /            a short plain-text status page
 
+Beacon (TELEMETRY_LINK.md section 4.2): every 2 s a UDP broadcast to port
+50808 on 255.255.255.255 and on each IPv4 interface's broadcast address,
+payload {"sw7": "pi4", "v": 1, "host": "<hostname>", "camera_port": 8080,
+"telemetry_port": 8081, "seq": n}, so the dashboard can find this Pi on
+any network. The receiver uses the packet's source address. Interfaces
+are looked up again before every send, so a link that comes up later
+(the wired sw7-link) is included. Send failures are counted, never
+fatal. --no-beacon turns it off.
+
 Counting: "lines" is every line starting with "DASH " that was received,
 "bad_lines" is the subset that could not be used (not valid JSON, not a
 JSON object, or containing NaN or Infinity). Lines that do not start
@@ -38,10 +47,14 @@ Testing without hardware:
 Then open http://localhost:8081/telemetry
 """
 import argparse
+import ipaddress
 import json
 import math
 import os
 import signal
+import socket
+import subprocess
+import sys
 import threading
 import time
 
@@ -53,6 +66,9 @@ MAX_LINE_BYTES = 4096        # a line longer than this with no newline is droppe
 SERIAL_RETRY_S = 2.0         # wait between attempts to open a missing serial port
 TOF_RETRY_S = 5.0            # wait between attempts to open the ToF sensors
 TOF_NAMES = ("left", "ahead", "right")
+BEACON_PORT = 50808          # TELEMETRY_LINK.md 4.2
+BEACON_INTERVAL_S = 2.0
+CAMERA_PORT = 8080           # the hazard detector's port, announced in the beacon
 
 
 def _reject_constant(name):
@@ -362,6 +378,111 @@ class TofReader(threading.Thread):
             self.stop.wait(TOF_RETRY_S)
 
 
+# Beacon ---------------------------------------------------------------------
+
+def parse_ip_json(text):
+    """Broadcast addresses from `ip -j -4 addr` output, loopback and
+    point-to-point (/31, /32) excluded. Never raises."""
+    try:
+        ifaces = json.loads(text or "[]")
+    except ValueError:
+        return []
+    found = []
+    for iface in ifaces if isinstance(ifaces, list) else []:
+        try:
+            if "LOOPBACK" in (iface.get("flags") or []):
+                continue
+            for a in iface.get("addr_info") or []:
+                if a.get("family") != "inet":
+                    continue
+                b = a.get("broadcast")
+                if not b:
+                    net = ipaddress.ip_network("%s/%s" % (a["local"], a["prefixlen"]), strict=False)
+                    if net.prefixlen >= 31:
+                        continue
+                    b = str(net.broadcast_address)
+                if b not in found:
+                    found.append(b)
+        except Exception:
+            continue
+    return found
+
+
+def broadcast_addresses():
+    """IPv4 broadcast addresses of this machine's interfaces. On Linux from
+    `ip -j -4 addr`; elsewhere, or if that fails, an empty list."""
+    if not sys.platform.startswith("linux"):
+        return []
+    try:
+        out = subprocess.run(["ip", "-j", "-4", "addr"], capture_output=True, text=True,
+                             timeout=2).stdout
+    except Exception:
+        return []
+    return parse_ip_json(out)
+
+
+def default_beacon_targets():
+    return ["255.255.255.255"] + [b for b in broadcast_addresses() if b != "255.255.255.255"]
+
+
+class Beacon(threading.Thread):
+    """Sends the discovery packet every interval_s. targets is a list of
+    addresses, or None for 255.255.255.255 plus every interface's
+    broadcast address (looked up again before each send)."""
+
+    def __init__(self, stop, telemetry_port, camera_port=CAMERA_PORT, port=BEACON_PORT,
+                 interval_s=BEACON_INTERVAL_S, targets=None, host=None):
+        super().__init__(daemon=True)
+        self.stop = stop
+        self.telemetry_port = telemetry_port
+        self.camera_port = camera_port
+        self.port = port
+        self.interval_s = interval_s
+        self.targets = list(targets) if targets else None
+        self.host = host or socket.gethostname().split(".")[0]
+        self.seq = 0
+        self.sent = 0
+        self.send_errors = 0
+        self.last_error = None
+
+    def payload(self):
+        return {"sw7": "pi4", "v": 1, "host": self.host, "camera_port": self.camera_port,
+                "telemetry_port": self.telemetry_port, "seq": self.seq}
+
+    def send_once(self, sock):
+        targets = self.targets if self.targets is not None else default_beacon_targets()
+        data = json.dumps(self.payload(), separators=(",", ":")).encode()
+        for t in targets:
+            try:
+                sock.sendto(data, (t, self.port))
+                self.sent += 1
+            except OSError as e:     # no route, network down, broadcast refused
+                self.send_errors += 1
+                self.last_error = "%s: %s" % (t, e)
+        self.seq += 1
+
+    def run(self):
+        sock = None
+        while not self.stop.is_set():
+            try:
+                if sock is None:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+                self.send_once(sock)
+            except Exception as e:   # never let the beacon take the bridge down
+                self.send_errors += 1
+                self.last_error = str(e)
+                if sock is not None:
+                    try:
+                        sock.close()
+                    except OSError:
+                        pass
+                    sock = None
+            self.stop.wait(self.interval_s)
+        if sock is not None:
+            sock.close()
+
+
 # HTTP -----------------------------------------------------------------------
 
 class TelemetryServer:
@@ -369,6 +490,7 @@ class TelemetryServer:
         from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
         server = self
         self.state = state
+        self.beacon = None       # set by Bridge, for the status page
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *a):
@@ -410,6 +532,9 @@ class TelemetryServer:
             "esp32: %s" % ("no data" if e is None else "seq %s, %d ms ago" % (e.get("seq"), e["age_ms"])),
             "tof: %s" % ("absent" if t is None else "left %s, ahead %s, right %s mm, %d ms ago" % (
                 t["left_mm"], t["ahead_mm"], t["right_mm"], t["age_ms"])),
+            "beacon: %s" % ("off" if self.beacon is None else "UDP port %d, %d sent, %d failed%s" % (
+                self.beacon.port, self.beacon.sent, self.beacon.send_errors,
+                "" if not self.beacon.last_error else " (last: %s)" % self.beacon.last_error)),
             "JSON: /telemetry",
         ]
         return "\n".join(lines) + "\n"
@@ -423,7 +548,9 @@ class Bridge:
     """The whole bridge: line source, ToF reader and HTTP server."""
 
     def __init__(self, serial_port="/dev/ttyACM0", baud=115200, host="0.0.0.0", port=8081,
-                 replay=None, replay_interval=1.0, tof=True, fake_tof=False):
+                 replay=None, replay_interval=1.0, tof=True, fake_tof=False,
+                 beacon=True, beacon_port=BEACON_PORT, beacon_targets=None,
+                 beacon_interval_s=BEACON_INTERVAL_S, camera_port=CAMERA_PORT):
         label = ("replay:%s" % replay) if replay else serial_port
         self.state = TelemetryState(label)
         self.stop = threading.Event()
@@ -431,17 +558,24 @@ class Bridge:
         self.tof = TofReader(self.state, self.stop, fake=fake_tof) if (tof or fake_tof) else None
         self.server = TelemetryServer(self.state, port, host)
         self.port = self.server.port
+        self.beacon = None
+        if beacon:
+            self.beacon = Beacon(self.stop, self.port, camera_port, beacon_port,
+                                 beacon_interval_s, beacon_targets)
+            self.server.beacon = self.beacon
 
     def start(self):
         self.source.start()
         if self.tof is not None:
             self.tof.start()
+        if self.beacon is not None:
+            self.beacon.start()
         return self
 
     def close(self):
         self.stop.set()
         self.server.close()
-        for t in (self.source, self.tof):
+        for t in (self.source, self.tof, self.beacon):
             if t is not None and t.is_alive():
                 t.join(timeout=3)
 
@@ -459,6 +593,15 @@ def main():
                     help="Seconds between replayed lines (default 1, like the ESP32)")
     ap.add_argument("--no-tof", action="store_true", help="Do not read the ToF sensors (tof is null)")
     ap.add_argument("--fake-tof", action="store_true", help="Made-up changing ToF distances (testing)")
+    ap.add_argument("--no-beacon", action="store_true",
+                    help="Do not send the UDP discovery beacon (port %d)" % BEACON_PORT)
+    ap.add_argument("--beacon-port", type=int, default=BEACON_PORT)
+    ap.add_argument("--beacon-interval", type=float, default=BEACON_INTERVAL_S)
+    ap.add_argument("--beacon-target", action="append", default=None, metavar="ADDR",
+                    help="Send the beacon to ADDR only (repeatable; testing). Default: "
+                         "255.255.255.255 and every interface's broadcast address")
+    ap.add_argument("--camera-port", type=int, default=CAMERA_PORT,
+                    help="Camera port announced in the beacon")
     ap.add_argument("--duration", type=float, default=0, help="Seconds to run, 0 = until Ctrl+C or SIGTERM")
     a = ap.parse_args()
 
@@ -468,10 +611,16 @@ def main():
     signal.signal(signal.SIGTERM, _on_sigterm)
 
     bridge = Bridge(a.serial_port, a.baud, a.host, a.port, a.replay, a.replay_interval,
-                    tof=not a.no_tof, fake_tof=a.fake_tof).start()
+                    tof=not a.no_tof, fake_tof=a.fake_tof, beacon=not a.no_beacon,
+                    beacon_port=a.beacon_port, beacon_targets=a.beacon_target,
+                    beacon_interval_s=a.beacon_interval, camera_port=a.camera_port).start()
     print("Telemetry bridge %s on http://%s:%d/telemetry, source %s, tof %s" % (
         VERSION, a.host, bridge.port, bridge.state.serial_label,
         "fake" if a.fake_tof else ("off" if a.no_tof else "sensors")))
+    if bridge.beacon is not None:
+        print("Beacon every %.0f s to UDP port %d (%s)" % (
+            a.beacon_interval, a.beacon_port,
+            ", ".join(a.beacon_target) if a.beacon_target else "broadcast on every interface"))
     start = time.monotonic()
     try:
         while a.duration == 0 or time.monotonic() - start < a.duration:
@@ -482,6 +631,8 @@ def main():
         bridge.close()
         b = bridge.state.snapshot()["bridge"]
         print("Stopped. %d DASH lines, %d bad, in %.1f s" % (b["lines"], b["bad_lines"], time.monotonic() - start))
+        if bridge.beacon is not None:
+            print("Beacon: %d sent, %d failed" % (bridge.beacon.sent, bridge.beacon.send_errors))
 
 
 if __name__ == "__main__":

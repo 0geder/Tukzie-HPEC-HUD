@@ -9,8 +9,10 @@ The detector must already run by hand (see `../README.md`, Deploying):
 `~/hazard_detector` holds `hazard_detector.py`, `detect.tflite`,
 `labelmap.txt` and the `venv` with `ai-edge-litert`.
 
-If the camera needs the no-infrared-filter tuning, add
-`--tuning ov5647_noir.json` to the end of the `ExecStart` line first.
+The `ExecStart` line uses the flags the detector is run with by hand:
+`--duration 0 --threads 4 --preview --preview-host 0.0.0.0 --tuning
+ov5647_noir.json --saturation 1.8 --log-path /home/ogeder/alerts_live.jsonl`.
+Change it there if the camera module or log location changes.
 
 ## Install (laptop, then Pi)
 
@@ -80,5 +82,11 @@ curl -s http://localhost:8081/telemetry
 
 pyserial is optional: without it the bridge reads the tty directly. The
 ToF libraries are only needed for the sensors; without them `tof` is null.
+The bridge also sends a UDP discovery beacon every 2 s to port 50808 on
+every interface's broadcast address, so the dashboard can find the Pi 4 on
+any network (`DashboardIntegration/TELEMETRY_LINK.md` section 4.2). The
+status page `http://localhost:8081/` shows how many were sent and failed.
+Add `--no-beacon` to `ExecStart` to turn it off.
+
 Logs: `journalctl -u telemetry-bridge -f`. Stop the service before running
 `tof_reader.py` by hand, since both use the same sensors.

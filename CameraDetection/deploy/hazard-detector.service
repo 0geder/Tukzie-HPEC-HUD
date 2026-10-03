@@ -7,6 +7,10 @@
 # shared network (see CameraDetection/README.md). For a Pi-only setup,
 # drop "--preview-host 0.0.0.0" from ExecStart.
 #
+# The flags match how the detector is run by hand on the Pi 4 (3 Oct 2026):
+# run until stopped, 4 inference threads, NoIR tuning with saturation 1.8,
+# alert log in /home/ogeder/alerts_live.jsonl.
+#
 # Install: see CameraDetection/deploy/INSTALL.md
 
 [Unit]
@@ -19,7 +23,7 @@ Type=simple
 User=ogeder
 WorkingDirectory=/home/ogeder/hazard_detector
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/home/ogeder/hazard_detector/venv/bin/python3 /home/ogeder/hazard_detector/hazard_detector.py --tuning ov5647_noir.json --saturation 1.8 --preview --preview-host 0.0.0.0 --log-path /home/ogeder/hazard_detector/alerts.jsonl
+ExecStart=/home/ogeder/hazard_detector/venv/bin/python3 /home/ogeder/hazard_detector/hazard_detector.py --duration 0 --threads 4 --preview --preview-host 0.0.0.0 --tuning ov5647_noir.json --saturation 1.8 --log-path /home/ogeder/alerts_live.jsonl
 Restart=on-failure
 RestartSec=3
 # SIGTERM is handled in the script: the camera and live view are released

@@ -306,5 +306,145 @@ class InProcessCloseTests(unittest.TestCase):
         self.assertFalse(br.tof.is_alive())
 
 
+def beacon_receiver():
+    """A UDP socket on a free localhost port, 3 s timeout."""
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.bind(("127.0.0.1", 0))
+    s.settimeout(3)
+    return s, s.getsockname()[1]
+
+
+IP_JSON_SAMPLE = json.dumps([
+    {"ifname": "lo", "flags": ["LOOPBACK", "UP"],
+     "addr_info": [{"family": "inet", "local": "127.0.0.1", "prefixlen": 8}]},
+    {"ifname": "eth0", "flags": ["BROADCAST", "UP"],
+     "addr_info": [{"family": "inet", "local": "10.20.0.1", "prefixlen": 24, "broadcast": "10.20.0.255"}]},
+    {"ifname": "wlan0", "flags": ["BROADCAST", "UP"],
+     "addr_info": [{"family": "inet", "local": "10.74.67.244", "prefixlen": 22}]},     # no broadcast key
+    {"ifname": "tun0", "flags": ["POINTOPOINT", "UP"],
+     "addr_info": [{"family": "inet", "local": "10.8.0.2", "prefixlen": 32}]},
+    {"ifname": "odd"},
+])
+
+
+class BeaconTests(unittest.TestCase):
+    """TELEMETRY_LINK.md 4.2: UDP discovery beacon on port 50808."""
+
+    def check_payload(self, d, telemetry_port):
+        self.assertEqual(set(d), {"sw7", "v", "host", "camera_port", "telemetry_port", "seq"})
+        self.assertEqual(d["sw7"], "pi4")
+        self.assertEqual(d["v"], 1)
+        self.assertEqual(d["camera_port"], 8080)
+        self.assertEqual(d["telemetry_port"], telemetry_port)
+        self.assertIsInstance(d["host"], str)
+        self.assertTrue(d["host"])
+        self.assertIsInstance(d["seq"], int)
+
+    def test_in_process_beacon_received(self):
+        rx, port = beacon_receiver()
+        stop = threading.Event()
+        b = tb.Beacon(stop, telemetry_port=8081, port=port, interval_s=0.1, targets=["127.0.0.1"])
+        b.start()
+        try:
+            got = []
+            for _ in range(3):
+                data, addr = rx.recvfrom(2048)
+                got.append(json.loads(data))
+                self.assertEqual(addr[0], "127.0.0.1")
+        finally:
+            stop.set()
+            b.join(2)
+            rx.close()
+        for d in got:
+            self.check_payload(d, 8081)
+        self.assertEqual([d["seq"] for d in got], sorted(d["seq"] for d in got))
+        self.assertLess(got[0]["seq"], got[-1]["seq"])
+        self.assertFalse(b.is_alive())
+        self.assertEqual(b.send_errors, 0)
+
+    def test_send_failures_counted_not_fatal(self):
+        # One target refuses (as an interface with no route would); the
+        # other targets still get the packet and nothing is raised.
+        class Sock:
+            def __init__(self):
+                self.sent = []
+
+            def sendto(self, data, addr):
+                if addr[0] == "10.99.99.255":
+                    raise OSError(101, "Network is unreachable")
+                self.sent.append((data, addr))
+
+        b = tb.Beacon(threading.Event(), telemetry_port=8081, port=50808,
+                      targets=["255.255.255.255", "10.99.99.255", "10.20.0.255"])
+        s = Sock()
+        b.send_once(s)
+        b.send_once(s)
+        self.assertEqual(b.sent, 4)
+        self.assertEqual(b.send_errors, 2)
+        self.assertIn("10.99.99.255", b.last_error)
+        self.assertEqual([a for _, a in s.sent[:2]], [("255.255.255.255", 50808), ("10.20.0.255", 50808)])
+        self.assertEqual(json.loads(s.sent[-1][0])["seq"], 1)
+
+    def test_thread_survives_socket_errors(self):
+        # Every send raising something unexpected must not end the thread.
+        stop = threading.Event()
+        b = tb.Beacon(stop, telemetry_port=8081, interval_s=0.05, targets=["127.0.0.1"])
+
+        def boom(sock):
+            raise RuntimeError("unexpected")
+        b.send_once = boom
+        b.start()
+        try:
+            time.sleep(0.4)
+            self.assertTrue(b.is_alive())
+            self.assertGreaterEqual(b.send_errors, 3)
+        finally:
+            stop.set()
+            b.join(2)
+        self.assertFalse(b.is_alive())
+
+    def test_bridge_process_sends_beacon(self):
+        rx, port = beacon_receiver()
+        b = BridgeProcess("--serial-port", MISSING_PORT, "--no-tof", "--beacon-port", str(port),
+                          "--beacon-target", "127.0.0.1", "--beacon-interval", "0.2")
+        try:
+            data, addr = rx.recvfrom(2048)
+            self.check_payload(json.loads(data), b.port)
+            self.assertEqual(addr[0], "127.0.0.1")
+            _, _, body = get(b.port, "/")
+            self.assertIn(b"beacon: UDP port %d" % port, body)
+            self.assertEqual(set(get_json(b.port)["bridge"]),
+                             {"version", "serial_port", "lines", "bad_lines"})   # JSON shape unchanged
+        finally:
+            b.close()
+            rx.close()
+
+    def test_no_beacon_flag(self):
+        import socket
+        rx, port = beacon_receiver()
+        rx.settimeout(1.0)
+        b = BridgeProcess("--serial-port", MISSING_PORT, "--no-tof", "--no-beacon", "--beacon-port", str(port),
+                          "--beacon-target", "127.0.0.1", "--beacon-interval", "0.2")
+        try:
+            with self.assertRaises(socket.timeout):
+                rx.recvfrom(2048)
+            _, _, body = get(b.port, "/")
+            self.assertIn(b"beacon: off", body)
+        finally:
+            b.close()
+            rx.close()
+
+    def test_parse_ip_json(self):
+        self.assertEqual(tb.parse_ip_json(IP_JSON_SAMPLE), ["10.20.0.255", "10.74.67.255"])
+        for junk in ("", "not json", "{}", "[1, 2]", None):
+            self.assertEqual(tb.parse_ip_json(junk), [], junk)
+
+    def test_default_targets_never_raise(self):
+        targets = tb.default_beacon_targets()
+        self.assertEqual(targets[0], "255.255.255.255")
+        self.assertEqual(len(targets), len(set(targets)))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
