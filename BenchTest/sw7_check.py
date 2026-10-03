@@ -11,7 +11,7 @@ telemetry answering and fresh, both IMU rates, camera /alerts answering.
   python sw7_check.py --json                # machine-readable
 
 Finding the Pi 4 (unless --pi4 is given), first that answers
-GET /telemetry within 1 s: 127.0.0.1 (single-Pi setup), 10.20.0.1 (wired
+GET /telemetry within 3 s: 127.0.0.1 (single-Pi setup), 10.20.0.1 (wired
 sw7-link), the source of a UDP beacon on port 50808 (listens 3 s),
 pi4-camera.local, then each --candidates address.
 
@@ -24,6 +24,7 @@ same commands run locally instead.
 import argparse
 import json
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -60,7 +61,7 @@ class Report:
 
 # HTTP -----------------------------------------------------------------------
 
-def get_json(url, timeout=1.0):
+def get_json(url, timeout=3.0):
     """(dict, elapsed_ms) or raises OSError/ValueError."""
     t0 = time.monotonic()
     with urllib.request.urlopen(url, timeout=timeout) as r:
@@ -68,7 +69,7 @@ def get_json(url, timeout=1.0):
     return json.loads(body.decode("utf-8")), (time.monotonic() - t0) * 1000
 
 
-def probe_telemetry(host, port, timeout=1.0):
+def probe_telemetry(host, port, timeout=3.0):
     """True if http://host:port/telemetry answers with the bridge's JSON."""
     try:
         d, _ = get_json("http://%s:%d/telemetry" % (host, port), timeout)
@@ -309,12 +310,88 @@ def check_pi4_ssh(rep, host, args):
         rep.add("Pi 4 temperature", WARN, "not available")
 
 
+RPI_MAC_PREFIXES = ("2c:cf:67", "d8:3a:dd", "dc:a6:32", "e4:5f:01", "b8:27:eb", "28:cd:c1")
+LAST_PI5_FILE = os.path.expanduser("~/.sw7_last_pi5_host")
+
+
+def neighbour_rpis():
+    """IPv4 addresses of Raspberry Pis in this machine's neighbour (ARP) table."""
+    try:
+        cmd = ["arp", "-a"] if os.name == "nt" else ["ip", "neigh"]
+        text = subprocess.run(cmd, capture_output=True, text=True, timeout=5).stdout
+    except (OSError, subprocess.SubprocessError):
+        return []
+    out = []
+    for line in text.splitlines():
+        low = line.lower().replace("-", ":")
+        ip = re.search(r"(\d{1,3}(?:\.\d{1,3}){3})", low)
+        if ip and any(pref in low for pref in RPI_MAC_PREFIXES):
+            out.append(ip.group(1))
+    return list(dict.fromkeys(out))
+
+
+def sweep_local_subnets():
+    """Ping every address of this machine's /24 networks briefly, so the ARP table fills."""
+    nets = set()
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            a = info[4][0]
+            if not a.startswith("127."):
+                nets.add(a.rsplit(".", 1)[0])
+    except OSError:
+        pass
+    flag, wait = (["-n", "1", "-w", "1500"] if os.name == "nt" else ["-c", "1", "-W", "2"]), []
+    for net in nets:
+        for i in range(1, 255):
+            try:
+                wait.append(subprocess.Popen(["ping", *flag, "%s.%d" % (net, i)],
+                                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+            except OSError:
+                break
+    for p in wait:
+        try:
+            p.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            p.kill()
+
+
+def find_pi5(args, name="pirate5"):
+    """Find the dashboard Pi when its .local name does not resolve (phone hotspots often
+    block mDNS): the last address that worked, then every Raspberry Pi on the local
+    network, identified by asking its hostname over ssh."""
+    candidates = []
+    try:
+        candidates.append(open(LAST_PI5_FILE).read().strip())
+    except OSError:
+        pass
+    candidates += neighbour_rpis()
+    if not candidates[1:]:
+        sweep_local_subnets()
+        candidates += neighbour_rpis()
+    for host in dict.fromkeys(c for c in candidates if c):
+        ok, out = run_remote(host, args.pi5_user, args.ssh_key, "hostname", timeout=8)
+        if ok and out.strip().lower() == name:
+            return host
+    return None
+
+
 def check_pi5(rep, args):
     host = args.pi5
     if host == "auto":
         host = "localhost" if (sys.platform.startswith("linux")
                                and os.path.isdir(os.path.expanduser("~/Dashboard_sw7"))) else DEFAULT_PI5
     ok, out = run_remote(host, args.pi5_user, args.ssh_key, PI5_SCRIPT)
+    if not ok and args.pi5 == "auto" and host == DEFAULT_PI5:
+        found = find_pi5(args)
+        if found:
+            host = found
+            ok, out = run_remote(host, args.pi5_user, args.ssh_key, PI5_SCRIPT)
+    if ok and host not in ("localhost", DEFAULT_PI5):
+        try:
+            with open(LAST_PI5_FILE, "w") as f:
+                f.write(host)
+        except OSError:
+            pass
     if not ok:
         rep.add("Pi 5 reachable", WARN, "%s: %s" % (host, out))
         return
