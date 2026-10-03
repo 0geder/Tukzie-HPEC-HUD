@@ -5,7 +5,9 @@ fields for (TELEMETRY_LINK.md, section 3).
 Shows vibration level, IMU disagreement, IMU sample rates and drops, motor
 rpm, raw GNSS speed (units unconfirmed), modem signal quality, MQTT up or
 down, and the three ToF distances in metres, with a Live / ESP32 stale /
-Offline pill.
+Offline pill. While the bridge replays a recorded or generated file
+(bridge.replay true, or fw ending in "-replay") an amber REPLAY badge is
+shown next to the pill, so replayed data is never taken for live data.
 
 Feed it from LiveDataProvider.telemetry_updated: set_telemetry(dict) with the
 raw /telemetry JSON, or set_telemetry(None) when the bridge is unreachable.
@@ -57,6 +59,16 @@ def _pair(value, fmt):
     if a is None and b is None:
         return None
     return " / ".join("--" if x is None else fmt.format(x) for x in (a, b))
+
+
+def replay_of(telemetry):
+    """(replaying, file name or None) for one /telemetry reply."""
+    if not isinstance(telemetry, dict):
+        return False, None
+    bridge = telemetry.get("bridge") if isinstance(telemetry.get("bridge"), dict) else {}
+    esp = telemetry.get("esp32") if isinstance(telemetry.get("esp32"), dict) else {}
+    replaying = bridge.get("replay") is True or str(esp.get("fw") or "").endswith("-replay")
+    return replaying, (bridge.get("replay_file") or None) if replaying else None
 
 
 def format_telemetry(telemetry):
@@ -122,6 +134,7 @@ class RideQualityCard(QFrame):
         super().__init__(parent)
         self.setObjectName("rideQualityCard")
         self.link = "offline"
+        self.replay = False
         self._values = {}
         self._status = {}
         self._captions = []
@@ -138,6 +151,12 @@ class RideQualityCard(QFrame):
         self.endpoint_label.setFont(THEME.font(10, QFont.Weight.DemiBold))
         header.addWidget(self.endpoint_label)
         header.addSpacing(10)
+        self.replay_badge = QLabel("REPLAY")
+        self.replay_badge.setFont(THEME.font(11, QFont.Weight.Black))
+        self.replay_badge.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.replay_badge.hide()
+        header.addWidget(self.replay_badge)
+        header.addSpacing(6)
         self.pill = QLabel()
         self.pill.setFont(THEME.font(11, QFont.Weight.Bold))
         self.pill.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
@@ -177,6 +196,10 @@ class RideQualityCard(QFrame):
     def set_telemetry(self, telemetry):
         """telemetry: raw /telemetry dict, or None when the bridge is unreachable."""
         self.link, values = format_telemetry(telemetry)
+        self.replay, replay_file = replay_of(telemetry)
+        self.replay_badge.setVisible(self.replay)
+        self.replay_badge.setToolTip(f"Replayed data from {replay_file}, not live" if replay_file
+                                     else "Replayed data, not live")
         for key, (text, status) in values.items():
             self._values[key].setText(text)
             self._status[key] = status
@@ -202,6 +225,9 @@ class RideQualityCard(QFrame):
             else:
                 colour = THEME.hex("text")
             label.setStyleSheet(f"background: transparent; border: none; color: {colour};")
+        amber = THEME.status("warn").name()
+        self.replay_badge.setStyleSheet(f"color: {THEME.hex('bg')}; background: {amber}; border: none;"
+                                        " border-radius: 9px; padding: 2px 10px;")
         colour = THEME.status(self.LINK_STATUS[self.link]).name()
         self.pill.setText(self.LINK_TEXT[self.link])
         self.pill.setStyleSheet(f"color: {colour}; background: transparent; border: 1px solid {colour};"

@@ -27,6 +27,12 @@ Mapping (TELEMETRY_LINK.md, section 3):
   esp32.v * esp32.i / 1000     -> signed_battery_power_kw, battery_power_kw = max(0, kW)
   esp32.lat, esp32.lon         -> latitude, longitude, gps_timestamp (only when fix)
   esp32.fix                    -> signal_validity["gps"]
+  esp32.crs (deg, GNSS course) -> heading, signal_validity["heading"] (only when fix; else None)
+  esp32.alt (m)                -> altitude_m (only when fix; else None)
+  bridge.replay, or fw ending in "-replay"
+                               -> data_source "sw7_replay" instead of "sw7_telemetry", so the
+                                  pages (map REPLAY badge, Diagnostics source) can never take
+                                  replayed positions for real data
   tof ahead (mm)               -> front_obstacle_distance_m, in m (ahead only: a side reading
                                   must not raise a front-obstacle warning when passing parked cars)
   esp32.spd_raw                -> not mapped (units unconfirmed); speed stays 0, "speed" invalid
@@ -70,6 +76,7 @@ REQUEST_TIMEOUT_MS = 2000
 ESP32_STALE_MS = 3000          # contract: stop sending above this age
 TOF_STALE_MS = 3000
 SOURCE = "sw7_telemetry"
+REPLAY_SOURCE = "sw7_replay"      # data_source while the bridge replays a file
 
 # Driver inputs that the dashboard itself owns (keyboard, controller), in
 # DRIVER_INPUT_FIELDS, are carried over from the manager's simulation state
@@ -108,6 +115,18 @@ def front_tof_m(telemetry):
         return None
     ahead = _num(tof.get("ahead_mm"))
     return ahead / 1000.0 if ahead is not None and ahead > 0 else None
+
+
+def is_replay(telemetry) -> bool:
+    """True when the bridge says it is replaying a file (bridge.replay), or the
+    ESP32 record is marked as replayed (fw ending in "-replay")."""
+    if not isinstance(telemetry, dict):
+        return False
+    bridge = telemetry.get("bridge")
+    if isinstance(bridge, dict) and bridge.get("replay") is True:
+        return True
+    esp = telemetry.get("esp32")
+    return isinstance(esp, dict) and str(esp.get("fw") or "").endswith("-replay")
 
 
 def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=None):
@@ -156,6 +175,11 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     else:
         s.latitude = s.longitude = None
         s.gps_timestamp = None
+    # GNSS course over ground and altitude (firmware 0.7.1+), only with a fix. Without them
+    # heading is None, not the dataclass default of 0 (north), so the map stays north-up.
+    crs = _num(esp.get("crs")) if gps_ok else None
+    s.heading = crs % 360.0 if crs is not None else None
+    s.altitude_m = _num(esp.get("alt")) if gps_ok else None
 
     front = front_tof_m(telemetry)
     s.front_obstacle_distance_m = front
@@ -164,7 +188,7 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     # (None in live-only mode).
     s.signal_validity = {
         "speed": False, "soc": soc is not None, "battery_temp": False,
-        "gps": gps_ok, "front_obstacle": front is not None,
+        "gps": gps_ok, "heading": s.heading is not None, "front_obstacle": front is not None,
         "rear_obstacle": False, "weather": False, "road_surface": False,
         "door": False, "seatbelt": False, "tyres": False,
     }
@@ -276,7 +300,7 @@ class LiveDataProvider(QObject):
                 self._set_link("stale")
             else:
                 self._last_state = state
-                self.manager.ingest_live_state(state, source=SOURCE)
+                self.manager.ingest_live_state(state, source=REPLAY_SOURCE if is_replay(telemetry) else SOURCE)
                 self._set_link("live")
         self.telemetry_updated.emit(telemetry)
 

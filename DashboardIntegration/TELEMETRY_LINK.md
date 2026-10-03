@@ -27,6 +27,8 @@ Fields (any value that is unknown or NaN is `null`, never `nan`):
 | `fix` | bool | GNSS has a valid fix |
 | `lat`, `lon` | number or null | decimal degrees |
 | `spd_raw` | number or null | GNSS speed field as reported (manual says knots; not confirmed) |
+| `crs` | number or null | GNSS course over ground, degrees clockwise from true north (firmware 0.7.1+; null without a fix or when the receiver gives none) |
+| `alt` | number or null | GNSS altitude, m (firmware 0.7.1+; null without a fix) |
 | `vib` | number or null | fused vibration level: standard deviation of acceleration magnitude, m/s2, last 1 s window |
 | `vib_dis` | number or null | IMU disagreement figure, last fused window |
 | `imu_hz` | [number, number] | sample rate of IMU1, IMU2 |
@@ -47,9 +49,12 @@ The line must be built without heap-heavy String concatenation in a timing-criti
 {
   "esp32": { ...latest DASH object..., "age_ms": 420 },     // null if no line received yet
   "tof":   { "left_mm": 812, "ahead_mm": 1490, "right_mm": null, "age_ms": 35 },  // null if sensors absent; 8190 or out of range -> null
-  "bridge": { "version": "1.0", "serial_port": "/dev/ttyACM0", "lines": 1234, "bad_lines": 2 }
+  "bridge": { "version": "1.0", "serial_port": "/dev/ttyACM0", "lines": 1234, "bad_lines": 2,
+              "replay": false, "replay_file": null }
 }
 ```
+
+`replay` is true while the bridge replays DASH lines from a file (`--replay FILE`, for bench tests) instead of reading the serial port; `replay_file` is then that file's name, otherwise null. Replay lines also carry an `fw` ending in `-replay` (for example `"0.7.1-replay"`). The dashboard treats either sign as replayed data: the live-data provider sets `data_source` to `sw7_replay`, and the map and the ride card show an amber REPLAY badge, so replayed positions are never taken for real ones.
 
 `age_ms` is the time since that part was last updated, so the dashboard can mark stale data. The bridge must keep serving when the ESP32 is unplugged or the ToF sensors are absent (those parts become null).
 
@@ -63,6 +68,9 @@ The line must be built without heap-heavy String concatenation in a timing-criti
 | `esp32.v * esp32.i / 1000` | `signed_battery_power_kw` | sign convention to be checked on the vehicle |
 | `esp32.lat`, `esp32.lon` | `latitude`, `longitude` | only when `fix` is true |
 | `esp32.fix` | GPS entry of `signal_validity` | |
+| `esp32.crs` | `heading`, heading entry of `signal_validity` | only when `fix` is true; otherwise None (not 0, which would mean north). The map turns heading-up from it |
+| `esp32.alt` | `altitude_m` | only when `fix` is true; otherwise None (Navigation shows "ALTITUDE N/A") |
+| `bridge.replay`, or `esp32.fw` ending in `-replay` | `data_source` = `sw7_replay` (otherwise `sw7_telemetry`) | REPLAY badge on the map and the ride card; Diagnostics shows the source |
 | `esp32.spd_raw` | `speed_kmh` | NOT mapped until the units are confirmed; shown on the ride card only |
 | `esp32.rpm` | (ride card) | |
 | `tof.ahead_mm / 1000` | `front_obstacle_distance_m` | ahead sensor only (decided 2 Oct: side readings must not raise a front-obstacle warning) |

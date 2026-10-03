@@ -11,7 +11,10 @@ LIVE_ONLY_PATCHES: live-only mode (TUKZIE_LIVE_ONLY=1, sw7_live_only.py) and
 the None guards it needs in the pages. Without TUKZIE_LIVE_ONLY the manager
 behaves as before; the page guards only act on values that are None. Their
 anchors are checked against v1.0-validated only.
-PATCHES: both, in order (what the test and the deploy step apply).
+TILE_MAP_PATCHES: the street-tile map (sw7_tile_map.py) in place of the
+team's NativeRouteMap, unless TUKZIE_TILE_MAP=0. Anchor checked in both
+v1.0-validated and v1.1.
+PATCHES: all of them, in order (what the test and the deploy step apply).
 """
 
 COPIES = (
@@ -20,6 +23,7 @@ COPIES = (
     ("ride_quality_card.py", "app/widgets/ride_quality_card.py"),
     ("sw7_endpoints.py", "app/data/sw7_endpoints.py"),
     ("sw7_live_only.py", "app/data/sw7_live_only.py"),
+    ("sw7_tile_map.py", "app/pages/sw7_tile_map.py"),
 )
 
 CAMERA_DRAWER = '''def camera(p,r,c):
@@ -330,4 +334,15 @@ VEHICLE_PATCHES = (
      "            self.controller.start()\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES
+TILE_MAP_PATCHES = (
+    # navigation_page.py: the native map becomes SW7TileMap (OpenStreetMap street tiles drawn with QPainter,
+    # heading-up follow mode, disk cache; no QtWebEngine). Same API, so only the import changes.
+    # TUKZIE_TILE_MAP=0 brings back the team's NativeRouteMap.
+    ("app/pages/navigation_page.py",
+     "from .navigation_page_fallback import NativeRouteMap\n",
+     "from .navigation_page_fallback import NativeRouteMap\n"
+     "if __import__(\"os\").environ.get(\"TUKZIE_TILE_MAP\", \"1\").strip() != \"0\":   # SW-7 street-tile map\n"
+     "    from .sw7_tile_map import SW7TileMap as NativeRouteMap  # noqa: F811\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES

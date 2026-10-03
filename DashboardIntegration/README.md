@@ -10,6 +10,7 @@ Add-ons for the vehicle dashboard (PySide6, the dashboard team's
 | `ride_quality_card.py` | `app/widgets/` | Compact card with the telemetry the dashboard has no fields for |
 | `sw7_endpoints.py` | `app/data/` | Finds the Pi 4 (localhost, override, wired, beacon, mDNS, last good) |
 | `sw7_live_only.py` | `app/data/` | Live-only mode: the explicit no-data state, never simulated values |
+| `sw7_tile_map.py` | `app/pages/` | Street-tile map for the Navigation page (OpenStreetMap tiles, heading-up follow mode), no QtWebEngine |
 
 They are kept here, outside the dashboard repo, so the dashboard team can
 review them before anything in their code changes. The telemetry contract is
@@ -50,6 +51,9 @@ merge, so each call gets a complete `VehicleState`:
 | `esp32.v * esp32.i / 1000` | `signed_battery_power_kw`; `battery_power_kw = max(0, kW)` | null if either is null; sign not yet checked on the vehicle |
 | `esp32.lat`, `esp32.lon` | `latitude`, `longitude`, `gps_timestamp` | only when `fix` is true, otherwise None |
 | `esp32.fix` | `signal_validity["gps"]` | |
+| `esp32.crs` | `heading`, `signal_validity["heading"]` | GNSS course over ground (firmware 0.7.1+); only with a fix, otherwise None |
+| `esp32.alt` | `altitude_m` | GNSS altitude in m (firmware 0.7.1+); only with a fix, otherwise None |
+| `bridge.replay`, or `esp32.fw` ending in `-replay` | `data_source` = `sw7_replay` | otherwise `sw7_telemetry`; the map and the ride card show a REPLAY badge |
 | `tof.ahead_mm` | `front_obstacle_distance_m`, `signal_validity["front_obstacle"]` | the ahead sensor only, in metres (a side reading must not raise a front warning); None if ToF is null or older than 3 s |
 | `esp32.spd_raw` | not mapped | units unconfirmed; `speed_kmh` stays 0 and `signal_validity["speed"]` is False |
 
@@ -120,7 +124,9 @@ drops, motor rpm, raw GNSS speed (units unconfirmed), modem signal quality
 (`csq` of 31, amber below 10), MQTT up or down, ToF left, ahead and right in
 metres (amber under 1 m), and the ESP32 record age, with a pill that reads
 Live, ESP32 stale or Offline. Values turn grey when not live, and the card goes
-Offline by itself if nothing arrives for 3 s.
+Offline by itself if nothing arrives for 3 s. While the bridge replays a file
+(`bridge.replay`, or `fw` ending in `-replay`) an amber REPLAY badge sits next
+to the pill.
 
 It is a card, not a page, placed on the Diagnostics page under the main
 diagnostics card. Reasons: the bottom bar is icon-only with one icon per page,
@@ -130,6 +136,50 @@ already scrolls, so it costs two lines there and no new icon or page id. The
 card is self-contained, so it can move to the Driving page or a page of its
 own later. See `tests/ride_card.png`.
 
+## Street-tile map (Navigation page)
+
+The team's Leaflet web map segfaults on the Pi 5's display
+(`PI5_MAP_CRASH.md`), and their "Native fallback" only draws vector roads
+from the small offline index around UCT. `sw7_tile_map.SW7TileMap` replaces
+that native map (same methods and attributes, so only the import in
+`navigation_page.py` changes; `TUKZIE_TILE_MAP=0` brings the team's map back).
+It draws OpenStreetMap raster tiles with QPainter, so no QtWebEngine.
+
+- Tiles: `https://tile.openstreetmap.org/{z}/{x}/{y}.png` (or
+  `TUKZIE_TILE_URL`), at most 2 requests at a time, User-Agent
+  `TUKZIE-SW7-dashboard/1.0 (UCT student project)`, only tiles on screen and
+  only once the zoom has settled (no bulk prefetching, per the OSM tile
+  policy). Disk cache `~/.cache/sw7_tiles/{z}/{x}/{y}.png` (or
+  `TUKZIE_TILE_CACHE`): read first, and a tile under 30 days old is never
+  fetched again, so areas already driven work offline. After a network
+  error it waits 15 s before trying again (5 min after HTTP 403 or 429).
+- Missing tile: a lower-zoom tile from memory is scaled up; if there is
+  none, the team's vector roads (`set_context`, `set_plan`) are drawn on a
+  plain background, and the attribution line says the street tiles are
+  offline. The map is never blank.
+- Follow mode: heading-up (the map turns so the GNSS course points up),
+  the vehicle as an arrow at 70 % of the height, zoom 17. The course is only
+  trusted while moving: from `speed_kmh` when known, otherwise when a new fix
+  implies at least 3 km/h (live mode has no speed yet). Stopped, the last
+  good heading is held for 20 s, then the map eases to north-up; with no
+  course at all it is north-up with a dot instead of an arrow.
+- Smooth: each 1 Hz fix starts a linear move from where the marker is to the
+  new fix over the measured update interval; camera rotation and zoom ease
+  exponentially. A 30 fps QTimer runs only while the map is visible and
+  something moves. Jumps over 300 m are not animated.
+- Touch: drag pans and leaves follow mode; pinch, wheel and +/- zoom and keep
+  follow mode; Overview fits the route north-up; tapping the compass turns an
+  explored map north-up.
+- Route from `set_plan` in the accent colour on a dark casing, the travelled
+  part (`set_progress`, by distance along the route) dimmed.
+- No position: the map stays at the last known position, or the UCT area,
+  with a "Waiting for GPS fix" banner. Replayed data: amber REPLAY badge.
+- Compass and "© OpenStreetMap contributors" always shown.
+
+Screenshots (fake test tiles): `tests/tile_map_follow.png`,
+`tests/tile_map_no_fix.png`, `tests/tile_map_replay.png`,
+`tests/tile_map_offline.png`.
+
 ## Wiring it in (edits for the dashboard team)
 
 Each edit below is exact: find the existing line, add or change as shown.
@@ -137,9 +187,10 @@ The same edits are in `tests/dashboard_patches.py`, and the test applies them
 to a copy of v1.0-validated and starts the patched dashboard, so they are
 checked against the current files.
 
-1. Copy the five files: `front_camera_page.py` to `app/pages/`,
-   `live_data_provider.py`, `sw7_endpoints.py` and `sw7_live_only.py` to
-   `app/data/`, `ride_quality_card.py` to `app/widgets/`.
+1. Copy the six files: `front_camera_page.py` and `sw7_tile_map.py` to
+   `app/pages/`, `live_data_provider.py`, `sw7_endpoints.py` and
+   `sw7_live_only.py` to `app/data/`, `ride_quality_card.py` to
+   `app/widgets/`.
 
 2. `app/pages/dashboard_main.py`
 
@@ -230,6 +281,15 @@ checked against the current files.
    v1.0-validated; the deploy step must check them on the Pi's v1.1 (each
    must occur exactly once).
 
+7. Street-tile map: in `app/pages/navigation_page.py`, after
+   `from .navigation_page_fallback import NativeRouteMap` add:
+   ```python
+   if __import__("os").environ.get("TUKZIE_TILE_MAP", "1").strip() != "0":   # SW-7 street-tile map
+       from .sw7_tile_map import SW7TileMap as NativeRouteMap  # noqa: F811
+   ```
+   (`TILE_MAP_PATCHES`; the anchor occurs once in both v1.0-validated and
+   v1.1.)
+
 The Pi 4 is found automatically (above). To pin it, set `TUKZIE_PI4_HOST`
 (or `pi4_host=` in `~/.config/sw7/endpoints.conf`); to bypass the resolver
 altogether, set `TUKZIE_TELEMETRY_URL` and `TUKZIE_CAMERA_URL`.
@@ -263,6 +323,8 @@ laptop, it checks:
   fields still None) and returns to no-data, with the "Live data lost" toast
   and never the simulation, when it stops. `soc_pct` is None when the BMS has
   never reported, in both modes.
+- The patched Navigation page uses `SW7TileMap`, which is fed the live
+  position (tiles pointed at a dead local port, so no real OSM traffic).
 - Resolver: picks localhost when a fake bridge is on 127.0.0.1; falls through
   to the override (`TUKZIE_PI4_HOST`, then `endpoints.conf`) on 127.0.0.2;
   learns 127.0.0.3 from a fake UDP beacon sent to 127.0.0.1:50808 (and ignores
@@ -273,6 +335,21 @@ laptop, it checks:
 
 With PySide6-Essentials only, the test gives the reverse camera page a silent
 `QSoundEffect` stub, because `QtMultimedia` is in PySide6-Addons.
+
+`tests/test_tile_map.py` tests the street-tile map against a local fake
+tile server (`TUKZIE_TILE_URL`, temp `TUKZIE_TILE_CACHE`), fed with fixes
+from `CameraDetection/tests/replay_uct_route.txt` through
+`build_live_state()` (so `crs` and `alt` mapping are checked too): the
+right zoom-17 tiles are requested (vehicle tile first, never more than 2 at
+a time, the SW-7 User-Agent) and cached; a new map at the same place fetches
+nothing, a 31-day-old tile is fetched again; heading-up with the vehicle at
+70 % height; the marker moves steadily between fixes and the frame timer
+stops when idle or hidden; course noise while stopped is ignored; "Waiting
+for GPS fix" at the last position or UCT; the REPLAY badge on the map and
+the ride card, and `sw7_replay` from the provider; vector roads with the
+tile server down and no endless retries; drag, zoom and Overview; and that
+`TUKZIE_TILE_MAP=0` restores the team's map. Both tests also pass against
+the v1.1 copy (`TUKZIE_DASHBOARD_DIR`).
 
 `tests/test_front_camera_page.py` and `tests/test_front_camera_page_live.py`
 are the earlier camera page tests (run from a scratch copy of the app).

@@ -125,6 +125,11 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 os.environ.setdefault("QT_QPA_FONTDIR", "C:/Windows/Fonts")
 os.environ["TUKZIE_TELEMETRY_URL"] = BRIDGE_URL
 os.environ["TUKZIE_CAMERA_URL"] = "http://192.0.2.1:9"   # TEST-NET: never answers
+# The Navigation page's street-tile map (sw7_tile_map.py): never fetch real OSM tiles in this test,
+# and keep its cache in the scratch folder. tests/test_tile_map.py tests the tiles themselves.
+os.environ["TUKZIE_TILE_URL"] = "http://127.0.0.1:9/{z}/{x}/{y}.png"
+os.environ["TUKZIE_TILE_CACHE"] = str(scratch / "tile_cache")
+os.environ.pop("TUKZIE_TILE_MAP", None)
 
 from PySide6.QtCore import QEventLoop  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
@@ -194,6 +199,7 @@ assert close(s.latitude, -33.95791) and close(s.longitude, 18.46102)
 assert s.gps_timestamp is not None and time.time() - s.gps_timestamp < 5
 assert close(s.front_obstacle_distance_m, 0.812), s.front_obstacle_distance_m
 assert s.speed_kmh == 0.0, "spd_raw must not be mapped to speed_kmh"
+assert s.heading is None and s.altitude_m is None, "no crs / alt in the record: heading and altitude unknown"
 v = s.signal_validity
 assert v["gps"] and v["soc"] and v["front_obstacle"] and not v["speed"], v
 assert s.is_simulated is False and s.data_source == "sw7_telemetry"
@@ -305,6 +311,11 @@ wait_until(lambda: dm.vehicle_data.mode == "live_controller" and dm.diagnostics.
 assert close(dm.current_state.soc_pct, 76.5)
 assert dm.current_state.front_obstacle_distance_m is not None
 assert "camera" in dm.page_ids and "camera" in dm.normal_ids and "camera" in dm.nav.buttons
+from app.pages.sw7_tile_map import SW7TileMap  # noqa: E402
+assert isinstance(dm.navigation.map, SW7TileMap), type(dm.navigation.map)
+dm.switch_page_id("navigation"); run_for(0.5)
+assert dm.navigation.map.vehicle is not None and dm.navigation.map.isVisible(), "tile map not fed or not shown"
+dm.grab().save(str(scratch / "dashboard_navigation.png"))
 dm.switch_page_id("navigation"); dm.navigate_pages(1)
 assert dm.stack.currentWidget() is dm.front_camera, "camera page not next after navigation"
 assert dm.nav.buttons["camera"].isChecked()
