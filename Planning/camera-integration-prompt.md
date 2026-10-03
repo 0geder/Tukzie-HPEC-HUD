@@ -1,5 +1,7 @@
 # Camera integration prompt (SW-7, next phase)
 
+Historical: written before the HUD was replaced by dashboard integration on 2 Oct 2026.
+
 Written 2026-09-28. Paste everything below the line into a new session, or
 say "act on the camera integration prompt".
 

@@ -41,7 +41,7 @@
   }
   #splatStatus.hidden { display: none; }
 
-  /* ---- HUD frame accents ---- */
+  /* ---- Overlay frame accents ---- */
   .corner {
     position: fixed; width: 26px; height: 26px; border: 2px solid var(--accent);
     opacity: 0.45; z-index: 20; pointer-events: none;
@@ -52,7 +52,7 @@
   .corner.br { bottom: 14px; right: 14px; border-left: none; border-top: none; }
 
   /* ---- Overlays ---- */
-  .hud {
+  .ovl {
     position: fixed; z-index: 30;
     background: var(--panel); border: 1px solid var(--panel-border);
     border-radius: 5px; backdrop-filter: blur(8px);
@@ -70,15 +70,15 @@
   }
   #topbar .sub { color: var(--text-dim); font-size: 0.66rem; letter-spacing: 0.05em; margin-top: 3px; }
 
-  button.hudbtn {
+  button.ovlbtn {
     background: rgba(5,8,12,0.6); border: 1px solid var(--panel-border);
     color: var(--text-dim); font-family: inherit; font-size: 0.64rem;
     padding: 7px 11px; cursor: pointer; letter-spacing: 0.08em;
     text-transform: uppercase; border-radius: 3px; transition: all 0.15s;
     white-space: nowrap;
   }
-  button.hudbtn:hover { border-color: var(--accent); color: var(--accent); }
-  button.hudbtn.active { border-color: var(--accent); color: var(--accent); background: rgba(53,240,201,0.08); }
+  button.ovlbtn:hover { border-color: var(--accent); color: var(--accent); }
+  button.ovlbtn.active { border-color: var(--accent); color: var(--accent); background: rgba(53,240,201,0.08); }
   #connBtn { border-color: var(--accent); color: var(--accent); }
   #connBtn.connected { border-color: var(--danger); color: var(--danger); }
 
@@ -93,8 +93,8 @@
     text-transform: uppercase; margin-bottom: 2px;
   }
 
-  /* Telemetry HUD, bottom-left */
-  #telemetryHud { bottom: 46px; left: 46px; padding: 12px 14px; width: 250px; }
+  /* Telemetry overlay, bottom-left */
+  #telemetryPanel { bottom: 46px; left: 46px; padding: 12px 14px; width: 250px; }
   .imu-block + .imu-block { margin-top: 12px; border-top: 1px solid var(--panel-border); padding-top: 10px; }
   .imu-block .label { font-size: 0.6rem; letter-spacing: 0.14em; color: var(--text-dim); text-transform: uppercase; }
   .imu-block .status { margin-top: 5px; font-size: 0.85rem; font-weight: bold; letter-spacing: 0.02em; }
@@ -109,8 +109,8 @@
   .metrics span.val { color: var(--text); }
 
   /* Event log, bottom-right */
-  #logHud { bottom: 46px; right: 46px; padding: 12px 14px; width: 310px; }
-  #logHud .rail-label { margin-bottom: 7px; }
+  #logPanel { bottom: 46px; right: 46px; padding: 12px 14px; width: 310px; }
+  #logPanel .rail-label { margin-bottom: 7px; }
   #log { height: 128px; overflow-y: auto; font-size: 0.62rem; line-height: 1.65; color: var(--text-dim); }
   #log .entry.sharp, #log .entry.sustained { color: var(--danger); }
   #log .entry.moderate { color: var(--warn); }
@@ -162,8 +162,8 @@
 
   @media (max-width: 1000px) {
     #controlRail { top: 78px; left: 14px; width: 150px; }
-    #telemetryHud { bottom: 14px; left: 14px; width: 210px; }
-    #logHud { display: none; }
+    #telemetryPanel { bottom: 14px; left: 14px; width: 210px; }
+    #logPanel { display: none; }
     #footnote { display: none; }
     #topbar { padding: 12px 18px; }
   }
@@ -199,35 +199,35 @@
     <h1>Virtual Tukzie</h1>
     <div class="sub">SW-7 — walkthrough of the real vehicle, live sensor data</div>
   </div>
-  <button class="hudbtn" id="connBtn">Connect to Tukzie</button>
+  <button class="ovlbtn" id="connBtn">Connect to Tukzie</button>
 </div>
 
 <div id="placeHint">Click on the model to place <b id="placeTarget"></b> — Esc to cancel</div>
 
-<div class="hud" id="controlRail">
+<div class="ovl" id="controlRail">
   <div class="rail-group">
     <div class="rail-label">View</div>
-    <button class="hudbtn active" data-mode="splat">Live 3D splat</button>
-    <button class="hudbtn" data-mode="photos">Captured frames</button>
+    <button class="ovlbtn active" data-mode="splat">Live 3D splat</button>
+    <button class="ovlbtn" data-mode="photos">Captured frames</button>
   </div>
   <div class="rail-group" id="presetGroup">
     <div class="rail-label">Walkthrough</div>
-    <button class="hudbtn" data-preset="front">Front</button>
-    <button class="hudbtn" data-preset="side">Side</button>
-    <button class="hudbtn" data-preset="rear">Rear / chassis</button>
-    <button class="hudbtn" data-preset="over">Overview</button>
-    <button class="hudbtn" id="tourBtn">▶ Guided tour</button>
+    <button class="ovlbtn" data-preset="front">Front</button>
+    <button class="ovlbtn" data-preset="side">Side</button>
+    <button class="ovlbtn" data-preset="rear">Rear / chassis</button>
+    <button class="ovlbtn" data-preset="over">Overview</button>
+    <button class="ovlbtn" id="tourBtn">▶ Guided tour</button>
   </div>
   <div class="rail-group" id="placeGroup">
     <div class="rail-label">Component markers</div>
-    <button class="hudbtn" data-place="imu1">Place IMU1</button>
-    <button class="hudbtn" data-place="imu2">Place IMU2</button>
-    <button class="hudbtn" data-place="camera">Place camera</button>
-    <button class="hudbtn" id="exportBtn">Export positions</button>
+    <button class="ovlbtn" data-place="imu1">Place IMU1</button>
+    <button class="ovlbtn" data-place="imu2">Place IMU2</button>
+    <button class="ovlbtn" data-place="camera">Place camera</button>
+    <button class="ovlbtn" id="exportBtn">Export positions</button>
   </div>
 </div>
 
-<div class="hud" id="telemetryHud">
+<div class="ovl" id="telemetryPanel">
   <div class="rail-label">Live telemetry — real sensors</div>
   <div class="imu-block">
     <div class="label">IMU1</div>
@@ -251,7 +251,7 @@
   </div>
 </div>
 
-<div class="hud" id="logHud">
+<div class="ovl" id="logPanel">
   <div class="rail-label">Event log</div>
   <div id="log"></div>
 </div>

@@ -19,6 +19,21 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 ---
 
+## 2026-10-03
+
+Repo made uniform with the dashboard-integration scope; dashboard live-only mode, automatic Pi 4 finding and pre-test check; folders tidied.
+
+### (this commit) Uniform repo: README with architecture, TelemetryUnit rename, HUD wording updated; resolver back-off, controller off, auto-start files
+
+- `README.md` rewritten: summary, architecture diagram, part-to-folder table, records table, folder map, build/flash/run/deploy commands, pre-test check, status table. Why: the student wants the repo easy to navigate and the README still described the HUD.
+- `HUDTelemetryUnit/` renamed `TelemetryUnit/` (git mv) and every reference updated; firmware builds from the new folder (RAM 14.9%, flash 15.9%). `References/Papers/Windshield HUD/` renamed `Driver Display (HUD literature)/`. Why: uniform naming after the title change (2 Oct). The mirror copy outside the repo is untouched.
+- HUD wording that described the current plan updated in CLAUDE.md, PROJECT_LOG.md header, Planning documents (historical prompts marked as historical), CameraDetection docs, VirtualTukzie/dashboard.html identifiers, Research/research_pipeline.py topic title, three design sentences in Report/Literature.tex. History, literature and the submitted GA form unchanged.
+- `Colour Cards/` moved to `BenchTest/colour_cards/` (test C3 card sheets); `Poster Templates/` moved to `Presentation/reference/poster_templates/`. Why: no loose untracked folders at the top level.
+- `DashboardIntegration/sw7_endpoints.py`: empty searches back off (2, 4, 8, 16, 30 s) instead of repeating every 2 s (6,828 lookup warnings in the Pi 5 log on 3 Oct); a beacon is probed at once, cutting short a slower step; beacon port can be set with TUKZIE_BEACON_PORT (tests use a private port, since a live Pi 4 on the same network was being picked up).
+- `DashboardIntegration/tests/dashboard_patches.py`: 49th edit, TUKZIE_NO_CONTROLLER=1 skips the Xbox controller poller (about 53% of a core per the dashboard team). `deploy/start_sw7_dashboard.sh`: waits 5 s for the desktop, sets it. `deploy/sw7_dashboard.desktop`: auto-start entry for our build. Dashboard test passes.
+
+---
+
 
 ## 2026-09-30
 

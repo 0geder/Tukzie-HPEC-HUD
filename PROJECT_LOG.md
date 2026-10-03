@@ -1,8 +1,10 @@
 # SW-7 project log
 
-SW-7 is a UCT EEE4022S 2026 final-year project by Samson Okuthe (OKTSAM001), supervised by A/Prof. Simon Winberg with co-supervisor Sampath Jayalath. It is an embedded HPEC telemetry unit and a windshield HUD for the TUKZIE Rev 0, a 72 V electric cargo trike. The telemetry unit is an ESP32-S3 (Makerfabs board with an A7670X LTE Cat 1 modem). It runs FreeRTOS and samples two MPU6050 IMUs at 200 Hz. From those it computes calibrated, speed-normalised ride features and fuses them. It also reads the JBD BMS over BLE and GNSS through the modem, publishes JSON over MQTT on LTE, and logs locally to internal flash (LittleFS). A Raspberry Pi 4 runs a forward camera with a pretrained object detector, a live view and an alerts endpoint for the inherited vac-work dashboard. The HUD is on hold pending the supervisor meeting. This file records everything technical done and every decision made. The `progress-scribe` agent (.claude/agents/progress-scribe.md) keeps it current.
+SW-7 is a UCT EEE4022S 2026 final-year project by Samson Okuthe (OKTSAM001), supervised by A/Prof. Simon Winberg with co-supervisor Sampath Jayalath. Its title since 2 Oct 2026 is "Development of an Embedded HPEC Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0 Platform", for the TUKZIE Rev 0, a 72 V electric cargo trike. The windshield HUD of the original brief was replaced by integration with the vehicle's existing dashboard (D26: supervisor agreed 1 Oct 2026, course coordinator captured the title change 2 Oct 2026). The telemetry unit is an ESP32-S3 (Makerfabs board with an A7670X LTE Cat 1 modem). It runs FreeRTOS and samples two MPU6050 IMUs at 200 Hz. From those it computes calibrated, speed-normalised ride features and fuses them. It also reads the JBD BMS over BLE and GNSS through the modem, publishes JSON over MQTT on LTE, and logs locally to internal flash (LittleFS). Firmware v0.7.0 also prints a 1 Hz DASH line on USB to a Raspberry Pi 4, which runs the forward camera hazard detector (HTTP :8080) and a telemetry bridge that adds three VL53L0X ToF sensors (HTTP :8081, UDP beacon on port 50808). The driver display is the vehicle's existing PySide6 dashboard on the Raspberry Pi 5 (Pirate5), with our camera page, live-data provider (live-only mode), ride-quality card and Pi 4 resolver. A single-Pi-5 setup is being considered. This file records everything technical done and every decision made. The `progress-scribe` agent (.claude/agents/progress-scribe.md) keeps it current.
 
 Last updated: 2026-09-28, evening (initial build from the repo, report, GA form and session transcript; covers commits 3dd8ab9 to 72ba826; later on 28 Sept: firmware v0.5.0 committed as dfc6542, and the fusion and calibration figures in the report, deck and poster corrected from the bench log).
+
+Repo note (3 Oct 2026): the firmware folder HUDTelemetryUnit/ was renamed TelemetryUnit/, and References/Papers/Windshield HUD/ was renamed References/Papers/Driver Display (HUD literature)/. Older entries below keep the old paths as written. The repository name (Tukzie-HPEC-HUD) predates the title change.
 
 Conventions: dates are 2026. "Transcript" means the Claude Code session transcript. A fact marked "per the student, not in the repo" was stated by the student in the session but has no file in this repo behind it. "Unverified" means claimed but not measured or not found.
 
@@ -58,11 +60,11 @@ Report, GA form, presentation
 
 #### In progress
 - Firmware v0.5.0 (committed dfc6542 on 28 Sept, compiles; not yet flashed or tested). Adds serial commands !status, !log off, !log on, !mqtt and !recal. MQTT result codes are checked per A76XX manual v1.09 section 18.2 (+CMQTTCONNECT, +CMQTTPUB), and reconnects use backoff (first retry 30 s after a failure, then doubling). Not yet flashed or tested.
-- Supervisor meeting preparation: HUD on hold, replacement RQ2, and the other items under "Waiting on someone".
+- Supervisor items under "Waiting on someone". (The HUD question is settled: replaced by dashboard integration, D26, 1 to 2 Oct 2026.)
 
 #### Waiting on someone
 - Supervisor (A/Prof. Winberg):
-  - Parking the HUD and what replaces RQ2.
+  - Parking the HUD and what replaces RQ2: settled 1 Oct 2026 (D26).
   - Serving live imagery over the network (--preview-host 0.0.0.0).
   - Any model change (EfficientDet-Lite, YOLOv8n), training or image collection.
   - What counts as a hazard (road-surface defects or general objects).
@@ -111,7 +113,7 @@ Presentation
 - Question preparation: Presentation/SW7_QA_Prep.md. Still missing for it: power budget and bill of materials.
 
 Repo
-- Update README.md: it still says the camera is untested live and the HUD is "not built yet".
+- README.md rewritten for the current architecture (3 Oct 2026).
 
 ---
 
@@ -253,7 +255,7 @@ Grouped by week (weeks start on Monday). Commit hashes are in brackets. Events w
 
 ## 4. Technical breakdown
 
-### 4.1 ESP32-S3 telemetry unit (HUDTelemetryUnit/)
+### 4.1 ESP32-S3 telemetry unit (TelemetryUnit/, HUDTelemetryUnit/ before 3 Oct 2026)
 
 What it does:
 - Board: Makerfabs ESP32-S3 (WROOM-1-N16R8) with an A7670X modem.
@@ -380,7 +382,7 @@ Known limitations:
 
 ### 4.3 Dashboard integration (DashboardIntegration/)
 
-Design references noted by the student (29 Sept 2026), for the dashboard direction that is replacing the HUD (pending the supervisor). Not yet reviewed in detail:
+Design references noted by the student (29 Sept 2026), for the dashboard direction that replaced the HUD (agreed 1 Oct 2026, D26). Not yet reviewed in detail:
 - A. S. Suryavanshi, "Driving into the Future: The Evolution of Car Dashboards", Medium: https://medium.com/@aushijsingh.suryavanshi/driving-into-the-future-the-evolution-of-car-dashboards-c9a9c7f22f3c. A blog post, not peer reviewed, so useful as background but not as a citation for a claim in the report.
 - "Smart Autonomous Vehicle Dashboard: Real-Time Interactive System", Figma Community file: https://www.figma.com/community/file/1582306361195081977/smart-autonomous-vehicle-dashboard-real-time-interactive-system. A design example for laying out camera, hazard and vehicle-state information on one screen.
 
@@ -439,7 +441,7 @@ GA form
 Presentation (Presentation/)
 - SW7_Final_Presentation.pptx: 12 slides, 16:9. SW7_Poster_A1.pptx: 1 page. Built with pptxgenjs from Presentation/source (build_deck.js, build_poster.js). Talking points are in SW7_Talking_Points.md.
 - Slide 10 says the detector is "Implemented, not yet run on live data" (out of date).
-- Slide 12 lists "Build and evaluate the HUD" (out of date if D26 is agreed).
+- Slide 12 listed "Build and evaluate the HUD"; the deck was updated for the dashboard on 1 Oct 2026 (7ce35ee, 30450ab).
 
 ---
 
@@ -474,7 +476,7 @@ Presentation (Presentation/)
 
 ## 6. Report sync table
 
-Checked against the evidence on 2026-09-28.
+Checked against the evidence on 2026-09-28. Snapshot of that date: since 1 to 2 Oct the title, abstract, RQ2 and scope describe dashboard integration, not the HUD (30450ab).
 
 | Report section | What it says now | Matches latest evidence? |
 |---|---|---|
@@ -512,7 +514,7 @@ Tectonic is not on PATH. It has been run from the scratchpad; its cache is at C:
 The template header mentions pdflatex; Tectonic (XeTeX) is what produced the current PDF (xdvipdfmx producer). Under XeTeX the preamble loads the real Times New Roman through fontspec; under pdfLaTeX it falls back to newtx, a Times clone. Word count: run the prose counter over Chapters 1 to 7 (tables, figures, captions and code excluded) and update the line under the declaration.
 
 ### Flash the ESP32
-From HUDTelemetryUnit/:
+From TelemetryUnit/:
 ```
 pio run              # build
 pio run -t upload    # flash (COM10)

@@ -61,7 +61,7 @@ Two things this depends on that are **not yet done**:
 
 ## Deploying
 
-From the `Tukzie-HPEC-HUD` folder on the development machine, copy the
+From the repository root on the development machine, copy the
 three files to the Pi (the Pi is `pi4-camera`; use its IP, from
 `hostname -I` on the Pi, where `.local` names do not resolve):
 

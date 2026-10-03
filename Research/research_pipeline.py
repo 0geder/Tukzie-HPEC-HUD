@@ -94,7 +94,10 @@ RESEARCH_QUESTIONS = {
         ],
     },
     "RQ4": {
-        "title": "Heads-up display design and driver attention",
+        # Driver display. The project's display is now the vehicle's existing
+        # dashboard (title change, 2 Oct 2026); head-up display terms stay
+        # because that literature was reviewed and still informs the design.
+        "title": "Driver-display design and driver attention",
         "keywords": ["head-up display", "hud", "driver attention", "windshield",
                      "augmented reality", "glance", "workload"],
         "queries": [

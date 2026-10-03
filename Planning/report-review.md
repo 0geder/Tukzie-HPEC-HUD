@@ -1,5 +1,7 @@
 # Examiner-style review of the SW-7 report draft
 
+Historical: written before the HUD was replaced by dashboard integration on 2 Oct 2026. Its findings on the HUD title, abstract, Scope and RQ2 were addressed by the title and RQ2 change (30450ab, 1 to 2 Oct 2026).
+
 Reviewed: "OKTSAM001 SW7 Report Draft.pdf", 71 PDF pages, dated 29 September 2026, with the .tex sources.
 Criteria used: Lecture 2 (slides 3, 7, 9, 10, 12), the Intro Lecture (slides 4, 10, 11), the GA descriptors in "GA Tracking Form incl GA5.pdf" (pages 3 to 5), and the SW-7 brief (pages 20 to 22 of the topics list).
 Context used: PROJECT_LOG.md and Planning/brief-compliance.md.

@@ -1,5 +1,14 @@
 # SW-7 project notes for Claude
 
+SW-7 (UCT EEE4022S 2026, Samson Okuthe): "Development of an Embedded HPEC
+Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0 Platform"
+(title since 2 Oct 2026; the windshield HUD of the original brief was
+replaced by dashboard integration). ESP32-S3 firmware in TelemetryUnit/
+(v0.7.0); Pi 4 camera detector and telemetry bridge in CameraDetection/;
+add-ons for the vehicle's PySide6 dashboard on the Pi 5 (Pirate5) in
+DashboardIntegration/; tests and logs in BenchTest/. README.md has the
+architecture and folder map. The repository name predates the title change.
+
 - After finishing any piece of work in this repo (a fix, a test, a
   decision, a report edit), run the `progress-scribe` agent with a short
   description of what was done, so PROJECT_LOG.md, CHANGELOG.md and the report stay

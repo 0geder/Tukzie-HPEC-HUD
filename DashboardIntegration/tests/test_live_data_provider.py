@@ -30,6 +30,9 @@ from __future__ import annotations
 
 import json
 import os
+# Keep the resolver tests off the real beacon port: a live Pi 4 on the same network
+# broadcasts to 50808 and would be picked up instead of the test's fake sources.
+os.environ.setdefault("TUKZIE_BEACON_PORT", "50919")
 import shutil
 import socket
 import stat
@@ -537,7 +540,7 @@ assert cam.camera_url() == "http://127.0.0.1:8080"
 srvD1.shutdown(); srvD1.server_close()
 os.environ["TUKZIE_PI4_HOST"] = "127.0.0.2"
 srvD2 = bridge_on("127.0.0.2", pD)
-wait_until(lambda: r4.host == "127.0.0.2", 8, "a new search after the bridge stopped")
+wait_until(lambda: r4.host == "127.0.0.2", 20, "a new search after the bridge stopped")   # probes now wait up to 3 s each
 assert r4.how == "override" and ("", "searching") in endpoints4[1:], endpoints4
 wait_until(lambda: provider4.link == "live", 5, "provider live on the new host")
 assert card4.endpoint_label.text() == "Pi 4: 127.0.0.2 (override)"

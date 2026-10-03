@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=SW-7 Dashboard
+Comment=Start the SW-7 integrated dashboard (live sensor data) on login
+Exec=/home/piadam/start_sw7_dashboard.sh
+Terminal=false
+X-GNOME-Autostart-enabled=true

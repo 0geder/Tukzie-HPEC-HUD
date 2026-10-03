@@ -1,5 +1,5 @@
 # Temporary PlatformIO/Git worktree copies
-HUDTelemetryUnit/Tukzie-HPEC-HUD.worktrees/
+TelemetryUnit/Tukzie-HPEC-HUD.worktrees/
 
 # Gaussian splat files - exceed GitHub's 100MB hard limit, kept local only
 VirtualTukzie/splat/*.ply

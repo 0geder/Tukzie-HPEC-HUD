@@ -39,14 +39,17 @@ from PySide6.QtNetwork import (QAbstractSocket, QHostAddress, QNetworkAccessMana
 
 TELEMETRY_PORT = 8081
 CAMERA_PORT = 8080
-BEACON_PORT = 50808
+BEACON_PORT = int(os.environ.get("TUKZIE_BEACON_PORT", "50808"))   # tests use a private port
 LOCALHOST = "127.0.0.1"
 WIRED_HOST = "10.20.0.1"
 MDNS_HOST = "pi4-camera.local"
 PROBE_TIMEOUT_MS = 3000   # phone hotspots add 0.1 to 0.8 s per round trip; 1 s failed on 3 Oct
 FAILURES_BEFORE_REPROBE = 3
 BEACON_MAX_AGE_S = 10.0
-RETRY_MS = 2000                 # wait between two full searches that found nothing
+RETRY_MS = 2000                 # wait after the first full search that found nothing
+MAX_RETRY_MS = 30000            # back-off ceiling: the wait doubles per empty search (2, 4, 8, 16, 30 s),
+                                # so a missing Pi 4 does not flood the log (6,828 lookup warnings on 3 Oct);
+                                # a beacon still triggers an immediate search
 
 ORDER = ("localhost", "override", "wired", "beacon", "mdns", "saved")
 
@@ -111,6 +114,8 @@ class Pi4Resolver(QObject):
         self._started = False
         self._searching = False
         self._step = 0
+        self._empty_searches = 0
+        self._beacon_pending = False    # a beacon arrived during a search
         self._tried = set()
         self._probe_reply = None
         self._probe_candidate = None
@@ -206,8 +211,28 @@ class Pi4Resolver(QObject):
                 self._probe(host, how)
                 return
         self._searching = False
+        if self._started and self._beacon_pending and self.host is None:
+            self._beacon_pending = False
+            self.search()               # a beacon came in during that search: use it now
+            return
         if self._started:
-            self._retry_timer.start(RETRY_MS)
+            delay = min(RETRY_MS * (2 ** self._empty_searches), MAX_RETRY_MS)
+            self._empty_searches = min(self._empty_searches + 1, 8)
+            self._retry_timer.start(delay)
+
+    def _probe_beacon_now(self):
+        """A beacon arrived and no Pi 4 is known: probe its source at once, cutting short any
+        slower step in progress (an unreachable wired address or a name lookup can each take
+        the full probe timeout), then continue with the later candidates if it fails."""
+        cand = self._probe_candidate
+        if self._searching and cand is not None and cand[1] == "beacon" and self._probe_reply is not None:
+            return                      # already probing the beacon source
+        self._abort_probe()
+        self._retry_timer.stop()
+        self._searching = True
+        self._step = ORDER.index("beacon")
+        self._tried = set()
+        self._probe_next()
 
     def _probe(self, host, how):
         self._probe_candidate = (host, how)
@@ -255,6 +280,8 @@ class Pi4Resolver(QObject):
         if host == self.host and how == self.how:
             return
         self.host, self.how = host, how
+        if host:
+            self._empty_searches = 0
         self.host_changed.emit(host or "", how)
 
     def _save_last_good(self, host):
@@ -283,8 +310,8 @@ class Pi4Resolver(QObject):
             self.beacon_host = _plain_ipv4(dgram.senderAddress())
             self.beacon_time = time.monotonic()
             self.beacons_seen += 1
-            if self.host is None and not self._searching and self._started:
-                self.search()    # idle between searches: try now rather than after RETRY_MS
+            if self.host is None and self._started:
+                self._probe_beacon_now()
 
 
 _shared = None

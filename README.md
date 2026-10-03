@@ -1,59 +1,128 @@
-# Tukzie HPEC Telemetry Unit and Windshield HUD
+# SW-7: Embedded HPEC Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0
 
-An embedded telemetry system and windshield head up display for the TUKZIE Rev 0 platform, a 72V electric cargo tricycle built at the University of Cape Town for affordable, locally serviceable electric mobility in African contexts.
+Final-year project (UCT EEE4022S, 2026) by Samson Okuthe (OKTSAM001), supervised by A/Prof. Simon Winberg with co-supervisor Sampath Jayalath. Official title since 2 Oct 2026: "Development of an Embedded HPEC Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0 Platform".
 
-This is a final year Electrical and Computer Engineering project (EEE4022S, 2026) at UCT.
+An ESP32-S3 telemetry unit (Makerfabs board with an A7670X LTE Cat 1 modem, firmware v0.7.0) samples two MPU6050 IMUs at 200 Hz, computes calibrated, fused ride-quality features, reads the JBD BMS over BLE and GNSS through the modem, logs to internal flash and publishes JSON over MQTT on LTE. Once a second it also prints a DASH line on USB to a Raspberry Pi 4, which runs a camera hazard detector and a telemetry bridge that adds three time-of-flight sensors. The driver display is the vehicle's existing PySide6 dashboard on the Raspberry Pi 5 (Pirate5), extended with our camera page, live-data provider (live-only mode), ride-quality card and Pi 4 finder. The original brief named a windshield HUD; on 1 to 2 Oct 2026 it was replaced by dashboard integration, agreed with the supervisor and recorded by the course coordinator (PROJECT_LOG.md, D26).
 
-## What this project does
+The repository name (Tukzie-HPEC-HUD) predates the title change and is kept so that existing links keep working.
 
-The system reads sensor data from the vehicle, processes it on an embedded microcontroller, and gives the driver useful information through a windshield display. It also sends telemetry data to a central server so the vehicle's performance can be tracked over time.
+## Architecture
 
-Specifically, the project covers:
+```
+                         sync-pulse wire (GPIO edges for time alignment)
+          +------------------------------------------------------+
+          |                                                      v
+  ESP32-S3 telemetry unit            USB serial        Raspberry Pi 4 (front enclosure)
+  (TelemetryUnit/, v0.7.0)  -------- DASH line, 1 Hz -->  telemetry bridge  HTTP :8081 /telemetry
+   2x MPU6050 @ 200 Hz                                     + 3x VL53L0X ToF (I2C)
+   JBD BMS over BLE                                       camera hazard detector HTTP :8080
+   GNSS via A7670X                                          /stream (MJPEG), /alerts (JSON)
+   LittleFS log                                           UDP beacon every 2 s, port 50808
+          |                                                      |
+          | LTE, MQTT                                            | wired 10.20.0.1 <-> 10.20.0.2,
+          v                                                      | beacon, mDNS or last good host
+        cloud broker                                             v
+                                               Raspberry Pi 5 (Pirate5): vehicle PySide6 dashboard
+                                               + camera page, live-data provider (live-only),
+                                                 ride-quality card, Pi 4 resolver
+```
 
-* **Vehicle dynamic response sensing.** Two IMUs (inertial measurement units) measure vibration and motion, used to tell the difference between road induced disturbance (potholes, bumps) and vibration that just comes from the motor and drivetrain.
-* **GPS positioning.** The onboard 4G modem also provides satellite positioning, so vehicle location and speed can be logged.
-* **Battery monitoring.** The vehicle's battery pack is read over Bluetooth Low Energy, giving voltage, current, state of charge, temperature, and fault status.
-* **Camera based hazard awareness.** A Raspberry Pi camera runs a lightweight object detection model to flag pedestrians, cyclists, and other vehicles nearby, with a rough distance estimate. This is a hazard awareness aid, not a self driving system.
-* **Time synchronisation.** A dedicated signal line keeps the microcontroller and the Raspberry Pi's clocks aligned, so sensor data and camera footage can be lined up afterwards.
-* **Cellular connectivity.** A 4G modem on the main board lets the vehicle send data back to a central server even away from WiFi.
-* **Windshield HUD.** A head up display for the driver, still in early planning, intended to show speed, battery level, and safety alerts without requiring the driver to look down.
+A single-Pi-5 setup (bridge and detector on the Pi 5) is being considered; the resolver already tries localhost first.
 
-## Repository layout
+### Where each part lives
+
+| Part | Folder and main files | Tests | Deploy |
+|---|---|---|---|
+| Telemetry unit firmware | `TelemetryUnit/src/main.cpp`, `platformio.ini` | `BenchTest/v050_bench_test.py`, `v060_bench_test.py`, `log_dump.py`, `signal_loss_test.py`, `gnss_capture.py`, `bms_probe.py` | `pio run -t upload` (below) |
+| Telemetry bridge (Pi 4) | `CameraDetection/telemetry_bridge.py`, `tof_reader.py` | `CameraDetection/tests/test_telemetry_bridge.py` | `CameraDetection/deploy/telemetry-bridge.service`, `INSTALL.md` |
+| Camera hazard detector (Pi 4) | `CameraDetection/hazard_detector.py`, `detect.tflite`, `labelmap.txt`; YOLO trials in `yolo_bench.py`, `ncnn_bench.py`, `training/` | `BenchTest/TEST_PROCEDURES.md` C1 to C8 | `CameraDetection/deploy/hazard-detector.service`, `INSTALL.md` |
+| Sync logger (Pi 4) | `CameraDetection/sync_logger.py` | TEST_PROCEDURES C6 | copied by hand |
+| Dashboard add-ons (Pi 5) | `DashboardIntegration/front_camera_page.py`, `live_data_provider.py`, `ride_quality_card.py`, `sw7_endpoints.py`, `sw7_live_only.py` | `DashboardIntegration/tests/` | `DashboardIntegration/deploy/deploy_dashboard.sh`, `start_sw7_dashboard.sh`, `setup_sw7_link.sh` |
+| Link contract | `DashboardIntegration/TELEMETRY_LINK.md` | | |
+| Pre-test check | `BenchTest/sw7_check.py` | `BenchTest/tests/test_sw7_check.py` | |
+| Bench tools | `BenchTest/sw7_console.html`, `live_telemetry.html`, `VirtualTukzie/dashboard.html` | | local HTTP server |
+| Camera casing | `CameraMount/casing/` (STL) | | 3D print |
+
+### Where to find records
+
+| Record | Location |
+|---|---|
+| Test procedures and results | `BenchTest/TEST_PROCEDURES.md`, raw logs in `BenchTest/logs/` |
+| Decisions, status and history | `PROJECT_LOG.md` (decisions D1 onwards), `CHANGELOG.md` (every change and why) |
+| Report source and PDF | `Report/` (`Project Report Template.tex` and its PDF) |
+| Evidence for the report | `Report/evidence/` (indexed in Appendix C) |
+| Presentation, poster, talking points, Q&A | `Presentation/` (built from `Presentation/source/`) |
+| Planning and brief compliance | `Planning/` (`brief-compliance.md`) |
+| Literature and datasheets | `References/`, `Research/` (pipeline and gap ledger) |
+
+## Other folders
 
 | Folder | Contents |
 |---|---|
-| `HUDTelemetryUnit/` | The main ESP32-S3 firmware (PlatformIO project). This is the code that runs on the vehicle. |
-| `CameraDetection/` | The Raspberry Pi camera hazard detection script and its pretrained model. |
-| `Report/` | Drafts of the final written report and the report template. |
-| `Planning/` | Vehicle integration and test plans. |
-| `Vehicle Documentation/` | The manufacturer's manual for the TUKZIE vehicle itself. |
-| `GA Tracking Form/` | The graduate attributes tracking form required by the department. |
-| `References/Papers/` | Academic papers used in the literature review, sorted by topic. |
-| `References/Datasheets/` | Component datasheets. |
+| `GA Tracking Form/` | Graduate attributes tracking form (submitted) |
+| `Photos/` | Bench and vehicle photos |
+| `Vehicle Documentation/` | Manufacturer documentation for the trike |
+| `.claude/` | Project agents (progress-scribe) |
 
-## Hardware
+## How to build, deploy and run
 
-* Makerfabs ESP32-S3 board with a built in A7670X 4G LTE Cat 1 modem, running the main firmware
-* Two MPU6050 accelerometer and gyroscope modules for vibration sensing
-* A JBD/Xiaoxiang smart battery management system, read over Bluetooth
-* A Raspberry Pi 4 with a camera module, for hazard detection and video recording
-* The TUKZIE Rev 0 vehicle itself, a Jinpeng electric cargo tricycle
-
-## Building the firmware
-
-The firmware is a PlatformIO project.
-
+Firmware (laptop, board on COM10):
 ```
-cd HUDTelemetryUnit
+cd TelemetryUnit
 pio run              # build
-pio run -t upload    # flash to the board
-pio device monitor    # view serial output
+pio run -t upload    # flash
+pio device monitor   # serial at 115200; !status, !dash on|off, !log dump, !recal
 ```
 
-## Project status
+Pi 4 detector and bridge: copy the files and install the two services as in `CameraDetection/deploy/INSTALL.md`, then on the Pi 4:
+```
+sudo systemctl enable --now hazard-detector telemetry-bridge
+curl -s http://localhost:8081/telemetry
+```
 
-Actively in development. The sensor acquisition, GNSS parsing, battery monitoring, and time sync systems are built and have been tested against real hardware. The camera hazard detection script is written but not yet tested against a live camera. The windshield HUD has not been built yet. See the report drafts in `Report/` for full detail on what has been validated so far and what is still outstanding.
+Wired link (once on each Pi): `sudo bash setup_sw7_link.sh pi4` or `pi5`.
 
-## Course context
+Pi 5 dashboard (laptop, Git Bash, from the repo root; never touches the team's `~/Dashboard`):
+```
+bash DashboardIntegration/deploy/deploy_dashboard.sh [--pi5 HOST]
+```
 
-This project is submitted as part of EEE4022S, the final year project course in the Department of Electrical Engineering at the University of Cape Town.
+Before every test session (laptop or Pi 5):
+```
+python BenchTest/sw7_check.py
+```
+
+Tests (laptop):
+```
+python -m pytest -q CameraDetection/tests/test_telemetry_bridge.py BenchTest/tests/test_sw7_check.py
+python DashboardIntegration/tests/test_live_data_provider.py
+```
+
+Report: build with Tectonic as described in PROJECT_LOG.md section 7.
+
+## Status (3 Oct 2026)
+
+| Item | State | Date |
+|---|---|---|
+| Dual IMU 200 Hz, calibration, fusion | Tested on the bench (149/149 windows, 0 drops) | 25 Sep |
+| MQTT over LTE, reconnect, signal-loss recovery | Tested on the bench | 29 to 30 Sep |
+| GNSS fix (median 2.7 m from phone) | Tested outdoors (rooftop) | 30 Sep |
+| LittleFS log, buffered writes, read-back | Tested on the bench | 1 Oct |
+| BMS over BLE | Checksum fix confirmed from 14 logged records; sustained test outstanding | 30 Sep |
+| Firmware v0.7.0 DASH line | Tested on the bench (40/40 lines) | 2 Oct |
+| Telemetry bridge on the Pi 4, as a service | Tested live with the ESP32 and ToF | 2 Oct |
+| Camera detector (19.5 fps, 102 ms median) and colour fix | Tested on the bench | 30 Sep, 1 Oct |
+| Distance calibration, other object classes | Not yet tested | |
+| Dashboard camera page | Tested on a laptop against the live detector | 1 Oct |
+| Live-data provider, ride card, live-only mode, resolver | Tested offscreen on a laptop with a fake bridge | 3 Oct |
+| Integrated dashboard copy on the Pi 5 | Running, native map, no crash; live data on the Pi 5 not yet recorded | 2 Oct |
+| Beacon, wired link, pre-test check | Written and unit-tested; on-Pi results not yet recorded in TEST_PROCEDURES | 3 Oct |
+| On-vehicle and road test | Not yet done | |
+
+## Key documents
+
+- `PROJECT_LOG.md`: status board, decisions, timeline.
+- `DashboardIntegration/README.md` and `TELEMETRY_LINK.md`: dashboard add-ons and the link contract.
+- `CameraDetection/README.md`: detector, ethics conditions, deployment.
+- `BenchTest/TEST_PROCEDURES.md`: every test and its result.
+- `Planning/brief-compliance.md`: brief items against current status.

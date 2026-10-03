@@ -319,4 +319,15 @@ LIVE_ONLY_PATCHES = (
      "        soc=float(getattr(raw,'soc_pct',self.defaults.start_soc_pct)) if raw else self.defaults.start_soc_pct\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES
+VEHICLE_PATCHES = (
+    # dashboard_main.py: with TUKZIE_NO_CONTROLLER=1 the Xbox controller poller is not started.
+    # The dashboard team measured it at about 53% of a CPU core (their README, known issue 6);
+    # the vehicle is touch-only and the same Pi may also run the camera detector.
+    ("app/pages/dashboard_main.py",
+     "        if self.controller.backend_available:\n"
+     "            self.controller.start()\n",
+     "        if self.controller.backend_available and __import__(\"os\").environ.get(\"TUKZIE_NO_CONTROLLER\") != \"1\":\n"
+     "            self.controller.start()\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploy the SW-7 dashboard build to the Pi 5. Run on the laptop in Git Bash,
-# from anywhere inside the Tukzie-HPEC-HUD repository:
+# from anywhere inside the SW-7 repository:
 #
 #   bash DashboardIntegration/deploy/deploy_dashboard.sh [--pi5 HOST] [--key FILE] [--user NAME] [--no-restart]
 #

@@ -16,7 +16,7 @@ Change it there if the camera module or log location changes.
 
 ## Install (laptop, then Pi)
 
-Laptop PowerShell, from the `Tukzie-HPEC-HUD` folder:
+Laptop PowerShell, from the repository root:
 
 ```
 scp -i ~/.ssh/pi4_camera_key CameraDetection/hazard_detector.py CameraDetection/deploy/hazard-detector.service ogeder@<pi-ip>:~/hazard_detector/
@@ -63,7 +63,7 @@ ESP32's latest `DASH` line from USB serial plus the three ToF sensors (see
 `DashboardIntegration/TELEMETRY_LINK.md`). It runs from the same folder and
 venv as the detector.
 
-Laptop PowerShell, from the `Tukzie-HPEC-HUD` folder:
+Laptop PowerShell, from the repository root:
 
 ```
 scp -i ~/.ssh/pi4_camera_key CameraDetection/telemetry_bridge.py CameraDetection/tof_reader.py CameraDetection/deploy/telemetry-bridge.service ogeder@<pi-ip>:~/hazard_detector/

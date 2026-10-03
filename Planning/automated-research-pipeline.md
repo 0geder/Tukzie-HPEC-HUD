@@ -1,5 +1,7 @@
 # Automated research and evidence pipeline (SW-7)
 
+Historical: written before the HUD was replaced by dashboard integration on 2 Oct 2026.
+
 Written 2026-09-19. Purpose: a continuously-running system that keeps this
 project's literature base, research-gap claims, component comparisons and
 test-method comparisons current and defensible, instead of being gathered

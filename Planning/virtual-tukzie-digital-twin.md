@@ -41,7 +41,7 @@ debug output already carries everything required.
 
 **3D placement visualisation - useful, but scope the ambition down.** A
 simple 3D scene (chassis outline + labelled markers for where IMU1, IMU2,
-camera, HUD, BMS tap, and the other two theses' components sit) gets almost
+camera, dashboard display, BMS tap, and the other two theses' components sit) gets almost
 all of the practical value - coordination between three students who can't
 all be elbow-deep in the same vehicle at once. Buildable with an off-the-
 shelf 3D web viewer (Three.js) and a rough mesh or even just a labelled
@@ -136,7 +136,7 @@ step 3. Not required for anything else here to function.
   be opened directly in Chrome/Edge, not hosted, since Web Serial needs a
   top-level browsing context) that connects to the real ESP32 over Web
   Serial, parses the genuine `[RIDE1]`/`[RIDE2]` lines live, and renders a
-  sci-fi styled HUD with per-IMU classification, plus a vehicle viewer
+  sci-fi styled overlay display with per-IMU classification, plus a vehicle viewer
   currently showing real extracted frames from the walk-around video. Has a
   clearly marked slot (`POLYCAM_EMBED_URL` constant) to drop in the real
   splat embed once Polycam finishes processing.
