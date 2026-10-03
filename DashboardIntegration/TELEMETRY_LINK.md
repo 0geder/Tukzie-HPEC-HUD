@@ -69,3 +69,32 @@ The line must be built without heap-heavy String concatenation in a timing-criti
 | `esp32.vib`, `vib_dis`, `imu_hz`, `drops`, `csq`, `mqtt` | ride-quality card (new) | the dashboard has no fields for these |
 
 Parts of the dashboard state with no source here (gear, throttle, brake, tyres, doors, motor temperature) are left to the existing behaviour. When the bridge cannot be reached, or `esp32.age_ms` exceeds 3000, the provider stops sending, so the dashboard's own stale-data fallback takes over.
+
+## 4. Finding the Pi 4 on any network (added 3 Oct 2026)
+
+Why: on 3 Oct the Pi 4 moved from the laptop hotspot (192.168.137.82) to a phone hotspot (10.74.67.244); the dashboard, set to the old address, silently fell back to simulated data. No single address is reliable on a vehicle, so the dashboard finds the Pi 4 by itself.
+
+### 4.1 Wired link (primary)
+An Ethernet cable joins the Pi 4 and the Pi 5. Each gets a fixed address on a private subnet with no gateway, so Wi-Fi keeps the default route for internet:
+- Pi 4 `eth0`: `10.20.0.1/24`
+- Pi 5 `eth0`: `10.20.0.2/24`
+Configured with a NetworkManager profile named `sw7-link` (`deploy/setup_sw7_link.sh pi4|pi5`, run with sudo once on each Pi).
+
+### 4.2 Beacon (any network)
+The Pi 4 bridge sends a UDP broadcast every 2 s to port **50808** on every IPv4 interface's broadcast address (and 255.255.255.255), payload one JSON object:
+```json
+{"sw7": "pi4", "v": 1, "host": "pi4-camera", "camera_port": 8080, "telemetry_port": 8081, "seq": 12}
+```
+The receiver takes the Pi 4's address from the packet's source address, not from the payload.
+
+### 4.3 Resolution on the dashboard (Pi 5)
+A shared resolver (`DashboardIntegration/sw7_endpoints.py`) gives the camera page and the live-data provider the current Pi 4 address. Candidates, in order:
+1. `TUKZIE_PI4_HOST` environment variable or the `pi4_host` line in `~/.config/sw7/endpoints.conf`, if set (explicit override, for tests);
+2. the wired address `10.20.0.1`;
+3. the most recent beacon source address (beacons older than 10 s are ignored);
+4. `pi4-camera.local`;
+5. the last address that worked, saved in `~/.config/sw7/last_pi4_host`.
+A candidate is accepted when `GET http://<host>:8081/telemetry` answers within 1 s. After 3 consecutive failures of the current host (about 1.5 s at the 500 ms poll), the resolver probes the candidates again in order. The current host, and how it was found (wired, beacon, mdns, saved, override), are shown on the ride card. `TUKZIE_CAMERA_URL` and `TUKZIE_TELEMETRY_URL` still work and, if set, bypass the resolver.
+
+### 4.4 Pre-test check
+`BenchTest/sw7_check.py` runs from the laptop or the Pi 5 before every test session and reports pass/fail per item: Pi 4 found (and how), camera `/alerts` answering with fps, telemetry fresh (ESP32 age under 3 s), IMU rates and drops, all three ToF sensors valid, detector process running, bridge service active, Pi 4 under-voltage flag, Pi 5 reachable, dashboard running on the Pi 5. Exit code 0 only if all critical items pass.
