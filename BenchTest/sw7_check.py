@@ -355,6 +355,34 @@ def sweep_local_subnets():
             p.kill()
 
 
+def ssh_hosts_on_local_subnets(port=22, timeout=1.5):
+    """Addresses on this machine's /24 networks that accept a TCP connection on the ssh port."""
+    import concurrent.futures
+    nets, own = set(), set()
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            a = info[4][0]
+            if not a.startswith("127."):
+                nets.add(a.rsplit(".", 1)[0]); own.add(a)
+    except OSError:
+        return []
+
+    def is_open(ip):
+        s = socket.socket()
+        s.settimeout(timeout)
+        try:
+            s.connect((ip, port))
+            return ip
+        except OSError:
+            return None
+        finally:
+            s.close()
+
+    ips = ["%s.%d" % (n, i) for n in nets for i in range(1, 255) if "%s.%d" % (n, i) not in own]
+    with concurrent.futures.ThreadPoolExecutor(64) as ex:
+        return [ip for ip in ex.map(is_open, ips) if ip]
+
+
 def find_pi5(args, name="pirate5"):
     """Find the dashboard Pi when its .local name does not resolve (phone hotspots often
     block mDNS): the last address that worked, then every Raspberry Pi on the local
@@ -366,8 +394,8 @@ def find_pi5(args, name="pirate5"):
         pass
     candidates += neighbour_rpis()
     if not candidates[1:]:
-        sweep_local_subnets()
-        candidates += neighbour_rpis()
+        # Phone hotspots often drop pings between clients (3 Oct), so look for open ssh ports.
+        candidates += ssh_hosts_on_local_subnets()
     for host in dict.fromkeys(c for c in candidates if c):
         ok, out = run_remote(host, args.pi5_user, args.ssh_key, "hostname", timeout=8)
         if ok and out.strip().lower() == name:
