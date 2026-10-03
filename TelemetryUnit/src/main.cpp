@@ -11,7 +11,7 @@
 #include <Preferences.h>
 #include <LittleFS.h>
 
-#define FIRMWARE_VERSION "v0.7.0"
+#define FIRMWARE_VERSION "v0.7.1"
 
 // ============================================================
 // SW-7 ESP32-S3 Firmware (version: FIRMWARE_VERSION above)
@@ -1914,7 +1914,7 @@ String buildTelemetryJson() {
 }
 
 // ============================================================
-// Dashboard line (v0.7.0), section 1 of DashboardIntegration/TELEMETRY_LINK.md.
+// Dashboard line (v0.7.0, crs and alt added in v0.7.1), section 1 of DashboardIntegration/TELEMETRY_LINK.md.
 // Once a second, one line "DASH {json}\n" on the USB serial console, read by
 // the Pi 4 telemetry bridge, which ignores every other line. The field names
 // and types are a contract shared with the bridge and the dashboard: change
@@ -1968,10 +1968,24 @@ void DashTask(void* pvParameters) {
 
     // GNSS: position only with a valid fix (the parser leaves it NaN otherwise).
     const bool fix = latestGnssFix.valid;
-    char lat[16], lon[16], spd[16];
+    char lat[16], lon[16], spd[16], crs[16], alt[16];
     dashNum(lat, sizeof(lat), "%.6f", fix ? latestGnssFix.latitude_deg : NAN);
     dashNum(lon, sizeof(lon), "%.6f", fix ? latestGnssFix.longitude_deg : NAN);
     dashNum(spd, sizeof(spd), "%.3f", latestGnssFix.speed_reported);
+    // Course over ground (v0.7.1): the parser leaves it NaN when the modem
+    // sends an empty field (typically when stationary). Anything outside
+    // 0..360 is treated as invalid rather than wrapped.
+    float crsDeg = fix ? latestGnssFix.course_deg : NAN;
+    if (isfinite(crsDeg) && (crsDeg < 0.0f || crsDeg > 360.0f)) crsDeg = NAN;
+    dashNum(crs, sizeof(crs), "%.1f", crsDeg);
+    // Altitude above mean sea level in metres (v0.7.1), only with a fix.
+    // A value outside -1000..20000 m can only be a misparsed field; it is
+    // sent as null, which also bounds the field to 7 characters so the
+    // worst-case line stays under DASH_LINE_MAX (396 bytes with every other
+    // number at its 15-character buffer limit, about 320 in practice).
+    float altM = fix ? latestGnssFix.altitude_m : NAN;
+    if (isfinite(altM) && (altM < -1000.0f || altM > 20000.0f)) altM = NAN;
+    dashNum(alt, sizeof(alt), "%.1f", altM);
 
     // Fused vibration: null until the first fused window, or once the last
     // one is older than the fusion stale limit (both IMUs stopped).
@@ -1997,17 +2011,17 @@ void DashTask(void* pvParameters) {
     else snprintf(csq, sizeof(csq), "%d", csqRaw);
 
     const char* fw = FIRMWARE_VERSION;
-    if (fw[0] == 'v') fw++;  // the contract carries the bare number, e.g. "0.7.0"
+    if (fw[0] == 'v') fw++;  // the contract carries the bare number, e.g. "0.7.1"
 
     int len = snprintf(line, sizeof(line),
                        "DASH {\"seq\":%lu,\"up_ms\":%lld,\"fw\":\"%s\","
                        "\"soc\":%s,\"v\":%s,\"i\":%s,\"bms_age_s\":%s,"
-                       "\"fix\":%s,\"lat\":%s,\"lon\":%s,\"spd_raw\":%s,"
+                       "\"fix\":%s,\"lat\":%s,\"lon\":%s,\"spd_raw\":%s,\"crs\":%s,\"alt\":%s,"
                        "\"vib\":%s,\"vib_dis\":%s,\"imu_hz\":[%.1f,%.1f],\"drops\":[%lu,%lu],"
                        "\"rpm\":%s,\"csq\":%s,\"mqtt\":%s}\n",
                        (unsigned long)seq, (long long)(nowUs / 1000), fw,
                        soc, v, cur, bmsAge,
-                       fix ? "true" : "false", lat, lon, spd,
+                       fix ? "true" : "false", lat, lon, spd, crs, alt,
                        vib, vibDis, (float)imu1RateHz, (float)imu2RateHz,
                        (unsigned long)imu1Dropped, (unsigned long)imu2Dropped,
                        rpm, csq, mqttConnected ? "true" : "false");

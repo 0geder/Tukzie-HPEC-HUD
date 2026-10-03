@@ -90,3 +90,43 @@ Add `--no-beacon` to `ExecStart` to turn it off.
 
 Logs: `journalctl -u telemetry-bridge -f`. Stop the service before running
 `tof_reader.py` by hand, since both use the same sensors.
+
+### GPS replay for bench testing (not live data)
+
+`tests/replay_uct_route.txt` is a generated GPS track along a real road
+route near UCT upper campus (OSRM route on OpenStreetMap data, built by
+`tools/make_replay_track.py`). It lets the dashboard's moving map be tested
+on the bench without riding. It is not a recording: every line has
+`"fw":"0.7.1-replay"`, and while it plays `/telemetry` reports
+`"replay": true` and `"replay_file": "replay_uct_route.txt"` in the
+`bridge` block, so the dashboard can show a REPLAY badge. Never present it
+as ride data.
+
+Laptop PowerShell, from the repository root (only needed once, or after
+regenerating the file):
+
+```
+scp -i ~/.ssh/pi4_camera_key CameraDetection/telemetry_bridge.py ogeder@<pi-ip>:~/hazard_detector/
+ssh -i ~/.ssh/pi4_camera_key ogeder@<pi-ip> "mkdir -p ~/hazard_detector/tests"
+scp -i ~/.ssh/pi4_camera_key CameraDetection/tests/replay_uct_route.txt ogeder@<pi-ip>:~/hazard_detector/tests/
+```
+
+Pi terminal. The service holds port 8081, so stop it first:
+
+```
+sudo systemctl stop telemetry-bridge
+cd ~/hazard_detector && venv/bin/python3 telemetry_bridge.py --replay tests/replay_uct_route.txt --no-tof
+```
+
+The file plays one line per second and loops at the end (about 11 minutes
+per lap, 650 lines over about 3 km). Leave out `--no-tof` to keep the real
+ToF sensors, or use `--fake-tof` for made-up distances. Check it with
+`curl -s http://localhost:8081/telemetry` (look for `"replay": true`).
+Stop it with Ctrl+C, then put the live bridge back:
+
+```
+sudo systemctl start telemetry-bridge
+curl -s http://localhost:8081/telemetry
+```
+
+and confirm `"replay": false` before any real test or demonstration.

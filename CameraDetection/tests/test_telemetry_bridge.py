@@ -24,6 +24,7 @@ import telemetry_bridge as tb  # noqa: E402
 BRIDGE = os.path.join(ROOT, "telemetry_bridge.py")
 SAMPLE = os.path.join(HERE, "dash_sample.txt")
 MISSING_PORT = "/dev/ttyACM_missing" if os.name != "nt" else "COM239"
+BRIDGE_KEYS = {"version", "serial_port", "lines", "bad_lines", "replay", "replay_file"}
 
 CONTRACT_KEYS = {"seq", "up_ms", "fw", "soc", "v", "i", "bms_age_s", "fix", "lat", "lon", "spd_raw",
                  "vib", "vib_dis", "imu_hz", "drops", "rpm", "csq", "mqtt"}
@@ -102,6 +103,15 @@ class ParseTests(unittest.TestCase):
         s.clear_esp32()
         self.assertIsNone(s.snapshot()["esp32"])
 
+    def test_replay_flag(self):
+        live = tb.TelemetryState("/dev/ttyACM0").snapshot()["bridge"]
+        self.assertIs(live["replay"], False)
+        self.assertIsNone(live["replay_file"])
+        rep = tb.TelemetryState("replay:x", replay_file=os.path.join("tests", "replay_uct_route.txt"))
+        b = rep.snapshot()["bridge"]
+        self.assertIs(b["replay"], True)
+        self.assertEqual(b["replay_file"], "replay_uct_route.txt")   # name only, no directories
+
     def test_clean_mm(self):
         import tof_reader
         for raw, want in ((812, 812), (812.6, 812), (8190, None), (8000, None), (0, None),
@@ -149,8 +159,10 @@ class ReplayFakeTofTests(unittest.TestCase):
             self.assertTrue(0 < t[k] < 8000)
 
         bb = d["bridge"]
-        self.assertEqual(set(bb), {"version", "serial_port", "lines", "bad_lines"})
+        self.assertEqual(set(bb), BRIDGE_KEYS)
         self.assertEqual(bb["version"], "1.0")
+        self.assertIs(bb["replay"], True)             # replayed data is labelled as such
+        self.assertEqual(bb["replay_file"], os.path.basename(SAMPLE))
         self.assertEqual(bb["bad_lines"], 0)          # the sample file is all good or non-DASH
         self.assertGreater(bb["lines"], 0)
 
@@ -200,6 +212,8 @@ class BadLineTests(unittest.TestCase):
             self.assertNotIn("nan", json.dumps(d).lower())
             self.assertIsNone(d["tof"])
             self.assertEqual(d["bridge"]["serial_port"], "replay:%s" % path)
+            self.assertIs(d["bridge"]["replay"], True)
+            self.assertEqual(d["bridge"]["replay_file"], os.path.basename(path))
         finally:
             b.close()
             os.remove(path)
@@ -217,7 +231,8 @@ class NoSerialPortTests(unittest.TestCase):
                 self.assertIsNone(d["esp32"])
                 self.assertIsNone(d["tof"])
                 self.assertEqual(d["bridge"], {"version": "1.0", "serial_port": MISSING_PORT,
-                                               "lines": 0, "bad_lines": 0})
+                                               "lines": 0, "bad_lines": 0,
+                                               "replay": False, "replay_file": None})
                 time.sleep(0.3)
             self.assertIsNone(b.p.poll())   # still running
             out = "".join(b.output)
@@ -414,8 +429,7 @@ class BeaconTests(unittest.TestCase):
             self.assertEqual(addr[0], "127.0.0.1")
             _, _, body = get(b.port, "/")
             self.assertIn(b"beacon: UDP port %d" % port, body)
-            self.assertEqual(set(get_json(b.port)["bridge"]),
-                             {"version", "serial_port", "lines", "bad_lines"})   # JSON shape unchanged
+            self.assertEqual(set(get_json(b.port)["bridge"]), BRIDGE_KEYS)   # JSON shape unchanged
         finally:
             b.close()
             rx.close()

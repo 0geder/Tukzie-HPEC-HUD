@@ -11,7 +11,8 @@ the three VL53L0X ToF sensors with the code in tof_reader.py, and serves:
        "tof": {"left_mm": 812, "ahead_mm": 1490, "right_mm": null,
                "age_ms": 35} or null,
        "bridge": {"version": "1.0", "serial_port": "/dev/ttyACM0",
-                  "lines": 1234, "bad_lines": 2}}
+                  "lines": 1234, "bad_lines": 2,
+                  "replay": false, "replay_file": null}}
   GET /            a short plain-text status page
 
 Beacon (TELEMETRY_LINK.md section 4.2): every 2 s a UDP broadcast to port
@@ -41,6 +42,12 @@ Nothing is written to disk.
 
 Serial access uses pyserial when installed (venv/bin/pip install
 pyserial); without it, the tty is read directly with termios (Linux only).
+
+Replay: with --replay FILE the esp32 block comes from a recorded or
+generated file of DASH lines played in a loop, not from the ESP32. The
+bridge block then says "replay": true and "replay_file": "<file name>", so
+the dashboard can show a REPLAY badge and replayed data is never taken for
+live data. From the serial port it says "replay": false, "replay_file": null.
 
 Testing without hardware:
   python3 telemetry_bridge.py --replay tests/dash_sample.txt --fake-tof
@@ -99,9 +106,11 @@ class TelemetryState:
     """Latest ESP32 record and ToF reading, shared between the reader
     threads and the HTTP handler."""
 
-    def __init__(self, serial_label):
+    def __init__(self, serial_label, replay_file=None):
         self._lock = threading.Lock()
         self.serial_label = serial_label
+        # File name only (no directories), or None for the live serial port.
+        self.replay_file = os.path.basename(replay_file) if replay_file else None
         self.lines = 0
         self.bad_lines = 0
         self._esp32 = None
@@ -155,6 +164,8 @@ class TelemetryState:
                     "serial_port": self.serial_label,
                     "lines": self.lines,
                     "bad_lines": self.bad_lines,
+                    "replay": self.replay_file is not None,
+                    "replay_file": self.replay_file,
                 },
             }
 
@@ -529,6 +540,7 @@ class TelemetryServer:
         lines = [
             "SW-7 telemetry bridge %s" % b["version"],
             "serial: %s, %d DASH lines, %d bad" % (b["serial_port"], b["lines"], b["bad_lines"]),
+            "source: %s" % ("REPLAY of %s (not live data)" % b["replay_file"] if b["replay"] else "live serial"),
             "esp32: %s" % ("no data" if e is None else "seq %s, %d ms ago" % (e.get("seq"), e["age_ms"])),
             "tof: %s" % ("absent" if t is None else "left %s, ahead %s, right %s mm, %d ms ago" % (
                 t["left_mm"], t["ahead_mm"], t["right_mm"], t["age_ms"])),
@@ -552,7 +564,7 @@ class Bridge:
                  beacon=True, beacon_port=BEACON_PORT, beacon_targets=None,
                  beacon_interval_s=BEACON_INTERVAL_S, camera_port=CAMERA_PORT):
         label = ("replay:%s" % replay) if replay else serial_port
-        self.state = TelemetryState(label)
+        self.state = TelemetryState(label, replay_file=replay)
         self.stop = threading.Event()
         self.source = LineSource(self.state, self.stop, serial_port, baud, replay, replay_interval)
         self.tof = TofReader(self.state, self.stop, fake=fake_tof) if (tof or fake_tof) else None
