@@ -11,6 +11,9 @@ Feed it from LiveDataProvider.telemetry_updated: set_telemetry(dict) with the
 raw /telemetry JSON, or set_telemetry(None) when the bridge is unreachable.
 It turns itself to Offline if nothing arrives for 3 s.
 
+set_endpoint(host, how), from LiveDataProvider.endpoint_changed, shows where
+the Pi 4 was found ("Pi 4: 10.20.0.1 (wired)") or "Pi 4: searching".
+
 Drop this file into app/widgets/ and wire it up as described in
 DashboardIntegration/README.md. QtWidgets only, colours from THEME.
 """
@@ -131,6 +134,10 @@ class RideQualityCard(QFrame):
         self.title.setFont(THEME.font(12, QFont.Weight.Bold))
         header.addWidget(self.title)
         header.addStretch(1)
+        self.endpoint_label = QLabel("Pi 4: searching")
+        self.endpoint_label.setFont(THEME.font(10, QFont.Weight.DemiBold))
+        header.addWidget(self.endpoint_label)
+        header.addSpacing(10)
         self.pill = QLabel()
         self.pill.setFont(THEME.font(11, QFont.Weight.Bold))
         self.pill.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
@@ -177,6 +184,10 @@ class RideQualityCard(QFrame):
             self._watchdog.start()
         self._paint_values()
 
+    def set_endpoint(self, host, how=""):
+        """Where the Pi 4 is: host and how it was found; empty host while searching."""
+        self.endpoint_label.setText(f"Pi 4: {host} ({how})" if host else "Pi 4: searching")
+
     def text_of(self, key):
         return self._values[key].text()
 
@@ -200,6 +211,7 @@ class RideQualityCard(QFrame):
         self.setStyleSheet(f"QFrame#rideQualityCard {{ background: {THEME.hex('card')};"
                            f" border: 1px solid {THEME.hex('border')}; border-radius: 15px; }}")
         self.title.setStyleSheet(f"background: transparent; border: none; color: {THEME.hex('text')};")
+        self.endpoint_label.setStyleSheet(f"background: transparent; border: none; color: {THEME.hex('text_dim')};")
         for cap in self._captions:
             cap.setStyleSheet(f"background: transparent; border: none; color: {THEME.hex('text_dim')};")
         self._paint_values()

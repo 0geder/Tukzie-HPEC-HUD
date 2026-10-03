@@ -14,6 +14,13 @@ What it does:
      and saves tests/ride_card.png.
   5. Starts the patched DashboardMain and checks it goes live from the
      bridge, feeds the ride card, and has the camera page in its page order.
+  6. Live-only mode (TUKZIE_LIVE_ONLY=1): the patched dashboard shows the
+     no-data state with the bridge down (no simulated values, the simulation
+     not running, every page renders), goes live when a bridge appears and
+     returns to no-data, not simulation, when it stops.
+  7. The Pi 4 resolver (sw7_endpoints.py): localhost first, the override,
+     a UDP beacon to 127.0.0.1:50808, and a new search after 3 failures,
+     with the live-data provider and the camera page following it.
 
 Run: python DashboardIntegration/tests/test_live_data_provider.py
 Needs PySide6 (6.11.2 used). Set TUKZIE_DASHBOARD_DIR to use another copy of
@@ -24,6 +31,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import socket
 import stat
 import sys
 import tempfile
@@ -161,6 +169,7 @@ manager.start()
 
 provider = LiveDataProvider(manager)
 assert provider.url == BRIDGE_URL, provider.url
+assert provider.resolver is None, "TUKZIE_TELEMETRY_URL must bypass the resolver"
 card = RideQualityCard()
 card.resize(980, card.sizeHint().height())
 card.show()
@@ -301,4 +310,249 @@ dm.grab().save(str(scratch / "dashboard_diagnostics.png"))
 dm.close()
 server2.shutdown(); server2.server_close()
 print("2 patched DashboardMain: live from the bridge, ride card fed, camera page in nav order")
+
+
+def free_port(host="127.0.0.1"):
+    with socket.socket() as s:
+        s.bind((host, 0))
+        return s.getsockname()[1]
+
+
+def bridge_on(host, port):
+    srv = ThreadingHTTPServer((host, port), Bridge)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    return srv
+
+
+# ---- 3. live-only mode --------------------------------------------------------
+from app.data.sw7_live_only import UNKNOWN_FIELDS  # noqa: E402
+from app.data.vehicle_state import Indicator  # noqa: E402
+from PySide6.QtCore import QObject, Signal  # noqa: E402
+
+os.environ["TUKZIE_LIVE_ONLY"] = "1"
+errors = []
+previous_hook = sys.excepthook
+
+
+def _record_and_print(*exc):   # exceptions in Qt slots and paint events land here
+    errors.append(exc)
+    previous_hook(*exc)
+
+
+class _Probe(QObject):
+    fire = Signal()
+
+
+_probe = _Probe()
+_probe.fire.connect(lambda: 1 / 0)
+sys.excepthook = lambda *exc: errors.append(exc)   # silent for this deliberate error
+_probe.fire.emit()
+assert errors and errors[0][0] is ZeroDivisionError, "slot exceptions are not reaching sys.excepthook"
+errors.clear()
+sys.excepthook = _record_and_print
+
+port3 = free_port()
+ldp.TELEMETRY_URL = f"http://127.0.0.1:{port3}"     # nothing listens there yet: bridge down
+dm3 = DashboardMain()
+dm3.resize(1280, 800)
+dm3.show()
+vd = dm3.vehicle_data
+modes = []
+vd.mode_changed.connect(modes.append)
+assert vd.live_only and vd.mode == "no_data", vd.mode
+run_for(1.5)
+
+
+def assert_no_data(state, where):
+    assert state.data_source == "no_data" and state.is_simulated is False, (where, state.data_source)
+    # route_progress is written onto the shown state by the navigation page from ASIS (0 with no route)
+    bad = [name for name in UNKNOWN_FIELDS if getattr(state, name) is not None and name != "route_progress"]
+    assert not bad, f"{where}: fields not None: {bad}"
+    assert not any(state.signal_validity.values()), (where, state.signal_validity)
+
+
+def assert_no_sim(where):
+    assert not vd.sim._timer.isActive(), f"{where}: simulation timer running"
+    assert dm3.current_state is vd.state and vd.state is not vd.sim.state, f"{where}: sim state displayed"
+
+
+assert_no_data(dm3.current_state, "bridge down at start")
+assert_no_sim("bridge down at start")
+assert dm3.status.soc.text() == "--%", dm3.status.soc.text()
+assert dm3.driving.range.text() == "Range: -- km", dm3.driving.range.text()
+assert dm3.driving.speed.speed_known is False and dm3.driving.brake.known is False and dm3.driving.accel.known is False
+for name in ("Speed", "Throttle", "Brake", "Signed power", "Battery SOC", "Range", "Battery temp", "Motor temp",
+             "Ambient", "Incline", "Odometer", "GPS", "Altitude"):
+    assert dm3.diagnostics._values[name].text() == "Unavailable", (name, dm3.diagnostics._values[name].text())
+assert dm3.diagnostics._values["Source"].text() == "no_data"
+for stat_name in ("s_soc", "s_btemp", "s_atemp", "s_odo", "s_power", "s_eff"):
+    assert getattr(dm3.analytics, stat_name).value.text() == "--", stat_name
+assert all(dm3.charging.tuk.unknown.values()), dm3.charging.tuk.unknown
+assert dm3.charging.thermal_value.text() == "--"
+assert dm3.reverse.distance_card.value_label.text() == "--" and not dm3.reverse.radar.isVisible()
+assert dm3.diagnostics.ride_card.endpoint_label.text() == "Pi 4: 127.0.0.1 (TUKZIE_TELEMETRY_URL)"
+wait_until(lambda: dm3.driving.asis_panel.line1.text() == "No live vehicle data", 3, "ASIS panel: no live data")
+for pid in dm3.page_ids:                       # paint every page in the no-data state
+    dm3.stack.setCurrentWidget(dm3.page_by_id[pid])
+    run_for(0.15)
+    dm3.grab()
+dm3.switch_page_id("driving")
+dm3.grab().save(str(scratch / "live_only_no_data.png"))
+dm3._on_vehicle_state(vd.state)               # a direct call raises if the status bar or driving page fails
+assert not dm3._last_page_error, dm3._last_page_error
+assert not errors, errors
+# driver inputs still work without data
+vd.set_indicator(Indicator.LEFT)
+vd.toggle_headlights()
+wait_until(lambda: dm3.current_state.indicator == Indicator.LEFT and dm3.current_state.headlights, 2,
+           "driver inputs shown in the no-data state")
+assert_no_data(dm3.current_state, "after driver inputs")
+print("3a live-only, bridge down: no-data state, no simulation, every page renders, driver inputs work")
+
+serve(LIVE)
+server3 = bridge_on("127.0.0.1", port3)
+wait_until(lambda: vd.mode == "live_controller", 6, "live-only dashboard live from the bridge")
+s = dm3.current_state
+assert close(s.soc_pct, 76.5) and close(s.front_obstacle_distance_m, 0.812) and close(s.latitude, -33.95791)
+assert s.speed_kmh is None and s.battery_temp_c is None and s.odometer_km is None and s.throttle_pct is None
+assert s.indicator == Indicator.LEFT and s.headlights, "driver inputs not carried into the live state"
+assert dm3.status.soc.text() == f"{76.5:.0f}%", dm3.status.soc.text()
+assert dm3.diagnostics._values["Speed"].text() == "Unavailable"
+assert dm3.diagnostics._values["Battery SOC"].text() == "76.5 %"
+assert_no_sim("live")
+dm3.grab().save(str(scratch / "live_only_live.png"))
+print("3b live-only: live from the bridge, unmapped fields stay None")
+
+server3.shutdown(); server3.server_close()
+wait_until(lambda: vd.mode == "no_data", 6, "back to no-data when the bridge stops")
+run_for(0.6)
+assert_no_data(dm3.current_state, "after the bridge stopped")
+assert_no_sim("after the bridge stopped")
+assert dm3.toast.text().startswith("Live data lost"), dm3.toast.text()
+assert "simulation" not in modes, modes
+assert dm3.status.soc.text() == "--%"
+assert not dm3._last_page_error and not errors, (dm3._last_page_error, errors)
+dm3.close()
+print("3c live-only: bridge stopped -> no-data state and 'Live data lost' toast; modes:", modes)
+
+# soc never reported: None, not the dataclass default of 82 %
+NO_BMS = json.loads(json.dumps(LIVE)); NO_BMS["esp32"]["soc"] = None
+assert ldp.build_live_state(NO_BMS, live_only=False).soc_pct is None
+assert ldp.build_live_state(NO_BMS, live_only=True).soc_pct is None
+print("3d soc_pct is None when the BMS has never reported")
+
+# ---- 4. Pi 4 resolver -------------------------------------------------------------
+import app.data.sw7_endpoints as ep  # noqa: E402
+import app.pages.front_camera_page as fcp  # noqa: E402
+from app.data.sw7_endpoints import Pi4Resolver  # noqa: E402
+
+cfg = scratch / "sw7_config"
+if cfg.exists():
+    shutil.rmtree(cfg, onexc=_force_remove)
+os.environ.pop("TUKZIE_PI4_HOST", None)
+serve(LIVE)
+
+
+def watch(resolver):
+    seen = []
+    resolver.host_changed.connect(lambda host, how: seen.append((host, how)))
+    return seen
+
+
+# 4a localhost first
+pA = free_port()
+srvA = bridge_on("127.0.0.1", pA)
+r1 = Pi4Resolver(telemetry_port=pA, config_dir=cfg)
+seen1 = watch(r1)
+r1.start()
+wait_until(lambda: r1.host is not None, 5, "resolver on localhost")
+assert (r1.host, r1.how) == ("127.0.0.1", "localhost") and seen1[-1] == ("127.0.0.1", "localhost"), seen1
+assert r1.telemetry_url() == f"http://127.0.0.1:{pA}" and r1.camera_url() == "http://127.0.0.1:8080"
+assert (cfg / "last_pi4_host").read_text().strip() == "127.0.0.1"
+assert not r1.beacon_error, r1.beacon_error
+r1.stop(); srvA.shutdown(); srvA.server_close()
+print("4a resolver: localhost first; saved as last good")
+
+# 4b nothing on localhost: falls through to the override (environment, then endpoints.conf)
+pB = free_port("127.0.0.2")
+srvB = bridge_on("127.0.0.2", pB)
+os.environ["TUKZIE_PI4_HOST"] = "127.0.0.2"
+r2 = Pi4Resolver(telemetry_port=pB, config_dir=cfg, listen_for_beacons=False)
+r2.start()
+wait_until(lambda: r2.host is not None, 5, "resolver on the override host")
+assert (r2.host, r2.how) == ("127.0.0.2", "override"), (r2.host, r2.how)
+r2.stop()
+del os.environ["TUKZIE_PI4_HOST"]
+(cfg / "endpoints.conf").write_text("# test\npi4_host = 127.0.0.2\n", encoding="utf-8")
+r2b = Pi4Resolver(telemetry_port=pB, config_dir=cfg, listen_for_beacons=False)
+r2b.start()
+wait_until(lambda: r2b.host is not None, 5, "resolver on the endpoints.conf host")
+assert (r2b.host, r2b.how) == ("127.0.0.2", "override"), (r2b.host, r2b.how)
+r2b.stop(); srvB.shutdown(); srvB.server_close()
+(cfg / "endpoints.conf").unlink()
+print("4b resolver: falls through to the override (TUKZIE_PI4_HOST and endpoints.conf)")
+
+# 4c beacon: learn the host from the source address of a UDP beacon to 127.0.0.1:50808
+pC = free_port("127.0.0.3")
+srvC = bridge_on("127.0.0.3", pC)
+r3 = Pi4Resolver(telemetry_port=pC, config_dir=cfg)
+seen3 = watch(r3)
+r3.start()
+assert not r3.beacon_error, r3.beacon_error
+with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as other:
+    other.bind(("127.0.0.4", 0))
+    other.sendto(b'{"sw7": "other"}', ("127.0.0.1", ep.BEACON_PORT))
+run_for(0.3)
+assert r3.beacon_host is None, "a packet that is not a SW-7 beacon was accepted"
+with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as pi4:
+    pi4.bind(("127.0.0.3", 0))
+    pi4.sendto(json.dumps({"sw7": "pi4", "v": 1, "host": "pi4-camera", "camera_port": 8080,
+                           "telemetry_port": 8081, "seq": 1}).encode(), ("127.0.0.1", ep.BEACON_PORT))
+wait_until(lambda: r3.host is not None, 10, "resolver on the beacon source")
+assert (r3.host, r3.how) == ("127.0.0.3", "beacon"), (r3.host, r3.how, seen3)
+r3.beacon_time -= ep.BEACON_MAX_AGE_S + 1          # an old beacon is ignored
+assert ("127.0.0.3", "beacon") not in r3.candidates()
+r3.stop(); srvC.shutdown(); srvC.server_close()
+print("4c resolver: learned 127.0.0.3 from a UDP beacon; old beacons ignored; candidates seen:", seen3)
+
+# 4d a new search after 3 failures, followed by the provider and the camera page
+pD = free_port()
+srvD1 = bridge_on("127.0.0.1", pD)
+r4 = Pi4Resolver(telemetry_port=pD, config_dir=cfg, listen_for_beacons=False)
+manager4 = VehicleStateManager(50, 41.9, 2500)
+manager4.start()
+provider4 = LiveDataProvider(manager4, resolver=r4)
+endpoints4 = []
+provider4.endpoint_changed.connect(lambda host, how: endpoints4.append((host, how)))
+card4 = RideQualityCard()
+provider4.endpoint_changed.connect(card4.set_endpoint)
+fcp.CAMERA_URL = None
+ep._shared = r4                                     # the camera page uses the shared resolver
+cam = fcp.FrontCameraPage()
+provider4.start()
+wait_until(lambda: provider4.link == "live", 5, "provider live through the resolver")
+assert endpoints4[0] == ("", "searching") and ("127.0.0.1", "localhost") in endpoints4, endpoints4
+assert card4.endpoint_label.text() == "Pi 4: 127.0.0.1 (localhost)", card4.endpoint_label.text()
+assert cam.camera_url() == "http://127.0.0.1:8080"
+srvD1.shutdown(); srvD1.server_close()
+os.environ["TUKZIE_PI4_HOST"] = "127.0.0.2"
+srvD2 = bridge_on("127.0.0.2", pD)
+wait_until(lambda: r4.host == "127.0.0.2", 8, "a new search after the bridge stopped")
+assert r4.how == "override" and ("", "searching") in endpoints4[1:], endpoints4
+wait_until(lambda: provider4.link == "live", 5, "provider live on the new host")
+assert card4.endpoint_label.text() == "Pi 4: 127.0.0.2 (override)"
+assert cam.camera_url() == "http://127.0.0.2:8080"
+# exactly 3 failures in a row start a new search
+r4.report_failure(); r4.report_failure()
+assert r4.host == "127.0.0.2", "searched again before 3 failures"
+r4.report_success(); r4.report_failure(); r4.report_failure()
+assert r4.host == "127.0.0.2", "a success must reset the failure count"
+r4.report_failure()
+assert r4.host is None and r4.how == "searching"
+wait_until(lambda: r4.host == "127.0.0.2", 5, "found again after the forced search")
+provider4.stop(); manager4.stop(); r4.stop(); srvD2.shutdown(); srvD2.server_close()
+del os.environ["TUKZIE_PI4_HOST"]
+assert not errors, errors
+sys.excepthook = previous_hook
+print("4d resolver: new search after 3 failures; provider, ride card and camera page follow; endpoints:", endpoints4)
 print("ALL TESTS PASSED")

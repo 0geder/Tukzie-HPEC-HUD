@@ -55,7 +55,7 @@ The line must be built without heap-heavy String concatenation in a timing-criti
 
 ## 3. Pi 5 dashboard: live-data provider
 
-`DashboardIntegration/live_data_provider.py` polls `http://<pi4>:8081/telemetry` twice a second (address from the environment variable `TUKZIE_TELEMETRY_URL`, default `http://192.168.137.82:8081`) with Qt networking only, maps fields onto the dashboard's `VehicleState` and passes them to `VehicleStateManager.ingest_live_state()`. Mapping:
+`DashboardIntegration/live_data_provider.py` polls `http://<pi4>:8081/telemetry` twice a second (address from the environment variable `TUKZIE_TELEMETRY_URL` if set, otherwise found by the resolver in section 4.3) with Qt networking only, maps fields onto the dashboard's `VehicleState` and passes them to `VehicleStateManager.ingest_live_state()`. Mapping:
 
 | Bridge field | Dashboard field | Note |
 |---|---|---|
@@ -68,7 +68,9 @@ The line must be built without heap-heavy String concatenation in a timing-criti
 | `tof.ahead_mm / 1000` | `front_obstacle_distance_m` | ahead sensor only (decided 2 Oct: side readings must not raise a front-obstacle warning) |
 | `esp32.vib`, `vib_dis`, `imu_hz`, `drops`, `csq`, `mqtt` | ride-quality card (new) | the dashboard has no fields for these |
 
-Parts of the dashboard state with no source here (gear, throttle, brake, tyres, doors, motor temperature) are left to the existing behaviour. When the bridge cannot be reached, or `esp32.age_ms` exceeds 3000, the provider stops sending, so the dashboard's own stale-data fallback takes over.
+Parts of the dashboard state with no source here (throttle, brake, tyres, doors, motor temperature) are left to the existing behaviour; gear, indicators, headlights and parking brake come from the keyboard and controller. When the bridge cannot be reached, or `esp32.age_ms` exceeds 3000, the provider stops sending, so the dashboard's own stale-data fallback takes over. If the BMS has never reported, `soc_pct` is None (shown as `--%`), not the dashboard's default of 82 %.
+
+Live-only mode (added 3 Oct 2026). With `TUKZIE_LIVE_ONLY=1` (set by `deploy/start_sw7_dashboard.sh`) the dashboard never shows simulated values: the simulation does not run, and until live data arrives, or within 2.5 s of it stopping, the dashboard shows an explicit no-data state in which every sensor-derived field is None and every signal invalid, so the pages show `--` or `Unavailable`. In live mode the fields with no source above are None too, not defaults. The toast on losing data reads "Live data lost · showing no data". Gear, indicators, headlights and parking brake keep working. Without the variable the dashboard behaves as before (simulation fallback). Code: `sw7_live_only.py` and the `LIVE_ONLY_PATCHES` in `tests/dashboard_patches.py`.
 
 ## 4. Finding the Pi 4 on any network (added 3 Oct 2026)
 
@@ -88,13 +90,15 @@ The Pi 4 bridge sends a UDP broadcast every 2 s to port **50808** on every IPv4 
 The receiver takes the Pi 4's address from the packet's source address, not from the payload.
 
 ### 4.3 Resolution on the dashboard (Pi 5)
-A shared resolver (`DashboardIntegration/sw7_endpoints.py`) gives the camera page and the live-data provider the current Pi 4 address. Candidates, in order:
-1. `TUKZIE_PI4_HOST` environment variable or the `pi4_host` line in `~/.config/sw7/endpoints.conf`, if set (explicit override, for tests);
-2. the wired address `10.20.0.1`;
-3. the most recent beacon source address (beacons older than 10 s are ignored);
-4. `pi4-camera.local`;
-5. the last address that worked, saved in `~/.config/sw7/last_pi4_host`.
-A candidate is accepted when `GET http://<host>:8081/telemetry` answers within 1 s. After 3 consecutive failures of the current host (about 1.5 s at the 500 ms poll), the resolver probes the candidates again in order. The current host, and how it was found (wired, beacon, mdns, saved, override), are shown on the ride card. `TUKZIE_CAMERA_URL` and `TUKZIE_TELEMETRY_URL` still work and, if set, bypass the resolver.
+A shared resolver (`DashboardIntegration/sw7_endpoints.py`, class `Pi4Resolver`) gives the camera page and the live-data provider the current Pi 4 address. Candidates, in order:
+1. `127.0.0.1` (localhost), so that a single Pi 5 running the bridge and the detector itself needs no setup;
+2. `TUKZIE_PI4_HOST` environment variable or the `pi4_host=` line in `~/.config/sw7/endpoints.conf`, if set (explicit override);
+3. the wired address `10.20.0.1`;
+4. the most recent beacon source address (beacons older than 10 s are ignored); the beacon is received with a `QUdpSocket`, inside the Qt event loop;
+5. `pi4-camera.local`;
+6. the last address that worked, saved in `~/.config/sw7/last_pi4_host`.
+
+A candidate is accepted when `GET http://<host>:8081/telemetry` answers within 1 s with valid JSON. Each position is read when its turn comes, so a beacon that arrives during a search is still used; if nothing answers, the search repeats every 2 s, or at once when a beacon arrives. After 3 consecutive failed polls of the current host (about 1.5 s at the 500 ms poll), the resolver searches again from the top. The current host and how it was found (localhost, override, wired, beacon, mdns, saved) are emitted as the Qt signal `host_changed(host, how)` (`("", "searching")` while searching) and shown on the ride card as "Pi 4: 10.20.0.1 (wired)" or "Pi 4: searching". The camera is at `http://<host>:8080` (same host as telemetry for now). `TUKZIE_TELEMETRY_URL` and `TUKZIE_CAMERA_URL`, if set, bypass the resolver; `TUKZIE_CAMERA_URL` alone moves only the camera.
 
 ### 4.4 Pre-test check
 `BenchTest/sw7_check.py` runs from the laptop or the Pi 5 before every test session and reports pass/fail per item: Pi 4 found (and how), camera `/alerts` answering with fps, telemetry fresh (ESP32 age under 3 s), IMU rates and drops, all three ToF sensors valid, detector process running, bridge service active, Pi 4 under-voltage flag, Pi 5 reachable, dashboard running on the Pi 5. Exit code 0 only if all critical items pass.

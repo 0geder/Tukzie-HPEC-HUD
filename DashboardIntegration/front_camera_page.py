@@ -10,8 +10,10 @@ alerts. It talks to the detector over two plain HTTP endpoints:
                             each active alert has class, distance_band,
                             confidence, timestamp, alert_status
 
-The camera address comes from the TUKZIE_CAMERA_URL environment variable,
-default http://pi4-camera.local:8080 (the Pi 4's mDNS name).
+The camera address comes from the TUKZIE_CAMERA_URL environment variable if
+set; otherwise from the shared Pi 4 resolver (sw7_endpoints.py,
+TELEMETRY_LINK.md section 4.3) as http://<Pi 4 host>:8080, following it when
+the Pi 4 is found somewhere else.
 
 Drop this file into app/pages/ and wire it up as described in
 DashboardIntegration/README.md. It uses only QtNetwork and QtWidgets (no
@@ -31,7 +33,8 @@ from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy, QVBoxLay
 from ..theme import THEME
 from .base_page import BasePage
 
-CAMERA_URL = os.environ.get("TUKZIE_CAMERA_URL", "http://pi4-camera.local:8080").rstrip("/")
+# Fixed camera address; None (the default) means: ask the Pi 4 resolver.
+CAMERA_URL = (os.environ.get("TUKZIE_CAMERA_URL", "").strip().rstrip("/") or None)
 
 # Band -> dashboard status colour key (fixed across every palette).
 BAND_STATUS = {"immediate": "crit", "warning": "warn", "monitoring": "normal"}
@@ -76,6 +79,11 @@ class FrontCameraPage(BasePage):
         self._pixmap = None
         self._streaming_wanted = False
         self._last_alerts = []
+        self.resolver = None
+        if CAMERA_URL is None:
+            from ..data.sw7_endpoints import shared_resolver
+            self.resolver = shared_resolver()
+            self.resolver.host_changed.connect(self._on_pi4_changed)
 
         header = QHBoxLayout()
         title = QLabel(self.title)
@@ -132,6 +140,19 @@ class FrontCameraPage(BasePage):
 
         THEME.changed.connect(lambda *_: self._render_alerts(self._last_alerts))
 
+    def camera_url(self):
+        """The camera address in use, or None while the Pi 4 is being searched for."""
+        if CAMERA_URL is not None:
+            return CAMERA_URL
+        return self.resolver.camera_url() if self.resolver is not None else None
+
+    def _on_pi4_changed(self, host, how):
+        # Follow the Pi 4 to its new address: drop the old stream, open a new one.
+        self._stop_stream()
+        if not host:
+            self.status_label.setText("Searching for the Pi 4")
+        self._start_stream()
+
     # ---- video stream: only while the page is visible -------------------
     def showEvent(self, event):
         super().showEvent(event)
@@ -146,8 +167,11 @@ class FrontCameraPage(BasePage):
     def _start_stream(self):
         if not self._streaming_wanted or self._stream_reply is not None:
             return
+        url = self.camera_url()
+        if url is None:
+            return              # _on_pi4_changed starts it once the Pi 4 is found
         self._buf = b""
-        req = QNetworkRequest(QUrl(CAMERA_URL + "/stream"))
+        req = QNetworkRequest(QUrl(url + "/stream"))
         # Qt aborts the transfer if no bytes arrive for this long, which
         # triggers the reconnect below when the camera goes silent.
         req.setTransferTimeout(STREAM_SILENCE_MS)
@@ -210,7 +234,12 @@ class FrontCameraPage(BasePage):
     def _poll_alerts(self):
         if self._alert_reply is not None:
             return  # previous poll still in flight
-        req = QNetworkRequest(QUrl(CAMERA_URL + "/alerts"))
+        url = self.camera_url()
+        if url is None:
+            self.status_label.setText("Searching for the Pi 4")
+            self._apply_alerts(None)
+            return
+        req = QNetworkRequest(QUrl(url + "/alerts"))
         req.setTransferTimeout(ALERT_POLL_MS * 4)
         self._alert_reply = self._net.get(req)
         self._alert_reply.finished.connect(self._on_alerts_finished)

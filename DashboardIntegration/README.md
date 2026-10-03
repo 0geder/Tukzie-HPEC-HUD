@@ -1,6 +1,6 @@
 # SW-7 add-ons for the TUKZIE dashboard
 
-Three add-ons for the vehicle dashboard (PySide6, the dashboard team's
+Add-ons for the vehicle dashboard (PySide6, the dashboard team's
 `Tukzie-Vac-Work-2026/Dashboard Team/Tukzie-Dashboard/v1.0-validated`):
 
 | File | Goes to | What it does |
@@ -8,6 +8,8 @@ Three add-ons for the vehicle dashboard (PySide6, the dashboard team's
 | `front_camera_page.py` | `app/pages/` | Front camera page: live view and hazard alerts from the Pi 4 detector |
 | `live_data_provider.py` | `app/data/` | Polls the Pi 4 telemetry bridge and feeds real values into the dashboard state |
 | `ride_quality_card.py` | `app/widgets/` | Compact card with the telemetry the dashboard has no fields for |
+| `sw7_endpoints.py` | `app/data/` | Finds the Pi 4 (localhost, override, wired, beacon, mDNS, last good) |
+| `sw7_live_only.py` | `app/data/` | Live-only mode: the explicit no-data state, never simulated values |
 
 They are kept here, outside the dashboard repo, so the dashboard team can
 review them before anything in their code changes. The telemetry contract is
@@ -27,21 +29,24 @@ per the dashboard README), and all colours come from the dashboard's `THEME`.
   frame, and reconnects every 3 s if the camera drops out.
 
 Endpoints: `GET /stream` (MJPEG) and `GET /alerts` (JSON, `{"active": [...],
-"fps": 7.0, "latency_ms": 182}`). Address: `TUKZIE_CAMERA_URL`, default
-`http://pi4-camera.local:8080`.
+"fps": 7.0, "latency_ms": 182}`). Address: `TUKZIE_CAMERA_URL` if set,
+otherwise `http://<Pi 4 host>:8080` from the resolver (below); the page
+follows the Pi 4 when it is found somewhere else, and shows "Searching for
+the Pi 4" meanwhile.
 
 ## Live-data provider
 
 `LiveDataProvider(manager)` polls `GET <bridge>/telemetry` every 500 ms
-(address `TUKZIE_TELEMETRY_URL`, default `http://192.168.137.82:8081`) and
-calls `VehicleStateManager.ingest_live_state(state, source="sw7_telemetry")`.
+(address `TUKZIE_TELEMETRY_URL` if set, otherwise from the resolver, which it
+tells about every poll) and calls
+`VehicleStateManager.ingest_live_state(state, source="sw7_telemetry")`.
 
 `ingest_live_state()` replaces the dashboard state as a whole, it does not
 merge, so each call gets a complete `VehicleState`:
 
 | Bridge field | VehicleState field | Note |
 |---|---|---|
-| `esp32.soc` | `soc_pct`, `signal_validity["soc"]` | null keeps the last known value, marked invalid |
+| `esp32.soc` | `soc_pct`, `signal_validity["soc"]` | null keeps the last known value, marked invalid; None if the BMS has never reported (was the default 82 %) |
 | `esp32.v * esp32.i / 1000` | `signed_battery_power_kw`; `battery_power_kw = max(0, kW)` | null if either is null; sign not yet checked on the vehicle |
 | `esp32.lat`, `esp32.lon` | `latitude`, `longitude`, `gps_timestamp` | only when `fix` is true, otherwise None |
 | `esp32.fix` | `signal_validity["gps"]` | |
@@ -57,11 +62,56 @@ surface, door, seatbelt, tyres).
 Nothing is ingested when the bridge cannot be reached, the reply is not
 JSON, `esp32` is null, or `esp32.age_ms` is missing or above 3000. The
 dashboard's own 2500 ms watchdog then returns it to simulation and shows its
-usual "simulation resumed" toast.
+usual "simulation resumed" toast, or, in live-only mode, to the no-data state
+(next section).
 
 Signals: `telemetry_updated(object)` carries the raw `/telemetry` dict on
 every poll, or None when the bridge is unreachable; `link_changed(str)` is
-"live", "stale" or "offline".
+"live", "stale" or "offline"; `endpoint_changed(host, how)` says where the
+Pi 4 is (`("", "searching")` while searching).
+
+## Live-only mode
+
+Set `TUKZIE_LIVE_ONLY=1` (`deploy/start_sw7_dashboard.sh` does) and the
+dashboard never shows a simulated value:
+
+- The simulation timer never runs. The manager starts in mode `no_data` and
+  publishes `sw7_live_only.no_data_state()` every 250 ms: every
+  sensor-derived field None, every `signal_validity` entry False, not
+  charging, `data_source` "no_data". Gear, indicator, headlights and parking
+  brake are copied in from the keyboard and controller, so they keep working.
+- Live telemetry switches it to `live_controller` as before. The live state is
+  built on the same blank state, so fields with no live source (speed,
+  pedals, temperatures, odometer, weather, tyres and so on) are None too.
+  Range is the dashboard's model estimate from the live state of charge.
+- 2.5 s without a fresh live state: back to `no_data` (never to simulation),
+  with the toast "Live data lost · showing no data".
+- Pages: the status bar shows `--%` and a grey battery; Driving shows `--`
+  for speed, brake and accelerator and "Range: -- km"; Diagnostics shows
+  "Unavailable"; Analytics shows `--` and leaves gaps out of its charts;
+  Charging shows `--` for state of charge, power, voltage, current and
+  temperature; the reverse page hides its keyboard-driven radar and shows
+  `--` (there is no rear sensor); the ASIS panel says "No live vehicle data"
+  instead of "conditions normal" and gives no battery advice from an
+  unknown state of charge; route planning refuses with a clear message when
+  the state of charge is unknown.
+
+Still not from our sensors in live-only mode: ASIS's recommended speed marker
+(a model output from road data, not a measurement), weather from the
+internet weather service (live, not simulated), and the location label "UCT".
+
+## Finding the Pi 4
+
+`sw7_endpoints.Pi4Resolver` (TELEMETRY_LINK.md section 4.3) tries, in order:
+127.0.0.1 (localhost, for a single Pi 5 running everything), the override
+(`TUKZIE_PI4_HOST` or `pi4_host=` in `~/.config/sw7/endpoints.conf`), wired
+10.20.0.1, the source of the latest UDP beacon on port 50808 (not older than
+10 s), `pi4-camera.local`, and the last good host from
+`~/.config/sw7/last_pi4_host`. A host is accepted when `/telemetry` on port
+8081 answers within 1 s with valid JSON; 3 failed polls in a row start a new
+search. One resolver is shared by the provider and the camera page
+(`shared_resolver()`). The ride card shows "Pi 4: <host> (<how>)" or
+"Pi 4: searching". `TUKZIE_TELEMETRY_URL` and `TUKZIE_CAMERA_URL` bypass it.
 
 ## Ride quality card
 
@@ -87,9 +137,9 @@ The same edits are in `tests/dashboard_patches.py`, and the test applies them
 to a copy of v1.0-validated and starts the patched dashboard, so they are
 checked against the current files.
 
-1. Copy the three files: `front_camera_page.py` to `app/pages/`,
-   `live_data_provider.py` to `app/data/`, `ride_quality_card.py` to
-   `app/widgets/`.
+1. Copy the five files: `front_camera_page.py` to `app/pages/`,
+   `live_data_provider.py`, `sw7_endpoints.py` and `sw7_live_only.py` to
+   `app/data/`, `ride_quality_card.py` to `app/widgets/`.
 
 2. `app/pages/dashboard_main.py`
 
@@ -128,6 +178,7 @@ checked against the current files.
    ```python
            self.telemetry = LiveDataProvider(self.vehicle_data, parent=self)
            self.telemetry.telemetry_updated.connect(self.diagnostics.ride_card.set_telemetry)
+           self.telemetry.endpoint_changed.connect(self.diagnostics.ride_card.set_endpoint)
            self.telemetry.start()
    ```
 
@@ -168,18 +219,26 @@ checked against the current files.
        'speaker': speaker, 'camera': camera,
    ```
 
-On the Pi 5, set the Pi 4's addresses before starting the dashboard if the
-defaults do not resolve on the vehicle network, for example:
-```sh
-export TUKZIE_TELEMETRY_URL=http://192.168.137.82:8081
-export TUKZIE_CAMERA_URL=http://192.168.137.82:8080
-```
+6. Live-only mode: the `LIVE_ONLY_PATCHES` in `tests/dashboard_patches.py`
+   (in `data_provider.py`, `dashboard_main.py`, `status_bar.py`,
+   `driving_page.py`, `diagnostics_page.py`, `analytics_page.py`,
+   `charging_page.py`, `login_page.py`, `reverse_camera_page.py`,
+   `asis_advisory_panel.py`, `asis/advice_engine.py`, `asis/coordinator.py`).
+   They are listed there with a comment each rather than repeated here; the
+   manager only changes behaviour with `TUKZIE_LIVE_ONLY=1`, and the page
+   guards only act on values that are None. Their anchors are checked against
+   v1.0-validated; the deploy step must check them on the Pi's v1.1 (each
+   must occur exactly once).
+
+The Pi 4 is found automatically (above). To pin it, set `TUKZIE_PI4_HOST`
+(or `pi4_host=` in `~/.config/sw7/endpoints.conf`); to bypass the resolver
+altogether, set `TUKZIE_TELEMETRY_URL` and `TUKZIE_CAMERA_URL`.
 
 ## Tests
 
 `tests/test_live_data_provider.py` (run with `python
 DashboardIntegration/tests/test_live_data_provider.py`): copies
-v1.0-validated's `app` into a scratch folder, adds the three files, applies
+v1.0-validated's `app` into a scratch folder, adds the five files, applies
 the edits above to the copy, and starts a local HTTP server that serves
 `/telemetry` like the bridge. Offscreen, with PySide6 6.11.2 (Essentials) on a
 laptop, it checks:
@@ -195,6 +254,22 @@ laptop, it checks:
 - The patched `DashboardMain` starts, goes live from the bridge, fills the
   ride card on the Diagnostics page, and puts the camera page after
   Navigation in the page order and arrows.
+- Live-only mode: with the bridge down the patched dashboard shows the
+  no-data state (every sensor field None, the simulation timer not running,
+  the shown state not the simulator's), the status bar, Driving,
+  Diagnostics, Analytics, Charging and reverse pages show `--` or
+  Unavailable, every page paints without an exception, and the indicator and
+  headlights still work. It goes live when a fake bridge appears (unmapped
+  fields still None) and returns to no-data, with the "Live data lost" toast
+  and never the simulation, when it stops. `soc_pct` is None when the BMS has
+  never reported, in both modes.
+- Resolver: picks localhost when a fake bridge is on 127.0.0.1; falls through
+  to the override (`TUKZIE_PI4_HOST`, then `endpoints.conf`) on 127.0.0.2;
+  learns 127.0.0.3 from a fake UDP beacon sent to 127.0.0.1:50808 (and ignores
+  a packet that is not a SW-7 beacon, and a beacon older than 10 s); after the
+  bridge stops, searches again and finds the new host, with the provider, the
+  ride card label and the camera page following; exactly 3 failures in a row
+  start a new search.
 
 With PySide6-Essentials only, the test gives the reverse camera page a silent
 `QSoundEffect` stub, because `QtMultimedia` is in PySide6-Addons.
