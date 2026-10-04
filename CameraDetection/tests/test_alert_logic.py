@@ -10,10 +10,14 @@ import sys, time
 import hazard_detector as h
 h.CONFIDENCE_THRESHOLD = 0.5
 # Cap to 100 frames by making the clock advance 0.14 s per call
+_real_monotonic = time.monotonic   # restored at the end (pytest runs the files in one process)
 t = [0.0]
 def fake_mono():
     t[0] += 0.0705
     return t[0]
 time.monotonic = fake_mono
 sys.argv = ["hazard_detector.py", "--duration", "14", "--log-path", "test_alerts.jsonl"]
-h.main()
+try:
+    h.main()
+finally:
+    time.monotonic = _real_monotonic

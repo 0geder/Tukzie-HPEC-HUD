@@ -38,7 +38,7 @@ seconds). A reading of 0, about 8190 (nothing in range) or anything at or
 above tof_reader.OUT_OF_RANGE_MM becomes null for that sensor.
 
 Only telemetry numbers are handled: no camera frames, no personal data.
-Nothing is written to disk.
+Nothing is written to disk except the fusion log (see above).
 
 Serial access uses pyserial when installed (venv/bin/pip install
 pyserial); without it, the tty is read directly with termios (Linux only).
@@ -48,6 +48,26 @@ generated file of DASH lines played in a loop, not from the ESP32. The
 bridge block then says "replay": true and "replay_file": "<file name>", so
 the dashboard can show a REPLAY badge and replayed data is never taken for
 live data. From the serial port it says "replay": false, "replay_file": null.
+
+Camera and ToF fusion (sensor_fusion.py, rules in its docstring): with
+--fusion on, or with the default --fusion auto once the hazard detector
+answers GET /detections on localhost:8080 (it needs --preview), the bridge
+polls the detections at 5 Hz, matches them to the ToF sensors by bearing
+and time, and adds a "fusion" block to /telemetry:
+      "fusion": {"hazards": [{"class": "person", "source": "fused",
+                  "sensor": "ahead", "bearing_deg": -3.1, "distance_m": 0.98,
+                  "band": "immediate", "confidence": 0.71,
+                  "camera_distance_m": 1.31, "tof_distance_m": 0.98,
+                  "tof_dt_ms": 12}, ...],
+                 "age_ms": 80, "camera_fps": 14.8, "camera_age_ms": 160,
+                 "config": "fusion_config.json"}
+The same block is at GET /hazards (503 while fusion is inactive). In auto
+mode the block is absent until the detector has answered once. Every fused
+update can be appended to --fusion-log (off by default; give a path only
+for a C9 test session): time, ToF readings and hazards, numbers only, no
+images. Off by default because the approved data handling for the camera
+logs five fields per alert with a distance band, not continuous distances
+and bearings.
 
 Testing without hardware:
   python3 telemetry_bridge.py --replay tests/dash_sample.txt --fake-tof
@@ -64,7 +84,9 @@ import subprocess
 import sys
 import threading
 import time
+from collections import deque
 
+import sensor_fusion
 import tof_reader
 
 VERSION = "1.0"
@@ -76,6 +98,8 @@ TOF_NAMES = ("left", "ahead", "right")
 BEACON_PORT = 50808          # TELEMETRY_LINK.md 4.2
 BEACON_INTERVAL_S = 2.0
 CAMERA_PORT = 8080           # the hazard detector's port, announced in the beacon
+TOF_HISTORY = 64             # ToF samples kept for fusion (about 3 s at 20 per second)
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def _reject_constant(name):
@@ -117,6 +141,8 @@ class TelemetryState:
         self._esp32_t = None
         self._tof = None
         self._tof_t = None
+        self._tof_hist = deque(maxlen=TOF_HISTORY)   # (t_mono, {"left": mm or None, ...})
+        self._fusion = None
 
     def handle_line(self, line):
         kind, obj = parse_dash_line(line)
@@ -141,9 +167,32 @@ class TelemetryState:
         with self._lock:
             if values is None:
                 self._tof, self._tof_t = None, None
+                self._tof_hist.clear()
             else:
                 self._tof = {"%s_mm" % n: values.get(n) for n in TOF_NAMES}
                 self._tof_t = time.monotonic()
+                self._tof_hist.append((self._tof_t, {n: values.get(n) for n in TOF_NAMES}))
+
+    def tof_history(self):
+        """Recent ToF samples, oldest first, for the fusion."""
+        with self._lock:
+            return list(self._tof_hist)
+
+    def set_fusion(self, block):
+        """block from sensor_fusion.FusionRunner (with t_mono), or None."""
+        with self._lock:
+            self._fusion = block
+
+    def fusion_block(self, now=None):
+        """The fusion block as served, or None while fusion is inactive."""
+        now = time.monotonic() if now is None else now
+        with self._lock:
+            f = self._fusion
+        if f is None:
+            return None
+        out = {k: v for k, v in f.items() if k != "t_mono"}
+        out["age_ms"] = int(round((now - f["t_mono"]) * 1000))
+        return out
 
     def snapshot(self):
         now = time.monotonic()
@@ -156,7 +205,7 @@ class TelemetryState:
             if self._tof is not None:
                 tof = dict(self._tof)
                 tof["age_ms"] = int(round((now - self._tof_t) * 1000))
-            return {
+            snap = {
                 "esp32": esp32,
                 "tof": tof,
                 "bridge": {
@@ -168,6 +217,10 @@ class TelemetryState:
                     "replay_file": self.replay_file,
                 },
             }
+        fusion = self.fusion_block(now)
+        if fusion is not None:      # absent, not null, while fusion is inactive (contract unchanged)
+            snap["fusion"] = fusion
+        return snap
 
 
 # Serial port access ---------------------------------------------------------
@@ -502,6 +555,7 @@ class TelemetryServer:
         server = self
         self.state = state
         self.beacon = None       # set by Bridge, for the status page
+        self.fusion = None       # set by Bridge, for the status page
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *a):
@@ -521,6 +575,12 @@ class TelemetryServer:
                 if path == "/telemetry":
                     body = json.dumps(server.state.snapshot()).encode()
                     self._send(200, "application/json", body)
+                elif path == "/hazards":
+                    f = server.state.fusion_block()
+                    if f is None:
+                        self._send(503, "application/json", b'{"fusion": null, "reason": "fusion inactive"}')
+                    else:
+                        self._send(200, "application/json", json.dumps(f).encode())
                 elif path == "/":
                     self._send(200, "text/plain; charset=utf-8", server.status_text().encode())
                 else:
@@ -547,9 +607,21 @@ class TelemetryServer:
             "beacon: %s" % ("off" if self.beacon is None else "UDP port %d, %d sent, %d failed%s" % (
                 self.beacon.port, self.beacon.sent, self.beacon.send_errors,
                 "" if not self.beacon.last_error else " (last: %s)" % self.beacon.last_error)),
-            "JSON: /telemetry",
+            "fusion: %s" % self._fusion_text(snap.get("fusion")),
+            "JSON: /telemetry, /hazards",
         ]
         return "\n".join(lines) + "\n"
+
+    def _fusion_text(self, f):
+        r = self.fusion
+        if r is None:
+            return "off"
+        if f is None:
+            return "waiting for the detector at %s" % r.url
+        return "%d hazards (%s), %d updates, camera %s, log %s" % (
+            len(f["hazards"]), ", ".join("%s/%s" % (h["class"], h["source"]) for h in f["hazards"]) or "none",
+            r.updates, "absent" if f["camera_age_ms"] is None else "%s fps" % f["camera_fps"],
+            r.log_path or "off")
 
     def close(self):
         self._httpd.shutdown()
@@ -562,7 +634,8 @@ class Bridge:
     def __init__(self, serial_port="/dev/ttyACM0", baud=115200, host="0.0.0.0", port=8081,
                  replay=None, replay_interval=1.0, tof=True, fake_tof=False,
                  beacon=True, beacon_port=BEACON_PORT, beacon_targets=None,
-                 beacon_interval_s=BEACON_INTERVAL_S, camera_port=CAMERA_PORT):
+                 beacon_interval_s=BEACON_INTERVAL_S, camera_port=CAMERA_PORT,
+                 fusion="off", detections_url=None, fusion_config=None, fusion_log=None):
         label = ("replay:%s" % replay) if replay else serial_port
         self.state = TelemetryState(label, replay_file=replay)
         self.stop = threading.Event()
@@ -575,6 +648,13 @@ class Bridge:
             self.beacon = Beacon(self.stop, self.port, camera_port, beacon_port,
                                  beacon_interval_s, beacon_targets)
             self.server.beacon = self.beacon
+        self.fusion = None
+        if fusion in ("on", "auto"):
+            self.fusion = sensor_fusion.FusionRunner(
+                self.stop, self.state.tof_history, self.state.set_fusion,
+                url=detections_url or "http://127.0.0.1:%d/detections" % camera_port,
+                config_path=fusion_config, log_path=fusion_log, mode=fusion)
+            self.server.fusion = self.fusion
 
     def start(self):
         self.source.start()
@@ -582,12 +662,14 @@ class Bridge:
             self.tof.start()
         if self.beacon is not None:
             self.beacon.start()
+        if self.fusion is not None:
+            self.fusion.start()
         return self
 
     def close(self):
         self.stop.set()
         self.server.close()
-        for t in (self.source, self.tof, self.beacon):
+        for t in (self.source, self.tof, self.beacon, self.fusion):
             if t is not None and t.is_alive():
                 t.join(timeout=3)
 
@@ -614,6 +696,17 @@ def main():
                          "255.255.255.255 and every interface's broadcast address")
     ap.add_argument("--camera-port", type=int, default=CAMERA_PORT,
                     help="Camera port announced in the beacon")
+    ap.add_argument("--fusion", choices=("auto", "on", "off"), default="auto",
+                    help="Camera and ToF fusion (sensor_fusion.py). auto (default): starts once the "
+                         "detector answers --detections-url; on: always (ToF-only without the detector); off")
+    ap.add_argument("--detections-url", default=None,
+                    help="Detector detections URL (default http://127.0.0.1:<camera-port>/detections)")
+    ap.add_argument("--fusion-config", default=os.path.join(HERE, "fusion_config.json"),
+                    help="Fusion geometry (sensor bearings, cones, ranges); default fusion_config.json "
+                         "next to this script, built-in defaults if missing")
+    ap.add_argument("--fusion-log", default="",
+                    help="Append every fused update here as JSON lines (numbers only), for a C9 test session only; "
+                         "off by default (routine logging of distances and bearings is outside the approved data handling)")
     ap.add_argument("--duration", type=float, default=0, help="Seconds to run, 0 = until Ctrl+C or SIGTERM")
     a = ap.parse_args()
 
@@ -625,7 +718,9 @@ def main():
     bridge = Bridge(a.serial_port, a.baud, a.host, a.port, a.replay, a.replay_interval,
                     tof=not a.no_tof, fake_tof=a.fake_tof, beacon=not a.no_beacon,
                     beacon_port=a.beacon_port, beacon_targets=a.beacon_target,
-                    beacon_interval_s=a.beacon_interval, camera_port=a.camera_port).start()
+                    beacon_interval_s=a.beacon_interval, camera_port=a.camera_port,
+                    fusion=a.fusion, detections_url=a.detections_url, fusion_config=a.fusion_config,
+                    fusion_log=a.fusion_log or None).start()
     print("Telemetry bridge %s on http://%s:%d/telemetry, source %s, tof %s" % (
         VERSION, a.host, bridge.port, bridge.state.serial_label,
         "fake" if a.fake_tof else ("off" if a.no_tof else "sensors")))
@@ -633,6 +728,9 @@ def main():
         print("Beacon every %.0f s to UDP port %d (%s)" % (
             a.beacon_interval, a.beacon_port,
             ", ".join(a.beacon_target) if a.beacon_target else "broadcast on every interface"))
+    if bridge.fusion is not None:
+        print("Fusion %s: detections from %s, config %s, log %s" % (
+            a.fusion, bridge.fusion.url, a.fusion_config, bridge.fusion.log_path or "off"))
     start = time.monotonic()
     try:
         while a.duration == 0 or time.monotonic() - start < a.duration:
@@ -645,6 +743,8 @@ def main():
         print("Stopped. %d DASH lines, %d bad, in %.1f s" % (b["lines"], b["bad_lines"], time.monotonic() - start))
         if bridge.beacon is not None:
             print("Beacon: %d sent, %d failed" % (bridge.beacon.sent, bridge.beacon.send_errors))
+        if bridge.fusion is not None:
+            print("Fusion: %d updates, %d detector polls failed" % (bridge.fusion.updates, bridge.fusion.camera_errors))
 
 
 if __name__ == "__main__":

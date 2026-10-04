@@ -1,0 +1,15 @@
+{
+  "_note": "Camera and ToF fusion geometry for sensor_fusion.py. Bearings in degrees from the camera's optical axis, negative = left. The sensor bearings, half-angles and ranges are defaults until calibrated with BenchTest/TEST_PROCEDURES.md C9 (calibration step). Edit and restart the telemetry bridge.",
+  "camera_hfov_deg": 53.5,
+  "camera_mirror": false,
+  "gate_deg": 5.0,
+  "max_dt_ms": 200,
+  "camera_stale_ms": 1000,
+  "debounce_readings": 3,
+  "sensors": {
+    "left":  {"bearing_deg": -35.0, "half_angle_deg": 12.5, "max_range_m": 1.2},
+    "ahead": {"bearing_deg": 0.0,   "half_angle_deg": 12.5, "max_range_m": 1.2},
+    "right": {"bearing_deg": 35.0,  "half_angle_deg": 12.5, "max_range_m": 1.2}
+  },
+  "calibrated": false
+}

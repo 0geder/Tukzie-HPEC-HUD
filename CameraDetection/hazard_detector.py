@@ -49,6 +49,15 @@ the ethics application specifies logging an "approximate distance band",
 not a precise continuous figure, so the raw estimate itself is never
 persisted.
 
+Detections for the camera and ToF fusion (GET /detections, served with
+--preview on the same port as /alerts): the latest frame's detections of
+the HAZARD_CLASSES above CONFIDENCE_THRESHOLD, each with its class,
+confidence, normalised bounding box, bearing (from the box centre and the
+horizontal field of view, --hfov-deg) and the raw distance estimate, plus
+the frame's monotonic timestamp and the frame rate. No image data. The
+telemetry bridge on the same Pi reads it (sensor_fusion.py); the raw
+estimate is served, never written to disk by this script.
+
 Time-to-collision (TTC = distance / closing_speed) is only computed if a
 vehicle speed is supplied externally (e.g. from the ESP32's GNSS speed
 field) - that field's units are not yet confirmed (see Methodology.tex,
@@ -118,6 +127,38 @@ BAND_RANK = {"immediate": 0, "warning": 1, "monitoring": 2}
 # The only fields this script ever persists to the alert log, matching
 # the fields proposed in the ethics application.
 ALERT_LOG_FIELDS = ("class", "distance_band", "confidence", "timestamp", "alert_status")
+
+# Horizontal field of view of the OV5647 (Camera Module v1) lens, degrees:
+# 53.50 +/- 0.13 in the Raspberry Pi camera hardware documentation, for the
+# full sensor width. The 640x480 mode is binned from close to the full
+# width, so the same figure is used. To be checked against the ToF
+# bearing calibration (TEST_PROCEDURES.md C9).
+DEFAULT_HFOV_DEG = 53.5
+
+
+def bearing_deg(x_centre_norm, hfov_deg=DEFAULT_HFOV_DEG):
+    """Horizontal bearing of an image point, degrees, 0 = optical axis,
+    negative = left, positive = right. Pinhole model: the image half-width
+    corresponds to tan(hfov / 2), so the bearing is not linear in x.
+    x_centre_norm is 0 at the left edge of the frame and 1 at the right."""
+    import math
+    half = math.tan(math.radians(hfov_deg) / 2.0)
+    return math.degrees(math.atan((2.0 * x_centre_norm - 1.0) * half))
+
+
+def detection_record(class_name, confidence, box_norm, frame_w, focal_length_px, hfov_deg):
+    """One entry of GET /detections. box_norm is the model's (ymin, xmin,
+    ymax, xmax) in 0..1; the record uses (x0, y0, x1, y1), clipped to 0..1."""
+    ymin, xmin, ymax, xmax = (min(1.0, max(0.0, float(v))) for v in box_norm)
+    distance_m = estimate_distance_m(class_name, (xmax - xmin) * frame_w, focal_length_px)
+    return {
+        "class": class_name,
+        "confidence": round(float(confidence), 3),
+        "bbox": [round(xmin, 4), round(ymin, 4), round(xmax, 4), round(ymax, 4)],
+        "bearing_deg": round(bearing_deg((xmin + xmax) / 2.0, hfov_deg), 2),
+        "est_distance_m": None if distance_m is None else round(distance_m, 3),
+        "band": distance_band(distance_m),
+    }
 
 
 def load_labels(path):
@@ -199,6 +240,7 @@ class PreviewServer:
         self._pending_cv = threading.Condition()
         self._running = True
         self._alerts_json = b'{"active": [], "fps": 0, "latency_ms": null}'
+        self._detections = None   # latest GET /detections content (dict), None before the first frame
         server = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -214,6 +256,20 @@ class PreviewServer:
                 elif self.path == "/alerts":
                     with server._lock:
                         body = server._alerts_json
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Cache-Control", "no-cache")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                elif self.path.split("?", 1)[0] == "/detections":
+                    with server._lock:
+                        d = server._detections
+                    if d is None:
+                        d = {"detections": [], "frame_t_mono": None, "fps": 0.0}
+                    d = dict(d, t_mono=round(time.monotonic(), 4))
+                    body = json.dumps(d).encode()
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.send_header("Cache-Control", "no-cache")
@@ -305,6 +361,23 @@ class PreviewServer:
         with self._lock:
             self._alerts_json = body
 
+    def set_detections(self, detections, frame_t_mono, fps, hfov_deg=DEFAULT_HFOV_DEG):
+        """Publish the latest frame's detections for GET /detections (see
+        detection_record). frame_t_mono is the frame's time on this Pi's
+        monotonic clock, seconds; the response also carries t_mono, the
+        time it was served, so a reader on another clock can work out the
+        frame's age."""
+        d = {
+            "detections": list(detections),
+            "frame_t_mono": None if frame_t_mono is None else round(frame_t_mono, 4),
+            "fps": round(fps, 1),
+            "hfov_deg": hfov_deg,
+            "bands": [[limit, band] for limit, band in DISTANCE_BANDS],
+            "confidence_threshold": CONFIDENCE_THRESHOLD,
+        }
+        with self._lock:
+            self._detections = d
+
     def close(self):
         self._running = False
         with self._pending_cv:
@@ -383,6 +456,9 @@ def main():
     # replace it before distance numbers are trusted. Valid at 640 px width only.
     parser.add_argument("--focal-length-px", type=float, default=600.0,
                          help="UNCALIBRATED placeholder - see comment in source")
+    parser.add_argument("--hfov-deg", type=float, default=DEFAULT_HFOV_DEG,
+                        help="Horizontal field of view, degrees, for the bearing in GET /detections "
+                             "(default %(default)s, OV5647 Camera Module v1 lens)")
     parser.add_argument("--duration", type=int, default=0,
                          help="Seconds to run, 0 = run until Ctrl+C")
     parser.add_argument("--log-path", default="alerts.jsonl",
@@ -514,6 +590,7 @@ def main():
             frame_h, frame_w = frame.shape[0], frame.shape[1]
             in_band_this_frame = {}  # class_name -> (band, confidence, bbox_px); nearest band wins, then confidence
             drawn = []  # detections for the live view only, never logged
+            frame_dets = []  # for GET /detections only (served, never logged)
             for i in range(len(scores)):
                 if scores[i] < CONFIDENCE_THRESHOLD:
                     continue
@@ -529,6 +606,8 @@ def main():
                 distance_m = estimate_distance_m(class_name, bbox_width_px, args.focal_length_px)
                 band = distance_band(distance_m)
                 if preview is not None:
+                    frame_dets.append(detection_record(class_name, scores[i], boxes[i], frame_w,
+                                                       args.focal_length_px, args.hfov_deg))
                     drawn.append({
                         "box": (int(xmin * frame_w), int(ymin * frame_h), int(xmax * frame_w), int(ymax * frame_h)),
                         "class": class_name, "confidence": float(scores[i]),
@@ -602,6 +681,8 @@ def main():
                 preview.set_alerts(sorted(active_record.values(),
                                           key=lambda r: BAND_RANK.get(r["distance_band"], 9)),
                                    fps_now, total_ms if sensor_ns else None)
+                frame_t = (sensor_ns if sensor_ns else t_got) / 1e9
+                preview.set_detections(frame_dets, frame_t, fps_now, args.hfov_deg)
 
     except KeyboardInterrupt:
         pass

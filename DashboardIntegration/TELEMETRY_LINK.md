@@ -110,3 +110,27 @@ A candidate is accepted when `GET http://<host>:8081/telemetry` answers within 1
 
 ### 4.4 Pre-test check
 `BenchTest/sw7_check.py` runs from the laptop or the Pi 5 before every test session and reports pass/fail per item: Pi 4 found (and how), camera `/alerts` answering with fps, telemetry fresh (ESP32 age under 3 s), IMU rates and drops, all three ToF sensors valid, detector process running, bridge service active, Pi 4 under-voltage flag, Pi 5 reachable, dashboard running on the Pi 5. Exit code 0 only if all critical items pass.
+
+## 5. Camera and ToF fusion block (added 4 Oct 2026)
+
+The bridge fuses the camera detector's detections with the three ToF sensors (`CameraDetection/sensor_fusion.py`, geometry in `CameraDetection/fusion_config.json`). Additive only: sections 2 to 4 are unchanged, and a client that ignores the new key is unaffected.
+
+Detector (port 8080, needs `--preview`, as in its service): `GET /detections` returns the latest frame's detections of the approved classes above the confidence threshold: `class`, `confidence`, `bbox` (normalised `[x0, y0, x1, y1]`), `bearing_deg` (0 = camera axis, negative = left; from the box centre and `--hfov-deg`, default 53.5), `est_distance_m` (pinhole width estimate, focal length not yet calibrated), `band`; plus `frame_t_mono`, `t_mono` (time served), `fps`, `hfov_deg`, `bands`. No images. `/alerts` is unchanged.
+
+Bridge (port 8081): with `--fusion on`, or `--fusion auto` (default) once the detector has answered, `/telemetry` gains a `fusion` key, absent (not null) while fusion is inactive:
+
+```json
+"fusion": {
+  "hazards": [
+    {"class": "person", "source": "fused", "sensor": "ahead", "bearing_deg": -3.1, "distance_m": 0.98,
+     "band": "immediate", "confidence": 0.71, "camera_distance_m": 1.31, "tof_distance_m": 0.98, "tof_dt_ms": 12},
+    {"class": "obstacle", "source": "tof", "sensor": "right", "bearing_deg": 35.0, "distance_m": 0.62,
+     "band": "immediate", "confidence": null, "camera_distance_m": null, "tof_distance_m": 0.62, "tof_dt_ms": null}
+  ],
+  "age_ms": 80, "camera_fps": 14.8, "camera_age_ms": 160, "config": "fusion_config.json"
+}
+```
+
+`source` is `fused` (camera class, ToF distance), `camera` (no ToF match; camera estimate) or `tof` (ToF only, class `obstacle`, debounced over 3 readings). `band` is recomputed from `distance_m` with the detector's thresholds. Hazards are sorted nearest first. `camera_age_ms` is null when the detector is not answering (then only ToF obstacles appear). The same object is served at `GET /hazards` (503 while inactive). Every update is appended to `--fusion-log` (default `~/fusion_log.jsonl`) for test C9 (`BenchTest/TEST_PROCEDURES.md`).
+
+Dashboard use: none yet. The front-obstacle mapping of section 3 (`tof.ahead_mm`) stays as decided on 2 Oct. A later step could show the nearest `fused` or `tof` hazard with its class and side, once C9 has been run on the Pi.

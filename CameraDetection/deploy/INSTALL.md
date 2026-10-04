@@ -66,7 +66,7 @@ venv as the detector.
 Laptop PowerShell, from the repository root:
 
 ```
-scp -i ~/.ssh/pi4_camera_key CameraDetection/telemetry_bridge.py CameraDetection/tof_reader.py CameraDetection/deploy/telemetry-bridge.service ogeder@<pi-ip>:~/hazard_detector/
+scp -i ~/.ssh/pi4_camera_key CameraDetection/telemetry_bridge.py CameraDetection/tof_reader.py CameraDetection/sensor_fusion.py CameraDetection/fusion_config.json CameraDetection/deploy/telemetry-bridge.service ogeder@<pi-ip>:~/hazard_detector/
 ```
 
 Pi terminal:
@@ -87,6 +87,14 @@ every interface's broadcast address, so the dashboard can find the Pi 4 on
 any network (`DashboardIntegration/TELEMETRY_LINK.md` section 4.2). The
 status page `http://localhost:8081/` shows how many were sent and failed.
 Add `--no-beacon` to `ExecStart` to turn it off.
+
+The bridge imports `sensor_fusion.py` (camera and ToF fusion), so copy it
+with the bridge. With the detector running (`--preview`, as in its
+service), the bridge fuses its `/detections` with the ToF readings and
+adds a `fusion` block to `/telemetry` (also `GET /hazards`), and appends
+every update to `~/fusion_log.jsonl` (about 5 to 10 MB per hour). Add
+`--fusion-log ""` to `ExecStart` to stop the log, or `--fusion off` to
+turn fusion off. Geometry: `fusion_config.json` (TEST_PROCEDURES.md C9).
 
 Logs: `journalctl -u telemetry-bridge -f`. Stop the service before running
 `tof_reader.py` by hand, since both use the same sensors.
