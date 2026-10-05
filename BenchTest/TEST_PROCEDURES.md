@@ -171,10 +171,10 @@ say what each test is for and what counts as a pass.
 - F4. Person beyond ToF range: the tester on the axis at 2.5 m, 20 s. Log: `f4_person.jsonl`. Report: `fusion_report.py f4 f4_person.jsonl --tape 2.5 --class person --skip-s 3`. Pass: the person in at least 90% of updates, always source "camera", never fused; camera distance error recorded.
 - Commands (Pi): `sudo systemctl stop telemetry-bridge` (it holds the ToF sensors), check the detector with `curl -s localhost:8080/detections`, then for each step `cd ~/hazard_detector && mkdir -p ~/c9 && venv/bin/python3 telemetry_bridge.py --fusion on --no-beacon --fusion-log ~/c9/<step>.jsonl --duration 25`; afterwards `sudo systemctl start telemetry-bridge`. Laptop: `scp -i ~/.ssh/pi4_camera_key ogeder@<pi-ip>:~/c9/*.jsonl BenchTest/logs/<date>_c9/`, then the reports above.
 - Result: offline tests pass (4 Oct 2026); not yet run on the Pi.
+- First run on the Pi 4 (4 Oct 2026, before calibration, not the C9 test): detector /detections answering at 15.8 fps with the band thresholds and hfov 53.5; the bridge's fusion block live in /telemetry with no person in view, showing ToF-only "obstacle" hazards (e.g. ahead 0.125 m, band immediate) from objects on the bench. Fusion log off by default; C9 steps F1 to F4 not yet run.
 - Evidence: `BenchTest/logs/<date>_c9/` (fusion logs, report output, `fusion_config.json` as calibrated).
 
 ## Bench tools
-- First run on the Pi 4 (4 Oct 2026, before calibration, not the C9 test): detector /detections answering at 15.8 fps with the band thresholds and hfov 53.5; the bridge's fusion block live in /telemetry with no person in view, showing ToF-only "obstacle" hazards (e.g. ahead 0.125 m, band immediate) from objects on the bench. Fusion log off by default; C9 steps F1 to F4 not yet run.
 
 ### C8. YOLO comparison on the Pi 4 (planned)
 - Why: decide with measurements whether a YOLO model (boxes, or polygons with -seg) can replace or join SSD-MobileNet on the Pi 4, and what polygons cost.
