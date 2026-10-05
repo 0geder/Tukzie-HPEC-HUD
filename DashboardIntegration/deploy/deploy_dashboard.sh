@@ -52,7 +52,7 @@ if [ -n "$(git -C "$REPO" status --porcelain -- DashboardIntegration)" ]; then
     COMMIT="$COMMIT-dirty"
 fi
 
-FILES=("$INTEG"/*.py "$INTEG/tests/dashboard_patches.py" "$HERE/apply_patches.py" "$HERE/start_sw7_dashboard.sh" "$HERE/pi5_beacon.py")
+FILES=("$INTEG"/*.py "$INTEG/tests/dashboard_patches.py" "$HERE/apply_patches.py" "$HERE/start_sw7_dashboard.sh" "$HERE/pi5_beacon.py" "$HERE/sw7-dashboard.service")
 for f in "${FILES[@]}"; do
     [ -f "$f" ] || { echo "missing: $f" >&2; exit 1; }
 done
@@ -79,7 +79,7 @@ PY="$HOME/tukzie-env/bin/python"
 
 [ -d "$TEAM" ] || { echo "ERROR: $TEAM not found" >&2; exit 1; }
 [ "$OURS" != "$TEAM" ] || { echo "ERROR: build dir equals team dir" >&2; exit 1; }
-sed -i 's/\r$//' "$INT"/*.py "$INT"/*.sh
+sed -i 's/\r$//' "$INT"/*.py "$INT"/*.sh "$INT"/*.service
 
 our_pids() {
     # python processes of this user whose working directory is ~/Dashboard_sw7
@@ -166,6 +166,11 @@ if [ "$RESTART" = "1" ]; then
     fi
 else
     echo "Not restarted (--no-restart). Start with: ~/start_sw7_dashboard.sh &"
+fi
+if systemctl is-enabled --quiet tukzie.service 2>/dev/null || ! systemctl is-enabled --quiet sw7-dashboard.service 2>/dev/null; then
+    echo "BOOT: the team's tukzie.service still starts their dashboard at boot. To boot into ours, run on the Pi 5:"
+    echo "  sudo cp ~/sw7_integration/sw7-dashboard.service /etc/systemd/system/ && sudo systemctl daemon-reload"
+    echo "  sudo systemctl disable --now tukzie.service && sudo systemctl enable --now sw7-dashboard.service"
 fi
 echo "DEPLOYED_COMMIT=$(cat "$OURS/DEPLOYED_COMMIT")"
 REMOTE

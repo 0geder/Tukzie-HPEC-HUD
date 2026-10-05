@@ -1,0 +1,25 @@
+# SW-7 dashboard at boot on the Pi 5. The Pi 5 boots to a bare X display (lightdm, no
+# desktop session), so desktop autostart files never run; the team starts their build the
+# same way with /etc/systemd/system/tukzie.service. Install (the team unit file is not edited):
+#   sudo cp ~/sw7_integration/sw7-dashboard.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl disable --now tukzie.service
+#   sudo systemctl enable --now sw7-dashboard.service
+# Back to the team build: sudo systemctl disable --now sw7-dashboard.service && sudo systemctl enable --now tukzie.service
+[Unit]
+Description=SW-7 dashboard (Dashboard_sw7)
+After=graphical.target
+Wants=graphical.target
+Conflicts=tukzie.service
+
+[Service]
+Type=simple
+User=piadam
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/piadam/.Xauthority
+ExecStart=/bin/bash /home/piadam/start_sw7_dashboard.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target
