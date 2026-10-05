@@ -78,8 +78,8 @@ def probe_telemetry(host, port, timeout=3.0):
     return isinstance(d, dict) and "bridge" in d
 
 
-def listen_beacon(port=BEACON_PORT, wait_s=3.0):
-    """Wait for one SW-7 beacon. Returns (source address, payload dict),
+def listen_beacon(port=BEACON_PORT, wait_s=3.0, want="pi4"):
+    """Wait for one SW-7 beacon from the Pi given by want ("pi4" or "pi5"). Returns (source address, payload dict),
     or (None, reason) when none arrives or the port cannot be opened."""
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -104,7 +104,7 @@ def listen_beacon(port=BEACON_PORT, wait_s=3.0):
                 d = json.loads(data.decode("utf-8"))
             except ValueError:
                 continue
-            if isinstance(d, dict) and d.get("sw7") == "pi4":
+            if isinstance(d, dict) and d.get("sw7") == want:
                 return addr[0], d
     finally:
         s.close()
@@ -388,6 +388,9 @@ def find_pi5(args, name="pirate5"):
     block mDNS): the last address that worked, then every Raspberry Pi on the local
     network, identified by asking its hostname over ssh."""
     candidates = []
+    host, _ = listen_beacon(wait_s=4.0, want="pi5")   # the Pi 5 announces itself (pi5_beacon.py)
+    if host:
+        candidates.append(host)
     try:
         candidates.append(open(LAST_PI5_FILE).read().strip())
     except OSError:

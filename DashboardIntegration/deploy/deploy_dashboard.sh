@@ -52,7 +52,7 @@ if [ -n "$(git -C "$REPO" status --porcelain -- DashboardIntegration)" ]; then
     COMMIT="$COMMIT-dirty"
 fi
 
-FILES=("$INTEG"/*.py "$INTEG/tests/dashboard_patches.py" "$HERE/apply_patches.py" "$HERE/start_sw7_dashboard.sh")
+FILES=("$INTEG"/*.py "$INTEG/tests/dashboard_patches.py" "$HERE/apply_patches.py" "$HERE/start_sw7_dashboard.sh" "$HERE/pi5_beacon.py")
 for f in "${FILES[@]}"; do
     [ -f "$f" ] || { echo "missing: $f" >&2; exit 1; }
 done
