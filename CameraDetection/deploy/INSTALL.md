@@ -91,10 +91,10 @@ Add `--no-beacon` to `ExecStart` to turn it off.
 The bridge imports `sensor_fusion.py` (camera and ToF fusion), so copy it
 with the bridge. With the detector running (`--preview`, as in its
 service), the bridge fuses its `/detections` with the ToF readings and
-adds a `fusion` block to `/telemetry` (also `GET /hazards`), and appends
-every update to `~/fusion_log.jsonl` (about 5 to 10 MB per hour). Add
-`--fusion-log ""` to `ExecStart` to stop the log, or `--fusion off` to
-turn fusion off. Geometry: `fusion_config.json` (TEST_PROCEDURES.md C9).
+adds a `fusion` block to `/telemetry` (also `GET /hazards`). It logs
+nothing by default; for a C9 test session run the bridge by hand with
+`--fusion-log ~/c9/<step>.jsonl` (about 5 to 10 MB per hour). `--fusion off`
+turns fusion off. Geometry: `fusion_config.json` (TEST_PROCEDURES.md C9).
 
 Logs: `journalctl -u telemetry-bridge -f`. Stop the service before running
 `tof_reader.py` by hand, since both use the same sensors.

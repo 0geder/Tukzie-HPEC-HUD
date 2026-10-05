@@ -112,7 +112,7 @@ internet weather service (live, not simulated), and the location label "UCT".
 10.20.0.1, the source of the latest UDP beacon on port 50808 (not older than
 10 s), `pi4-camera.local`, and the last good host from
 `~/.config/sw7/last_pi4_host`. A host is accepted when `/telemetry` on port
-8081 answers within 1 s with valid JSON; 3 failed polls in a row start a new
+8081 answers within 3 s with valid JSON; 3 failed polls in a row start a new
 search. One resolver is shared by the provider and the camera page
 (`shared_resolver()`). The ride card shows "Pi 4: <host> (<how>)" or
 "Pi 4: searching". `TUKZIE_TELEMETRY_URL` and `TUKZIE_CAMERA_URL` bypass it.

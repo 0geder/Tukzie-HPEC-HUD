@@ -1,6 +1,6 @@
 # SW7 presentation: question preparation
 
-Likely questions from the examiners and the open day, with short answers based on the report, the test logs and the code (state on 1 October 2026). Where something has not been measured, the answer says so. Saying "not measured yet, and this is how I would measure it" is a strong answer; guessing a number is not.
+Likely questions from the examiners and the open day, with short answers based on the report, the test logs and the code (state on 5 October 2026). Where something has not been measured, the answer says so. Saying "not measured yet, and this is how I would measure it" is a strong answer; guessing a number is not.
 
 How to answer: give the number, say how it was measured, then state the limit. For example: "102 ms median, measured from the sensor's own readout timestamp over a one-minute run on the bench; not yet on the vehicle."
 
@@ -174,7 +174,16 @@ Will they work outdoors?
 Sunlight reduces time-of-flight range, and dark targets give fewer valid readings. A published characterisation of the VL53L5CX found the valid-reading rate dropping to 19 to 34% on black targets. This must be measured on the vehicle, not assumed.
 
 Do the camera and the time-of-flight sensors work together?
-Not yet. The idea: the camera says what and roughly where, the time-of-flight sensor gives a measured distance in its direction, so an object ahead seen by both gets a measured distance instead of the pinhole estimate.
+Yes in software, not yet validated on the Pi. Since 4 Oct the bridge on the Pi 4 fuses them: the camera gives the class and a bearing (from the box centre and the 53.5° field of view), and a detection whose bearing falls in a sensor's cone, with a ToF sample within 200 ms and in range, takes the ToF distance ("fused"). A sensor that sees something the camera does not, for three readings in a row, reports an "obstacle" on its own, which covers objects outside the detector's classes. 29 offline tests pass. The dashboard does not use the fused hazards yet.
+
+How will you validate the fusion?
+Test C9 in TEST_PROCEDURES.md, not yet run. First calibrate: the camera axis on a taped floor line, the field of view with a narrow target at the edges of the view at 0.8 m, and each sensor's cone by moving a 4 cm tube across in 2 cm steps. Then four checks: a person walking across at 1 m (bearing rises steadily, sensors in spatial order), a person standing at 0.5, 1.0 and 1.5 m on a tape (fused error 5 cm or less up to 1.0 m, camera only beyond 1.2 m), a box outside the camera's classes at 0.8 m (ToF obstacle), and a person at 2.5 m (camera only).
+
+What are its limits?
+The sensor angles are defaults (-35, 0, +35°, 12.5° half-angle, 1.2 m) until calibrated. With those, the side cones overlap the camera's view only at its edges (about the outer 9° each side), so most side objects can only be reported by ToF without a class. A ToF sensor reports the nearest surface in its cone, which need not be the object the camera saw, and there is no tracking between frames.
+
+Why is the fusion log off by default?
+Data minimisation, by design. The detector normally keeps five fields per alert with a coarse distance band. A continuous log of distances and bearings is more than the system needs, so the bridge writes it only when a path is given for a C9 session, and even then numbers only, no images.
 
 ## 9. Time synchronisation
 
@@ -211,7 +220,22 @@ Did you try YOLO?
 Yes, measured, not assumed. YOLO11n via NCNN on the Pi 4 (no PyTorch): 7.9 fps and 175 ms median from sensor to result at 320 input, against SSD-MobileNet's 19.5 fps and 102 ms. A pothole model trained in Colab reached 59.7% mAP@50 on its own test images but 0% on South African street images, so local training data and a higher-resolution crop of the road ahead are needed.
 
 Has it run on the real dashboard?
-Not yet. It was tested inside a copy of the dashboard's code on a laptop, against the live camera. Adding it to the dashboard needs four small edits to the dashboard team's files, which are left for that team to review.
+A separate copy of the team's v1.1 was made on the Pi 5 on 2 Oct with the edits of the time, and it ran there with the native map. The team's own copy is never changed: a deploy command makes a fresh copy, applies the edits (now 50, each must match exactly once or nothing is written) and starts it. A recorded end-to-end test on the Pi 5, telemetry unit to screen, is still to be made. The edits are listed for the dashboard team to review.
+
+What is live-only mode, and why?
+On 3 Oct the Pi 4 changed address (laptop hotspot to phone hotspot). The dashboard could not reach it and silently fell back to its simulator, so invented but plausible numbers were on screen. Earlier the battery showed 82%, the simulator's last value, before the BMS had reported. On a vehicle that is worse than showing nothing. With TUKZIE_LIVE_ONLY=1 (set by our start script) the simulation never runs: missing data shows "--" or "Unavailable", and losing data for 2.5 s goes back to that, never to simulation. Tested offscreen; not yet on the Pi 5 with the real bridge.
+
+How does the dashboard find the Pi 4?
+By itself, in order: localhost, an explicit override, the wired address 10.20.0.1 (planned Ethernet link), a UDP beacon the bridge broadcasts every 2 s on port 50808, pi4-camera.local, then the last address that worked. A host counts when /telemetry answers within 3 s (1 s failed on the phone hotspot). Three failed polls start a new search; empty searches back off from 2 to 30 s (the 2 s repeat had filled the Pi 5 log with 6,828 warnings). The ride card shows the host and how it was found.
+
+How do you know everything is up before a test?
+The pre-test check, sw7_check.py: Pi 4 found, camera fps, telemetry fresh, IMU rates, three ToF valid, services running, Pi 4 under-voltage flags, Pi 5 and dashboard in live-only mode; READY only if every critical item passes. It finds the Pi 5 even on a phone hotspot that drops pings, by scanning for open ssh ports and asking the hostname. 16 offline tests pass; the first result against the real system is not yet recorded.
+
+Why did the map crash, and what replaced it?
+Diagnosed over ssh on 2 Oct without touching the team's install: the web engine alone works, but the dashboard's Leaflet web map segfaults about 2 s after the dashboard is shown on the real display, with online or offline data. Python cannot catch a native crash, so it takes the whole dashboard down; and the web map was created in the background even in native mode. Our edit stops that. The team's native map only had vector roads, so I wrote a street-tile map without the web engine: OpenStreetMap tiles drawn with Qt, cached on disk (works offline where already driven), within the OSM tile policy (two requests at a time, identifying user agent, no bulk download), heading-up follow with smooth movement, "Waiting for GPS fix", and a REPLAY badge. Course and altitude come from firmware v0.7.1. Tested offscreen only, with a generated route along UCT roads that is clearly marked as a replay and is not recorded data; not yet run on the Pi 5.
+
+Anything else found on the Pi 5?
+The screen blanked after 600 s without a touch (X11 screensaver and power management), now turned off by the start script. The team measured their game-controller poller at about 53% of a core; the vehicle is touch only, so our start script switches it off.
 
 ## 11. Testing and engineering method
 
@@ -231,6 +255,9 @@ What would you do differently?
 Reach the vehicle earlier. Sample faster and decimate, to avoid aliasing. Use the IMU's FIFO from the start, so flash pauses never matter. Write the JSON encoder to handle missing values from day one.
 
 ## 12. Power, cost, mounting, environment
+
+What evidence is there for the power supply requirement?
+The Pi 4 must have a supply that does not sag: under-voltage makes it throttle the processor, which would cut the detector's frame rate (19.5 fps on the bench with no throttling, 30 Sep). The pre-test check reads the Pi 4's under-voltage and throttling flags every session so this is caught. A recorded under-voltage reading and its effect on the frame rate are not yet in the repo; record them in TEST_PROCEDURES T13 before quoting numbers.
 
 What is the power consumption?
 Not measured yet. The power budget is outstanding. The modem's transmit bursts and the Pi 4 (several watts under load) dominate. The plan is a DC-DC converter from the vehicle supply, and the current needs measuring on each rail.

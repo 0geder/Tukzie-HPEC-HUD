@@ -19,6 +19,27 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 ---
 
+## 2026-10-05
+
+Report and records caught up with 3 to 5 Oct work; Pi 5 announces itself.
+
+### (this commit) Report, test records and Q&A updated; stale docs fixed
+
+- `Report/Methodology.tex`: subsections on live-only mode, finding the Pi 4 and the pre-test check, the Pi 5 deploy and auto-start, firmware v0.7.1, the street-tile map and replay, and camera and ToF fusion; results recorded on 3 and 4 Oct (pre-test check READY with the Pi 4 under-voltage FAIL, deploy, first fusion run) replace "not yet recorded"; one eaten \ref repaired. Report 81 to 86 pages, 0 undefined references (built with MiKTeX pdflatex). `Report/appendixc.tex`: four evidence rows.
+- `BenchTest/TEST_PROCEDURES.md`: T11 v0.7.1 result, T13 real-system result, T14 planned, B3 to B5, C9 first run. `Presentation/SW7_QA_Prep.md`: answers on live-only, discovery, the pre-test check, the map, fusion, power.
+- `DashboardIntegration/TELEMETRY_LINK.md`, `README.md`, `CameraDetection/deploy/INSTALL.md`: probe timeout 3 s and back-off; fusion log off by default. Why: these said 1 s and log-on, which no longer matched the code.
+
+### (86a0a52) Pi 5 announces itself; pre-test check listens for it
+
+## 2026-10-04
+
+### (cf4c9e2) Camera and ToF sensor fusion on the Pi 4; fusion log off by default
+### (5a22e9e) Pre-test check finds Pirate5 by ssh scan
+### (b29c716) Street-tile map for the dashboard
+### (00d160d) Firmware v0.7.1: GNSS course and altitude; labelled GPS replay track
+
+---
+
 ## 2026-10-03
 
 Repo made uniform with the dashboard-integration scope; dashboard live-only mode, automatic Pi 4 finding and pre-test check; folders tidied.
