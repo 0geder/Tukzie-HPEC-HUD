@@ -127,6 +127,21 @@ cp "$INT/start_sw7_dashboard.sh" "$HOME/start_sw7_dashboard.sh"
 chmod +x "$HOME/start_sw7_dashboard.sh"
 echo "Installed ~/start_sw7_dashboard.sh"
 
+# Boot: the Pi 5 desktop is labwc (Wayland), which ignores ~/.config/autostart/*.desktop and
+# runs ~/.config/labwc/autostart, where the team's launcher is. Keep their file once as
+# autostart.team-backup (restore by copying it back), then point the line at our launcher.
+LABWC="$HOME/.config/labwc/autostart"
+if [ -f "$LABWC" ] && ! grep -q start_sw7_dashboard "$LABWC"; then
+    [ -f "$LABWC.team-backup" ] || cp "$LABWC" "$LABWC.team-backup"
+    sed -i 's#/home/piadam/start_dashboard.sh#/home/piadam/start_sw7_dashboard.sh#' "$LABWC"
+    grep -q start_sw7_dashboard "$LABWC" || echo "/home/piadam/start_sw7_dashboard.sh &" >> "$LABWC"
+    echo "labwc autostart now starts the SW-7 dashboard (team file kept as $LABWC.team-backup)"
+fi
+# Stop the team's dashboard if it is running, so only ours is on screen (their files are untouched).
+for p in $(pgrep -f "tukzie-env/bin/python main.py"); do
+    [ "$(readlink "/proc/$p/cwd")" = "$TEAM" ] && kill "$p" && echo "Stopped the team dashboard (pid $p) for this session"
+done
+
 if [ "$RESTART" = "1" ]; then
     setsid nohup "$HOME/start_sw7_dashboard.sh" >/dev/null 2>&1 < /dev/null &
     started=""

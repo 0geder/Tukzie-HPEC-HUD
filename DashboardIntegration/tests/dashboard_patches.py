@@ -318,9 +318,13 @@ LIVE_ONLY_PATCHES = (
      "float(getattr(raw,'speed_kmh',0) or 0)<1.0"),
     ("app/asis/coordinator.py",
      "        soc=float(getattr(raw,'soc_pct',self.defaults.start_soc_pct)) if raw else self.defaults.start_soc_pct\n",
-     "        if raw is not None and getattr(raw,'soc_pct',0) is None:\n"
-     "            raise ValueError('Battery level unknown (no live BMS data), so no energy forecast can be made.')\n"
-     "        soc=float(getattr(raw,'soc_pct',self.defaults.start_soc_pct)) if raw else self.defaults.start_soc_pct\n"),
+     "        soc_unknown = raw is not None and getattr(raw,'soc_pct',0) is None   # SW-7 live-only: no BMS reading yet\n"
+     "        soc=100.0 if soc_unknown else (float(getattr(raw,'soc_pct',self.defaults.start_soc_pct)) if raw else self.defaults.start_soc_pct)\n"),
+    # coordinator.py: the route is planned without a battery reading; the energy forecast then assumes a
+    # full battery and says so at the top of the warnings (a labelled assumption, not live data).
+    ("app/asis/coordinator.py",
+     "        warnings=[]\n        reserve=self.runtime.reserve_soc_pct\n",
+     "        warnings=['Battery level unknown (no live BMS data): energy figures assume a full battery'] if soc_unknown else []\n        reserve=self.runtime.reserve_soc_pct\n"),
 )
 
 VEHICLE_PATCHES = (
