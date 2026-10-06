@@ -17,6 +17,9 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### f7b465f Dashboard settings: finger-drag scrolling, plain wording, technical options behind Show advanced settings
+- DashboardIntegration/tests/dashboard_patches.py: SETTINGS_PATCHES (2 edits to app/pages/settings_page.py, 53 in all). QScroller finger-drag scrolling; route provider, ORS key, map engine, fallbacks, voice engine and kiosk options hidden behind "Show advanced settings"; plain labels (Voice alerts, Map follows the tuk-tuk, Repeat last warning, Colour theme). Why: on the touchscreen the page would not scroll and it showed developer options to the rider. Checked off-screen on the Pi 5 and deployed; not yet tried by touch.
+
 ### e4e69f3 Pi 5 boot: sw7-dashboard.service replaces the team's tukzie.service
 - DashboardIntegration/deploy/sw7-dashboard.service (new): systemd unit that runs ~/start_sw7_dashboard.sh at boot, Restart=on-failure. Why: the Pi 5 boots to a bare X display (lightdm, no desktop session), so desktop and labwc autostart files never run; the team's build was started by /etc/systemd/system/tukzie.service.
 - DashboardIntegration/deploy/deploy_dashboard.sh: copies the unit to ~/sw7_integration and prints the install commands while tukzie.service is still enabled.
