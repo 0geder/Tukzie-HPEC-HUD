@@ -17,6 +17,8 @@ Type=simple
 User=piadam
 Environment=DISPLAY=:0
 Environment=XAUTHORITY=/home/piadam/.Xauthority
+# Reach piadam's PulseAudio session; without it Qt finds no audio device and the voice is silent.
+Environment=XDG_RUNTIME_DIR=/run/user/1000
 ExecStart=/bin/bash /home/piadam/start_sw7_dashboard.sh
 Restart=on-failure
 RestartSec=5
