@@ -17,6 +17,11 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### Run 2 pothole model: South African band tiles
+- CameraDetection/training/runs/run2_sa_band_tiles_640/ (new): best.pt, NCNN models at 320 and 640, curves and record from the student's Colab run of 6 Oct (60 epochs, best epoch 54). Validation mAP@50 0.714 at 640 (P 0.811, R 0.623), 0.566 at 320, against 0.000 for run 1 on South African images. README states the limits: validation split (used for model selection), per tile, start weights not recorded, not yet on the Pi.
+- CameraDetection/training/make_notebook.py: cell 5 takes the test split from the dataset definition (it had fallen back to validation for run 2); new cell 5b scores run 2 on the held-out test tiles and prints the real start weights from args.yaml; cell 6 records start_weights from args.yaml instead of fixed text.
+- Report/Methodology.tex: run 2 results with the same caveats.
+
 ### Report diagrams (TikZ) and ToF robustness
 - Report/figures/tikz/ (new, 2c207bc): system_architecture, firmware_tasks (v0.7.1, replaces the v0.4.0 text-art figure), fusion_geometry (to scale from fusion_config.json) and pi4_discovery, with shared styles in sw7styles.tex (fixed 8.5 pt text, greyscale-safe palette, dashed amber for parts not yet working). Every element taken from the code or configuration; brief in Planning/report-diagrams-prompt.md. Report/Methodology.tex: figures inserted with references, plus a paragraph on the simulated drive. Report builds (90 pages, no errors or undefined references); the figure pages were rendered and checked.
 - CameraDetection/tof_reader.py and telemetry_bridge.py (cad1e57): a ToF sensor that does not answer is skipped and logged instead of disabling all three, and the bridge re-probes every 60 s while one is missing. Why: on 6 Oct the I2C bus showed only the left sensor (0x30) and nothing at 0x29 when the ahead one was woken, so the all-or-nothing start left all ToF data null. Tests pass; not yet deployed (the Pi 4 dropped off the network at the time).

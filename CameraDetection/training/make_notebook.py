@@ -231,7 +231,13 @@ code("""
 # 5. Accuracy on the held-out test split, at the training size and at 320 (the faster Pi setting)
 best = f'{RUN_DIR}/{NAME}/weights/best.pt'
 model = YOLO(best)
-split = 'test' if os.path.isdir('/content/dataset/test/images') else 'val'
+split = 'test' if os.path.isdir('/content/dataset/test/images') else 'val'   # Roboflow layout
+import yaml
+_d = yaml.safe_load(open(DATA_YAML))
+_test = os.path.join(_d.get('path') or os.path.dirname(DATA_YAML), str(_d.get('test') or ''))
+if _d.get('test') and os.path.isdir(_test):
+    split = 'test'     # the dataset's own held-out split (e.g. the South African tiles of cell 2g)
+print('scoring on the', split, 'split', '(validation: used to pick the best epoch, so optimistic)' if split == 'val' else '(held out)')
 results = {}
 for sz in (IMGSZ, 320):
     m = model.val(data=DATA_YAML, split=split, imgsz=sz, batch=16, plots=(sz == IMGSZ),
@@ -240,11 +246,29 @@ for sz in (IMGSZ, 320):
                    'precision': round(float(m.box.mp), 3), 'recall': round(float(m.box.mr), 3)}
     print(sz, results[sz])
 """),
+code(r"""
+# 5b. Score a finished run 2 on the held-out South African test tiles (605 frames the training never saw).
+#     For a new runtime: run 1, 2, 2b, 2d and 2g first (not 4b). Prints which weights training started from.
+import yaml
+from ultralytics import YOLO
+NAME = 'yolo11n_sa_band_tiles_640'
+args = yaml.safe_load(open(f'{RUN_DIR}/{NAME}/args.yaml'))
+print('training started from:', args.get('model'))
+m = YOLO(f'{RUN_DIR}/{NAME}/weights/best.pt')
+test_results = {}
+for sz in (640, 320):
+    r = m.val(data=SA_TILE_YAML, split='test', imgsz=sz, batch=16, plots=(sz == 640),
+              project=RUN_DIR, name=f'{NAME}_test{sz}', exist_ok=True)
+    test_results[sz] = {'mAP50': round(float(r.box.map50), 3), 'mAP50_95': round(float(r.box.map), 3),
+                        'precision': round(float(r.box.mp), 3), 'recall': round(float(r.box.mr), 3)}
+    print('TEST', sz, test_results[sz])
+"""),
 code("""
 # 6. Record settings and results for the report
-import json, ultralytics, torch, datetime
+import json, ultralytics, torch, datetime, yaml
+start_weights = yaml.safe_load(open(f'{RUN_DIR}/{NAME}/args.yaml')).get('model')   # what training really started from
 record = {'date': datetime.date.today().isoformat(), 'dataset': DATASET_URL, 'version': VERSION,
-          'model': 'yolo11n.pt (COCO-pretrained)', 'epochs_max': EPOCHS, 'imgsz': IMGSZ, 'batch': BATCH,
+          'model': 'YOLO11n', 'start_weights': start_weights, 'epochs_max': EPOCHS, 'imgsz': IMGSZ, 'batch': BATCH,
           'patience': PATIENCE, 'seed': 0, 'eval_split': split, 'results': results,
           'ultralytics': ultralytics.__version__, 'torch': torch.__version__,
           'gpu': torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'cpu'}
