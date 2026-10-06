@@ -17,6 +17,7 @@ v1.0-validated and v1.1.
 SETTINGS_PATCHES: finger-drag scrolling and a simpler Settings page (technical
 options behind "Show advanced settings"). Anchors checked in v1.1.
 LOGIN_PATCHES: skip the driver/PIN page when TUKZIE_SKIP_LOGIN=1.
+SENSORS_PATCHES: the Sensors page on the nav bar and the hazard banner over every page.
 PATCHES: all of them, in order (what the test and the deploy step apply).
 """
 
@@ -27,6 +28,7 @@ COPIES = (
     ("sw7_endpoints.py", "app/data/sw7_endpoints.py"),
     ("sw7_live_only.py", "app/data/sw7_live_only.py"),
     ("sw7_tile_map.py", "app/pages/sw7_tile_map.py"),
+    ("sensors_page.py", "app/pages/sensors_page.py"),
 )
 
 CAMERA_DRAWER = '''def camera(p,r,c):
@@ -397,6 +399,56 @@ SETTINGS_PATCHES = (
      SETTINGS_SIMPLIFY + "    def _offline_toggled(self, enabled):\n"),
 )
 
+SENSORS_DRAWER = '''def sensors(p,r,c):
+    _setup(p,c,max(1.6,r.width()*.065))
+    cx,by=r.center().x(),r.top()+r.height()*.80
+    p.drawEllipse(QPointF(cx,by),r.width()*.06,r.width()*.06)
+    for k in (.22,.36):
+        p.drawArc(QRectF(cx-r.width()*k,by-r.width()*k,2*r.width()*k,2*r.width()*k),45*16,90*16)
+
+
+'''
+
+SENSORS_PATCHES = (
+    # A Sensors page (sensors_page.py) on the nav bar, so every reading can be opened at any time, and a
+    # HazardBanner over every page: red for an "immediate" fusion hazard, amber when the bridge link is
+    # lost; tapping it opens the Sensors page. Anchors include text added by WIRING_PATCHES.
+    ("app/pages/dashboard_main.py",
+     "from .front_camera_page import FrontCameraPage\n",
+     "from .front_camera_page import FrontCameraPage\n"
+     "from .sensors_page import HazardBanner, SensorsPage\n"),
+    ("app/pages/dashboard_main.py",
+     "        self.front_camera = FrontCameraPage()\n",
+     "        self.front_camera = FrontCameraPage()\n"
+     "        self.sensors = SensorsPage()\n"),
+    ("app/pages/dashboard_main.py",
+     '            "settings": self.settings, "camera": self.front_camera,\n',
+     '            "settings": self.settings, "camera": self.front_camera, "sensors": self.sensors,\n'),
+    ("app/pages/dashboard_main.py",
+     '"navigation", "camera", "reverse", "charging", "settings"]\n',
+     '"navigation", "camera", "sensors", "reverse", "charging", "settings"]\n'),
+    ("app/pages/dashboard_main.py",
+     '"navigation", "camera", "charging", "settings"]\n',
+     '"navigation", "camera", "sensors", "charging", "settings"]\n'),
+    ("app/pages/dashboard_main.py",
+     '        self.telemetry.telemetry_updated.connect(self.diagnostics.ride_card.set_telemetry)\n',
+     '        self.telemetry.telemetry_updated.connect(self.diagnostics.ride_card.set_telemetry)\n'
+     '        self.telemetry.telemetry_updated.connect(self.sensors.set_telemetry)\n'
+     '        self.hazard_banner = HazardBanner(self, lambda: self.stack.currentWidget() is self.sensors)\n'
+     '        self.hazard_banner.open_sensors.connect(lambda: self.switch_page_id("sensors"))\n'
+     '        self.telemetry.telemetry_updated.connect(self.hazard_banner.set_telemetry)\n'),
+    ("app/widgets/nav_bar.py",
+     "    ('camera','camera','Front camera'),\n",
+     "    ('camera','camera','Front camera'),\n"
+     "    ('sensors','sensors','Sensors'),\n"),
+    ("app/widgets/icon_registry.py",
+     "DRAWERS: dict[str, DrawFn] = {\n",
+     SENSORS_DRAWER + "DRAWERS: dict[str, DrawFn] = {\n"),
+    ("app/widgets/icon_registry.py",
+     "    'speaker': speaker, 'camera': camera,\n",
+     "    'speaker': speaker, 'camera': camera, 'sensors': sensors,\n"),
+)
+
 LOGIN_PATCHES = (
     # main_window.py: with TUKZIE_SKIP_LOGIN=1 the startup splash goes straight to the dashboard, without
     # the driver and PIN page (bench work). start_sw7_dashboard.sh sets it; set it to 0 for the demo.
@@ -407,4 +459,4 @@ LOGIN_PATCHES = (
      "            return self._enter_dashboard(\"\")\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES

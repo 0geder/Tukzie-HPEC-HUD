@@ -17,6 +17,10 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### Sensors page and hazard banner (repo only, not yet deployed)
+- DashboardIntegration/sensors_page.py (new): SensorsPage (ToF gauges, fusion hazards, battery, GPS, motor, ride and link readings, "--" when missing) and HazardBanner (red over any page for an "immediate" fusion hazard, amber when the bridge link is lost for 5 s; tap opens Sensors, "Hide 30 s" snoozes). Why: the driver should reach every sensor reading at any time and be alerted in an emergency; ToF and fusion data were not shown anywhere on the dashboard.
+- DashboardIntegration/tests/dashboard_patches.py: SENSORS_PATCHES (9 edits; 63 in all) add the page, nav button, icon and banner. Tested off-screen on the Pi 5 against the live Pi 4 bridge (tests/sensors_page.png, tests/hazard_banner.png). Held back from the Pi 5 until the visual redesign (Research/DashboardDesign) is decided.
+
 ### d00b316 Dashboard: skip the PIN page on the bench
 - DashboardIntegration/tests/dashboard_patches.py: LOGIN_PATCHES (main_window.py _show_login goes straight to the dashboard when TUKZIE_SKIP_LOGIN=1). DashboardIntegration/deploy/start_sw7_dashboard.sh sets TUKZIE_SKIP_LOGIN=1. Why: entering the PIN on every restart slowed bench work; set it to 0 for the demo. Deployed and seen on the Pi 5 screen (splash then driving page).
 
