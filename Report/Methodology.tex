@@ -5,6 +5,15 @@
 
 Development followed a staged verification approach in which each hardware and software interface was tested before higher-level functions were introduced. This reduces the number of simultaneous fault sources and provides a traceable sequence from processor startup to cellular communication. The first stage established the microcontroller development environment. The second stage verified the hardware UART connection to the cellular modem. Sensor acquisition, task scheduling, storage, networking, and the driver display were added only after this baseline had been shown to operate repeatably.
 
+Figure~\ref{fig:system-architecture} shows the system as built on 6 October 2026, as an overview of the sections that follow: the telemetry unit, the Raspberry Pi~4 with the camera and the time-of-flight sensors, and the vehicle's existing dashboard on the Raspberry Pi~5, with the links between them and their rates.
+
+\begin{figure}[htbp]
+\centering
+\input{figures/tikz/system_architecture}
+\caption{The system as built on 6 October 2026. Programs are named by their files in the repository. Dashed outline: built but not yet connected on the vehicle.}
+\label{fig:system-architecture}
+\end{figure}
+
 \section{Embedded hardware baseline}
 
 The initial platform is the Makerfabs ESP32-S3 4G LTE CAT1 A7670X board. It combines an ESP32-S3-WROOM-1-N16R8 microcontroller with an A7670X LTE Cat-1 modem and provides 16\,MB flash memory, 8\,MB PSRAM, native USB, modem USB, a microSD-card interface, and GNSS capability \cite{makerfabsa7670x}. This integrated board was selected for the baseline because it permits the processor, modem, storage, and GNSS interfaces to be tested without constructing a separate modem carrier circuit.
@@ -134,36 +143,12 @@ The target sampling rate of 200\,Hz was derived from ISO~2631-1, which weights w
 
 Each inertial sensor is served by an identical acquisition task, parameterised by a small configuration structure (sensor identifier, output queue handle, sensor driver instance, and a readiness flag) so that the timing-critical code path exists once rather than being duplicated per sensor. The two sensors are connected on the ESP32-S3's two independent I\textsuperscript{2}C peripherals (one sensor per bus) rather than sharing a single bus, which avoids both an address collision (both sensors default to the same I\textsuperscript{2}C address) and bus-bandwidth contention between the two sampling streams.
 
-Figure~\ref{fig:task-architecture} summarises the resulting task layout.
+Figure~\ref{fig:task-architecture} shows the task layout as it stands in firmware v0.7.1, including the battery, motor-speed, ride-characterisation and dashboard-line tasks added in later sections.
 
-\begin{figure}[ht]
+\begin{figure}[htbp]
 \centering
-\begin{verbatim}
-Core 0                              Core 1
-------                              ------
-ModemTask                           Imu1Task  (200 Hz, priority 3)
-  - AT command sequence               |
-  - GNSS polling                    v
-  - serial bridge                  imu1Queue (bounded, 100 samples)
-                                       |
-                                    Imu2Task  (200 Hz, priority 3)
-                                       |
-                                       v
-                                    imu2Queue (bounded, 100 samples)
-                                       |
-                                    gnssQueue (bounded, 20 fixes)
-                                       |
-                                       v
-                                    StatsTask (priority 2)
-                                       - drains all three queues
-                                       - reports rate, jitter,
-                                         drop counts every 2 s
-                                       |
-                                    SyncTask (priority 2, 1 Hz)
-                                       - toggles a GPIO pulse
-                                       - logs its own edge times
-\end{verbatim}
-\caption{Task and queue architecture, firmware v0.4.0.}
+\input{figures/tikz/firmware_tasks}
+\caption{FreeRTOS tasks and queues in firmware v0.7.1. Priorities as set in the firmware (higher runs first); each queue is labelled with its name and capacity in items. Queues between the two cores are drawn in blue.}
 \label{fig:task-architecture}
 \end{figure}
 
@@ -604,7 +589,14 @@ On 3 October 2026 the Raspberry Pi~4 moved from the laptop's hotspot (192.168.13
 
 \subsubsection*{Finding the Raspberry Pi~4 on any network}
 \label{sec:pi4-discovery}
-No single address is reliable on a vehicle that may be tested on a laptop hotspot, a phone hotspot or a wired link, so the dashboard now finds the Raspberry Pi~4 by itself (\texttt{DashboardIntegration/sw7\_endpoints.py}; \texttt{TELEMETRY\_LINK.md}, section~4). One shared resolver serves both the camera page and the live-data provider. It tries, in order: the Raspberry Pi~5 itself (localhost), so that a single computer running everything needs no setup; an explicit override, if one is set; a fixed address on a planned Ethernet cable between the two computers (10.20.0.1 for the Raspberry Pi~4 and 10.20.0.2 for the Raspberry Pi~5, on a private subnet with no gateway so that Wi-Fi keeps internet access); the source address of a UDP broadcast beacon that the bridge sends every 2\,s on port 50808 (beacons older than 10\,s are ignored); the name \texttt{pi4-camera.local} through mDNS; and the last address that worked. A candidate is accepted when the bridge answers with valid JSON within 3\,s. The limit was first 1\,s, which failed on the phone hotspot on 3 October, where each round trip added 0.1 to 0.8\,s. Three failed polls in a row, about 1.5\,s, start a new search, and the ride card shows where the Raspberry Pi~4 was found and how (for example ``Pi~4: 10.20.0.1 (wired)'') or that it is searching. Empty searches first repeated every 2\,s and filled the Raspberry Pi~5's log with 6,828 lookup warnings on 3 October, so the wait now doubles to 2, 4, 8, 16 and at most 30\,s, while a beacon that arrives meanwhile is tried at once. The offscreen test checks the localhost, override and beacon steps, that an unrelated or old beacon is ignored, and that after the bridge stops the provider, the ride card and the camera page all follow the newly found host; it passes. The wired link has a setup script but its use on the vehicle is not yet recorded.
+No single address is reliable on a vehicle that may be tested on a laptop hotspot, a phone hotspot or a wired link, so the dashboard now finds the Raspberry Pi~4 by itself (\texttt{DashboardIntegration/sw7\_endpoints.py}; \texttt{TELEMETRY\_LINK.md}, section~4). One shared resolver serves both the camera page and the live-data provider. It tries, in order: the Raspberry Pi~5 itself (localhost), so that a single computer running everything needs no setup; an explicit override, if one is set; a fixed address on a planned Ethernet cable between the two computers (10.20.0.1 for the Raspberry Pi~4 and 10.20.0.2 for the Raspberry Pi~5, on a private subnet with no gateway so that Wi-Fi keeps internet access); the source address of a UDP broadcast beacon that the bridge sends every 2\,s on port 50808 (beacons older than 10\,s are ignored); the name \texttt{pi4-camera.local} through mDNS; and the last address that worked. A candidate is accepted when the bridge answers with valid JSON within 3\,s (Figure~\ref{fig:pi4-discovery}). The limit was first 1\,s, which failed on the phone hotspot on 3 October, where each round trip added 0.1 to 0.8\,s. Three failed polls in a row, about 1.5\,s, start a new search, and the ride card shows where the Raspberry Pi~4 was found and how (for example ``Pi~4: 10.20.0.1 (wired)'') or that it is searching. Empty searches first repeated every 2\,s and filled the Raspberry Pi~5's log with 6,828 lookup warnings on 3 October, so the wait now doubles to 2, 4, 8, 16 and at most 30\,s, while a beacon that arrives meanwhile is tried at once. The offscreen test checks the localhost, override and beacon steps, that an unrelated or old beacon is ignored, and that after the bridge stops the provider, the ride card and the camera page all follow the newly found host; it passes. The wired link has a setup script but its use on the vehicle is not yet recorded.
+
+\begin{figure}[htbp]
+\centering
+\input{figures/tikz/pi4_discovery}
+\caption{How the dashboard finds the Raspberry Pi~4 (\texttt{DashboardIntegration/sw7\_endpoints.py}). The same resolver serves the camera page and the live-data provider.}
+\label{fig:pi4-discovery}
+\end{figure}
 
 A pre-test check (\texttt{BenchTest/sw7\_check.py}) is run from the laptop or the Raspberry Pi~5 before a test session. It reports pass or fail for each item: the Raspberry Pi~4 found and how, the camera answering with its frame rate, telemetry fresh (record under 3\,s old), IMU rates and drops, all three time-of-flight sensors valid, the detector and bridge services running, the Raspberry Pi~4's under-voltage and throttling flags, the Raspberry Pi~5 reachable, and the dashboard running there with live-only mode set. It prints ``READY'' only if every critical item passes. Phone hotspots were found on 3 October to block mDNS and to drop pings between clients, so the check finds the Raspberry Pi~5 from a beacon that the Raspberry Pi~5 now sends, its last known address, the Raspberry Pis seen on the local network, and finally by scanning the local network for open ssh ports, confirming each candidate by asking its hostname over ssh. Its 16 offline tests pass. Against the real system on 4 October 2026, with the laptop on a phone hotspot, it reported ready: the Raspberry Pi~4 was found through its beacon, telemetry answered in 18\,ms with the telemetry unit's record 0.5\,s old, both inertial sensors at 200\,Hz, all three distance sensors reading, the camera answering, both services running, and the Raspberry Pi~5 running the integrated dashboard in live-only mode. It also failed one item: the Raspberry Pi~4 reported under-voltage and throttling at that moment and since boot, which matches the detector running at 6.1 frames per second against 19.5 on a proper supply, and shows that the supply rating is a requirement, not a detail. Earlier the same day the check had exposed three faults that it then guided the fixes for: a 1\,s probe timeout shorter than the hotspot's round trip, which was raised to 3\,s; the dashboard Raspberry Pi not found by name or ping, because the phone hotspot drops both between clients, so the Raspberry Pi~5 now announces itself and the check also scans for open ssh ports; and the camera detector not running after a reboot, which was then installed as a service.
 
@@ -638,6 +630,8 @@ Further changes followed bench use on 6 October, each a separate edit to the int
 Touch response was reported as slow. The panel's USB touch controller (WaveShare WS170120, handled by the X server's libinput driver) was read directly while 25 taps were made: in every tap the panel reported contact in the same instant as the first position, so the panel adds no measurable delay. Contacts lasted 200 to 640\,ms, and buttons in Qt act on release, so a long press reads as a slow response, and the visible pointer jumping to the finger adds to the impression. The processor was idle (load average 0.04), so drawing time has not been shown to matter. Acting on press in the navigation bar, hiding the pointer and timing a touch to the redraw are the next steps.
 
 On the Raspberry Pi~5 the street map loaded, and a destination entered on 6 October was routed by the online OSRM service (3.3\,km), but each new area appeared slowly, because tiles arrive two at a time over a phone or laptop hotspot. A prefetch program (\texttt{DashboardIntegration/tools/prefetch\_tiles.py}) caches the campus and the surrounding suburbs at zoom levels 11 to 16 only, since the tile policy forbids bulk downloads at zoom 17 and above, and it refuses large areas. Run on the Raspberry Pi~5 it saved 656 tiles (11.9\,MB) in 320\,s with none failed. Tiles at zoom 17 and above still load while driving; until they arrive the zoom 16 tile is scaled up.
+
+To show route guidance indoors, a simulated drive was added to the map on 6 October. With a planned route and no real position in the previous 10\,s, a button drives the vehicle marker along the route at 25\,km/h, one position a second as the GNSS gives, in the heading-up follow view, with the part already driven drawn as done. A label reading ``Simulated drive'', with the distance and time left, stays on the map the whole time, and nothing is written to the vehicle state, so speed, battery and the other pages keep showing real data or nothing; a real position stops it at once. Offscreen tests against the dashboard version installed on the Raspberry Pi~5 check each of these points. The team's route list and arrival estimate do not yet follow the simulated position.
 
 Voice advisories were silent. The two online speech engines the dashboard supports were not installed on the Raspberry Pi~5 and were added, but its only audio outputs are the two HDMI ports and the display offers no audio, so a speaker on USB or Bluetooth is still needed; voice output is untested. The Raspberry Pi~5 has 16\,GB of memory and an AI HAT+ accelerator (Hailo-8, 26 TOPS) fitted. On 6 October the accelerator did not appear on the PCI Express bus, because the external connector is not enabled in the boot configuration. With it working, the detector could run on the Raspberry Pi~5 at the camera's frame rate and the network link between the two computers would no longer be needed; this has not been tested.
 
@@ -678,7 +672,14 @@ The camera and the time-of-flight sensors are complementary. The camera says wha
 \end{enumerate}
 Hazards are sorted nearest first and served in the telemetry record and at a separate address. Since 6 October the dashboard's Sensors page lists them and its hazard banner shows the immediate ones (Section~\ref{sec:pi5-default}); the driving page's front-obstacle distance still comes from the forward sensor alone, as decided on 2 October.
 
-The sensor directions in the configuration are defaults, not measurements: left, ahead and right at $-35$, 0 and $+35$\textdegree, each with a 12.5\textdegree\ half-angle and a 1.2\,m range. They are to be calibrated on the bench before any result is claimed. With these defaults the side cones cover $-47.5$ to $-22.5$\textdegree\ and $22.5$ to $47.5$\textdegree, while the camera sees only $\pm 26.75$\textdegree, so the side sensors overlap the camera's view only at its edges (about the outer 9\textdegree\ of each side, gate included). Most objects to the side can therefore only be reported by the time-of-flight sensor alone, without a class. Other stated limitations: a time-of-flight sensor reports the nearest surface in its cone, which need not be the object the camera saw at that bearing, and detections are matched frame by frame without tracking.
+The sensor directions in the configuration are defaults, not measurements: left, ahead and right at $-35$, 0 and $+35$\textdegree, each with a 12.5\textdegree\ half-angle and a 1.2\,m range. They are to be calibrated on the bench before any result is claimed. With these defaults the side cones cover $-47.5$ to $-22.5$\textdegree\ and $22.5$ to $47.5$\textdegree, while the camera sees only $\pm 26.75$\textdegree, so the side sensors overlap the camera's view only at its edges (about the outer 9\textdegree\ of each side, gate included). Most objects to the side can therefore only be reported by the time-of-flight sensor alone, without a class (Figure~\ref{fig:fusion-geometry}).
+
+\begin{figure}[htbp]
+\centering
+\input{figures/tikz/fusion_geometry}
+\caption{Camera and time-of-flight geometry used by the fusion, top view to scale, forward up. The values are the configuration defaults, not yet calibrated. A detection is matched to a sensor when its bearing lies within that sensor's cone widened by the 5\textdegree\ gate.}
+\label{fig:fusion-geometry}
+\end{figure} Other stated limitations: a time-of-flight sensor reports the nearest surface in its cone, which need not be the object the camera saw at that bearing, and detections are matched frame by frame without tracking.
 
 By design, the bridge does not keep a log of fused hazards unless one is asked for. The detector's normal log holds five fields per alert with a coarse distance band, and a continuous record of distances and bearings would collect more than the system needs, so the fusion log is off by default and is switched on only for a validation session; even then it holds numbers only, no images.
 

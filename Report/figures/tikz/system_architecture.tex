@@ -1,0 +1,58 @@
+% System as built, 6 October 2026. Sources: TelemetryUnit/src/main.cpp (v0.7.1), CameraDetection/
+% telemetry_bridge.py, hazard_detector.py, tof_reader.py, sync_logger.py, DashboardIntegration/
+% live_data_provider.py, sw7_endpoints.py, TELEMETRY_LINK.md. Dashed amber = not yet working.
+\begin{tikzpicture}[x=1cm, y=1cm]
+  \def\tw{3.9cm}
+  % ---- telemetry unit ----
+  \node[swbox, text width=\tw] (a1) at (2.2,-1.5) {%
+    2 IMUs, MPU6050, I\textsuperscript{2}C, 200\,Hz each\\
+    GNSS receiver in the modem\\
+    Battery BMS over Bluetooth LE};
+  \node[swplanned, text width=\tw] (a0) at (2.2,-3.0) {Motor Hall tap through an optocoupler (not yet wired)};
+  \node[swbox, text width=\tw] (a2) at (2.2,-4.5) {FreeRTOS tasks:\\ ride features, dual-IMU fusion,\\ buffered log in flash};
+  \node[swbox, text width=\tw] (a3) at (2.2,-6.2) {LTE modem (A7670X)};
+  % ---- Raspberry Pi 4 ----
+  \node[swbox, text width=\tw] (b1) at (7.7,-0.9) {Camera, OV5647 NoIR};
+  \node[swbox, text width=\tw] (b2) at (7.7,-2.3) {\texttt{hazard\_detector.py}\\ :8080 video, alerts, detections};
+  \node[swbox, text width=\tw] (b4) at (7.7,-4.5) {\texttt{telemetry\_bridge.py} with \texttt{sensor\_fusion.py}\\ :8081 telemetry, UDP beacon :50808};
+  \node[swbox, text width=\tw] (b3) at (7.7,-6.2) {3 ToF sensors, VL53L0X, I\textsuperscript{2}C};
+  \node[swbox, text width=\tw] (b5) at (7.7,-7.5) {\texttt{sync\_logger.py}, GPIO17 edges};
+  % ---- Raspberry Pi 5 ----
+  \node[swbox, text width=\tw] (c3) at (13.2,-2.3) {Pages on the 1280\,$\times$\,800 touch screen: driving, Sensors, camera, map};
+  \node[swbox, text width=\tw] (c2) at (13.2,-4.5) {\texttt{live\_data\_provider.py}\\ polls every 0.5\,s};
+  \node[swbox, text width=\tw] (c1) at (13.2,-6.2) {\texttt{sw7\_endpoints.py}\\ finds the Raspberry Pi~4};
+  % ---- outside the vehicle ----
+  \node[swbox, draw=swGrey, fill=white, text width=\tw] (mq) at (2.2,-8.9) {Public MQTT test broker};
+  \node[swbox, draw=swGrey, fill=white, text width=\tw] (net) at (13.2,-0.6) {Internet: OpenStreetMap tiles, OSRM routes};
+
+  % ---- lanes (drawn behind) ----
+  \begin{scope}[on background layer]
+    \node[swlane, fit=(a1)(a0)(a2)(a3), minimum width=4.6cm] (la) {};
+    \node[swlane, fit=(b1)(b2)(b4)(b3)(b5), minimum width=4.6cm] (lb) {};
+    \node[swlane, fit=(c3)(c2)(c1), minimum width=4.6cm] (lc) {};
+  \end{scope}
+  \node[swlanetitle] at (la.north west) {Telemetry unit (ESP32-S3, v0.7.1)};
+  \node[swlanetitle] at (lb.north west) {Raspberry Pi~4};
+  \node[swlanetitle] at (lc.north west) {Raspberry Pi~5: dashboard};
+
+  % ---- links inside each unit ----
+  \draw[swflow] (a1) -- (a0);
+  \draw[swflow] (a0) -- (a2);
+  \draw[swflow] (a2) -- (a3);
+  \draw[swflow] (b1) -- (b2);
+  \draw[swflow] (b2) -- node[swlabel, right=1pt] {detections, 5\,Hz} (b4);
+  \draw[swflow] (b3) -- (b4);
+  \draw[swflow] (c1) -- node[swlabel, right=1pt] {address} (c2);
+  \draw[swflow] (c2) -- node[swlabel, right=1pt] {live state} (c3);
+  \draw[swflow] (net) -- (c3);
+
+  % ---- links between units ----
+  \draw[swlink] (a2.east) -- node[swlabel, above=2pt] {USB serial\\ \texttt{DASH} line, 1\,Hz} (b4.west);
+  \draw[swlink] ($(a2.east)+(0,-0.4)$) -- (4.95,-4.9) -- (4.95,-7.5) -- (b5.west);
+  \node[swlabel, rotate=90, anchor=south] at (4.95,-6.3) {sync pulse, 500\,ms};
+  \draw[swlink] ($(b4.east)+(0,0.15)$) -- node[swlabel, above=2pt] {Wi-Fi, HTTP} ($(c2.west)+(0,0.15)$);
+  \draw[swlink] (b2.east) -- node[swlabel, above=2pt] {video, alerts} (c3.west);
+  \draw[swlink, dashed] ($(b4.east)+(0,-0.3)$) -- (10.45,-4.8) -- (10.45,-6.2) -- (c1.west);
+  \node[swlabel, rotate=90, anchor=south] at (10.45,-5.62) {beacon, 2\,s};
+  \draw[swlink] (a3) -- node[swlabel, left=1pt] {MQTT over LTE,\\ every 10\,s} (mq);
+\end{tikzpicture}

@@ -1,0 +1,24 @@
+% Shared TikZ styles for the report's diagrams (Planning/report-diagrams-prompt.md).
+% Restrained palette that survives greyscale printing; dashed amber = planned or not yet working.
+% Text is a fixed 8.5 pt so a figure looks the same in its standalone preview and in the 11 pt report.
+\usetikzlibrary{positioning, arrows.meta, calc, fit, backgrounds, shapes.geometric, angles, quotes}
+\providecommand\swfont{\fontsize{8.5}{10}\selectfont}
+\definecolor{swInk}{HTML}{1F2A37}
+\definecolor{swBlue}{HTML}{1F4E79}
+\definecolor{swBlueFill}{HTML}{E9F0F8}
+\definecolor{swAmber}{HTML}{A85400}
+\definecolor{swAmberFill}{HTML}{FFF4E5}
+\definecolor{swGrey}{HTML}{6B7280}
+\definecolor{swGreyFill}{HTML}{F4F5F7}
+\definecolor{swGreen}{HTML}{2E6B3F}
+\tikzset{
+  swbox/.style={draw=swBlue, fill=swBlueFill, rounded corners=2pt, line width=0.6pt, align=center,
+    font=\swfont, text=swInk, inner sep=3pt, minimum height=7mm,
+    execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
+  swplanned/.style={swbox, draw=swAmber, fill=swAmberFill, dashed},
+  swlane/.style={draw=swGrey, fill=swGreyFill, rounded corners=4pt, line width=0.5pt, inner sep=5pt},
+  swlanetitle/.style={font=\swfont\bfseries, text=swInk, anchor=south west, inner sep=2pt},
+  swflow/.style={-{Stealth[length=2.2mm, width=1.6mm]}, line width=0.7pt, draw=swInk},
+  swlink/.style={swflow, draw=swBlue, line width=0.9pt},
+  swlabel/.style={font=\swfont, text=swInk, fill=white, inner sep=1.2pt, align=center},
+}

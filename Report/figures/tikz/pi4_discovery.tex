@@ -1,0 +1,23 @@
+% How the dashboard finds the Raspberry Pi 4. Source: DashboardIntegration/sw7_endpoints.py
+% (candidate order, PROBE_TIMEOUT_MS = 3000, FAILURES_BEFORE_REPROBE = 3, MAX_RETRY_MS = 30000),
+% telemetry_bridge.py (beacon every 2 s on UDP 50808), live_data_provider.py (POLL_MS = 500).
+\begin{tikzpicture}[x=1cm, y=1cm]
+  \def\w{1.8cm}
+  \node[swbox, text width=\w] (k1) at (1.25,0) {1. localhost\\ (one computer)};
+  \node[swbox, text width=\w, right=0.32cm of k1] (k2) {2. override\\ (set by hand)};
+  \node[swbox, text width=\w, right=0.32cm of k2] (k3) {3. wired link\\ 10.20.0.1};
+  \node[swbox, text width=\w, right=0.32cm of k3] (k4) {4. beacon\\ UDP 50808};
+  \node[swbox, text width=2.75cm, right=0.32cm of k4] (k5) {5. mDNS name\\ \texttt{pi4-camera.local}};
+  \node[swbox, text width=\w, right=0.32cm of k5] (k6) {6. last address\\ that worked};
+  \foreach \a/\b in {k1/k2, k2/k3, k3/k4, k4/k5, k5/k6} \draw[swflow] (\a) -- (\b);
+  \begin{scope}[on background layer]
+    \node[swlane, fit=(k1)(k6), inner sep=6pt] (search) {};
+  \end{scope}
+  \node[swlanetitle] at (search.north west) {Search, in this order; a candidate is accepted when it returns valid telemetry within 3\,s};
+  \node[swbox, text width=4.6cm] (use) at (3.0,-2.6) {Connected: poll every 0.5\,s,\\ save the address as the last that worked};
+  \node[swbox, text width=4.6cm] (wait) at (11.6,-2.6) {Nothing answered:\\ wait 2, 4, 8, 16, then 30\,s at most};
+  \draw[swflow] (search.south -| use.north) -- node[swlabel, right=2pt] {first valid reply} (use.north);
+  \draw[swflow] (k6.south |- search.south) -- node[swlabel, left=2pt] {none replied} (k6.south |- wait.north);
+  \draw[swflow] (use.west) -- ++(-0.6,0) |- node[swlabel, pos=0.25, right=3pt, align=left] {3 failed polls\\ in a row, about 1.5\,s} (search.west);
+  \draw[swflow] (wait.west) -- ++(-0.9,0) |- node[swlabel, pos=0.3, left=2pt] {search again} (search.south -| 9.0,0);
+\end{tikzpicture}

@@ -1,0 +1,47 @@
+% Camera and ToF geometry used by the fusion, top view, to scale (1 m = 2.4 cm), forward up.
+% Source: CameraDetection/fusion_config.json (defaults, not yet calibrated): camera_hfov_deg 53.5,
+% gate_deg 5, sensors left/ahead/right at -35/0/+35 deg, half_angle_deg 12.5, max_range_m 1.2.
+% TikZ angle = 90 - bearing (bearing is clockwise from the camera axis, negative = left).
+% All sensors are drawn at one point: the configuration holds bearings only, not mounting offsets.
+\begin{tikzpicture}[x=2.4cm, y=2.4cm, >=Stealth]
+  \def\R{1.2}
+  \def\C{2.6}
+  % camera field of view, +-26.75 deg
+  \fill[swGreyFill] (0,0) -- (116.75:\C) arc[start angle=116.75, end angle=63.25, radius=\C] -- cycle;
+  \draw[swGrey, line width=0.6pt] (116.75:\C) -- (0,0) -- (63.25:\C);
+  % ToF cones, +-12.5 deg, 1.2 m
+  \foreach \b in {-35, 0, 35} {
+    \pgfmathsetmacro{\a}{90-\b}
+    \filldraw[draw=swBlue, fill=swBlueFill, line width=0.6pt, fill opacity=0.9]
+      (0,0) -- (\a+12.5:\R) arc[start angle=\a+12.5, end angle=\a-12.5, radius=\R] -- cycle;
+  }
+  % where a side cone overlaps the camera view: bearings 22.5 to 26.75 (the gate adds 5 deg more for matching)
+  \filldraw[draw=swAmber, fill=swAmberFill, line width=0.6pt]
+    (0,0) -- (116.75:\R) arc[start angle=116.75, end angle=112.5, radius=\R] -- cycle;
+  \filldraw[draw=swAmber, fill=swAmberFill, line width=0.6pt]
+    (0,0) -- (67.5:\R) arc[start angle=67.5, end angle=63.25, radius=\R] -- cycle;
+  % gate edges: the ahead cone widened to +-17.5 deg, which is also where the side cones' gates end
+  \draw[swBlue, dashed, line width=0.5pt] (107.5:\R) -- (0,0) -- (72.5:\R);
+  % range arcs
+  \draw[swInk, densely dotted] (140:\R) arc[start angle=140, end angle=40, radius=\R];
+  \node[swlabel, fill=none, anchor=west] at (40:\R) {1.2\,m, ToF range};
+  % labels
+  \node[swlabel, fill=none] at (90:\C+0.12) {camera view, 53.5\textdegree};
+  \node[swlabel, fill=none, anchor=south east] at (125:\R+0.08) {left, $-35$\textdegree};
+  \node[swlabel, fill=none, anchor=south] at (90:\R+0.08) {ahead, 0\textdegree};
+  \node[swlabel, fill=none, anchor=south west] at (55:\R+0.08) {right, $+35$\textdegree};
+  % vehicle front and scale bar
+  \fill[swInk] (0,0) circle (0.03);
+  \node[swlabel, fill=none, anchor=north] at (0,-0.04) {camera and ToF sensors};
+  \draw[swInk, line width=0.6pt] (1.75,0) -- (1.75,1) node[midway, swlabel, fill=none, right=1pt] {1\,m};
+  \draw[swInk] (1.71,0) -- (1.79,0) (1.71,1) -- (1.79,1);
+  % legend
+  \begin{scope}[shift={(-1.55,-0.42)}]
+    \filldraw[draw=swBlue, fill=swBlueFill] (0,0) rectangle (0.12,0.08);
+    \node[swlabel, fill=none, anchor=west] at (0.15,0.04) {ToF cone, $\pm$12.5\textdegree};
+    \draw[swBlue, dashed] (1.18,0.04) -- (1.32,0.04);
+    \node[swlabel, fill=none, anchor=west] at (1.35,0.04) {cones widened by the 5\textdegree\ matching gate};
+    \filldraw[draw=swAmber, fill=swAmberFill] (0,-0.17) rectangle (0.12,-0.09);
+    \node[swlabel, fill=none, anchor=west] at (0.15,-0.13) {side cone inside the camera view};
+  \end{scope}
+\end{tikzpicture}

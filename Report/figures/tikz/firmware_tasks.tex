@@ -1,0 +1,39 @@
+% FreeRTOS tasks and queues, firmware v0.7.1. Source: TelemetryUnit/src/main.cpp, setup() (queues
+% lines 2376 to 2381, tasks lines 2391 to 2411); StatsTask reports every 2 s, SyncTask toggles every
+% 500 ms, the ride windows are 1 s (RIDE_WINDOW_SAMPLES = 200), ModemTask polls GNSS every 3 s and
+% builds, logs and publishes the telemetry record every 10 s.
+\begin{tikzpicture}[x=1cm, y=1cm]
+  \def\tw{4.0cm}
+  \def\tn{2.6cm}
+  % ---- core 0 ----
+  \node[swbox, text width=\tw] (modem) at (2.4,-1.1) {\textbf{ModemTask}, priority 1\\ AT commands; GNSS every 3\,s;\\ every 10\,s: flash log and MQTT};
+  \node[swbox, text width=\tw] (bms) at (2.4,-3.0) {\textbf{BmsTask}, priority 1\\ battery frames over BLE};
+  \node[swbox, text width=\tw] (hall) at (2.4,-4.6) {\textbf{HallTask}, priority 1\\ pulse counter, read every 1\,s};
+  \node[swbox, text width=\tw] (dash) at (2.4,-6.2) {\textbf{DashTask}, priority 1\\ \texttt{DASH} line on USB, every 1\,s};
+  % ---- core 1 ----
+  \node[swbox, text width=3.6cm] (stats) at (10.6,-1.1) {\textbf{StatsTask}, priority 2\\ rates, jitter, drops every 2\,s};
+  \node[swbox, text width=\tn] (imu1) at (7.6,-3.0) {\textbf{Imu1Task}\\ priority 3, 200\,Hz};
+  \node[swbox, text width=\tn] (imu2) at (13.6,-3.0) {\textbf{Imu2Task}\\ priority 3, 200\,Hz};
+  \node[swbox, text width=\tn] (ride1) at (7.6,-4.9) {\textbf{RideChar1Task}\\ priority 1, 1\,s windows};
+  \node[swbox, text width=\tn] (ride2) at (13.6,-4.9) {\textbf{RideChar2Task}\\ priority 1, 1\,s windows};
+  \node[swbox, fill=white, text width=3.6cm] (fuse) at (10.6,-6.4) {Dual-IMU fusion: pairs the two windows};
+  \node[swbox, text width=3.6cm] (sync) at (10.6,-7.8) {\textbf{SyncTask}, priority 2\\ toggles GPIO15 every 500\,ms};
+  % ---- lanes ----
+  \begin{scope}[on background layer]
+    \coordinate (t0) at (0.3,-0.25); \coordinate (b0) at (0.3,-8.45);
+    \coordinate (t1) at (6.2,-0.25); \coordinate (b1) at (6.2,-8.45);
+    \node[swlane, fit=(modem)(bms)(hall)(dash)(t0)(b0)] (c0) {};
+    \node[swlane, fit=(stats)(imu1)(imu2)(ride1)(ride2)(fuse)(sync)(t1)(b1)] (c1) {};
+  \end{scope}
+  \node[swlanetitle] at (c0.north west) {Core 0: communication};
+  \node[swlanetitle] at (c1.north west) {Core 1: acquisition and processing};
+  % ---- queues (labels give name and capacity) ----
+  \draw[swflow] (imu1.north) -- node[swlabel, pos=0.45, left=2pt] {\texttt{imu1Queue}, 100} (stats.south west);
+  \draw[swflow] (imu2.north) -- node[swlabel, pos=0.45, right=2pt] {\texttt{imu2Queue}, 100} (stats.south east);
+  \draw[swflow] (imu1) -- node[swlabel, right=2pt] {\texttt{imu1CharQueue}, 400} (ride1);
+  \draw[swflow] (imu2) -- node[swlabel, left=2pt] {\texttt{imu2CharQueue}, 400} (ride2);
+  \draw[swflow] (ride1.south) |- (fuse.west);
+  \draw[swflow] (ride2.south) |- (fuse.east);
+  \draw[swlink] ($(modem.east)+(0,0.25)$) -- node[swlabel, above=1pt] {\texttt{gnssQueue}, 20} ($(stats.west)+(0,0.25)$);
+  \draw[swlink] (bms.east) -- (5.45,-3.0) |- node[swlabel, pos=0.75, below=1pt] {\texttt{bmsQueue}, 20} ($(stats.west)+(0,-0.25)$);
+\end{tikzpicture}
