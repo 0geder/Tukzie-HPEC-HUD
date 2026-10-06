@@ -66,9 +66,18 @@ def open_sensors(single, handles=None):
     for name in XSHUT:
         pins[name].value = True        # wake this one only
         time.sleep(0.05)
-        s = adafruit_vl53l0x.VL53L0X(i2c)
-        s.set_address(ADDRESSES[name])
+        try:
+            s = adafruit_vl53l0x.VL53L0X(i2c)
+            s.set_address(ADDRESSES[name])
+        except (ValueError, OSError, RuntimeError) as e:
+            # One sensor not answering (loose wire, dead board) must not take the other two
+            # down with it: hold it off so it cannot sit at 0x29, and carry on without it.
+            pins[name].value = False
+            print("ToF %s not answering (%s: %s); continuing without it" % (name, type(e).__name__, e))
+            continue
         sensors[name] = s
+    if not sensors:
+        raise ValueError("no ToF sensor answered")
     return sensors
 
 

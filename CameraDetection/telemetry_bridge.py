@@ -94,6 +94,7 @@ DASH_PREFIX = "DASH "
 MAX_LINE_BYTES = 4096        # a line longer than this with no newline is dropped (contract max is 400)
 SERIAL_RETRY_S = 2.0         # wait between attempts to open a missing serial port
 TOF_RETRY_S = 5.0            # wait between attempts to open the ToF sensors
+TOF_REPROBE_S = 60.0         # with a sensor missing, reopen all three this often so a reseated one comes back
 TOF_NAMES = ("left", "ahead", "right")
 BEACON_PORT = 50808          # TELEMETRY_LINK.md 4.2
 BEACON_INTERVAL_S = 2.0
@@ -418,17 +419,27 @@ class TofReader(threading.Thread):
 
     def _run_real(self):
         last_error = None
+        last_open = None
         while not self.stop.is_set():
             handles = []
             sensors = None
+            reprobe = False
             try:
                 sensors = tof_reader.open_sensors(False, handles)
                 for s in sensors.values():
                     s.start_continuous()
-                print("ToF sensors open: %s" % ", ".join(sensors))
+                missing = [n for n in TOF_NAMES if n not in sensors]
+                desc = ", ".join(sensors) + ("; missing: " + ", ".join(missing) if missing else "")
+                if desc != last_open:
+                    print("ToF sensors open: %s" % desc)
+                    last_open = desc
                 last_error = None
+                opened = time.monotonic()
                 while not self.stop.is_set():
                     self.state.set_tof({n: tof_reader.clean_mm(s.range) for n, s in sensors.items()})
+                    if missing and time.monotonic() - opened >= TOF_REPROBE_S:
+                        reprobe = True        # look for the missing sensor again
+                        break
                     self.stop.wait(self.period_s)
             except Exception as e:   # ImportError, OSError, RuntimeError, ValueError from Blinka
                 msg = "%s: %s" % (type(e).__name__, e)
@@ -439,7 +450,8 @@ class TofReader(threading.Thread):
                 self.state.set_tof(None)
             finally:
                 self._release(sensors, handles)
-            self.stop.wait(TOF_RETRY_S)
+            if not reprobe:
+                self.stop.wait(TOF_RETRY_S)
 
 
 # Beacon ---------------------------------------------------------------------
