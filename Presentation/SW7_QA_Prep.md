@@ -237,6 +237,27 @@ Diagnosed over ssh on 2 Oct without touching the team's install: the web engine 
 Anything else found on the Pi 5?
 The screen blanked after 600 s without a touch (X11 screensaver and power management), now turned off by the start script. The team measured their game-controller poller at about 53% of a core; the vehicle is touch only, so our start script switches it off.
 
+Is the camera and ToF fusion actually working?
+Running, not yet validated. On 6 Oct, before calibration, the live record showed a fused hazard: person, ahead sensor, camera estimate 0.874 m, ToF 0.096 m, reported 0.096 m, immediate. That shows the matching works on live data and why it matters: the uncalibrated camera distance was off by almost 0.8 m at close range. The proof is test C9 (calibrate the cones and focal length, then walk across, stand at 0.5/1.0/1.5 m against a tape, a box outside the camera's classes, a person beyond ToF range). Until C9 is run I do not claim an accuracy.
+
+Where does the driver see the ToF and the fused hazards?
+On the Sensors page (three distance gauges, amber under 1.0 m, red under 0.5 m, hazards nearest first, battery, GPS, ride and link) and in a red banner that appears over any page for an immediate hazard, or amber if the link to the Pi 4 is lost for 5 s. Tapping the banner opens the Sensors page. Tested offscreen against the live bridge, deployed 6 Oct, not yet checked by touch on the vehicle.
+
+Is your dashboard actually the one that runs on the trike?
+Yes, since 6 Oct. The Pi 5 boots to a bare X display, so desktop auto-start files are never read; the team's build was started by a system service. Ours now has an equivalent service and theirs is disabled, with their files untouched, so one command switches back. After a restart ours came up under the new service.
+
+The touch felt slow. Why?
+Measured, not guessed: reading the touch controller directly over 25 taps, it reports contact in the same instant as the first position, so the panel adds no delay. Taps lasted 200 to 640 ms and Qt buttons act on release, so a long press feels slow; the visible pointer adds to it. Fixes: act on press in the nav bar, hide the pointer, then time touch to redraw.
+
+How do you know the display is safe to glance at?
+I don't yet, which is why glance time is still open. The design review uses published figures: NHTSA's 2 s single glance and 12 s per task, ISO 15008 character size of 20 arc minutes (about 24 px capital height at 70 cm on this panel), contrast of at least 7:1 for values read while moving, touch targets of 10 mm or more (Euro NCAP 2026), and parked-only analytics because NHTSA counts waiting at a light as driving.
+
+Why did the pothole model need retraining?
+Run 1 scored 59.7 % mAP@50 on its own test set but 0.000 on South African street footage: whole frames shrink a median pothole to about 17 by 4.5 px. Run 2 crops the road band (42 to 68 % of the height) into three tiles, so a median pothole is about 50 by 13 px, and fine-tunes from run 1. Results pending.
+
+What is the AI HAT on the Pi 5 for?
+A Hailo-8 accelerator (26 TOPS). It would let the detector run on the Pi 5 at the camera's frame rate and remove the Wi-Fi hop between the two Pis. Fitted but not yet enumerated (external PCIe not enabled); untested.
+
 ## 11. Testing and engineering method
 
 What was your method?
@@ -297,3 +318,7 @@ Be ready to say these plainly:
 | Battery | 74.78 V, 60%, signal −88 to −93 dBm |
 | Time-of-flight | 3 sensors, about 31 readings/s each |
 | Dashboard | live view in 0.6 s; person alert listed in 0.5 s |
+| First fused hazard | camera 0.874 m, ToF 0.096 m, reported 0.096 m (before calibration) |
+| Touch panel | contact reported with the first position (no panel delay); taps 200 to 640 ms |
+| Map prefetch | 656 tiles, 11.9 MB, 320 s, zoom 11 to 16 |
+| Glance rules | 2 s single glance, 12 s per task (NHTSA); 20 arcmin text (ISO 15008) |

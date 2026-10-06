@@ -142,7 +142,7 @@ yR += h5 + GAP;
 let h6 = H - 3.1 - yR;
 b = panel(6, "Conclusions and next steps", XR, yR, h6);
 bullets([
-  "Every subsystem runs together on the target board; camera alerts reach the existing dashboard in about 0.1 s.",
+  "Every subsystem runs together on the target board; camera and distance hazards are fused and shown live on the existing dashboard (Pi 5).",
   "Next: mount on the trike, recalibrate in place, and run the field test for the ride and latency questions.",
 ], b, h6 - 2.5, 27);
 

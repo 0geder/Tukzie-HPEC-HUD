@@ -2,7 +2,7 @@
 
 Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here.
 
-12 slides, 10 minutes plus questions. 1488 words in total, about 9.9 minutes at 150 words a minute.
+12 slides, 10 minutes plus questions. 1546 words in total, about 10.3 minutes at 150 words a minute.
 
 ## Slide 1: Title (92 words)
 
@@ -44,10 +44,10 @@ Three more bench results. Timing: the Pi now takes each sync edge's time from th
 
 The camera's role grew, on supervisor direction, from a visual record to hazard awareness. I designed and 3D printed the three-part casing on the left, with a 30 degree corner mount. The detector is a pretrained 8-bit SSD-MobileNet sized for the Pi 4, with no training of my own. Using all four cores it runs at 19.5 frames per second, with a median of 102 milliseconds from the sensor to a result. With the three-frame debounce an alert comes about 0.2 seconds after an object appears, about 1.7 metres at 30 kilometres per hour. An alert clears only after five empty frames, which stopped one person producing 16 alerts in 47 seconds. Only five fields are logged and no frame is stored. For close range, three time-of-flight sensors stand in until the 8 by 8 zone sensor arrives.
 
-## Slide 11: Hazard alerts on the existing dashboard (126 words)
+## Slide 11: Hazard alerts on the existing dashboard (176 words)
 
-This is where RQ2 now lands. Instead of a separate windshield display, I wrote a camera page for the dashboard the TUKZIE team already runs. Three reasons: that dashboard already carries what a HUD would show, two displays compete for the driver's attention, and the programme's move towards autonomy makes the camera's alerts more useful than a second screen. The page shows the live view and the active alerts in the dashboard's own status colours. Tested against the live camera, it showed video 0.6 seconds after opening, listed this person alert half a second after opening, and switched to an offline state within a second of the camera stopping. The glance-time question is still open, and so is running it on the dashboard's own Pi 5.
+This is where RQ2 now lands. Instead of a separate windshield display, I wrote a camera page for the dashboard the TUKZIE team already runs. Three reasons: that dashboard already carries what a HUD would show, two displays compete for the driver's attention, and the programme's move towards autonomy makes the camera's alerts more useful than a second screen. It now runs as the default dashboard on the team's Pi 5, in a separate copy so their own build is untouched. The Pi 4 sends the ESP32, distance-sensor and camera data over Wi-Fi twice a second, and the dashboard shows only real values, with dashes where data is missing. This Sensors page shows the three distance sensors and the fused hazards: here the camera recognises an object and the distance sensor gives its range. If anything is in the immediate band, a red banner appears over whichever page the driver is on. What's still open is the glance-time check on the vehicle, and a design review against the NHTSA two-second rule and the ISO legibility standard.
 
-## Slide 12: Conclusions and next steps (123 words)
+## Slide 12: Conclusions and next steps (131 words)
 
-To conclude. Every subsystem runs together on the target board: two IMUs at 200 hertz with no loss, calibrated and fused; GNSS within about 3 metres; the battery read over Bluetooth; a cellular link that recovers by itself; a full local log; and camera alerts in about a tenth of a second, shown on the existing dashboard. Each fault was found by a test with a stated pass criterion, then fixed and tested again. What's left is the vehicle: mount and recalibrate the unit in place, then the field test that answers the ride and latency questions on the move, calibrate the camera's distance bands, and fit the zoned distance and air-quality sensors when they arrive. Thank you, I'm happy to take questions.
+To conclude. Every subsystem runs together on the target board: two IMUs at 200 hertz with no loss, calibrated and fused; GNSS within about 3 metres; the battery read over Bluetooth; a cellular link that recovers by itself; a full local log; camera alerts in about a tenth of a second; and the camera and distance sensors fused and shown live on the existing dashboard. Each fault was found by a test with a stated pass criterion, then fixed and tested again. What's left is the vehicle: mount and recalibrate the unit in place, then the field test that answers the ride and latency questions on the move, calibrate and validate the fusion, and fit the zoned distance and air-quality sensors when they arrive. Thank you, I'm happy to take questions.

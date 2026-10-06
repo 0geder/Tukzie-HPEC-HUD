@@ -354,11 +354,12 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   const s = content("Hazard alerts on the existing dashboard",
     "This is where RQ2 now lands. Instead of a separate windshield display, I wrote a camera page for the dashboard the TUKZIE team already runs. " +
     "Three reasons: that dashboard already carries what a HUD would show, two displays compete for the driver's attention, and the programme's move towards autonomy makes the camera's alerts more useful than a second screen. " +
-    "The page shows the live view and the active alerts in the dashboard's own status colours. Tested against the live camera, it showed video 0.6 seconds after opening, listed this person alert half a second after opening, and switched to an offline state within a second of the camera stopping. " +
-    "The glance-time question is still open, and so is running it on the dashboard's own Pi 5.");
-  const iw = 7.4, imW = 6.4, ih = imW * 640 / 1280;
-  s.addImage({ path: A("dashboard_person.png"), x: M, y: 1.4, w: imW, h: ih });
-  txt(s, "The camera page against the live detector: a person in view is listed as Person, Immediate.",
+    "It now runs as the default dashboard on the team's Pi 5, in a separate copy so their own build is untouched. The Pi 4 sends the ESP32, distance-sensor and camera data over Wi-Fi twice a second, and the dashboard shows only real values, with dashes where data is missing. " +
+    "This Sensors page shows the three distance sensors and the fused hazards: here the camera recognises an object and the distance sensor gives its range. If anything is in the immediate band, a red banner appears over whichever page the driver is on. " +
+    "What's still open is the glance-time check on the vehicle, and a design review against the NHTSA two-second rule and the ISO legibility standard.");
+  const iw = 7.4, imW = 5.2, ih = imW * 800 / 1280;
+  s.addImage({ path: A("sensors_page.png"), x: M, y: 1.4, w: imW, h: ih });
+  txt(s, "Sensors page on the Pi 5, live data: distance gauges and hazards, nearest first.",
     { x: M, y: 1.4 + ih + 0.08, w: iw, h: 0.35, fontSize: 13, italic: true, color: C.muted });
   const wy = 1.4 + ih + 0.55, wh = 6.75 - wy;
   card(s, M, wy, iw, wh);
@@ -370,23 +371,24 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   ], { x: M + 0.3, y: wy + 0.55, w: iw - 0.6, h: wh - 0.6, fontSize: 14 });
   const rx = M + iw + 0.35, rw = W - M - rx;
   card(s, rx, 1.4, rw, 5.35);
-  txt(s, "Tested against the live camera", { x: rx + 0.3, y: 1.55, w: rw - 0.6, h: 0.45, fontSize: 18, bold: true, color: C.navy });
+  txt(s, "Running on the dashboard's Pi 5", { x: rx + 0.3, y: 1.55, w: rw - 0.6, h: 0.45, fontSize: 18, bold: true, color: C.navy });
   bullets(s, [
-    "Live view 0.6 s after opening; 14.2 frames/s decoded",
-    "Person alert listed 0.5 s after opening, matching the box on the video",
-    "Offline state within 1 s of the camera stopping",
-    "Only Qt networking and widgets: no web-engine component",
-  ], { x: rx + 0.3, y: 2.1, w: rw - 0.6, h: 2.9, fontSize: 15 });
-  txt(s, [{ text: "Still open: ", options: { bold: true, color: C.accent } }, { text: "run on the dashboard's Pi 5, and the glance-time check." }],
+    "Default dashboard at boot; team's copy untouched",
+    "Live sensor data every 0.5 s",
+    "Camera + distance fusion shown live",
+    "Red banner over any page for immediate hazards",
+    "Street map with routing; campus tiles cached",
+  ], { x: rx + 0.3, y: 2.1, w: rw - 0.6, h: 3.3, fontSize: 15 });
+  txt(s, [{ text: "Still open: ", options: { bold: true, color: C.accent } }, { text: "glance time on the vehicle, and a design review against NHTSA and ISO 15008." }],
     { x: rx + 0.3, y: 5.55, w: rw - 0.6, h: 1.0, fontSize: 15, valign: "top" });
 }
 
 // ---------------- 12 Conclusions ----------------
 {
   const s = content("Conclusions and next steps",
-    "To conclude. Every subsystem runs together on the target board: two IMUs at 200 hertz with no loss, calibrated and fused; GNSS within about 3 metres; the battery read over Bluetooth; a cellular link that recovers by itself; a full local log; and camera alerts in about a tenth of a second, shown on the existing dashboard. " +
+    "To conclude. Every subsystem runs together on the target board: two IMUs at 200 hertz with no loss, calibrated and fused; GNSS within about 3 metres; the battery read over Bluetooth; a cellular link that recovers by itself; a full local log; camera alerts in about a tenth of a second; and the camera and distance sensors fused and shown live on the existing dashboard. " +
     "Each fault was found by a test with a stated pass criterion, then fixed and tested again. " +
-    "What's left is the vehicle: mount and recalibrate the unit in place, then the field test that answers the ride and latency questions on the move, calibrate the camera's distance bands, and fit the zoned distance and air-quality sensors when they arrive. Thank you, I'm happy to take questions.");
+    "What's left is the vehicle: mount and recalibrate the unit in place, then the field test that answers the ride and latency questions on the move, calibrate and validate the fusion, and fit the zoned distance and air-quality sensors when they arrive. Thank you, I'm happy to take questions.");
   const cw = (W - 2 * M - 0.4) / 2, cy = 1.4, ch = 4.45;
   card(s, M, cy, cw, ch);
   txt(s, "Done on the bench", { x: M + 0.35, y: cy + 0.2, w: cw - 0.7, h: 0.45, fontSize: 20, bold: true, color: C.navy });
@@ -394,7 +396,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
     "Two IMUs at 200 Hz, no loss, calibrated and fused",
     "GNSS within 2.7 m median; battery read over BLE",
     "Cellular publish with automatic recovery; full local log",
-    "Camera alerts in about 0.1 s, on the existing dashboard",
+    "Camera + distance fusion live on the Pi 5 dashboard",
     "Each fault found by a test, fixed and re-tested",
   ], { x: M + 0.35, y: cy + 0.85, w: cw - 0.7, h: ch - 1.0, fontSize: 16 });
   const x2 = M + cw + 0.4;
@@ -403,7 +405,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   bullets(s, [
     "Mount on the trike and recalibrate in place",
     "Field test: ride features (RQ4), latency and loss on the move (RQ3)",
-    "Calibrate the camera's distance bands",
+    "Calibrate and validate the fusion (test C9)",
     "Check the battery against its app; wire the Hall tap",
     "Fit the VL53L5CX and SEN55 when they arrive",
   ], { x: x2 + 0.35, y: cy + 0.85, w: cw - 0.7, h: ch - 1.0, fontSize: 16 });

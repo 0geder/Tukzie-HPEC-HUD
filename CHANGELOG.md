@@ -17,6 +17,10 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### Report, deck, poster and Q&A caught up with 5 to 6 Oct work
+- Report/Methodology.tex: new subsection "Start-up as the default dashboard, and driver-facing changes (5 to 6 October 2026)" (boot service, PIN skip, settings, Sensors page and banner, touch measurement, tile prefetch and routing, voice and speaker, Pi 5 hardware and AI HAT); the fusion subsection records the first live fused hazard (before calibration, not a validation) and that the dashboard now shows the hazards; the training subsection records run 2's band tiles (not yet finished). Report/Literature.tex: in-vehicle display figures (NHTSA, ISO 15008 via Reimer and You, typeface, touch-key size, Euro NCAP 2026, AAA infotainment). Report/References.tex: 5 entries appended at the end so earlier numbers do not shift. PDF rebuilt (88 pages, no undefined references).
+- Presentation: slide 11 now shows the Sensors page on the Pi 5 and what runs there; slide 12 and the poster conclusions mention the live fusion and the C9 validation; Q&A prep adds fusion, Sensors page, boot service, touch, glance rules, run 2 and the AI HAT, plus four numbers. Slides 11 and 12 rendered and checked.
+
 ### bd26f65 Training notebook: run 2 cells
 - CameraDetection/training/make_notebook.py: cell 2g crops the South African frames to the road band (42 to 68 % of the height) and cuts three 1280-pixel tiles, so a median pothole is about 50 x 13 px at the 640 input instead of 17 x 4.5; cell 4b fine-tunes from the run 1 weights on these tiles. Why: run 1 scored mAP@50 0.000 on the South African test images (Methodology). Not yet run.
 
