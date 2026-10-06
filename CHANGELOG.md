@@ -17,6 +17,9 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### Deck and Q&A: run 2 pothole model
+- Presentation/source/build_deck.js: slide 10 no longer says the detection uses no training of the student's own; it gives the pothole model on South African roads (0.000 before, 0.714 validation mAP@50 after) and says the test score and a Pi run are next. Talking points now 1,605 words, about 10.7 min at 150 words a minute, so slightly over 10 minutes. Q&A: run 2 answer and numbers row. Slide 10 rendered and checked.
+
 ### Run 2 pothole model: South African band tiles
 - CameraDetection/training/runs/run2_sa_band_tiles_640/ (new): best.pt, NCNN models at 320 and 640, curves and record from the student's Colab run of 6 Oct (60 epochs, best epoch 54). Validation mAP@50 0.714 at 640 (P 0.811, R 0.623), 0.566 at 320, against 0.000 for run 1 on South African images. README states the limits: validation split (used for model selection), per tile, start weights not recorded, not yet on the Pi.
 - CameraDetection/training/make_notebook.py: cell 5 takes the test split from the dataset definition (it had fallen back to validation for run 2); new cell 5b scores run 2 on the held-out test tiles and prints the real start weights from args.yaml; cell 6 records start_weights from args.yaml instead of fixed text.

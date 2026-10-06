@@ -253,7 +253,7 @@ How do you know the display is safe to glance at?
 I don't yet, which is why glance time is still open. The design review uses published figures: NHTSA's 2 s single glance and 12 s per task, ISO 15008 character size of 20 arc minutes (about 24 px capital height at 70 cm on this panel), contrast of at least 7:1 for values read while moving, touch targets of 10 mm or more (Euro NCAP 2026), and parked-only analytics because NHTSA counts waiting at a light as driving.
 
 Why did the pothole model need retraining?
-Run 1 scored 59.7 % mAP@50 on its own test set but 0.000 on South African street footage: whole frames shrink a median pothole to about 17 by 4.5 px. Run 2 crops the road band (42 to 68 % of the height) into three tiles, so a median pothole is about 50 by 13 px, and fine-tunes from run 1. Results pending.
+Run 1 scored 59.7 % mAP@50 on its own test set but 0.000 on South African street footage: whole frames shrink a median pothole to about 17 by 4.5 px. Run 2 crops the road band (42 to 68 % of the height) into three tiles, so a median pothole is about 50 by 13 px, and fine-tunes from run 1. Run 2 (6 Oct, 60 epochs): mAP@50 0.714 at 640 (precision 0.81, recall 0.62) and 0.566 at 320, on the validation tiles. Say plainly that validation was also used to pick the best epoch, so it is optimistic, and that it is per tile; the held-out test tiles and a run on the Pi come next.
 
 What is the AI HAT on the Pi 5 for?
 A Hailo-8 accelerator (26 TOPS). It would let the detector run on the Pi 5 at the camera's frame rate and remove the Wi-Fi hop between the two Pis. Fitted but not yet enumerated (external PCIe not enabled); untested.
@@ -321,4 +321,5 @@ Be ready to say these plainly:
 | First fused hazard | camera 0.874 m, ToF 0.096 m, reported 0.096 m (before calibration) |
 | Touch panel | contact reported with the first position (no panel delay); taps 200 to 640 ms |
 | Map prefetch | 656 tiles, 11.9 MB, 320 s, zoom 11 to 16 |
+| Pothole model | run 1: 0.000 mAP@50 on South African frames; run 2: 0.714 (640), 0.566 (320), validation tiles |
 | Glance rules | 2 s single glance, 12 s per task (NHTSA); 20 arcmin text (ISO 15008) |

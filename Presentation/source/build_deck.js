@@ -329,14 +329,14 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 {
   const s = content("Camera hazard detection and distance sensing",
     "The camera's role grew, on supervisor direction, from a visual record to hazard awareness. I designed and 3D printed the three-part casing on the left, with a 30 degree corner mount. " +
-    "The detector is a pretrained 8-bit SSD-MobileNet sized for the Pi 4, with no training of my own. Using all four cores it runs at 19.5 frames per second, with a median of 102 milliseconds from the sensor to a result. With the three-frame debounce an alert comes about 0.2 seconds after an object appears, about 1.7 metres at 30 kilometres per hour. " +
+    "The live detector is a pretrained 8-bit SSD-MobileNet sized for the Pi 4. COCO has no potholes, so I also trained my own pothole model: trained on a public set, it found none of the potholes in South African dashcam footage; trained on tiles cut from the road band of that footage, it reached 0.71 mAP at 50 on the validation tiles. The held-out test score and a run on the Pi are next. Using all four cores, the live detector it runs at 19.5 frames per second, with a median of 102 milliseconds from the sensor to a result. With the three-frame debounce an alert comes about 0.2 seconds after an object appears, about 1.7 metres at 30 kilometres per hour. " +
     "An alert clears only after five empty frames, which stopped one person producing 16 alerts in 47 seconds. Only five fields are logged and no frame is stored. " +
     "For close range, three time-of-flight sensors stand in until the 8 by 8 zone sensor arrives.");
   const ih = 5.35, iw = ih * 1827 / 1306;
   s.addImage({ path: A("casing_labelled.png"), x: M, y: 1.4, w: iw, h: ih });
   const x = M + iw + 0.4, w = W - M - x;
   const blocks = [
-    ["Object detector", "Pretrained 8-bit SSD-MobileNet on the Pi 4. 19.5 fps, median 102 ms from sensor to result; an alert about 0.2 s after an object appears."],
+    ["Object detection", "Live: pretrained SSD-MobileNet, 19.5 fps, 102 ms median. Own pothole model on South African roads: mAP@50 0.000 before, 0.714 after training on road-band tiles (validation)."],
     ["Alert logic", "Raised after 3 frames, cleared after 5 empty frames. Five fields logged per alert; frames are never stored."],
     ["Distance sensors", "Three VL53L0X stand in for the VL53L5CX: left, ahead and right at 31 readings/s each; labels confirmed by covering each."],
   ];

@@ -2,7 +2,7 @@
 
 Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here.
 
-12 slides, 10 minutes plus questions. 1546 words in total, about 10.3 minutes at 150 words a minute.
+12 slides, 10 minutes plus questions. 1605 words in total, about 10.7 minutes at 150 words a minute.
 
 ## Slide 1: Title (92 words)
 
@@ -40,9 +40,9 @@ Testing each stage on real hardware against a stated pass criterion found six fa
 
 Three more bench results. Timing: the Pi now takes each sync edge's time from the kernel, and over 121 edges the median interval was 500.06 milliseconds with a spread under 0.7 milliseconds, so the camera and IMU clocks can be related precisely. A loose jumper twice produced false edges, so the vehicle needs a latched connector. Position: on a rooftop, 104 fixes were a median of 2.7 metres from a phone's position, and 95 percent within 11 metres. Cellular: 47 of 47 publishes were acknowledged. When I cut the radio for 60 seconds, the firmware detected the loss in under a second and reconnected about 5 seconds after the signal came back. Every record is also logged to flash, and all 6,020 stored records were read back.
 
-## Slide 10: Camera hazard detection and distance sensing (138 words)
+## Slide 10: Camera hazard detection and distance sensing (197 words)
 
-The camera's role grew, on supervisor direction, from a visual record to hazard awareness. I designed and 3D printed the three-part casing on the left, with a 30 degree corner mount. The detector is a pretrained 8-bit SSD-MobileNet sized for the Pi 4, with no training of my own. Using all four cores it runs at 19.5 frames per second, with a median of 102 milliseconds from the sensor to a result. With the three-frame debounce an alert comes about 0.2 seconds after an object appears, about 1.7 metres at 30 kilometres per hour. An alert clears only after five empty frames, which stopped one person producing 16 alerts in 47 seconds. Only five fields are logged and no frame is stored. For close range, three time-of-flight sensors stand in until the 8 by 8 zone sensor arrives.
+The camera's role grew, on supervisor direction, from a visual record to hazard awareness. I designed and 3D printed the three-part casing on the left, with a 30 degree corner mount. The live detector is a pretrained 8-bit SSD-MobileNet sized for the Pi 4. COCO has no potholes, so I also trained my own pothole model: trained on a public set, it found none of the potholes in South African dashcam footage; trained on tiles cut from the road band of that footage, it reached 0.71 mAP at 50 on the validation tiles. The held-out test score and a run on the Pi are next. Using all four cores, the live detector it runs at 19.5 frames per second, with a median of 102 milliseconds from the sensor to a result. With the three-frame debounce an alert comes about 0.2 seconds after an object appears, about 1.7 metres at 30 kilometres per hour. An alert clears only after five empty frames, which stopped one person producing 16 alerts in 47 seconds. Only five fields are logged and no frame is stored. For close range, three time-of-flight sensors stand in until the 8 by 8 zone sensor arrives.
 
 ## Slide 11: Hazard alerts on the existing dashboard (176 words)
 
