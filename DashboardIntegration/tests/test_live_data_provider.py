@@ -50,6 +50,9 @@ DEFAULT_DASH = (INTEGRATION.parent.parent / "Tukzie-Vac-Work-2026" / "Dashboard 
 DASH = Path(os.environ.get("TUKZIE_DASHBOARD_DIR", DEFAULT_DASH))
 sys.path.insert(0, str(HERE))
 from dashboard_patches import COPIES, PATCHES  # noqa: E402
+# Since 6 Oct 2026 the settings, login and Sensors patches anchor on the team's v1.1 (the version
+# installed on the Pi 5), so run with TUKZIE_DASHBOARD_DIR pointing at a copy of v1.1 (~/Dashboard on the
+# Pi 5); v1.0-validated no longer takes every patch.
 
 # ---- fake bridge -----------------------------------------------------------
 LIVE = {

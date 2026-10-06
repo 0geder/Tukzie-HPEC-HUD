@@ -54,6 +54,9 @@ DASH = Path(os.environ.get("TUKZIE_DASHBOARD_DIR", DEFAULT_DASH))
 REPLAY = REPO / "CameraDetection" / "tests" / "replay_uct_route.txt"
 sys.path.insert(0, str(HERE))
 from dashboard_patches import COPIES, PATCHES  # noqa: E402
+# Since 6 Oct 2026 the settings, login and Sensors patches anchor on the team's v1.1 (the version
+# installed on the Pi 5), so run with TUKZIE_DASHBOARD_DIR pointing at a copy of v1.1 (~/Dashboard on the
+# Pi 5); v1.0-validated no longer takes every patch.
 
 
 # ---- fake tile server ---------------------------------------------------------------
@@ -469,6 +472,47 @@ m.set_follow_mode(True)
 run_for(1.0)
 m.close()
 assert not errors, errors
-server.shutdown()
 print("8 interaction: zoom keeps follow, drag leaves it, Overview fits the route north-up")
+
+# ---- 9. simulated drive -----------------------------------------------------------------------------
+m9 = SW7TileMap()
+m9.resize(W, H)
+m9.set_plan(plan, reset_view=True)
+m9.show()
+run_for(0.3)
+nofix = SimpleNamespace(latitude=None, longitude=None, heading=None, speed_kmh=None,
+                        data_source="sw7_telemetry", signal_validity={})
+m9.update_vehicle(nofix)
+assert m9.sim_available and m9.sim_button.isVisible() and m9.sim_button.text() == "Simulate drive"
+assert m9.start_simulation()
+assert m9.simulating and not m9.waiting_for_fix and m9.auto_follow and m9.sim_button.text() == "End simulation"
+start_pt = m9.vehicle
+for _ in range(5):
+    m9._sim_step()
+assert m9.vehicle != start_pt and 0 < m9.progress < 1
+assert abs(m9._sim_m - 5 * 25 / 3.6) < 0.5, m9._sim_m
+m9.update_vehicle(nofix)
+assert m9.simulating and m9.vehicle is not None, "live data without a position must not stop the simulation"
+m9.set_progress(0.0)
+assert m9.progress > 0, "the page's progress must not overwrite the simulation's"
+assert m9.last_fix is None, "a simulated position must never be recorded as a real fix"
+run_for(2.0)
+_, _, course = m9._sim_point(m9._sim_m)
+assert abs(wrap(m9.bearing - course)) < 25, (m9.bearing, course)
+m9.grab().save(str(HERE / "tile_map_simulated_drive.png"))
+steps = 0
+while not m9.sim_arrived and steps < 2000:
+    m9._sim_step(); steps += 1
+assert m9.sim_arrived and m9.progress == 1.0 and m9.simulating and not m9._sim_timer.isActive()
+m9.toggle_simulation()
+assert not m9.simulating and m9.waiting_for_fix and m9.sim_button.text() == "Simulate drive"
+assert m9.start_simulation()
+m9.update_vehicle(state_of(track[0]))
+assert not m9.simulating and m9.last_fix is not None, "a real fix must stop the simulation"
+assert not m9.sim_available and not m9.sim_button.isVisible(), "no simulation while a real fix is recent"
+m9.close()
+assert not errors, errors
+server.shutdown()
+print(f"9 simulated drive: starts without a fix, 25 km/h along the route, heading-up, ignores position-less "
+      f"live data, arrives after {steps + 5} steps, ends on request, a real fix stops it; saved tile_map_simulated_drive.png")
 print("ALL TILE MAP TESTS PASSED")

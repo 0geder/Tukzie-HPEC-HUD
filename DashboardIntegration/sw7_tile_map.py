@@ -39,6 +39,14 @@ No position: the map stays at the last known position (or the UCT area) with
 a "Waiting for GPS fix" banner. Replayed data (VehicleState.data_source
 "sw7_replay", set by live_data_provider.py) shows an amber REPLAY badge.
 
+Simulated drive: with a planned route and no real fix in the last 10 s, a
+"Simulate drive" button drives a marker along the route at SIM_KMH, one
+position a second like the GNSS, heading-up in follow mode, with the route
+behind it drawn as done. It is labelled SIMULATED DRIVE with the distance and
+time left the whole time, and it only moves this map: nothing is written to
+the vehicle state, so speed, battery and the other pages keep showing real
+data or "--". A real fix stops it at once.
+
 Drop this file into app/pages/ (tests/dashboard_patches.py does, and swaps
 the import in navigation_page.py; TUKZIE_TILE_MAP=0 restores NativeRouteMap).
 QtWidgets, QtGui and QtNetwork only; colours from THEME.
@@ -49,6 +57,7 @@ import math
 import os
 import time
 from collections import OrderedDict
+from types import SimpleNamespace
 
 from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen, QPixmap, QPolygonF, QTransform
@@ -83,6 +92,9 @@ HEADING_HOLD_S = 20.0
 SNAP_M = 300.0                       # a jump larger than this is not animated
 TWEEN_S = 0.6                        # camera transition between follow / overview
 UCT = (-33.9570, 18.4610)
+SIM_KMH = 25.0                       # simulated drive speed (a tuk-tuk in town)
+SIM_TICK_MS = 1000                   # one simulated position a second, like the GNSS
+SIM_REAL_FIX_S = 10.0                # the simulation is offered only without a real fix this recent
 
 
 def _num(value):
@@ -93,6 +105,21 @@ def _num(value):
     except (TypeError, ValueError):
         return None
     return f if math.isfinite(f) else None
+
+
+def _metres(a, b):
+    """Great-circle distance in metres between two (lat, lon) points."""
+    la1, lo1, la2, lo2 = map(math.radians, (a[0], a[1], b[0], b[1]))
+    h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
+    return 2 * 6371000.0 * math.asin(min(1.0, math.sqrt(h)))
+
+
+def _course(a, b):
+    """Initial course from a to b, degrees clockwise from true north."""
+    la1, lo1, la2, lo2 = map(math.radians, (a[0], a[1], b[0], b[1]))
+    y = math.sin(lo2 - lo1) * math.cos(la2)
+    x = math.cos(la1) * math.sin(la2) - math.sin(la1) * math.cos(la2) * math.cos(lo2 - lo1)
+    return math.degrees(math.atan2(y, x)) % 360.0
 
 
 def to_ref(lat, lon):
@@ -168,6 +195,11 @@ class SW7TileMap(QWidget):
         self.heading_up = False
         self.replay = False
         self.last_fix = None              # (lat, lon) of the last real position
+        self.simulating = False           # simulated drive running (or arrived, until ended)
+        self.sim_arrived = False
+        self._sim_path = []               # [(lat, lon, metres from the start)] of the route
+        self._sim_m = 0.0                 # metres driven in the simulation
+        self._real_fix_time = None
 
         self._mode = "follow"             # follow / explore / overview
         self._zoom_now = self._zoom_target = NO_FIX_ZOOM
@@ -222,6 +254,13 @@ class SW7TileMap(QWidget):
             button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.zoom_in.clicked.connect(lambda: self._zoom(.7))
         self.zoom_out.clicked.connect(lambda: self._zoom(1.4))
+        self.sim_button = QPushButton("Simulate drive", self)
+        self.sim_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.sim_button.clicked.connect(self.toggle_simulation)
+        self.sim_button.hide()
+        self._sim_timer = QTimer(self)
+        self._sim_timer.setInterval(SIM_TICK_MS)
+        self._sim_timer.timeout.connect(self._sim_step)
         THEME.changed.connect(self._apply_theme)
         self._apply_theme()
 
@@ -244,7 +283,12 @@ class SW7TileMap(QWidget):
             self._route_cum.append(total)
             prev = (x, y)
         self._rebuild_roads()
-        if plan and reset_view:
+        path = self._route_metres()
+        if path != self._sim_path:
+            self.stop_simulation()
+            self._sim_path = path
+        self._update_sim_button()
+        if plan and reset_view and not self.simulating:
             self.show_overview()
         self._kick()
 
@@ -263,6 +307,8 @@ class SW7TileMap(QWidget):
         self._kick()
 
     def set_progress(self, value):
+        if self.simulating:               # the simulation sets its own progress
+            return
         try:
             self.progress = max(0.0, min(1.0, float(value or 0.0)))
         except (TypeError, ValueError):
@@ -271,6 +317,14 @@ class SW7TileMap(QWidget):
 
     def update_vehicle(self, state):
         now = time.monotonic()
+        simulated = bool(getattr(state, "sw7_simulated", False))
+        if not simulated and _num(getattr(state, "latitude", None)) is not None \
+                and _num(getattr(state, "longitude", None)) is not None:
+            self._real_fix_time = now
+            if self.simulating:
+                self.stop_simulation()    # a real position always wins
+        elif not simulated and self.simulating:
+            return                        # live data without a position: keep the simulated drive
         self.replay = "replay" in str(getattr(state, "data_source", "") or "")
         validity = getattr(state, "signal_validity", None) or {}
         heading = _num(getattr(state, "heading", None))
@@ -282,7 +336,9 @@ class SW7TileMap(QWidget):
             self.vehicle = None
             self._kick()
             return
-        self.vehicle = self.last_fix = (lat, lon)
+        self.vehicle = (lat, lon)
+        if not simulated:
+            self.last_fix = (lat, lon)
         p = to_ref(lat, lon)
         speed = _num(getattr(state, "speed_kmh", None))
         moved = False
@@ -328,7 +384,107 @@ class SW7TileMap(QWidget):
             self._good_heading_time = now
             if self._marker_heading is None:
                 self._marker_heading = self._good_heading
+        self._update_sim_button()
         self._kick()
+
+    # ---- simulated drive -------------------------------------------------------------------
+    def _route_metres(self):
+        pts, total, prev = [], 0.0, None
+        for q in self.route:
+            try:
+                lat, lon = float(q.lat), float(q.lon)
+            except (AttributeError, TypeError, ValueError):
+                continue
+            if prev is not None:
+                total += _metres(prev, (lat, lon))
+            pts.append((lat, lon, total))
+            prev = (lat, lon)
+        return pts if len(pts) >= 2 and total > 1.0 else []
+
+    @property
+    def sim_available(self):
+        recent = self._real_fix_time is not None and time.monotonic() - self._real_fix_time < SIM_REAL_FIX_S
+        return bool(self._sim_path) and not recent
+
+    def toggle_simulation(self):
+        if self.simulating:
+            self.stop_simulation()
+        else:
+            self.start_simulation()
+
+    def start_simulation(self):
+        if not self.sim_available:
+            return False
+        self.simulating, self.sim_arrived, self._sim_m = True, False, 0.0
+        self.vehicle = None
+        self._fix_from = self._fix_to = None
+        self._good_heading = self._marker_heading = None
+        if self._mode != "follow":
+            self._start_tween()
+            self._mode = "follow"
+        self._set_auto_follow(True)
+        self._zoom_target = FOLLOW_ZOOM
+        self._sim_step()
+        self._sim_timer.start()
+        self._update_sim_button()
+        return True
+
+    def stop_simulation(self):
+        if not self.simulating:
+            return
+        self._sim_timer.stop()
+        self.simulating = self.sim_arrived = False
+        self.vehicle = None
+        self._fix_from = self._fix_to = None
+        self._good_heading = self._marker_heading = None
+        self.progress = 0.0
+        self._zoom_target = NO_FIX_ZOOM
+        self._update_sim_button()
+        self._kick()
+
+    def _sim_point(self, m):
+        path = self._sim_path
+        for (la0, lo0, c0), (la1, lo1, c1) in zip(path, path[1:]):
+            if m <= c1 or (la1, lo1, c1) == path[-1]:
+                k = 0.0 if c1 <= c0 else max(0.0, min(1.0, (m - c0) / (c1 - c0)))
+                return la0 + (la1 - la0) * k, lo0 + (lo1 - lo0) * k, _course((la0, lo0), (la1, lo1))
+        la, lo, _ = path[-1]
+        return la, lo, None
+
+    def _sim_step(self):
+        if not self.simulating or not self._sim_path:
+            return
+        total = self._sim_path[-1][2]
+        if self._sim_m > 0 or self._fix_to is not None:
+            self._sim_m = min(total, self._sim_m + SIM_KMH / 3.6 * SIM_TICK_MS / 1000.0)
+        arrived = self._sim_m >= total - 0.01
+        lat, lon, course = self._sim_point(self._sim_m)
+        self.update_vehicle(SimpleNamespace(
+            latitude=lat, longitude=lon, heading=course, speed_kmh=0.0 if arrived else SIM_KMH,
+            data_source="sw7_simulated_drive", signal_validity={}, sw7_simulated=True))
+        self.progress = self._sim_m / total if total > 0 else 1.0
+        if arrived:
+            self._sim_timer.stop()
+            self.sim_arrived = True
+            self._update_sim_button()
+        self.update()
+
+    def sim_remaining(self):
+        """(metres, minutes) left in the simulated drive."""
+        if not self._sim_path:
+            return 0.0, 0.0
+        left = max(0.0, self._sim_path[-1][2] - self._sim_m)
+        return left, left / (SIM_KMH / 3.6) / 60.0
+
+    def _update_sim_button(self):
+        if self.simulating:
+            self.sim_button.setText("End simulation")
+            self.sim_button.show()
+        elif self.sim_available:
+            self.sim_button.setText("Simulate drive")
+            self.sim_button.show()
+        else:
+            self.sim_button.hide()
 
     def set_follow_mode(self, enabled):
         enabled = bool(enabled)
@@ -921,6 +1077,14 @@ class SW7TileMap(QWidget):
         ucx, ucy = self._usable_centre()
         if self.replay:
             self._pill(p, QPointF(ucx, 126), "REPLAY", "Replayed data, not live", THEME.status("warn"), filled=True)
+        if self.simulating:
+            left_m, left_min = self.sim_remaining()
+            if self.sim_arrived:
+                title, sub = "ARRIVED (SIMULATED)", "Not live data. Tap End simulation to finish"
+            else:
+                title = "SIMULATED DRIVE"
+                sub = f"Not live data · {left_m / 1000:.1f} km, {max(1, round(left_min))} min left at {SIM_KMH:.0f} km/h"
+            self._pill(p, QPointF(ucx, 126), title, sub, THEME.status("warn"), filled=True)
         if self.vehicle is None:
             sub = "Showing the last known position" if self.last_fix else "Showing the UCT area"
             self._pill(p, QPointF(ucx, max(150.0, h * 0.42)), "Waiting for GPS fix", sub, THEME.status("warn"))
@@ -949,6 +1113,7 @@ class SW7TileMap(QWidget):
     def resizeEvent(self, event):
         self.zoom_in.setGeometry(max(0, self.width() - 62), max(0, self.height() - 94), 44, 38)
         self.zoom_out.setGeometry(max(0, self.width() - 62), max(0, self.height() - 52), 44, 38)
+        self.sim_button.setGeometry(max(0, self.width() - 290), max(0, self.height() - 100), 210, 44)
         if self._mode == "overview":
             self._overview = self._fit_camera()
             self._zoom_target = self._zoom_now = self._overview.zoom
@@ -959,6 +1124,9 @@ class SW7TileMap(QWidget):
                  f"border:1px solid {THEME.hex('border')};border-radius:6px;")
         for button in (self.zoom_in, self.zoom_out):
             button.setStyleSheet(style)
+        self.sim_button.setStyleSheet(
+            f"font-size:16px;font-weight:700;background:{THEME.hex('card')};color:{THEME.hex('text')};"
+            f"border:2px solid {THEME.status('warn').name()};border-radius:8px;")
         self.update()
 
     def wheelEvent(self, event):

@@ -18,6 +18,8 @@ SETTINGS_PATCHES: finger-drag scrolling and a simpler Settings page (technical
 options behind "Show advanced settings"). Anchors checked in v1.1.
 LOGIN_PATCHES: skip the driver/PIN page when TUKZIE_SKIP_LOGIN=1.
 SENSORS_PATCHES: the Sensors page on the nav bar and the hazard banner over every page.
+Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
+of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
 """
 

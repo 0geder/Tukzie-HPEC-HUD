@@ -17,6 +17,10 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### Map: simulated drive along a planned route
+- DashboardIntegration/sw7_tile_map.py: with a planned route and no real fix in the last 10 s, a "Simulate drive" button drives the marker along the route at 25 km/h (one position a second, like the GNSS), heading-up in follow mode, the driven part greyed, with an amber SIMULATED DRIVE badge giving distance and time left, then ARRIVED (SIMULATED). Map only: nothing is written to the vehicle state, live data without a position does not stop it, and a real fix stops it at once. Why: the student asked for the drive to be shown when a destination is chosen, for indoor demonstration, without simulated data being taken for live data.
+- DashboardIntegration/tests/test_tile_map.py: section 9 checks all of that (tests/tile_map_simulated_drive.png). Both dashboard test suites pass against a copy of the team's v1.1; since the settings, login and Sensors patches anchor on v1.1 only, the tests are now run with TUKZIE_DASHBOARD_DIR pointing at v1.1 (they had stopped working against v1.0-validated when those patches were added on 6 Oct).
+
 ### Camera: black no longer purple in the live view
 - CameraDetection/hazard_detector.py: DarkNeutraliser and --dark-neutral LO,HI (or detector_options.json beside the script, so it can be switched on without editing the system service). Greys out dark pixels by their brightest channel (grey at 50 and below, unchanged at 110 and above). Applied in the live-view encoder thread only: numpy took 171 ms a frame and Pillow 84 ms on the Pi 4, too slow for the detection path. Why: black objects showed purple (NoIR module, infrared reflected by black materials, saturation 1.8). Tests: tests/test_dark_neutral.py (the 1 Oct colour cards pass unchanged); test_alerts_endpoint.py fake updated. Deployed to the Pi 4 on 6 Oct with [50, 110]; detector rate 6.2 fps before and 6.3 after. The Pi 4 was under-voltage and throttled to 600 MHz (0x50005), which is why the rate is low.
 
