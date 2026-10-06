@@ -14,6 +14,8 @@ anchors are checked against v1.0-validated only.
 TILE_MAP_PATCHES: the street-tile map (sw7_tile_map.py) in place of the
 team's NativeRouteMap, unless TUKZIE_TILE_MAP=0. Anchor checked in both
 v1.0-validated and v1.1.
+SETTINGS_PATCHES: finger-drag scrolling and a simpler Settings page (technical
+options behind "Show advanced settings"). Anchors checked in v1.1.
 PATCHES: all of them, in order (what the test and the deploy step apply).
 """
 
@@ -349,4 +351,49 @@ TILE_MAP_PATCHES = (
      "    from .sw7_tile_map import SW7TileMap as NativeRouteMap  # noqa: F811\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES
+SETTINGS_SIMPLIFY = '''    def _sw7_simplify(self):
+        """SW-7: finger-drag scrolling, plain wording, technical options behind one switch."""
+        from PySide6.QtWidgets import QScroller
+        QScroller.grabGesture(self.scroll.viewport(), QScroller.ScrollerGestureType.LeftMouseButtonGesture)
+        nav = self.auto_follow.parentWidget().layout()
+        nav.removeWidget(self.auto_follow); nav.addWidget(self.auto_follow, 5, 0, 1, 3)
+        renames = {"ASIS voice": "Voice alerts", "Automatic vehicle following": "Map follows the tuk-tuk",
+                   "Repeat last Critical advisory": "Repeat last warning", "SYSTEM COLOUR PALETTE": "COLOUR THEME",
+                   "Speech speed": "Voice speed", "SYSTEM": "SAVE"}
+        for kind in (QLabel, QCheckBox, QPushButton):
+            for w in self.findChildren(kind):
+                if w.text() in renames:
+                    w.setText(renames[w.text()])
+        self._sw7_advanced = []
+        def rows(grid, wanted):
+            for r in wanted:
+                for c in range(grid.columnCount()):
+                    item = grid.itemAtPosition(r, c)
+                    if item and item.widget() and item.widget() not in self._sw7_advanced:
+                        self._sw7_advanced.append(item.widget())
+        rows(self.fullscreen.parentWidget().layout(), (1,))
+        rows(self.map_provider.parentWidget().layout(), (1, 2, 3, 4, 6, 7, 8, 9))
+        rows(self.voice_provider.parentWidget().layout(), (1,))
+        self.sw7_show_advanced = QCheckBox("Show advanced settings")
+        self.save_button.parentWidget().layout().insertWidget(1, self.sw7_show_advanced)
+        self.sw7_show_advanced.toggled.connect(lambda on: [w.setVisible(on) for w in self._sw7_advanced])
+        for w in self._sw7_advanced:
+            w.setVisible(False)
+
+'''
+
+SETTINGS_PATCHES = (
+    # settings_page.py: on the touchscreen the page could only be scrolled by its thin scroll bar, and it
+    # showed developer options (route provider, ORS key, map engine, fallbacks, voice engine, kiosk mode)
+    # next to the rider's. QScroller gives finger-drag scrolling; the technical rows are hidden behind
+    # "Show advanced settings" (still created and saved as before, so preferences are unchanged).
+    ("app/pages/settings_page.py",
+     "        THEME.changed.connect(self._theme); self._theme()\n",
+     "        THEME.changed.connect(self._theme); self._theme()\n"
+     "        self._sw7_simplify()\n"),
+    ("app/pages/settings_page.py",
+     "    def _offline_toggled(self, enabled):\n",
+     SETTINGS_SIMPLIFY + "    def _offline_toggled(self, enabled):\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES
