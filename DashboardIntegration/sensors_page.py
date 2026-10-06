@@ -26,7 +26,7 @@ import time
 from PySide6.QtCore import QEvent, QRectF, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPen
 from PySide6.QtWidgets import (
-    QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea, QScroller, QVBoxLayout, QWidget,
+    QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea, QScroller, QScrollerProperties, QVBoxLayout, QWidget,
 )
 
 from ..theme import THEME
@@ -165,6 +165,9 @@ class SensorsPage(ThemedPageSurface):
         self.scroll = QScrollArea(); self.scroll.setWidgetResizable(True)
         self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         QScroller.grabGesture(self.scroll.viewport(), QScroller.ScrollerGestureType.LeftMouseButtonGesture)
+        sc = QScroller.scroller(self.scroll.viewport()); props = sc.scrollerProperties()
+        props.setScrollMetric(QScrollerProperties.ScrollMetric.MousePressEventDelay, 0.0)   # taps act at once
+        sc.setScrollerProperties(props)
         content = QWidget(); content.setObjectName("sensorsContent")
         root = QVBoxLayout(content); root.setContentsMargins(28, 18, 28, 28); root.setSpacing(12)
         self.scroll.setWidget(content); outer.addWidget(self.scroll)

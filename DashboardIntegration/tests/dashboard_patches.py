@@ -356,8 +356,11 @@ TILE_MAP_PATCHES = (
 
 SETTINGS_SIMPLIFY = '''    def _sw7_simplify(self):
         """SW-7: finger-drag scrolling, plain wording, technical options behind one switch."""
-        from PySide6.QtWidgets import QScroller
+        from PySide6.QtWidgets import QScroller, QScrollerProperties
         QScroller.grabGesture(self.scroll.viewport(), QScroller.ScrollerGestureType.LeftMouseButtonGesture)
+        sc = QScroller.scroller(self.scroll.viewport()); props = sc.scrollerProperties()
+        props.setScrollMetric(QScrollerProperties.ScrollMetric.MousePressEventDelay, 0.0)   # taps act at once
+        sc.setScrollerProperties(props)
         nav = self.auto_follow.parentWidget().layout()
         nav.removeWidget(self.auto_follow); nav.addWidget(self.auto_follow, 5, 0, 1, 3)
         renames = {"ASIS voice": "Voice alerts", "Automatic vehicle following": "Map follows the tuk-tuk",
