@@ -16,6 +16,7 @@ team's NativeRouteMap, unless TUKZIE_TILE_MAP=0. Anchor checked in both
 v1.0-validated and v1.1.
 SETTINGS_PATCHES: finger-drag scrolling and a simpler Settings page (technical
 options behind "Show advanced settings"). Anchors checked in v1.1.
+LOGIN_PATCHES: skip the driver/PIN page when TUKZIE_SKIP_LOGIN=1.
 PATCHES: all of them, in order (what the test and the deploy step apply).
 """
 
@@ -396,4 +397,14 @@ SETTINGS_PATCHES = (
      SETTINGS_SIMPLIFY + "    def _offline_toggled(self, enabled):\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES
+LOGIN_PATCHES = (
+    # main_window.py: with TUKZIE_SKIP_LOGIN=1 the startup splash goes straight to the dashboard, without
+    # the driver and PIN page (bench work). start_sw7_dashboard.sh sets it; set it to 0 for the demo.
+    ("app/main_window.py",
+     "    def _show_login(self):\n",
+     "    def _show_login(self):\n"
+     "        if __import__(\"os\").environ.get(\"TUKZIE_SKIP_LOGIN\") == \"1\":   # SW-7 bench: no PIN page\n"
+     "            return self._enter_dashboard(\"\")\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES

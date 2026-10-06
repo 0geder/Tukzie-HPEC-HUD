@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SW-7 integrated dashboard (separate copy; the team copy in ~/Dashboard is untouched).
-# Started at login by ~/.config/autostart/sw7_dashboard.desktop.
+# Started at boot by sw7-dashboard.service (systemd).
 # Wait for the desktop, graphics and audio to be ready, as the team's launcher does.
 sleep 5
 export DISPLAY=:0
@@ -11,6 +11,8 @@ xset s off; xset s noblank; xset -dpms
 export TUKZIE_LIVE_ONLY=1
 # Touch-only vehicle: do not start the Xbox controller poller (about 53% of a core).
 export TUKZIE_NO_CONTROLLER=1
+# Bench: skip the driver and PIN page. Set to 0 (or delete) for the demo.
+export TUKZIE_SKIP_LOGIN=1
 # No fixed addresses: sw7_endpoints.py finds the Pi 4 (localhost, wired 10.20.0.1,
 # beacon, pi4-camera.local, last good). Set TUKZIE_PI4_HOST only to force one for a test.
 unset TUKZIE_CAMERA_URL TUKZIE_TELEMETRY_URL
