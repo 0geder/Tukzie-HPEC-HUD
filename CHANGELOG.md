@@ -17,6 +17,9 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### d00b316 Dashboard: skip the PIN page on the bench
+- DashboardIntegration/tests/dashboard_patches.py: LOGIN_PATCHES (main_window.py _show_login goes straight to the dashboard when TUKZIE_SKIP_LOGIN=1). DashboardIntegration/deploy/start_sw7_dashboard.sh sets TUKZIE_SKIP_LOGIN=1. Why: entering the PIN on every restart slowed bench work; set it to 0 for the demo. Deployed and seen on the Pi 5 screen (splash then driving page).
+
 ### f7b465f Dashboard settings: finger-drag scrolling, plain wording, technical options behind Show advanced settings
 - DashboardIntegration/tests/dashboard_patches.py: SETTINGS_PATCHES (2 edits to app/pages/settings_page.py, 53 in all). QScroller finger-drag scrolling; route provider, ORS key, map engine, fallbacks, voice engine and kiosk options hidden behind "Show advanced settings"; plain labels (Voice alerts, Map follows the tuk-tuk, Repeat last warning, Colour theme). Why: on the touchscreen the page would not scroll and it showed developer options to the rider. Checked off-screen on the Pi 5 and deployed; not yet tried by touch.
 
