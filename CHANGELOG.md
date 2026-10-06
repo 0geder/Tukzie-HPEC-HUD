@@ -17,6 +17,11 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### Pi 4 failed; the Pi 5 starts taking over its role
+- 6 Oct: the Raspberry Pi 4 stopped booting even on correct power, after repeated under-voltage (0x50005) earlier in the day. Cause not yet known.
+- On the Pi 5 (user space only, no sudo, team files untouched): ~/sw7_bridge with telemetry_bridge.py, sensor_fusion.py, fusion_config.json, tof_reader.py and a venv with pyserial 3.5; started with --no-tof, waiting for the ESP32 on /dev/ttyACM0. The dashboard's resolver tries localhost first, so no dashboard change is needed. Not yet a boot service.
+- The Pi 5 supply negotiates 3 A (device tree max_current 3000 mA), which limits its USB ports to 600 mA in total: the ESP32 board's LTE modem may need its own supply or the 27 W (5 A) Pi 5 supply.
+
 ### Deck and Q&A: run 2 pothole model
 - Presentation/source/build_deck.js: slide 10 no longer says the detection uses no training of the student's own; it gives the pothole model on South African roads (0.000 before, 0.714 validation mAP@50 after) and says the test score and a Pi run are next. Talking points now 1,605 words, about 10.7 min at 150 words a minute, so slightly over 10 minutes. Q&A: run 2 answer and numbers row. Slide 10 rendered and checked.
 
