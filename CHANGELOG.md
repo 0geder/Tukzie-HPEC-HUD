@@ -13,6 +13,15 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 ---
 
+## 2026-10-06
+
+The SW-7 dashboard is now the Pi 5 default at boot.
+
+### e4e69f3 Pi 5 boot: sw7-dashboard.service replaces the team's tukzie.service
+- DashboardIntegration/deploy/sw7-dashboard.service (new): systemd unit that runs ~/start_sw7_dashboard.sh at boot, Restart=on-failure. Why: the Pi 5 boots to a bare X display (lightdm, no desktop session), so desktop and labwc autostart files never run; the team's build was started by /etc/systemd/system/tukzie.service.
+- DashboardIntegration/deploy/deploy_dashboard.sh: copies the unit to ~/sw7_integration and prints the install commands while tukzie.service is still enabled.
+- On the Pi 5 (6 Oct): unit installed, tukzie.service disabled (file untouched), sw7-dashboard.service enabled and active, running from ~/Dashboard_sw7. Revert: disable sw7-dashboard.service, enable tukzie.service. Reboot test still to be done.
+
 ## Unreleased
 
 - `Poster Templates/` (untracked): four reference files, "2. Scientific Poster Design _Cornell U.pdf", "SAUPEC Poster 2017v3 A4.pdf", "Spanish Workshop Poster_v5.pdf" and "Spanish Workshop Poster_v5.pptx". Why: reason not recorded. D25 says the A1 poster was built in the UCT poster-template style, which these may relate to.
@@ -121,7 +130,8 @@ GNSS confirmed outdoors; three firmware faults found and fixed; signal-loss reco
 ### (51362d2) Dashboard page shows a live person alert
 
 - `Report/evidence/2026-10-01_dashboard_page_person.png`: page with a red Person, Immediate row against the live detector. Why: last open part of the dashboard live test (B2).
-- `Report/Methodology.tex` dashboard paragraph: person-alert result added; a `ef` that had lost its backslash (shown as "Appendix ef") fixed; stale sentence saying the page had not been run against the live detector removed. Why: the text contradicted the results above it.
+- `Report/Methodology.tex` dashboard paragraph: person-alert result added; a `
+ef` that had lost its backslash (shown as "Appendix ef") fixed; stale sentence saying the page had not been run against the live detector removed. Why: the text contradicted the results above it.
 - `Report/appendixc.tex`, `BenchTest/TEST_PROCEDURES.md` B2: person-alert row and result.
 
 ### (88ec05d) Camera colour fixed: NoIR tuning plus saturation
