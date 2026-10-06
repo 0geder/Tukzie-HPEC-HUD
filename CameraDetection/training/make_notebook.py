@@ -133,6 +133,46 @@ for sz in (640, 1280, 1920):
               project=RUN_DIR, name=f'SA_test_{sz}', exist_ok=True)
     print(f'imgsz {sz}: mAP50 {r.box.map50:.3f}  mAP50-95 {r.box.map:.3f}  P {r.box.mp:.3f}  R {r.box.mr:.3f}')
 """),
+code(r"""
+# 2g. Run 2 data: crop the road band and cut it into tiles, so the South African potholes are big enough to see.
+#     Their centres lie at 48 to 62 % of the frame height (Report, Methodology). The band 42 to 68 % is cut into
+#     three overlapping 1280-pixel-wide tiles; at the 640 training size a median pothole becomes about 50 x 13 px
+#     instead of 17 x 4.5 px for the whole frame. A box is kept in a tile when at least half of it lies inside.
+#     Needs cells 2, 2b and 2d first (cell 3, 2c and 2e can be skipped). Takes about 10 minutes.
+from PIL import Image
+TILE_OUT = '/content/sa_band_tiles'
+BAND = (0.42, 0.68); TILE_W = 1280
+y0, y1 = int(BAND[0] * H), int(BAND[1] * H)
+xs = [0, (W - TILE_W) // 2, W - TILE_W]
+def tile_boxes(bs, tx):
+    out = []
+    for x, y, w, h in bs:
+        ix0, iy0 = max(x, tx), max(y, y0); ix1, iy1 = min(x + w, tx + TILE_W), min(y + h, y1)
+        if ix1 <= ix0 or iy1 <= iy0 or (ix1 - ix0) * (iy1 - iy0) < 0.5 * w * h: continue
+        out.append((ix0 - tx, iy0 - y0, ix1 - ix0, iy1 - iy0))
+    return out
+th = y1 - y0; counts = {}
+for sp, stems in plan.items():
+    os.makedirs(f'{TILE_OUT}/{sp}/images', exist_ok=True); os.makedirs(f'{TILE_OUT}/{sp}/labels', exist_ok=True)
+    n_img = n_box = 0
+    for s in stems:
+        im = None
+        for k, tx in enumerate(xs):
+            dst = f'{TILE_OUT}/{sp}/images/{s}_t{k}.jpg'
+            bs = tile_boxes(ann.get(s, []), tx)
+            if not os.path.exists(dst):
+                im = im or Image.open(imgs[s]).convert('RGB')
+                im.crop((tx, y0, tx + TILE_W, y1)).save(dst, quality=92)
+            with open(f'{TILE_OUT}/{sp}/labels/{s}_t{k}.txt', 'w') as f:
+                for x, y, w, h in bs:
+                    f.write(f'{POT} {(x + w / 2) / TILE_W:.6f} {(y + h / 2) / th:.6f} {w / TILE_W:.6f} {h / th:.6f}\n')
+            n_img += 1; n_box += len(bs)
+    counts[sp] = (n_img, n_box); print(sp, n_img, 'tiles,', n_box, 'potholes')
+SA_TILE_YAML = f'{TILE_OUT}/data.yaml'
+yaml.safe_dump({'path': TILE_OUT, 'train': 'train/images', 'val': 'val/images', 'test': 'test/images', 'names': names},
+               open(SA_TILE_YAML, 'w'))
+print('band rows', y0, 'to', y1, '| tile size', TILE_W, 'x', th, '| data:', SA_TILE_YAML)
+"""),
 code("""
 # 3. Dataset from Roboflow Universe (fill in from the dataset's download code)
 # Run 1 dataset: 8,016 images, 5 classes (Pothole, Manhole, Open Manhole, Speed Bump, Unmarked Bump), CC BY 4.0;
@@ -163,6 +203,27 @@ if os.path.exists(last):
     model = YOLO(last); model.train(resume=True)
 else:
     model = YOLO('yolo11n.pt')      # COCO-pretrained start (transfer learning)
+    model.train(data=DATA_YAML, epochs=EPOCHS, imgsz=IMGSZ, batch=BATCH, patience=PATIENCE,
+                project=RUN_DIR, name=NAME, exist_ok=True, seed=0)
+"""),
+code(r"""
+# 4b. Run 2: train on the South African band tiles (instead of cell 4). Starts from the run 1 weights if they are
+#     on Drive (fine-tuning), otherwise from COCO. Cells 5, 6 and 7 then work unchanged on this run.
+#     About an hour on a T4. Re-running resumes from the last checkpoint on Drive.
+from ultralytics import YOLO
+DATA_YAML = SA_TILE_YAML
+DATASET_URL = 'https://www.kaggle.com/datasets/sovitrath/road-pothole-images-for-pothole-detection (band tiles, cell 2g)'
+PROJECT, VERSION = 'sa_band_tiles', 1
+EPOCHS, IMGSZ, BATCH, PATIENCE = 60, 640, 32, 15
+NAME = 'yolo11n_sa_band_tiles_640'
+run1 = f'{RUN_DIR}/yolo11n_pothole_640/weights/best.pt'
+last = f'{RUN_DIR}/{NAME}/weights/last.pt'
+if os.path.exists(last):
+    model = YOLO(last); model.train(resume=True)
+else:
+    start = run1 if os.path.exists(run1) else 'yolo11n.pt'
+    print('starting from', start)
+    model = YOLO(start)
     model.train(data=DATA_YAML, epochs=EPOCHS, imgsz=IMGSZ, batch=BATCH, patience=PATIENCE,
                 project=RUN_DIR, name=NAME, exist_ok=True, seed=0)
 """),
