@@ -19,7 +19,7 @@ class FakePreview(h.PreviewServer):
     def close(self): pass
 _real_preview, _real_monotonic = h.PreviewServer, time.monotonic   # restored at the end (pytest runs the files in one process)
 holder = {}
-def make(port, host="127.0.0.1"):
+def make(port, host="127.0.0.1", colour_fix=None):
     holder["p"] = FakePreview(port, host); return holder["p"]
 h.PreviewServer = make
 sys.argv = ["x", "--duration", "30", "--log-path", "t3.jsonl", "--preview"]

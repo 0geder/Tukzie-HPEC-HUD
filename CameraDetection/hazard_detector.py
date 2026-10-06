@@ -231,8 +231,9 @@ class PreviewServer:
     still busy, older frames are skipped, so the live view can fall behind
     without ever slowing detection down."""
 
-    def __init__(self, port, host="127.0.0.1"):
+    def __init__(self, port, host="127.0.0.1", colour_fix=None):
         import threading
+        self._colour_fix = colour_fix   # applied to the live view only, in this encoder thread
         from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
         self._lock = threading.Condition()
         self._jpeg = None
@@ -332,6 +333,8 @@ class PreviewServer:
             if item is None:
                 continue
             rgb_frame, detections, stats = item
+            if self._colour_fix is not None:
+                rgb_frame = self._colour_fix(rgb_frame)
             img = Image.fromarray(rgb_frame)
             draw = ImageDraw.Draw(img)
             for d in detections:
@@ -477,6 +480,10 @@ def main():
                         help="Colour saturation (libcamera control, 1.0 = normal). The module "
                              "has no infrared filter, so colours come out washed out even with "
                              "the NoIR tuning; about 1.5 to 2.0 restores some of it")
+    parser.add_argument("--dark-neutral", default=None, metavar="LO,HI",
+                        help="Live view only: remove the colour cast from dark pixels (black looks purple without an "
+                             "infrared filter): fully neutral when every channel is at LO or below, unchanged "
+                             "when any channel reaches HI, e.g. 50,110. Default: detector_options.json if present, else off")
     parser.add_argument("--threads", type=int, default=4,
                          help="CPU threads for inference (the Pi 4 has 4 cores)")
     parser.add_argument("--verbose", action="store_true",
@@ -518,6 +525,13 @@ def main():
         picam2.set_controls({"Saturation": args.saturation})
         print(f"Camera saturation: {args.saturation}")
 
+    import os
+    dn = dark_neutral_setting(args.dark_neutral,
+                              os.path.join(os.path.dirname(os.path.abspath(__file__)), "detector_options.json"))
+    neutralise = DarkNeutraliser(*dn) if dn else None
+    if neutralise:
+        print(f"Dark neutralise (live view only, detector input unchanged): neutral with all channels "
+              f"at {dn[0]} or below, unchanged from {dn[1]}")
     print(f"Model loaded: {args.model} (input {input_width}x{input_height}, {args.threads} inference threads)")
     print(f"WARNING: focal_length_px={args.focal_length_px} is UNCALIBRATED - "
           f"distance estimates are order-of-magnitude only until calibrated.")
@@ -551,7 +565,7 @@ def main():
     frame_count = 0
     try:
         if args.preview:
-            preview = PreviewServer(args.preview_port, args.preview_host)
+            preview = PreviewServer(args.preview_port, args.preview_host, colour_fix=neutralise)
             if args.preview_host == "127.0.0.1":
                 print(f"Live view: open http://localhost:{args.preview_port} in this Pi's browser")
             else:
@@ -694,6 +708,53 @@ def main():
         picam2.stop()
         if preview is not None:
             preview.close()
+
+
+class DarkNeutraliser:
+    """Removes the colour cast from dark pixels, so black looks black.
+
+    The camera module has no infrared-cut filter, and many black fabrics and
+    plastics reflect infrared, which the red and blue pixels pick up: black
+    comes out purple, more so with the saturation boost. In HSV terms each
+    pixel's saturation is scaled by a weight set by its brightness V (its
+    brightest channel): 0 at or below `lo` (grey), rising linearly to 1 at
+    `hi` (unchanged). V, not luma, decides, because a strong blue or red has a
+    low luma but one bright channel and must keep its colour; a near-black
+    pixel is dark in every channel. Pixels with V at or above `hi` are copied
+    unchanged, so bright colours are bit-exact. Pillow only (C code, no OpenCV):
+    a pure numpy version took 171 ms a frame on the Pi 4."""
+
+    def __init__(self, lo=50, hi=110):
+        if not 0 <= lo < hi <= 255:
+            raise ValueError("need 0 <= lo < hi <= 255")
+        self.lo, self.hi = lo, hi
+        self.weight_lut = [max(0, min(255, (v - lo) * 255 // (hi - lo))) for v in range(256)]
+        self.mask_lut = [255 if v < hi else 0 for v in range(256)]
+
+    def __call__(self, rgb):
+        from PIL import Image, ImageChops
+        img = Image.fromarray(rgb)
+        h, s, v = img.convert("HSV").split()
+        s = ImageChops.multiply(s, v.point(self.weight_lut))
+        fixed = Image.merge("HSV", (h, s, v)).convert("RGB")
+        return np.asarray(Image.composite(fixed, img, v.point(self.mask_lut)))
+
+
+def dark_neutral_setting(cli_value, options_path):
+    """(lo, hi) from --dark-neutral "LO,HI", else from detector_options.json next to this
+    script ({"dark_neutral": [50, 110]}), else None (off). The file lets the setting be
+    changed on the Pi without editing the system service."""
+    raw = cli_value
+    if raw is None:
+        try:
+            with open(options_path) as f:
+                raw = json.load(f).get("dark_neutral")
+        except (OSError, ValueError):
+            raw = None
+    if raw in (None, "", "off", False):
+        return None
+    lo, hi = (int(v) for v in (raw.split(",") if isinstance(raw, str) else raw))
+    return lo, hi
 
 
 def np_resize(frame, width, height):
