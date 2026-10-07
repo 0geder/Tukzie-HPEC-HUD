@@ -325,7 +325,7 @@ class HazardBanner(QFrame):
             if urgent:
                 text, _src = hazard_text(urgent[0])
                 more = f"  (+{len(urgent) - 1} more)" if len(urgent) > 1 else ""
-                message = ("crit", f"⚠  {text.upper()}{more}   ·   tap for sensors")
+                message = ("crit", f"{text.upper()}{more}   ·   tap for sensors")   # no symbol: the bundled font has no warning glyph
         elif self._was_live:
             self._lost_since = self._lost_since or now
             if now - self._lost_since >= LINK_LOST_S:
@@ -337,8 +337,9 @@ class HazardBanner(QFrame):
         show = self._message is not None and time.monotonic() >= self._snooze_until and not self._shown_check()
         if show:
             status, text = self._message
-            colour = THEME.color(status).name()
-            fg = "#fff" if status == "crit" else "#000"
+            # Fixed banner colours from Research/DashboardDesign, the same in both themes:
+            # white on deep red (7.6:1) for critical, near-black on amber (10.8:1) for warning.
+            colour, fg = {"crit": ("#A3201A", "#FFFFFF"), "warn": ("#FFB224", "#0B0D10")}[status]
             self.setStyleSheet(f"HazardBanner {{ background: {colour}; border-radius: 12px; }}"
                                f" QPushButton {{ color: {fg}; background: transparent; border: none; text-align: left; }}"
                                f" QPushButton#hide {{ border: 1px solid {fg}; border-radius: 8px; padding: 6px 10px; }}")

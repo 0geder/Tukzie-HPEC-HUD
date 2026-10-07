@@ -17,6 +17,12 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### Dashboard redesign, stages 1 and 2 (repo only; the Pi 5 was off the network)
+- DashboardIntegration/tests/dashboard_patches.py: THEME_PATCHES (6) replace the twelve neon palettes with Night (default) and Day themes from Research/DashboardDesign (text contrast at least 7:1), theme-dependent status colours, flat page and card surfaces without gradients or glow, and the Atkinson Hyperlegible font loaded from the build; DRIVING_PATCHES (3) put SW7DrivePanel (sw7_driving.py, new) in the centre of the Driving page: speed about 120 px high, battery and range tiles, no 0 to 50 dial and no brake or accelerator bars (no pedal sensors). 78 edits in all. TUKZIE_SW7_THEME=0 restores the team's look.
+- DashboardIntegration/fonts/ (new): Atkinson Hyperlegible Regular and Bold with the SIL OFL licence (Braille Institute, from google/fonts); copied into app/fonts by COPIES and to the Pi by deploy_dashboard.sh.
+- DashboardIntegration/sensors_page.py: hazard banner in the research's fixed colours (white on #A3201A, near-black on #FFB224); the warning glyph removed (the font has none).
+- Tests: both suites pass against the team's v1.1 (they now create folders for copied files). Screenshots in DashboardIntegration/tests/redesign/ (the *_SAMPLE_VALUES images use made-up values to check the layout and are not data).
+
 ### Pi 4 failed; the Pi 5 starts taking over its role
 - 6 Oct: the Raspberry Pi 4 stopped booting even on correct power, after repeated under-voltage (0x50005) earlier in the day. Cause not yet known.
 - On the Pi 5 (user space only, no sudo, team files untouched): ~/sw7_bridge with telemetry_bridge.py, sensor_fusion.py, fusion_config.json, tof_reader.py and a venv with pyserial 3.5; started with --no-tof, waiting for the ESP32 on /dev/ttyACM0. The dashboard's resolver tries localhost first, so no dashboard change is needed. Not yet a boot service.

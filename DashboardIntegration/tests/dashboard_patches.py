@@ -18,6 +18,8 @@ SETTINGS_PATCHES: finger-drag scrolling and a simpler Settings page (technical
 options behind "Show advanced settings"). Anchors checked in v1.1.
 LOGIN_PATCHES: skip the driver/PIN page when TUKZIE_SKIP_LOGIN=1.
 SENSORS_PATCHES: the Sensors page on the nav bar and the hazard banner over every page.
+DRIVING_PATCHES: large speed, battery and range in place of the dial and pedal bars.
+THEME_PATCHES: Night and Day themes, flat surfaces and the Atkinson Hyperlegible font (TUKZIE_SW7_THEME=0 restores the original).
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -31,6 +33,10 @@ COPIES = (
     ("sw7_live_only.py", "app/data/sw7_live_only.py"),
     ("sw7_tile_map.py", "app/pages/sw7_tile_map.py"),
     ("sensors_page.py", "app/pages/sensors_page.py"),
+    ("sw7_driving.py", "app/widgets/sw7_driving.py"),
+    ("fonts/AtkinsonHyperlegible-Regular.ttf", "app/fonts/AtkinsonHyperlegible-Regular.ttf"),
+    ("fonts/AtkinsonHyperlegible-Bold.ttf", "app/fonts/AtkinsonHyperlegible-Bold.ttf"),
+    ("fonts/OFL.txt", "app/fonts/OFL.txt"),
 )
 
 CAMERA_DRAWER = '''def camera(p,r,c):
@@ -454,6 +460,88 @@ SENSORS_PATCHES = (
      "    'speaker': speaker, 'camera': camera, 'sensors': sensors,\n"),
 )
 
+THEME_PATCHES = (
+    # theme.py: two themes from Research/DashboardDesign (7 Oct 2026) replace the twelve palettes, unless
+    # TUKZIE_SW7_THEME=0. Night is the default (dark, low glare); Day is for sunlight. Every text colour has a
+    # contrast of at least 7:1 on its background. Status colours change with the theme so they keep that
+    # contrast, and keep their meaning (green normal, amber warning, red critical).
+    ("app/theme.py",
+     '# The single light palette, used by the Dark/Light theme toggle.\n'
+     'LIGHT_PALETTE_KEY = "arctic_white"\n',
+     '# The single light palette, used by the Dark/Light theme toggle.\n'
+     'LIGHT_PALETTE_KEY = "arctic_white"\n'
+     '\n'
+     '# SW-7 (Research/DashboardDesign): two themes, flat surfaces, a legible typeface. TUKZIE_SW7_THEME=0 restores the original.\n'
+     'SW7_THEME = __import__("os").environ.get("TUKZIE_SW7_THEME", "1").strip() != "0"\n'
+     'if SW7_THEME:\n'
+     '    PALETTES = [\n'
+     '        Palette("sw7_night", "Night", "Default \\u00b7 dark, low glare",\n'
+     '                "#0E1116", "#171B22", "#80C0FF", "#3FD68A", "#F5F7FA"),\n'
+     '        Palette("sw7_day", "Day", "Bright sunlight \\u00b7 dark text",\n'
+     '                "#F7F8FA", "#FFFFFF", "#0947AA", "#0E5A2A", "#0B0D10"),\n'
+     '    ]\n'
+     '    LIGHT_PALETTE_KEY = "sw7_day"\n'
+     '_SW7_STATUS = {False: {"normal": "#3FD68A", "warn": "#FFB224", "crit": "#FF857B", "inactive": "#7A8492"},\n'
+     '               True: {"normal": "#0E5A2A", "warn": "#753F00", "crit": "#951B12", "inactive": "#8A94A0"}}\n'),
+    ("app/theme.py",
+     '        return QColor(_STATUS.get(key, _STATUS["inactive"]))\n',
+     '        table = _SW7_STATUS[self.is_light] if SW7_THEME else _STATUS\n'
+     '        return QColor(table.get(key, table["inactive"]))\n'),
+    # theme.py: Atkinson Hyperlegible (Braille Institute, SIL OFL), shipped in app/fonts, first choice.
+    ("app/theme.py",
+     '        for candidate in ("Orbitron", "Rajdhani", "Inter", "Roboto",\n',
+     '        if SW7_THEME:\n'
+     '            import glob, os\n'
+     '            for path in glob.glob(os.path.join(os.path.dirname(__file__), "fonts", "*.ttf")):\n'
+     '                QFontDatabase.addApplicationFont(path)\n'
+     '            families = set(QFontDatabase.families())\n'
+     '            for candidate in ("Atkinson Hyperlegible", "B612", "Inter"):\n'
+     '                if candidate in families:\n'
+     '                    return candidate\n'
+     '        for candidate in ("Orbitron", "Rajdhani", "Inter", "Roboto",\n'),
+    # themed_surfaces.py: flat page and card surfaces (no gradient, no accent glow).
+    ("app/widgets/themed_surfaces.py",
+     'from ..theme import THEME\n',
+     'from ..theme import SW7_THEME, THEME\n'),
+    ("app/widgets/themed_surfaces.py",
+     '        base = QLinearGradient(r.topLeft(), r.bottomRight())\n',
+     '        if SW7_THEME:                      # flat background, no glow\n'
+     '            p.fillRect(r, QColor(THEME.hex("bg")))\n'
+     '            p.end()\n'
+     '            super().paintEvent(event)\n'
+     '            return\n'
+     '        base = QLinearGradient(r.topLeft(), r.bottomRight())\n'),
+    ("app/widgets/themed_surfaces.py",
+     '        p.setBrush(grad)\n',
+     '        p.setBrush(QColor(THEME.hex("card")) if SW7_THEME else grad)   # flat card in the SW-7 theme\n'),
+)
+
+DRIVING_PATCHES = (
+    # driving_page.py: in the SW-7 theme the centre of the Driving page is SW7DrivePanel (sw7_driving.py):
+    # a large speed number and battery and range tiles sized from Research/DashboardDesign, in place of the
+    # 0 to 50 dial and the brake and accelerator bars (no pedal sensors on the vehicle). The route line is
+    # larger. TUKZIE_SW7_THEME=0 keeps the team's layout.
+    ("app/pages/driving_page.py",
+     "from ..widgets.themed_surfaces import ThemedPageSurface\n",
+     "from ..widgets.themed_surfaces import ThemedPageSurface\n"
+     "from ..theme import SW7_THEME\n"
+     "from ..widgets.sw7_driving import SW7DrivePanel\n"),
+    ("app/pages/driving_page.py",
+     "centre.addStretch(2); centre.addWidget(self.brake); centre.addWidget(self.speed,5); centre.addWidget(self.accel); centre.addStretch(2); root.addLayout(centre,2,0,1,3)",
+     "self.sw7=None\n"
+     "        if SW7_THEME:\n"
+     "            self.sw7=SW7DrivePanel(); centre.addWidget(self.sw7,1)\n"
+     "        else:\n"
+     "            centre.addStretch(2); centre.addWidget(self.brake); centre.addWidget(self.speed,5); centre.addWidget(self.accel); centre.addStretch(2)\n"
+     "        root.addLayout(centre,2,0,1,3)"),
+    ("app/pages/driving_page.py",
+     "        THEME.changed.connect(self._theme); self._theme()\n    def set_state(self,s):\n",
+     "        if SW7_THEME:\n"
+     "            self.range.hide(); self.route.setFont(THEME.font(22,QFont.Weight.DemiBold))\n"
+     "        THEME.changed.connect(self._theme); self._theme()\n    def set_state(self,s):\n"
+     "        if self.sw7 is not None: self.sw7.set_state(s)\n"),
+)
+
 LOGIN_PATCHES = (
     # main_window.py: with TUKZIE_SKIP_LOGIN=1 the startup splash goes straight to the dashboard, without
     # the driver and PIN page (bench work). start_sw7_dashboard.sh sets it; set it to 0 for the demo.
@@ -464,4 +552,4 @@ LOGIN_PATCHES = (
      "            return self._enter_dashboard(\"\")\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES

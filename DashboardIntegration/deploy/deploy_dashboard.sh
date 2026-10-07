@@ -64,6 +64,10 @@ echo "Deploying commit $COMMIT to $TARGET"
 ssh "${SSH_OPTS[@]}" "$TARGET" 'mkdir -p ~/sw7_integration'
 scp -q "${SSH_OPTS[@]}" "${FILES[@]}" "$TARGET:sw7_integration/"
 echo "Copied ${#FILES[@]} files to ~/sw7_integration"
+# Fonts for the SW-7 theme (Atkinson Hyperlegible, SIL OFL); COPIES in dashboard_patches.py puts them in app/fonts.
+ssh "${SSH_OPTS[@]}" "$TARGET" 'mkdir -p ~/sw7_integration/fonts'
+scp -q "${SSH_OPTS[@]}" "$INTEG"/fonts/* "$TARGET:sw7_integration/fonts/"
+echo "Copied the fonts to ~/sw7_integration/fonts"
 
 # The remote part. CR characters are stripped in case this file was checked out
 # with Windows line endings.

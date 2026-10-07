@@ -130,6 +130,7 @@ if target.exists():
     shutil.rmtree(target, onexc=_force_remove)
 shutil.copytree(DASH / "app", target, ignore=shutil.ignore_patterns("__pycache__", "logs"))
 for src, dst in COPIES:
+    (scratch / dst).parent.mkdir(parents=True, exist_ok=True)   # e.g. app/fonts
     shutil.copy2(INTEGRATION / src, scratch / dst)
 for rel, old, new in PATCHES:
     path = scratch / rel
