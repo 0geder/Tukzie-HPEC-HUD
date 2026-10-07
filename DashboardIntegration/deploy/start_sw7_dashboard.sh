@@ -13,6 +13,9 @@ export TUKZIE_LIVE_ONLY=1
 export TUKZIE_NO_CONTROLLER=1
 # Bench: skip the driver and PIN page. Set to 0 (or delete) for the demo.
 export TUKZIE_SKIP_LOGIN=1
+# Redesigned look (Night/Day themes, large speed panel): off on 7 Oct 2026 at the student's request,
+# so the team's original look is shown. Set to 1 to switch the redesign back on.
+export TUKZIE_SW7_THEME=0
 # No fixed addresses: sw7_endpoints.py finds the Pi 4 (localhost, wired 10.20.0.1,
 # beacon, pi4-camera.local, last good). Set TUKZIE_PI4_HOST only to force one for a test.
 unset TUKZIE_CAMERA_URL TUKZIE_TELEMETRY_URL
