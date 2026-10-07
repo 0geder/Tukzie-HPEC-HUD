@@ -17,6 +17,10 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### Analytics page: infinite vertical carousel
+- DashboardIntegration/sw7_analytics.py (new) and ANALYTICS_CAROUSEL_PATCHES (1 edit to analytics_page.py, 73 in all): the page's own six value cards, a new Graphs card and the Driver insights card in an infinite vertical carousel (swipe up for the next card, wraps both ways, peeking neighbours, arrows and position dots); tapping Graphs opens the four time charts with a Back button. The team's widgets are moved, not redrawn, so their look and update_state() (with live-only "--") are unchanged; no other page is touched. TUKZIE_ANALYTICS_CAROUSEL=0 restores the grid. Brief: Planning/analytics-carousel-prompt.md.
+- DashboardIntegration/tests/test_analytics_carousel.py (new): contents, wrap both ways, swipe and snap-back, Graphs and Back, values and "--", switch-off. Passes against the team's v1.1, as do the two existing suites.
+
 ### Dashboard redesign, stages 1 and 2 (repo only; the Pi 5 was off the network)
 - DashboardIntegration/tests/dashboard_patches.py: THEME_PATCHES (6) replace the twelve neon palettes with Night (default) and Day themes from Research/DashboardDesign (text contrast at least 7:1), theme-dependent status colours, flat page and card surfaces without gradients or glow, and the Atkinson Hyperlegible font loaded from the build; DRIVING_PATCHES (3) put SW7DrivePanel (sw7_driving.py, new) in the centre of the Driving page: speed about 120 px high, battery and range tiles, no 0 to 50 dial and no brake or accelerator bars (no pedal sensors). 78 edits in all. TUKZIE_SW7_THEME=0 restores the team's look.
 - DashboardIntegration/fonts/ (new): Atkinson Hyperlegible Regular and Bold with the SIL OFL licence (Braille Institute, from google/fonts); copied into app/fonts by COPIES and to the Pi by deploy_dashboard.sh.

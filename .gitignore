@@ -69,3 +69,5 @@ Report/*.lof
 Report/*.lot
 Report/*.out
 __pycache__/
+DashboardIntegration/tests/analytics_carousel.png
+DashboardIntegration/tests/analytics_graphs.png

@@ -18,6 +18,7 @@ SETTINGS_PATCHES: finger-drag scrolling and a simpler Settings page (technical
 options behind "Show advanced settings"). Anchors checked in v1.1.
 LOGIN_PATCHES: skip the driver/PIN page when TUKZIE_SKIP_LOGIN=1.
 SENSORS_PATCHES: the Sensors page on the nav bar and the hazard banner over every page.
+ANALYTICS_CAROUSEL_PATCHES: the Analytics page as an infinite vertical carousel with a Graphs card.
 DRIVING_PATCHES: large speed, battery and range in place of the dial and pedal bars.
 THEME_PATCHES: Night and Day themes, flat surfaces and the Atkinson Hyperlegible font (TUKZIE_SW7_THEME=0 restores the original).
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
@@ -34,6 +35,7 @@ COPIES = (
     ("sw7_tile_map.py", "app/pages/sw7_tile_map.py"),
     ("sensors_page.py", "app/pages/sensors_page.py"),
     ("sw7_driving.py", "app/widgets/sw7_driving.py"),
+    ("sw7_analytics.py", "app/pages/sw7_analytics.py"),
     ("fonts/AtkinsonHyperlegible-Regular.ttf", "app/fonts/AtkinsonHyperlegible-Regular.ttf"),
     ("fonts/AtkinsonHyperlegible-Bold.ttf", "app/fonts/AtkinsonHyperlegible-Bold.ttf"),
     ("fonts/OFL.txt", "app/fonts/OFL.txt"),
@@ -542,6 +544,19 @@ DRIVING_PATCHES = (
      "        if self.sw7 is not None: self.sw7.set_state(s)\n"),
 )
 
+ANALYTICS_CAROUSEL_PATCHES = (
+    # analytics_page.py: the page's own value cards, chart cards and insights card are moved into an infinite
+    # vertical carousel with a Graphs card that opens the four charts (sw7_analytics.py;
+    # Planning/analytics-carousel-prompt.md). Only this page changes, and only its layout: update_state() and the
+    # live-only handling are untouched. TUKZIE_ANALYTICS_CAROUSEL=0 keeps the original grid.
+    ("app/pages/analytics_page.py",
+     '        root.addWidget(self.insights)\n        self._latest_log = ""\n',
+     '        root.addWidget(self.insights)\n        self._latest_log = ""\n'
+     '        if __import__("os").environ.get("TUKZIE_ANALYTICS_CAROUSEL", "1").strip() != "0":   # SW-7 carousel\n'
+     '            from .sw7_analytics import install_carousel\n'
+     '            install_carousel(self, root, grid, chart_grid)\n'),
+)
+
 LOGIN_PATCHES = (
     # main_window.py: with TUKZIE_SKIP_LOGIN=1 the startup splash goes straight to the dashboard, without
     # the driver and PIN page (bench work). start_sw7_dashboard.sh sets it; set it to 0 for the demo.
@@ -552,4 +567,4 @@ LOGIN_PATCHES = (
      "            return self._enter_dashboard(\"\")\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES
