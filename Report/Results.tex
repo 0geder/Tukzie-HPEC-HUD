@@ -1,28 +1,98 @@
 \chapter{Results}
 \label{chap:results}
 
-This chapter presents the results by subsystem, followed by a full-system test on the vehicle, and maps each back to the research questions and requirements in Table~\ref{tab:requirements-mapping}. Bench-level validation results are reported alongside their methods in Chapter~\ref{chap:method}.
+This chapter collects the measured results by research question. Every figure below was measured on the bench, on the telemetry unit's target board and the two Raspberry Pis, between 25 September and 6 October 2026; the conditions and methods are given in the Methodology sections referred to, and the raw evidence is indexed in Appendix~\ref{app:evidence}. No measurement has yet been made on the moving vehicle, and each section says which results depend on that. Table~\ref{tab:results-summary} at the end of the chapter returns to the requirements of Table~\ref{tab:requirements-mapping}.
 
 \section{Inertial acquisition integrity (RQ3)}
-Achieved sample rate, inter-sample jitter distribution, and dropped-sample counts for both IMUs, first on the bench and then on the moving vehicle.
+
+Table~\ref{tab:res-acquisition} summarises the acquisition results. Both inertial sensors held their 200\,Hz rate with no dropped samples in every recorded session, including with all subsystems running together on the target board (Sections~\ref{sec:dual-imu-architecture} and~\ref{sec:full-system-integration}). The only timing fault found was a pause of 33 to 40\,ms whenever the log was written to flash. Writing the log in one buffered append about once a minute reduced the number of such pauses from six a minute to one, without shortening each pause (Section~\ref{sec:local-logging}). Each pause appears as a gap of that length in the sample timestamps; the per-second sample counts and the drop counters were unaffected.
+
+\begin{table}[htbp]
+\centering
+\caption{Inertial acquisition on the target board (bench).}
+\label{tab:res-acquisition}
+\begin{tabular}{|p{6.2cm}|p{7.6cm}|}
+\hline
+\textbf{Measure} & \textbf{Result} \\ \hline
+Sample rate, each IMU & 200.0 to 200.5\,Hz in every session \\ \hline
+Dropped samples & 0 in every session \\ \hline
+Longest gap, logging off & 5.9\,ms; none over 10\,ms \\ \hline
+Gap at each flash write, v0.5.0 & 33 to 40\,ms, every 10\,s \\ \hline
+Gap at each flash write, v0.6.0 (buffered) & 37 to 40\,ms, about once a minute, all within 3.5\,s of a flush; 5.9\,ms worst in every other window (330\,s run) \\ \hline
+All subsystems together (IMUs, BLE, modem) & 400 to 401 samples per 2\,s window on each IMU, 0 dropped \\ \hline
+\end{tabular}
+\end{table}
 
 \section{Sensor calibration}
-Per-sensor magnitude calibration factors and the resulting agreement between the two IMUs, at rest and under dynamic excitation.
+
+At rest, before calibration, IMU1 read about 5.7\% above true gravity and IMU2 about 2.6\% below it, a disagreement of about 8\% between two nominally identical sensors, within what the accelerometer's datasheet permits (Section~\ref{sec:imu-magnitude-calibration}). The firmware therefore stores a scale factor for each sensor, measured at its first boot on each board: 0.9773 and 0.9901 on the development board, and 1.0390 and 1.0245 on the target board, where the resting magnitudes were 9.44 and 9.57\,m/s\textsuperscript{2}. The factors differ between boards for the same sensors, which shows that calibration has to be repeated in the final mounted position. How closely the calibrated sensors agree under the vehicle's own vibration has not yet been measured.
 
 \section{Ride characterisation (RQ1, RQ4)}
-Time-domain features (RMS, peak-to-peak, crest factor, jerk, threshold crossings) and the speed-normalised roughness index recorded over known road sections, compared against identifiable road and powertrain events.
+
+The feature computation was checked against a synthetic 5\,Hz signal of 200 samples: root-mean-square, peak-to-peak amplitude and crest factor were all within 5\% of their analytical values (Section~\ref{sec:ride-characterisation}). The dual-IMU fusion passed all five of its start-up self-tests, and in a 150\,s recorded bench session all 149 fused windows combined both sensors, with a skew between them below 1\,ms (Section~\ref{sec:imu-fusion}). During the hand-disturbed part of that session the largest peak-to-peak amplitude in a window was 77.6\,m/s\textsuperscript{2}, inside the $\pm8g$ range set for the sensors.
+
+These results show that the features are computed correctly and that the two sensors are combined as designed. They do not show how the features respond to road surfaces or to the motor, because no data have yet been recorded on the vehicle; the speed-normalised index has also not yet been computed against a real speed, since the units of the GNSS speed field are unconfirmed (Section~\ref{sec:speed-norm}). RQ1 and RQ4 are therefore not yet answered.
 
 \section{Battery-management telemetry}
-BLE connection reliability over a sustained session, and a measured discharge curve compared against the pack's rated capacity.
+
+On the vehicle on 30 September 2026, after the frame checksum was corrected, the unit stored 14 valid battery records over about 140\,s: 74.78\,V, 0.00\,A and 60\% state of charge, with a received signal of $-88$ to $-93$\,dBm, after which the connection was lost (Section~\ref{sec:bms-interface}). The reading is plausible for a 24-cell pack at rest (3.12\,V per cell), but it has not been compared with the pack's own app, and the connection is not yet reliable over a sustained session, so a discharge curve has not been measured.
+
+\section{Position}
+
+Outdoors, with the firmware that parses the modem's response correctly, the receiver reached a three-dimensional fix 105\,s after a cold start (51\,s in an earlier session), with 23 to 25 satellites and a horizontal dilution of precision of about 0.9 to 1.5. Over 104 fixes the position was a median of 2.7\,m from a phone's position, 95\% within 11.0\,m and at most 12.3\,m away (Section~\ref{sec:gnss-outdoor}). Because the phone's own position has an error of a few metres, this is a consistency check rather than an absolute accuracy. The speed field read between 0 and 5.8 while the board was stationary, so its units and its noise at low speed are still to be confirmed before it can be used.
 
 \section{Camera, synchronisation and proximity sensing}
-Camera-to-IMU time alignment, object-detection alert events and the fields recorded for them, and time-of-flight distance measurements, including behaviour against light and dark targets.
+
+Table~\ref{tab:res-camera} summarises the hazard-sensing results.
+
+\begin{table}[htbp]
+\centering
+\caption{Hazard sensing on the Raspberry Pi~4 (bench).}
+\label{tab:res-camera}
+\begin{tabular}{|p{6.2cm}|p{7.6cm}|}
+\hline
+\textbf{Measure} & \textbf{Result} \\ \hline
+Detector rate (SSD-MobileNet, 4 threads) & 19.5 frames per second \\ \hline
+Sensor readout to result & 102\,ms median, 120\,ms 95th percentile, 136\,ms maximum \\ \hline
+Alert onset (3 consecutive frames) & about 0.2\,s, about 1.7\,m of travel at 30\,km/h \\ \hline
+Alert clearing & before the fix, 16 activations in 47\,s for one person; after it, cleared only after 5 empty frames \\ \hline
+Camera to telemetry-unit time alignment & sync pulse median 500.06\,ms, range 499.72 to 500.41\,ms \\ \hline
+Time-of-flight sensors (3 $\times$ VL53L0X) & about 31 readings per second each; steady readings; each confirmed by covering it; not yet checked against a tape \\ \hline
+Camera and time-of-flight fusion & 29 offline tests pass; first live fused hazard: camera estimate 0.874\,m, time-of-flight 0.096\,m, reported 0.096\,m (before calibration) \\ \hline
+YOLO11n, COCO, NCNN, 320 input & 7.9 frames per second, 175\,ms median readout to result \\ \hline
+Pothole model, run 1 & mAP@50 59.7\% on its own test set; 0.000 on South African frames \\ \hline
+Pothole model, run 2 (road-band tiles) & mAP@50 0.714 at 640 and 0.566 at 320, on validation tiles \\ \hline
+\end{tabular}
+\end{table}
+
+The detector's latency is dominated by readout and image processing in the camera pipeline (about 52\,ms), not by inference (36\,ms); Table~\ref{tab:camera-latency} gives the breakdown (Section~\ref{sec:hazard-detection}). The distance bands still rest on an uncalibrated focal length, and the first fused hazard shows how far that estimate can be wrong at close range. The fusion's sensor directions are defaults, and its bench validation (test C9) has not yet been run (Section~\ref{sec:camera-tof-fusion}). The run~2 pothole figures are on the validation tiles, which also chose the best epoch, and are per tile; the held-out test tiles are still to be scored, and the model has not yet been run on the Raspberry Pi or on this vehicle's camera.
 
 \section{Cellular synchronisation and data integrity (RQ3)}
-Publish success rate, latency, and recovery behaviour after induced or naturally occurring loss of coverage, with local-log completeness as the reference.
+
+On the bench the unit connected to the broker at the first attempt and published 47 times with no failures; a requested reconnection completed in 0.4\,s (Section~\ref{sec:mqtt-networking}). With the modem's radio switched off for 60\,s to simulate a loss of coverage, firmware v0.5.0 detected the loss and reconnected 36\,s after the radio returned, because it waited for its next scheduled retry; v0.5.3 watches for the modem's own report that data is available again and reconnected about 5\,s after the radio returned. Logging to flash continued throughout, independent of the connection. A full read-back of the log recovered all 6,020 records (2.2\,MB, about 16.7 hours of operation at one record per 10\,s), and exposed a fault: 5,545 records were not valid JSON because missing values were written as \texttt{nan}; since v0.6.3 they are written as \texttt{null}, and with that substitution all 6,020 records parse (Section~\ref{sec:local-logging}). The broker is a public test broker, and no central database receives the data yet.
 
 \section{Driver display (RQ2)}
-Information hierarchy of the dashboard page as implemented, alert update latency to the screen, legibility under representative lighting, and observed glance time.
 
-\section{Full-system test}
-All subsystems operating together on the vehicle over a defined route.
+Against the live detector, the dashboard's camera page showed video 0.6\,s after it was opened and decoded 14.2 frames per second against the detector's 14.8, with no gap longer than 0.22\,s; with a person in front of the camera it listed a red ``Person, Immediate'' alert 0.5\,s after opening, and it switched to an offline state within a second of the detector stopping (Section~\ref{sec:dashboard-page}). In live-only mode the dashboard shows only real data, with ``--'' for anything missing, where it had previously shown simulated values without any sign (Section~\ref{sec:live-only}). Since 6 October the dashboard has started as the default on the Raspberry Pi~5 at boot, and it shows the time-of-flight distances and the fused hazards on a Sensors page, with a banner over every page for an immediate hazard (Section~\ref{sec:pi5-default}). Reading the touch panel directly over 25 taps, the panel reported contact together with the first position, so it adds no measurable delay; the taps lasted 200 to 640\,ms, and the buttons act on release. The time a driver needs to read the display, the quantity that RQ2 is ultimately about, has not been measured, and the layout has not yet been checked against the published glance and legibility figures (Chapter~\ref{chap:lit}).
+
+\section{Full-system operation and power}
+
+All subsystems of the telemetry unit have run together on the target board, and the whole chain from the telemetry unit through the Raspberry Pi~4 to the dashboard on the Raspberry Pi~5 has run on the bench. A 20-minute log of the Raspberry Pi~4's power flags on 6 October found the cause of the under-voltage seen throughout the bench work: the flags were clear with nothing attached, and under-voltage began 14\,s after the telemetry unit was plugged into the Raspberry Pi's USB port, when its LTE modem started, slowing the detector from 14.3 to 12 frames per second (Appendix~\ref{app:evidence}). A full-system test on the vehicle over a defined route has not yet been carried out.
+
+\section{Summary against the research questions}
+
+\begin{table}[htbp]
+\centering
+\caption{Status of each research question at the time of writing.}
+\label{tab:results-summary}
+\begin{tabular}{|p{0.9cm}|p{6.6cm}|p{6.3cm}|}
+\hline
+\textbf{RQ} & \textbf{Measured} & \textbf{Not yet measured} \\ \hline
+RQ1 & Deterministic 200\,Hz dual-IMU acquisition with no loss; per-sensor calibration; correct feature computation and fusion & Accuracy and repeatability of the response on the vehicle over known road sections \\ \hline
+RQ2 & Sparse camera, sensor and alert pages; video in 0.6\,s and alerts in 0.5\,s; live-only presentation; no measurable touch-panel delay & Glance time on the vehicle; legibility in daylight; check of the layout against NHTSA and ISO~15008 figures \\ \hline
+RQ3 & No sample loss; flash pauses bounded to one a minute; camera readout to result 102\,ms median; 47 of 47 publishes; reconnection 5\,s after coverage returns; complete log read-back & The same measures on the moving vehicle; alert onset to screen on the Raspberry Pi~5 \\ \hline
+RQ4 & Feature arithmetic verified against a synthetic signal & Separation of road and powertrain vibration on the vehicle \\ \hline
+\end{tabular}
+\end{table}
+
+RQ3 is answered for the bench. RQ1 and RQ2 are answered for the parts that do not need the vehicle. RQ4 is not yet answered.
