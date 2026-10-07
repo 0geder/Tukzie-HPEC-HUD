@@ -246,6 +246,7 @@ def install_carousel(page, root, grid, chart_grid):
     body.setWordWrap(True)
     hint = QLabel("Tap to open  ›")
     hint.setFont(THEME.font(18, QFont.Weight.DemiBold))
+    lay.addStretch(1)                                  # text centred vertically in the card
     for lbl in (title, body, hint):
         lbl.setStyleSheet("background: transparent;")
         lay.addWidget(lbl)
