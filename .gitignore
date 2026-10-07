@@ -72,3 +72,4 @@ __pycache__/
 DashboardIntegration/tests/analytics_carousel.png
 DashboardIntegration/tests/analytics_graphs.png
 TelemetryUnit/include/mqtt_secrets.h
+DashboardIntegration/tests/tile_map_navigation.png
