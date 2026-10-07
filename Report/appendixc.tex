@@ -3,7 +3,7 @@
 
 This appendix indexes the raw evidence behind the bench results reported in Chapter~\ref{chap:method}. Every item is the unedited output of the test it names and is kept in the project repository, under \texttt{Report/evidence/} or \texttt{BenchTest/logs/}; Table~\ref{tab:evidence-index} gives each file. Figure~\ref{fig:live-dashboard} in Appendix~\ref{app:figures} and Figure~\ref{fig:recorded-session} in Chapter~\ref{chap:method} belong to the same record.
 
-\begin{longtable}{|p{1.7cm}|p{3.6cm}|p{5.2cm}|p{3.6cm}|}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{1.7cm}|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{5.2cm}|>{\raggedright\arraybackslash}p{3.6cm}|}
 \caption{Index of test evidence.}
 \label{tab:evidence-index}\\
 \hline
@@ -36,6 +36,11 @@ This appendix indexes the raw evidence behind the bench results reported in Chap
 3 Oct 2026 & Dashboard live-only mode and automatic Raspberry Pi~4 finding, offscreen against a simulated bridge (laptop) & With the bridge down every page shows \texttt{-{}-} or Unavailable and no simulated value; live when the bridge appears, back to no data when it stops; host found by localhost, override and beacon, and followed after it moved & \texttt{Dashboard\allowbreak Integration/ tests/test\_live\_data\allowbreak \_provider.py} \\ \hline
 4 Oct 2026 & Street-tile map, offscreen, fed the generated UCT replay track (not recorded data) against a stand-in tile server & Tiles requested at most two at a time and cached; heading-up follow; ``Waiting for GPS fix''; REPLAY badge; vector roads with the tile server down & \texttt{Dashboard\allowbreak Integration/ tests/tile\_map\_*.png} \\ \hline
 4 Oct 2026 & Camera and time-of-flight fusion, offline tests & 29 of 29 pass; not yet run on the Raspberry Pi~4 (test C9 planned) & \texttt{CameraDetection/ tests/test\_sensor\_fusion.py} \\ \hline
+6 Oct 2026 & Sensors page and hazard banner, whole dashboard offscreen against the live bridge & ToF gauges (ahead 0.43\,m red, right 0.69\,m amber, left no reading), both listed as immediate; banner over the driving page, hidden on the Sensors page & \texttt{DashboardIntegration/ tests/sensors\_page.png}, \texttt{hazard\_banner.png} \\ \hline
+6 Oct 2026 & First fused camera and time-of-flight hazard, live, before calibration & Person, ahead sensor: camera 0.874\,m, time-of-flight 0.096\,m, reported 0.096\,m; not checked against a tape & \texttt{BenchTest/ TEST\_PROCEDURES.md}, test C9 notes \\ \hline
+6 Oct 2026 & Pothole model run 2, South African road-band tiles (Colab) & Validation mAP@50 0.714 at 640 and 0.566 at 320; held-out test tiles not yet scored & \texttt{CameraDetection/ training/runs/ run2\_sa\_band\_tiles\_640/ training\_record.json} \\ \hline
+6 Oct 2026 & Simulated drive on the street map, offscreen tests & Starts without a fix, 25\,km/h along the route, heading-up, arrives, a real fix stops it & \texttt{DashboardIntegration/ tests/tile\_map\_ simulated\_drive.png} \\ \hline
+6 Oct 2026 & Raspberry Pi~4 power and temperature watcher, 20\,min & Clear with nothing attached; soft temperature limit from 17:45; under-voltage 14\,s after the telemetry unit was plugged into its USB port & \texttt{BenchTest/logs/ 2026-10-06\_pi4\_ power\_watch.log} \\ \hline
 \end{longtable}
 
 \begin{figure}[htbp]
