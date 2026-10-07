@@ -17,6 +17,10 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### Map: Google-style navigation view (repo only; preview shown to the student before deploying)
+- DashboardIntegration/sw7_tile_map.py: with a route and a position (real or simulated), a turn banner (arrow, distance to the turn, "Turn right onto B Street", and a "Then:" line), an ETA card (minutes left, distance left, arrival time) and auto-zoom within 120 m of a turn. The team's planner returns no turn steps, so turns are placed at the point near a road-name change where the route bends most and typed from the bearing change over about 20 m either side. The REPLAY and SIMULATED badges move below the banner. Only our map widget changes. Brief: Planning/map-navigation-prompt.md.
+- DashboardIntegration/tests/test_tile_map.py: section 10 (known route: right then left found at 300 and 500 m, countdown, auto-zoom, a real fix projected onto the route); the replay check reads the badge position. All sections pass on the laptop and on the Pi 5 against the team's v1.1. Preview rendered on the Pi 5: tests/tile_map_navigation_pi5.png (test tiles, simulated drive).
+
 ### Analytics page: infinite vertical carousel
 - DashboardIntegration/sw7_analytics.py (new) and ANALYTICS_CAROUSEL_PATCHES (1 edit to analytics_page.py, 73 in all): the page's own six value cards, a new Graphs card and the Driver insights card in an infinite vertical carousel (swipe up for the next card, wraps both ways, peeking neighbours, arrows and position dots); tapping Graphs opens the four time charts with a Back button. The team's widgets are moved, not redrawn, so their look and update_state() (with live-only "--") are unchanged; no other page is touched. TUKZIE_ANALYTICS_CAROUSEL=0 restores the grid. Brief: Planning/analytics-carousel-prompt.md.
 - DashboardIntegration/tests/test_analytics_carousel.py (new): contents, wrap both ways, swipe and snap-back, Graphs and Back, values and "--", switch-off. Passes against the team's v1.1, as do the two existing suites.

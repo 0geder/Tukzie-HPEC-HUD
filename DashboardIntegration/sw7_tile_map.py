@@ -47,6 +47,13 @@ time left the whole time, and it only moves this map: nothing is written to
 the vehicle state, so speed, battery and the other pages keep showing real
 data or "--". A real fix stops it at once.
 
+Navigation view (Planning/map-navigation-prompt.md): with a route and a position (real or simulated) a
+Google-style turn banner shows the next manoeuvre, its distance along the route and the one after it, and a
+card at the bottom gives time left, distance left and arrival time. The team's planner returns no turn steps,
+so manoeuvres are placed where the road name changes and typed from the change in bearing over about 20 m
+either side (under 20 deg continue, 20 to 45 slight, 45 to 135 turn, over 135 U-turn). The map zooms in
+within 120 m of a turn and back out after it.
+
 Drop this file into app/pages/ (tests/dashboard_patches.py does, and swaps
 the import in navigation_page.py; TUKZIE_TILE_MAP=0 restores NativeRouteMap).
 QtWidgets, QtGui and QtNetwork only; colours from THEME.
@@ -200,6 +207,11 @@ class SW7TileMap(QWidget):
         self._sim_path = []               # [(lat, lon, metres from the start)] of the route
         self._sim_m = 0.0                 # metres driven in the simulation
         self._real_fix_time = None
+        self._maneuvers = []              # [{"at_m", "kind", "road"}] along the route, last one "arrive"
+        self._route_total_m = 0.0
+        self._along_m = None              # vehicle's distance along the route (m), None without a position
+        self._plan_duration_s = 0.0
+        self._auto_zoom_near = None       # last auto-zoom state, so a manual zoom is not fought every fix
 
         self._mode = "follow"             # follow / explore / overview
         self._zoom_now = self._zoom_target = NO_FIX_ZOOM
@@ -284,6 +296,7 @@ class SW7TileMap(QWidget):
             prev = (x, y)
         self._rebuild_roads()
         path = self._route_metres()
+        self._build_maneuvers(plan)
         if path != self._sim_path:
             self.stop_simulation()
             self._sim_path = path
@@ -384,8 +397,86 @@ class SW7TileMap(QWidget):
             self._good_heading_time = now
             if self._marker_heading is None:
                 self._marker_heading = self._good_heading
+        self._update_navigation(lat, lon)
         self._update_sim_button()
         self._kick()
+
+    # ---- navigation (turn banner, ETA, auto-zoom) --------------------------------------
+    def _build_maneuvers(self, plan):
+        self._maneuvers, self._along_m, self._auto_zoom_near = [], None, None
+        self._plan_duration_s = float(getattr(plan, "duration_s", 0) or 0) if plan else 0.0
+        pts, total, prev = [], 0.0, None
+        for q in self.route:
+            try:
+                lat, lon = float(q.lat), float(q.lon)
+            except (AttributeError, TypeError, ValueError):
+                continue
+            if prev is not None:
+                total += _metres(prev, (lat, lon))
+            pts.append((lat, lon, total, str(getattr(q, "road_name", "") or "").strip()))
+            prev = (lat, lon)
+        self._route_pts, self._route_total_m = pts, total
+        if len(pts) < 2:
+            return
+        name = pts[0][3]
+        for i in range(1, len(pts) - 1):
+            if not pts[i][3] or pts[i][3] == name:
+                continue
+            name_change = i
+            # the turn itself: the point near the name change where the route bends most
+            def bend(c):
+                if c <= 0 or c >= len(pts) - 1:
+                    return 0.0
+                return abs(_wrap(_course(pts[c][:2], pts[c + 1][:2]) - _course(pts[c - 1][:2], pts[c][:2])))
+            i = max(range(max(1, name_change - 2), min(len(pts) - 1, name_change + 2)), key=bend)
+            j = i
+            while j > 0 and pts[i][2] - pts[j][2] < 20.0:
+                j -= 1
+            k = i
+            while k < len(pts) - 1 and pts[k][2] - pts[i][2] < 20.0:
+                k += 1
+            if j == i or k == i:
+                continue
+            turn = _wrap(_course(pts[i][:2], pts[k][:2]) - _course(pts[j][:2], pts[i][:2]))
+            a = abs(turn)
+            side = "right" if turn > 0 else "left"
+            kind = ("straight" if a < 20 else f"slight_{side}" if a < 45 else side if a < 135 else "uturn")
+            self._maneuvers.append({"at_m": pts[i][2], "kind": kind, "road": pts[name_change][3]})
+            name = pts[name_change][3]
+        self._maneuvers.append({"at_m": total, "kind": "arrive", "road": ""})
+
+    def _update_navigation(self, lat, lon):
+        if not self._maneuvers or len(getattr(self, "_route_pts", [])) < 2:
+            self._along_m = None
+            return
+        if self.simulating:
+            self._along_m = self._sim_m
+        else:
+            best, along = None, 0.0
+            for (a_lat, a_lon, a_m, _), (b_lat, b_lon, b_m, _) in zip(self._route_pts, self._route_pts[1:]):
+                ax, ay = to_ref(a_lat, a_lon); bx, by = to_ref(b_lat, b_lon); px, py = to_ref(lat, lon)
+                dx, dy = bx - ax, by - ay
+                t = 0.0 if dx == dy == 0 else max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+                d = math.hypot(ax + t * dx - px, ay + t * dy - py)
+                if best is None or d < best:
+                    best, along = d, a_m + t * (b_m - a_m)
+            self._along_m = along
+        nxt = self.next_maneuvers(1)
+        near = bool(nxt) and nxt[0][1] < 120.0 and nxt[0][0]["kind"] != "arrive"
+        if self._mode == "follow" and near != self._auto_zoom_near:
+            self._zoom_target = FOLLOW_ZOOM + (0.8 if near else 0.0)
+        self._auto_zoom_near = near
+
+    def next_maneuvers(self, n=2):
+        """[(manoeuvre, metres to it)] ahead of the vehicle, nearest first."""
+        if self._along_m is None:
+            return []
+        ahead = [(m, m["at_m"] - self._along_m) for m in self._maneuvers if m["at_m"] - self._along_m > -5.0]
+        return ahead[:n]
+
+    @property
+    def navigating(self):
+        return self._along_m is not None and bool(self._maneuvers)
 
     # ---- simulated drive -------------------------------------------------------------------
     def _route_metres(self):
@@ -1075,8 +1166,12 @@ class SW7TileMap(QWidget):
         p.drawText(box, Qt.AlignmentFlag.AlignCenter, text)
 
         ucx, ucy = self._usable_centre()
+        pill_y = 126.0
+        if self.navigating:
+            pill_y = self._draw_navigation(p, w, h) + 36.0
+        self._pill_y = pill_y               # where the REPLAY / SIMULATED badge goes (tests read it)
         if self.replay:
-            self._pill(p, QPointF(ucx, 126), "REPLAY", "Replayed data, not live", THEME.status("warn"), filled=True)
+            self._pill(p, QPointF(ucx, pill_y), "REPLAY", "Replayed data, not live", THEME.status("warn"), filled=True)
         if self.simulating:
             left_m, left_min = self.sim_remaining()
             if self.sim_arrived:
@@ -1084,10 +1179,125 @@ class SW7TileMap(QWidget):
             else:
                 title = "SIMULATED DRIVE"
                 sub = f"Not live data · {left_m / 1000:.1f} km, {max(1, round(left_min))} min left at {SIM_KMH:.0f} km/h"
-            self._pill(p, QPointF(ucx, 126), title, sub, THEME.status("warn"), filled=True)
+            self._pill(p, QPointF(ucx, pill_y), title, sub, THEME.status("warn"), filled=True)
         if self.vehicle is None:
             sub = "Showing the last known position" if self.last_fix else "Showing the UCT area"
             self._pill(p, QPointF(ucx, max(150.0, h * 0.42)), "Waiting for GPS fix", sub, THEME.status("warn"))
+
+    @staticmethod
+    def _distance_text(m):
+        m = max(0.0, m)
+        if m >= 1000:
+            return f"{m / 1000:.1f} km"
+        return f"{int(round(m / 10.0) * 10)} m" if m >= 20 else "now"
+
+    @staticmethod
+    def _instruction(man):
+        road = man["road"] or "the road"
+        return {"straight": f"Continue onto {road}", "left": f"Turn left onto {road}",
+                "right": f"Turn right onto {road}", "slight_left": f"Slight left onto {road}",
+                "slight_right": f"Slight right onto {road}", "uturn": f"Make a U-turn onto {road}",
+                "arrive": "Arrive at destination"}[man["kind"]]
+
+    def _turn_arrow(self, p, r, kind, colour):
+        """White manoeuvre arrow inside rect r."""
+        pen = QPen(colour, max(3.0, r.width() * 0.11), Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+        p.setPen(pen)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        cx, bottom, top = r.center().x(), r.bottom() - r.height() * 0.08, r.top() + r.height() * 0.18
+        path = QPainterPath(QPointF(cx, bottom))
+        if kind == "arrive":
+            p.drawEllipse(QPointF(cx, r.center().y() - r.height() * 0.08), r.width() * 0.22, r.width() * 0.22)
+            p.drawLine(QPointF(cx, r.center().y() + r.height() * 0.14), QPointF(cx, bottom))
+            return
+        if kind == "uturn":
+            mid = r.center().y()
+            path.lineTo(cx - r.width() * 0.18, mid)
+            path.arcTo(QRectF(cx - r.width() * 0.18, top, r.width() * 0.36, r.width() * 0.36), 180, -180)
+            path.lineTo(cx + r.width() * 0.18, mid + r.height() * 0.12)
+            tip, ang = QPointF(cx + r.width() * 0.18, mid + r.height() * 0.12), 90.0
+        else:
+            bend = r.center().y() + r.height() * 0.05
+            path.lineTo(cx, bend)
+            dx = {"straight": 0.0, "left": -1.0, "right": 1.0, "slight_left": -0.6, "slight_right": 0.6}[kind]
+            if dx == 0:
+                tip, ang = QPointF(cx, top), -90.0
+            else:
+                tip = QPointF(cx + dx * r.width() * 0.34, top if abs(dx) < 1 else bend - r.height() * 0.05)
+                ang = math.degrees(math.atan2(tip.y() - bend, tip.x() - cx))
+            path.lineTo(tip)
+        p.drawPath(path)
+        head = r.width() * 0.2
+        a = math.radians(ang)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(colour)
+        p.drawPolygon(QPolygonF([QPointF(tip.x() + math.cos(a) * head * 0.6, tip.y() + math.sin(a) * head * 0.6),
+                                 QPointF(tip.x() + math.cos(a + 2.4) * head, tip.y() + math.sin(a + 2.4) * head),
+                                 QPointF(tip.x() + math.cos(a - 2.4) * head, tip.y() + math.sin(a - 2.4) * head)]))
+
+    def _draw_navigation(self, p, w, h):
+        """Turn banner at the top of the usable area and an ETA card at the bottom. Returns the banner's bottom y."""
+        left, right, top, bottom = self._insets()
+        ahead = self.next_maneuvers(2)
+        if not ahead:
+            return top
+        man, dist = ahead[0]
+        bw = min(560.0, w - left - right - 20)
+        bx = left + (w - left - right - bw) / 2
+        by = top + 40
+        bh = 104.0
+        green, white = QColor("#17703E"), QColor("#FFFFFF")
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(green)
+        p.drawRoundedRect(QRectF(bx, by, bw, bh), 14, 14)
+        self._turn_arrow(p, QRectF(bx + 16, by + 14, 76, 76), man["kind"], white)
+        p.setPen(white)
+        p.setFont(THEME.font(30, QFont.Weight.Bold))
+        p.drawText(QRectF(bx + 108, by + 10, bw - 120, 44), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                   "" if man["kind"] == "arrive" else self._distance_text(dist))
+        p.setFont(THEME.font(19, QFont.Weight.DemiBold))
+        p.drawText(QRectF(bx + 108, by + 54, bw - 120, 40), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                   p.fontMetrics().elidedText(self._instruction(man), Qt.TextElideMode.ElideRight, int(bw - 124)))
+        end = by + bh
+        if len(ahead) > 1:
+            then = QRectF(bx + 14, end - 4, min(bw - 28, 360.0), 40)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(QColor("#0F4F2B"))
+            p.drawRoundedRect(then, 10, 10)
+            p.setPen(white)
+            p.setFont(THEME.font(15, QFont.Weight.DemiBold))
+            p.drawText(then.adjusted(14, 4, -10, 0), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                       p.fontMetrics().elidedText("Then: " + (lambda t: t[:1].lower() + t[1:])(self._instruction(ahead[1][0])),
+                                                  Qt.TextElideMode.ElideRight, int(then.width() - 26)))
+            end = then.bottom()
+        # ETA card: time left, distance left, arrival time
+        left_m = max(0.0, self._route_total_m - (self._along_m or 0.0))
+        if self.simulating:
+            eta_s = left_m / (SIM_KMH / 3.6)
+        elif self._plan_duration_s > 0 and self._route_total_m > 0:
+            eta_s = self._plan_duration_s * left_m / self._route_total_m
+        else:
+            eta_s = None
+        if eta_s is not None:
+            arrive = time.strftime("%H:%M", time.localtime(time.time() + eta_s))
+            minutes = max(1, int(round(eta_s / 60.0)))
+            cw, ch = 300.0, 58.0
+            ex = min(max(600.0, (w - cw) / 2), w - 320.0 - cw)
+            ey = h - 70.0 - ch
+            card = QRectF(ex, ey, cw, ch)
+            bg = QColor(THEME.hex("card"))
+            bg.setAlpha(235)
+            p.setPen(QPen(QColor(THEME.hex("border")), 1))
+            p.setBrush(bg)
+            p.drawRoundedRect(card, 14, 14)
+            p.setPen(QColor("#2E9E5B"))
+            p.setFont(THEME.font(24, QFont.Weight.Bold))
+            p.drawText(card.adjusted(16, 0, 0, 0), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, f"{minutes} min")
+            p.setPen(QColor(THEME.hex("text")))
+            p.setFont(THEME.font(16, QFont.Weight.DemiBold))
+            p.drawText(card.adjusted(0, 0, -16, 0), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+                       f"{self._distance_text(left_m) if left_m >= 20 else '0 m'}  \u00b7  {arrive}")
+        return end
 
     def _pill(self, p, centre, title, sub, colour, filled=False):
         p.setFont(THEME.font(17, QFont.Weight.Bold))

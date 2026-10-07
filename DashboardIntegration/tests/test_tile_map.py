@@ -384,7 +384,7 @@ run_for(1.2)
 assert m.replay, "map should know the data is replayed"
 img = m.grab().toImage()
 ucx = m._usable_centre()[0]
-px = img.pixelColor(int(ucx) - 30, 126)
+px = img.pixelColor(int(ucx) - 30, int(m._pill_y))   # below the turn banner when navigating
 amber = THEME.status("warn")
 assert abs(px.red() - amber.red()) < 40 and abs(px.green() - amber.green()) < 40 and px.blue() < 120, px.name()
 img.save(str(HERE / "tile_map_replay.png"))
@@ -512,8 +512,48 @@ m9.update_vehicle(state_of(track[0]))
 assert not m9.simulating and m9.last_fix is not None, "a real fix must stop the simulation"
 assert not m9.sim_available and not m9.sim_button.isVisible(), "no simulation while a real fix is recent"
 m9.close()
+
+# ---- 10. navigation view: turns from road names, banner, ETA, auto-zoom ------------------------------
+# A known route: 300 m north on A Road, right (east) 200 m on B Street, left (north) 150 m on C Avenue.
+lat0, lon0 = -33.9600, 18.4600
+m_lat, m_lon = 1 / 111320.0, 1 / (111320.0 * math.cos(math.radians(lat0)))
+nav_pts = [SimpleNamespace(lat=lat0 + i * 10 * m_lat, lon=lon0, road_name="A Road") for i in range(31)]
+nav_pts += [SimpleNamespace(lat=lat0 + 300 * m_lat, lon=lon0 + i * 10 * m_lon, road_name="B Street") for i in range(1, 21)]
+nav_pts += [SimpleNamespace(lat=lat0 + (300 + i * 10) * m_lat, lon=lon0 + 200 * m_lon, road_name="C Avenue") for i in range(1, 16)]
+nav_plan = SimpleNamespace(route=nav_pts, nearby_roads=[], destination={"lat": nav_pts[-1].lat, "lon": nav_pts[-1].lon},
+                           duration_s=130.0)
+m10 = SW7TileMap()
+m10.resize(W, H)
+m10.set_plan(nav_plan, reset_view=False)
+m10.show()
+kinds = [(mn["kind"], round(mn["at_m"]), mn["road"]) for mn in m10._maneuvers]
+assert [k[0] for k in kinds] == ["right", "left", "arrive"], kinds
+assert abs(kinds[0][1] - 300) <= 3 and abs(kinds[1][1] - 500) <= 3 and abs(kinds[2][1] - 650) <= 3, kinds
+assert m10._instruction(m10._maneuvers[0]) == "Turn right onto B Street"
+m10.update_vehicle(nofix)
+assert m10.start_simulation()
+for _ in range(30):                      # 30 s at 25 km/h is about 208 m
+    m10._sim_step()
+nxt = m10.next_maneuvers(2)
+assert nxt[0][0]["kind"] == "right" and 80 < nxt[0][1] < 100, nxt
+assert nxt[1][0]["kind"] == "left"
+assert m10._zoom_target > 17.5, "the map should zoom in within 120 m of a turn"
+run_for(1.5)
+m10.grab().save(str(HERE / "tile_map_navigation.png"))
+for _ in range(20):
+    m10._sim_step()
+assert m10.next_maneuvers(1)[0][0]["kind"] == "left", "after the right turn the next manoeuvre is the left turn"
+# a real fix 50 m up A Road: the simulation stops and the position is projected onto the route
+real = SimpleNamespace(latitude=lat0 + 50 * m_lat, longitude=lon0 + 3 * m_lon, heading=0.0, speed_kmh=12.0,
+                       data_source="sw7_telemetry", signal_validity={})
+m10.update_vehicle(real)
+assert not m10.simulating and abs(m10._along_m - 50) < 3, m10._along_m
+assert m10.next_maneuvers(1)[0][0]["kind"] == "right" and abs(m10.next_maneuvers(1)[0][1] - 250) < 4
+m10.close()
 assert not errors, errors
 server.shutdown()
+print("10 navigation: right then left found from road names, distance to the turn counts down, zoom in near a "
+      "turn, a real fix is projected onto the route; saved tile_map_navigation.png")
 print(f"9 simulated drive: starts without a fix, 25 km/h along the route, heading-up, ignores position-less "
       f"live data, arrives after {steps + 5} steps, ends on request, a real fix stops it; saved tile_map_simulated_drive.png")
 print("ALL TILE MAP TESTS PASSED")
