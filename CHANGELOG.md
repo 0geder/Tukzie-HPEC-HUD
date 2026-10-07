@@ -17,6 +17,10 @@ New entries are appended by the progress-scribe agent (.claude/agents/progress-s
 
 The SW-7 dashboard is now the Pi 5 default at boot.
 
+### MQTT: ready for the team's broker without putting credentials in the repo
+- TelemetryUnit/src/main.cpp: broker host, port, user, password and topic come from include/mqtt_secrets.h when that file exists (git-ignored, local only), otherwise the public test broker as before. Compiles (RAM 14.9%, flash 15.9%); not flashed. TelemetryUnit/include/mqtt_secrets.example.h is the template; .gitignore excludes the real file. Why: the student received an MQTT example for the team's broker, and the team's documentation says its credentials must not be shared with an AI assistant, so they are entered locally by the student.
+- BenchTest/mqtt_broker_check.py (new): connects with credentials from environment variables, publishes one QoS 1 message, waits for the acknowledgement and the message coming back; works with paho-mqtt 1 and 2 (the pasted example would drop the message by disconnecting before the network loop ran, and fails on paho-mqtt 2).
+
 ### Map: Google-style navigation view (repo only; preview shown to the student before deploying)
 - DashboardIntegration/sw7_tile_map.py: with a route and a position (real or simulated), a turn banner (arrow, distance to the turn, "Turn right onto B Street", and a "Then:" line), an ETA card (minutes left, distance left, arrival time) and auto-zoom within 120 m of a turn. The team's planner returns no turn steps, so turns are placed at the point near a road-name change where the route bends most and typed from the bearing change over about 20 m either side. The REPLAY and SIMULATED badges move below the banner. Only our map widget changes. Brief: Planning/map-navigation-prompt.md.
 - DashboardIntegration/tests/test_tile_map.py: section 10 (known route: right then left found at 300 and 500 m, countdown, auto-zoom, a real fix projected onto the route); the replay check reads the badge position. All sections pass on the laptop and on the Pi 5 against the team's v1.1. Preview rendered on the Pi 5: tests/tile_map_navigation_pi5.png (test tiles, simulated drive).

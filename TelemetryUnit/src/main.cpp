@@ -1437,12 +1437,28 @@ void sendGnssCommand(const char* command) {
 // test.mosquitto.org: public, free, no-auth broker - used here only to
 // prove the AT+CMQTT* sequence and cellular path work end-to-end. Not a
 // destination for real vehicle telemetry; replace before any real use.
+// Real broker details live only in include/mqtt_secrets.h on the student's machine (git-ignored, never
+// committed and never shown to an AI assistant); copy include/mqtt_secrets.example.h to start it. Without
+// that file the unit keeps using the public test broker below.
+#if __has_include("mqtt_secrets.h")
+#include "mqtt_secrets.h"
+#endif
+#ifndef MQTT_BROKER_HOST
 #define MQTT_BROKER_HOST "test.mosquitto.org"
+#endif
+#ifndef MQTT_BROKER_PORT
 #define MQTT_BROKER_PORT 1883
+#endif
 #define MQTT_CLIENT_ID "sw7-esp32-telemetry"
-#define MQTT_USERNAME ""  // leave empty if the broker does not require auth
+#ifndef MQTT_USERNAME
+#define MQTT_USERNAME ""  // empty if the broker does not require auth
+#endif
+#ifndef MQTT_PASSWORD
 #define MQTT_PASSWORD ""
+#endif
+#ifndef MQTT_TOPIC
 #define MQTT_TOPIC "sw7/telemetry"
+#endif
 #define MQTT_KEEPALIVE_S 60
 #define MQTT_PUBLISH_INTERVAL_MS 10000
 
