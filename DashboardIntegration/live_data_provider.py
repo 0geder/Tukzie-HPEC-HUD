@@ -177,6 +177,11 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
         s.gps_timestamp = None
     # GNSS course over ground and altitude (firmware 0.7.1+), only with a fix. Without them
     # heading is None, not the dataclass default of 0 (north), so the map stays north-up.
+    # Cell-tower position (firmware 0.7.3+): the modem's estimate from the towers it hears,
+    # sent only without a GNSS fix. Approximate (about 550 m indoors), so it is never put in
+    # latitude/longitude: the map draws it as a circle, the way a phone does indoors.
+    clat, clon, cacc = _num(esp.get("cell_lat")), _num(esp.get("cell_lon")), _num(esp.get("cell_acc_m"))
+    s.sw7_cell_position = (clat, clon, cacc) if not gps_ok and clat is not None and clon is not None else None
     crs = _num(esp.get("crs")) if gps_ok else None
     s.heading = crs % 360.0 if crs is not None else None
     s.altitude_m = _num(esp.get("alt")) if gps_ok else None

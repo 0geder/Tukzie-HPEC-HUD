@@ -69,7 +69,7 @@ from types import SimpleNamespace
 from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen, QPixmap, QPolygonF, QTransform
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
-from PySide6.QtWidgets import QPushButton, QWidget
+from PySide6.QtWidgets import QAbstractButton, QPushButton, QWidget
 
 from ..theme import THEME
 
@@ -202,6 +202,7 @@ class SW7TileMap(QWidget):
         self.heading_up = False
         self.replay = False
         self.last_fix = None              # (lat, lon) of the last real position
+        self.approx = None                # (lat, lon, accuracy m) from the mobile network, no GNSS fix
         self.simulating = False           # simulated drive running (or arrived, until ended)
         self.sim_arrived = False
         self._sim_path = []               # [(lat, lon, metres from the start)] of the route
@@ -345,6 +346,9 @@ class SW7TileMap(QWidget):
             heading = None
         self.heading = heading if heading is not None else 0.0
         lat, lon = _num(getattr(state, "latitude", None)), _num(getattr(state, "longitude", None))
+        cell = None if simulated else getattr(state, "sw7_cell_position", None)
+        self.approx = (cell if cell and _num(cell[0]) is not None and _num(cell[1]) is not None
+                       and (lat is None or lon is None) else None)
         if lat is None or lon is None:
             self.vehicle = None
             self._kick()
@@ -734,7 +738,8 @@ class SW7TileMap(QWidget):
             return _Cam(e.x, e.y, self._zoom_now, self._bearing_now, e.ax, e.ay)
         pos = self._vehicle_ref(now)
         if pos is None:
-            pos = to_ref(*self.context_centre)
+            centre = (self.approx[0], self.approx[1]) if self.approx else self.context_centre
+            pos = to_ref(*centre)
             return _Cam(pos[0], pos[1], self._zoom_now, self._bearing_now, ucx, ucy)
         return _Cam(pos[0], pos[1], self._zoom_now, self._bearing_now, ucx, max(1, self.height()) * FOLLOW_Y)
 
@@ -1084,9 +1089,31 @@ class SW7TileMap(QWidget):
             p.setPen(QPen(QColor(THEME.hex("text")), 2))
             p.drawEllipse(q, 8, 8)
 
+    def _draw_approx(self, p, t):
+        """Cell-tower position: a dot inside a translucent circle of the reported accuracy."""
+        lat, lon, acc = self.approx
+        ref = to_ref(lat, lon)
+        q = t.map(QPointF(*ref))
+        acc_m = _num(acc) or 500.0
+        edge = t.map(QPointF(ref[0] + acc_m * _ref_per_m(ref[1]), ref[1]))
+        radius = max(14.0, math.hypot(edge.x() - q.x(), edge.y() - q.y()))
+        fill = QColor(THEME.hex("accent"))
+        area = QColor(fill)
+        area.setAlpha(38)
+        rim = QColor(fill)
+        rim.setAlpha(120)
+        p.setBrush(area)
+        p.setPen(QPen(rim, 1.5))
+        p.drawEllipse(q, radius, radius)
+        p.setBrush(fill)
+        p.setPen(QPen(QColor("#FFFFFF"), 3))
+        p.drawEllipse(q, 8, 8)
+
     def _draw_vehicle(self, p, t, cam, now):
         pos = self._vehicle_ref(now)
         if pos is None:
+            if self.approx and not self.simulating:
+                self._draw_approx(p, t)
             return
         q = t.map(QPointF(*pos))
         live = self.vehicle is not None
@@ -1180,7 +1207,12 @@ class SW7TileMap(QWidget):
                 title = "SIMULATED DRIVE"
                 sub = f"Not live data · {left_m / 1000:.1f} km, {max(1, round(left_min))} min left at {SIM_KMH:.0f} km/h"
             self._pill(p, QPointF(ucx, pill_y), title, sub, THEME.status("warn"), filled=True)
-        if self.vehicle is None:
+        if self.vehicle is None and self.approx and not self.simulating:
+            acc = _num(self.approx[2])
+            sub = ("From the mobile network" + (f", about ±{acc:.0f} m" if acc else "")
+                   + ". Waiting for GPS fix")
+            self._pill(p, QPointF(ucx, pill_y), "Approximate position", sub, THEME.status("warn"))
+        elif self.vehicle is None and not self.simulating:
             sub = "Showing the last known position" if self.last_fix else "Showing the UCT area"
             self._pill(p, QPointF(ucx, max(150.0, h * 0.42)), "Waiting for GPS fix", sub, THEME.status("warn"))
 
@@ -1389,8 +1421,12 @@ class SW7TileMap(QWidget):
             points = event.points()
             if kind == QEvent.Type.TouchBegin and points:
                 start = points[0].position().toPoint()
-                if any(b.isVisible() and b.geometry().contains(start) for b in (self.zoom_in, self.zoom_out)):
-                    event.ignore()                    # let the buttons get their synthesized clicks
+                # Any visible button under the finger (zoom, Simulate drive) gets the touch as a
+                # synthesized click. Up to 11 Oct only the zoom buttons were listed here, so a tap on
+                # Simulate drive was taken by the map as a drag and never clicked on the touchscreen.
+                if any(b.isVisible() and b.geometry().contains(start)
+                       for b in self.findChildren(QAbstractButton)):
+                    event.ignore()
                     return False
             if kind in (QEvent.Type.TouchEnd, QEvent.Type.TouchCancel):
                 if points:

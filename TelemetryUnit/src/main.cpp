@@ -11,7 +11,7 @@
 #include <Preferences.h>
 #include <LittleFS.h>
 
-#define FIRMWARE_VERSION "v0.7.2"
+#define FIRMWARE_VERSION "v0.7.3"
 
 // ============================================================
 // SW-7 ESP32-S3 Firmware (version: FIRMWARE_VERSION above)
@@ -484,6 +484,31 @@ volatile uint32_t bmsReconnectCount = 0;
 volatile uint32_t bmsDropped = 0;
 volatile BmsSample latestBmsSample = {};
 volatile GnssFix latestGnssFix = {};
+
+// ---- Phone-style positioning (v0.7.3) ----
+// Assisted GNSS: AT+CAGPS downloads satellite orbit data over LTE so the receiver
+// can fix in seconds outdoors instead of searching for minutes ("+AGPS: success."
+// on this modem, 10 Oct 2026). Refreshed every 2 h, retried every minute until it works.
+// Cell-tower position: AT+CLBS=4 returns the modem's own estimate from the towers it
+// hears, with its accuracy (about 550 m indoors on 10 Oct). It is what a phone shows
+// indoors. It is kept apart from the GNSS fix and never feeds speed, course or the
+// ride index; it is only polled while there is no GNSS fix.
+struct CellLocation {
+  int64_t timestamp_us;
+  bool valid;
+  float latitude_deg;
+  float longitude_deg;
+  float accuracy_m;
+};
+volatile CellLocation latestCellLoc = {};
+bool agpsOk = false;
+uint32_t agpsAttempts = 0;
+unsigned long agpsNextMs = 15000;       // first try 15 s after boot, once the network is up
+unsigned long cellLocNextMs = 20000;
+#define AGPS_REFRESH_MS (2UL * 60UL * 60UL * 1000UL)
+#define AGPS_RETRY_MS 60000UL
+#define CELL_LOC_INTERVAL_MS 60000UL
+#define CELL_LOC_STALE_US (5LL * 60LL * 1000000LL)   // older than 5 min: not shown
 // "!gnssraw" toggles printing the modem's raw +CGNSSINFO reply on every
 // poll, for checking the parser without sending extra AT commands.
 volatile bool gnssPrintRaw = false;
@@ -1389,6 +1414,84 @@ void pollAndParseGnss() {
   }
 }
 
+extern volatile bool mqttConnected;      // defined with the MQTT code below
+extern unsigned long mqttNextAttemptMs;
+
+// Reads modem output until a line containing `tag` has fully arrived, or ERROR,
+// or the timeout. Returns true if the tag line arrived. MQTT loss URCs that turn
+// up while waiting are still honoured, since this read consumes them.
+bool readModemUntil(String& response, const char* tag, unsigned long timeoutMs) {
+  unsigned long start = millis();
+  while (millis() - start < timeoutMs) {
+    while (Serial1.available()) {
+      response += static_cast<char>(Serial1.read());
+    }
+    int t = response.indexOf(tag);
+    if (t >= 0 && response.indexOf('\n', t) >= 0) break;
+    if (response.indexOf("ERROR") >= 0) break;
+    vTaskDelay(pdMS_TO_TICKS(5));
+  }
+  if (response.indexOf("+CMQTTCONNLOST") >= 0 || response.indexOf("+CMQTTNONET") >= 0) {
+    mqttConnected = false;
+    mqttNextAttemptMs = millis() + 5000;
+  }
+  return response.indexOf(tag) >= 0;
+}
+
+// Downloads and injects assisted-GNSS data (AT+CAGPS). Typically a few seconds.
+bool requestAgps() {
+  agpsAttempts++;
+  unsigned long t0 = millis();
+  Serial1.println("AT+CAGPS");
+  String r;
+  bool got = readModemUntil(r, "+AGPS:", 30000);
+  agpsOk = got && r.indexOf("success") >= 0;
+  Serial.printf("[AGPS] %s after %lu ms (attempt %u)\n",
+                agpsOk ? "assistance data loaded" : (got ? "server refused" : "no reply"),
+                millis() - t0, (unsigned)agpsAttempts);
+  return agpsOk;
+}
+
+// Polls the cell-tower position (AT+CLBS=4):
+//   +CLBS: 0,-33.980381,18.465xxx,550,2026/10/10,22:35:42
+// <code>,<lat>,<lon>,<accuracy m>,<date>,<time>; code 0 is success.
+bool pollCellLocation() {
+  unsigned long t0 = millis();
+  Serial1.println("AT+CLBS=4");
+  String r;
+  if (!readModemUntil(r, "+CLBS:", 25000)) {
+    Serial.printf("[CELLPOS] no reply after %lu ms\n", millis() - t0);
+    return false;
+  }
+  int s = r.indexOf("+CLBS:") + 6;
+  int e = r.indexOf('\n', s);
+  String body = r.substring(s, e >= 0 ? e : r.length());
+  body.trim();
+  float f[4] = {NAN, NAN, NAN, NAN};
+  int code = -1, from = 0;
+  for (int k = 0; k < 4; k++) {
+    int c = body.indexOf(',', from);
+    String tok = body.substring(from, c >= 0 ? c : body.length());
+    if (k == 0) code = tok.toInt(); else f[k] = tok.toFloat();
+    if (c < 0) break;
+    from = c + 1;
+  }
+  const bool ok = code == 0 && isfinite(f[1]) && isfinite(f[2]) && f[1] != 0.0f && f[2] != 0.0f &&
+                  fabsf(f[1]) <= 90.0f && fabsf(f[2]) <= 180.0f;
+  if (!ok) {
+    Serial.printf("[CELLPOS] not available (%s) after %lu ms\n", body.c_str(), millis() - t0);
+    return false;
+  }
+  latestCellLoc.timestamp_us = esp_timer_get_time();
+  latestCellLoc.latitude_deg = f[1];
+  latestCellLoc.longitude_deg = f[2];
+  latestCellLoc.accuracy_m = isfinite(f[3]) ? f[3] : NAN;
+  latestCellLoc.valid = true;
+  Serial.printf("[CELLPOS] lat=%.6f lon=%.6f accuracy=%.0f m (%lu ms)\n",
+                f[1], f[2], f[3], millis() - t0);
+  return true;
+}
+
 void sendGnssCommand(const char* command) {
   Serial1.println(command);
 
@@ -1898,7 +2001,10 @@ String buildTelemetryJson() {
   if (isnan(rpmValue)) snprintf(rpm, sizeof(rpm), "null");
   else snprintf(rpm, sizeof(rpm), "%.1f", rpmValue);
 
-  char buf[768];
+  // Cell-tower position in the record only while there is no GNSS fix (as on the DASH line).
+  const bool cellJson = !latestGnssFix.valid && latestCellLoc.valid &&
+                        (esp_timer_get_time() - latestCellLoc.timestamp_us) <= CELL_LOC_STALE_US;
+  char buf[896];
   snprintf(buf, sizeof(buf),
            "{"
            "\"imu1\":{\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"crest\":%.3f,\"jerk\":%.3f,\"crossings\":%u},"
@@ -1906,7 +2012,7 @@ String buildTelemetryJson() {
            "\"fused\":{\"src\":%u,\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"jerk\":%.3f,\"dis\":%s},"
            "\"bms\":{\"v\":%.2f,\"i\":%.2f,\"soc\":%u,\"checksum_ok\":%s},"
            "\"gnss\":{\"valid\":%s,\"lat\":%.6f,\"lon\":%.6f,\"speed\":%.1f},"
-           "\"cell\":{\"csq\":%d},"
+           "\"cell\":{\"csq\":%d,\"lat\":%.6f,\"lon\":%.6f,\"acc_m\":%.0f},"
            "\"hall\":{\"eps\":%.1f,\"rpm\":%s}"
            "}",
            r1.rms_mps2, r1.std_mps2, r1.peak_to_peak_mps2, r1.crest_factor,
@@ -1919,7 +2025,10 @@ String buildTelemetryJson() {
            (unsigned)latestBmsSample.soc_pct, latestBmsSample.checksum_ok ? "true" : "false",
            latestGnssFix.valid ? "true" : "false", latestGnssFix.latitude_deg,
            latestGnssFix.longitude_deg, latestGnssFix.speed_reported,
-           (int)cellCsqRaw, (float)hallEdgesPerSecond, rpm);
+           (int)cellCsqRaw,
+           cellJson ? latestCellLoc.latitude_deg : NAN, cellJson ? latestCellLoc.longitude_deg : NAN,
+           cellJson ? latestCellLoc.accuracy_m : NAN,
+           (float)hallEdgesPerSecond, rpm);
   // JSON has no NaN or infinity: before a GNSS fix, for example, the
   // position fields are NaN and printf writes "nan", which made every
   // such record invalid JSON up to v0.6.2 (found reading the log back).
@@ -1948,7 +2057,7 @@ String buildTelemetryJson() {
 // fused ride result under rideMux, everything else as plain volatile reads.
 // ============================================================
 #define DASH_PERIOD_MS 1000
-#define DASH_LINE_MAX 400  // bytes including "DASH " and the newline, per the contract
+#define DASH_LINE_MAX 480  // bytes including "DASH " and the newline, per the contract (400 until v0.7.3)
 
 // Runtime switch (serial command "!dash off" / "!dash on"), default on.
 volatile bool dashEnabled = true;
@@ -2005,6 +2114,17 @@ void DashTask(void* pvParameters) {
     if (isfinite(altM) && (altM < -1000.0f || altM > 20000.0f)) altM = NAN;
     dashNum(alt, sizeof(alt), "%.1f", altM);
 
+    // Cell-tower position (v0.7.3): sent alongside, never in lat/lon, and only while
+    // there is no GNSS fix and the estimate is under 5 min old.
+    const bool cellShown = !fix && latestCellLoc.valid &&
+                           (nowUs - latestCellLoc.timestamp_us) <= CELL_LOC_STALE_US;
+    char cLat[16], cLon[16], cAcc[16], cAge[16];
+    dashNum(cLat, sizeof(cLat), "%.6f", cellShown ? latestCellLoc.latitude_deg : NAN);
+    dashNum(cLon, sizeof(cLon), "%.6f", cellShown ? latestCellLoc.longitude_deg : NAN);
+    dashNum(cAcc, sizeof(cAcc), "%.0f", cellShown ? latestCellLoc.accuracy_m : NAN);
+    dashNum(cAge, sizeof(cAge), "%.0f",
+            cellShown ? (float)((nowUs - latestCellLoc.timestamp_us) / 1000000LL) : NAN);
+
     // Fused vibration: null until the first fused window, or once the last
     // one is older than the fusion stale limit (both IMUs stopped).
     int64_t fzTs;
@@ -2036,13 +2156,15 @@ void DashTask(void* pvParameters) {
                        "\"soc\":%s,\"v\":%s,\"i\":%s,\"bms_age_s\":%s,"
                        "\"fix\":%s,\"lat\":%s,\"lon\":%s,\"spd_raw\":%s,\"crs\":%s,\"alt\":%s,"
                        "\"vib\":%s,\"vib_dis\":%s,\"imu_hz\":[%.1f,%.1f],\"drops\":[%lu,%lu],"
-                       "\"rpm\":%s,\"csq\":%s,\"mqtt\":%s}\n",
+                       "\"rpm\":%s,\"csq\":%s,\"mqtt\":%s,"
+                       "\"cell_lat\":%s,\"cell_lon\":%s,\"cell_acc_m\":%s,\"cell_age_s\":%s,\"agps\":%s}\n",
                        (unsigned long)seq, (long long)(nowUs / 1000), fw,
                        soc, v, cur, bmsAge,
                        fix ? "true" : "false", lat, lon, spd, crs, alt,
                        vib, vibDis, (float)imu1RateHz, (float)imu2RateHz,
                        (unsigned long)imu1Dropped, (unsigned long)imu2Dropped,
-                       rpm, csq, mqttConnected ? "true" : "false");
+                       rpm, csq, mqttConnected ? "true" : "false",
+                       cLat, cLon, cAcc, cAge, agpsOk ? "true" : "false");
     if (len < 0 || len >= (int)sizeof(line)) {
       // A cut line would be invalid JSON; skip it rather than send half.
       dashTruncatedCount++;
@@ -2078,7 +2200,13 @@ void handleLocalCommand(String line) {
   line.trim();
   line.toLowerCase();
   if (line == "!help") {
-    Serial.println("[CMD] !status  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !dash off  !dash on  !recal");
+    Serial.println("[CMD] !status  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !dash off  !dash on  !recal  !agps  !cellpos");
+  } else if (line == "!agps") {
+    agpsNextMs = millis();      // the modem loop runs it on its next pass
+    Serial.println("[CMD] assisted GNSS download requested");
+  } else if (line == "!cellpos") {
+    cellLocNextMs = millis();
+    Serial.println("[CMD] cell-tower position requested (only while there is no GNSS fix)");
   } else if (line == "!status") {
     Serial.printf("[CMD] firmware %s\n", FIRMWARE_VERSION);
     Serial.printf("[CMD] local log: %s, %u lines written, %u failures\n",
@@ -2295,6 +2423,13 @@ void ModemTask(void* pvParameters) {
     if (millis() - lastGnssPoll >= 3000) {
       lastGnssPoll = millis();
       pollAndParseGnss();
+    }
+    if ((long)(millis() - agpsNextMs) >= 0) {
+      agpsNextMs = millis() + (requestAgps() ? AGPS_REFRESH_MS : AGPS_RETRY_MS);
+    }
+    if (!latestGnssFix.valid && (long)(millis() - cellLocNextMs) >= 0) {
+      pollCellLocation();
+      cellLocNextMs = millis() + CELL_LOC_INTERVAL_MS;
     }
     if (millis() - lastMqttPublish >= MQTT_PUBLISH_INTERVAL_MS) {
       lastMqttPublish = millis();

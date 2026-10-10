@@ -95,6 +95,17 @@ def _fmt(value, pattern, scale=1.0):
     return "--" if v is None else pattern.format(v * scale)
 
 
+def _position_text(esp):
+    """GNSS position, else the mobile-network estimate marked as approximate (firmware 0.7.3+)."""
+    lat, lon = _num(esp.get("lat")), _num(esp.get("lon"))
+    if lat is not None and lon is not None:
+        return f"{lat:.5f}, {lon:.5f}", None
+    clat, clon, acc = _num(esp.get("cell_lat")), _num(esp.get("cell_lon")), _num(esp.get("cell_acc_m"))
+    if clat is not None and clon is not None:
+        return f"{clat:.4f}, {clon:.4f} (network, ±{acc:.0f} m)" if acc else f"{clat:.4f}, {clon:.4f} (network)", "warn"
+    return "--", None
+
+
 def format_readings(telemetry):
     """{key: (text, status or None)} for the vehicle and position cards."""
     esp = _dict(_dict(telemetry).get("esp32"))
@@ -106,8 +117,7 @@ def format_readings(telemetry):
         "i": (_fmt(esp.get("i"), "{:.1f} A"), None),
         "bms_age": (_fmt(esp.get("bms_age_s"), "{:.0f} s ago"), None),
         "fix": ("--" if fix is None else "Yes" if fix else "No fix", None if fix is None else "normal" if fix else "warn"),
-        "pos": ("--" if _num(esp.get("lat")) is None or _num(esp.get("lon")) is None
-                else f"{_num(esp.get('lat')):.5f}, {_num(esp.get('lon')):.5f}", None),
+        "pos": _position_text(esp),
         "crs": (_fmt(esp.get("crs"), "{:.0f}°"), None),
         "alt": (_fmt(esp.get("alt"), "{:.0f} m"), None),
         "fw": (str(esp.get("fw") or "--"), None),

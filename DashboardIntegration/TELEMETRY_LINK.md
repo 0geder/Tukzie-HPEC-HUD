@@ -36,8 +36,14 @@ Fields (any value that is unknown or NaN is `null`, never `nan`):
 | `rpm` | number or null | motor speed from the Hall counter (null until pole pairs are set) |
 | `csq` | int or null | modem signal quality 0 to 31 |
 | `mqtt` | bool | MQTT session up |
+| `cell_lat`, `cell_lon` | number or null | mobile-network position estimate (modem AT+CLBS), decimal degrees; firmware 0.7.3+; only while `fix` is false, null once the estimate is over 5 min old. Never copied into `lat`/`lon` |
+| `cell_acc_m` | number or null | the modem's accuracy for that estimate, m (about 550 indoors, 10 Oct 2026) |
+| `cell_age_s` | number or null | seconds since that estimate |
+| `agps` | bool | assisted GNSS data loaded (AT+CAGPS succeeded), firmware 0.7.3+ |
 
-The line must be built without heap-heavy String concatenation in a timing-critical task and must never block the IMU tasks (core 1). Maximum length 400 bytes.
+The line must be built without heap-heavy String concatenation in a timing-critical task and must never block the IMU tasks (core 1). Maximum length 480 bytes (400 until firmware 0.7.3; the bridge accepts up to 4096).
+
+On the dashboard, `cell_*` becomes `VehicleState.sw7_cell_position = (lat, lon, accuracy m)`, drawn on the map as a dot in a translucent accuracy circle labelled "Approximate position", the way a phone shows a network position indoors. It does not set `latitude`/`longitude`, `signal_validity["gps"]`, heading or navigation progress.
 
 ## 2. Pi 4 bridge: HTTP on port 8081
 

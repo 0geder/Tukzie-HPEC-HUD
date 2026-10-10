@@ -550,8 +550,46 @@ m10.update_vehicle(real)
 assert not m10.simulating and abs(m10._along_m - 50) < 3, m10._along_m
 assert m10.next_maneuvers(1)[0][0]["kind"] == "right" and abs(m10.next_maneuvers(1)[0][1] - 250) < 4
 m10.close()
+
+# ---- 11. touchscreen tap on Simulate drive; mobile-network position ---------------------------------
+# The map takes touches for drag and pinch. Until 11 Oct a finger on Simulate drive was taken as a drag
+# and the button never clicked on the Pi 5 touchscreen (a mouse click worked, so test 9 passed).
+m11 = SW7TileMap()
+m11.resize(W, H)
+m11.set_plan(nav_plan, reset_view=False)
+m11.show()
+m11.update_vehicle(nofix)
+run_for(0.3)
+assert m11.sim_button.isVisible(), "Simulate drive should show once a route is planned"
+touch = QTest.createTouchDevice()
+tap_at = m11.sim_button.geometry().center()
+QTest.touchEvent(m11, touch).press(0, tap_at).commit()
+QTest.touchEvent(m11, touch).release(0, tap_at).commit()
+run_for(0.3)
+assert m11.simulating, "a finger tap on Simulate drive must start the simulation"
+QTest.touchEvent(m11, touch).press(0, tap_at).commit()
+QTest.touchEvent(m11, touch).release(0, tap_at).commit()
+run_for(0.3)
+assert not m11.simulating, "a second tap (End simulation) must stop it"
+# a mobile-network estimate without a GNSS fix: drawn as an approximate circle, never as a fix
+cell_state = SimpleNamespace(latitude=None, longitude=None, heading=None, speed_kmh=None,
+                             data_source="sw7_telemetry", signal_validity={},
+                             sw7_cell_position=(-33.980381, 18.465080, 550.0))
+m11.update_vehicle(cell_state)
+assert m11.vehicle is None and m11.last_fix is None, "a network estimate is not a fix"
+assert m11.approx == (-33.980381, 18.465080, 550.0)
+cam = m11._target_camera(time.monotonic())
+want = to_ref(-33.980381, 18.465080)
+assert abs(cam.x - want[0]) < 1e-9 and abs(cam.y - want[1]) < 1e-9, "the view centres on the estimate"
+run_for(1.0)
+m11.grab().save(str(HERE / "tile_map_network_position.png"))
+m11.update_vehicle(real)
+assert m11.approx is None and m11.vehicle is not None, "a real fix replaces the estimate"
+m11.close()
 assert not errors, errors
 server.shutdown()
+print("11 touch and network position: a finger tap starts and ends Simulate drive; a network estimate is drawn "
+      "as an approximate circle, centred, never as a fix, and a real fix replaces it; saved tile_map_network_position.png")
 print("10 navigation: right then left found from road names, distance to the turn counts down, zoom in near a "
       "turn, a real fix is projected onto the route; saved tile_map_navigation.png")
 print(f"9 simulated drive: starts without a fix, 25 km/h along the route, heading-up, ignores position-less "
