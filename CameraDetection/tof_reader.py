@@ -25,6 +25,7 @@ import time
 XSHUT = {"left": 22, "ahead": 23, "right": 24}
 ADDRESSES = {"left": 0x30, "ahead": 0x31, "right": 0x32}
 OUT_OF_RANGE_MM = 8000   # the VL53L0X reports about 8190 when nothing returns
+IO_TIMEOUT_S = 0.5       # the driver's default 0 waits forever; one stuck sensor froze all three (10 Oct)
 
 
 def clean_mm(mm):
@@ -52,7 +53,7 @@ def open_sensors(single, handles=None):
     if handles is not None:
         handles.append(i2c)
     if single:
-        return {"ahead": adafruit_vl53l0x.VL53L0X(i2c)}
+        return {"ahead": adafruit_vl53l0x.VL53L0X(i2c, io_timeout_s=IO_TIMEOUT_S)}
 
     pins = {}
     for name, gpio in XSHUT.items():
@@ -67,7 +68,7 @@ def open_sensors(single, handles=None):
         pins[name].value = True        # wake this one only
         time.sleep(0.05)
         try:
-            s = adafruit_vl53l0x.VL53L0X(i2c)
+            s = adafruit_vl53l0x.VL53L0X(i2c, io_timeout_s=IO_TIMEOUT_S)
             s.set_address(ADDRESSES[name])
         except (ValueError, OSError, RuntimeError) as e:
             # One sensor not answering (loose wire, dead board) must not take the other two
