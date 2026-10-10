@@ -11,7 +11,7 @@
 #include <Preferences.h>
 #include <LittleFS.h>
 
-#define FIRMWARE_VERSION "v0.7.1"
+#define FIRMWARE_VERSION "v0.7.2"
 
 // ============================================================
 // SW-7 ESP32-S3 Firmware (version: FIRMWARE_VERSION above)
@@ -785,7 +785,9 @@ void RideCharacterizationTask(void* pvParameters) {
         const bool fixValid = latestGnssFix.valid;
         const float v = latestGnssFix.speed_reported;
         if (fixValid && !isnan(v) && v >= RIDE_MIN_SPEED_FOR_NORM) {
-          f.speed_norm_index = (f.rms_mps2 * f.rms_mps2) / v;  // mean square / speed
+          // Variance, not the raw mean square: the magnitude includes gravity, so its mean square
+          // sits near 96 m^2/s^4 at rest and would swamp the vibration (review, 10 Oct 2026).
+          f.speed_norm_index = (f.std_mps2 * f.std_mps2) / v;  // vibration variance / speed
           f.speed_used = v;
         } else {
           f.speed_norm_index = NAN;
