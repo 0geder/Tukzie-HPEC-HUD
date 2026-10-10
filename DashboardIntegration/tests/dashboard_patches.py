@@ -36,6 +36,7 @@ COPIES = (
     ("sensors_page.py", "app/pages/sensors_page.py"),
     ("sw7_driving.py", "app/widgets/sw7_driving.py"),
     ("sw7_analytics.py", "app/pages/sw7_analytics.py"),
+    ("sw7_sim_link.py", "app/pages/sw7_sim_link.py"),
     ("fonts/AtkinsonHyperlegible-Regular.ttf", "app/fonts/AtkinsonHyperlegible-Regular.ttf"),
     ("fonts/AtkinsonHyperlegible-Bold.ttf", "app/fonts/AtkinsonHyperlegible-Bold.ttf"),
     ("fonts/OFL.txt", "app/fonts/OFL.txt"),
@@ -567,4 +568,31 @@ LOGIN_PATCHES = (
      "            return self._enter_dashboard(\"\")\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES
+NAV_LAYOUT_PATCHES = (
+    # navigation_page.py: the team's Route Guidance list is hidden. Our map's turn banner shows the next turn and
+    # the one after (student, 11 Oct: "it seems its just taking space"), and the map then uses the full width
+    # (sw7_tile_map._insets). TUKZIE_ROUTE_GUIDANCE=1 brings the panel back.
+    ("app/pages/navigation_page.py",
+     '        gt = QLabel("Route Guidance"); gt.setObjectName("guidanceTitle"); gt.setFont(THEME.font(15, QFont.Weight.Bold)); gl.addWidget(gt)\n',
+     '        gt = QLabel("Route Guidance"); gt.setObjectName("guidanceTitle"); gt.setFont(THEME.font(15, QFont.Weight.Bold)); gl.addWidget(gt)\n'
+     '        if __import__("os").environ.get("TUKZIE_ROUTE_GUIDANCE", "0").strip() != "1":   # SW-7: banner instead\n'
+     '            self.guidance.hide()\n'),
+)
+
+SIM_LINK_PATCHES = (
+    # dashboard_main.py: during the map's simulated drive the Driving page and the status bar show the simulated
+    # speed and heading with a SIMULATED DRIVE badge (sw7_sim_link.py). Battery, obstacles and hazards stay live;
+    # the other pages always get the real state.
+    ("app/pages/dashboard_main.py",
+     "        self.status.update_state(state)\n        self.driving.set_state(state)\n",
+     "        from .sw7_sim_link import sim_view   # SW-7: simulated drive on the Driving page, labelled\n"
+     "        shown = sim_view(self, state)\n"
+     "        self.status.update_state(shown)\n        self.driving.set_state(shown)\n"),
+    ("app/pages/dashboard_main.py",
+     "        self.telemetry.start()\n",
+     "        self.telemetry.start()\n"
+     "        from .sw7_sim_link import connect as _sw7_sim_connect\n"
+     "        _sw7_sim_connect(self)   # SW-7: each simulated-drive step refreshes the Driving page\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES

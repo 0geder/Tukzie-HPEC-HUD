@@ -176,6 +176,7 @@ class SW7TileMap(QWidget):
     """Street-tile map, drop-in for NativeRouteMap (see the module docstring)."""
 
     follow_changed = Signal(bool)     # auto_follow changed (drag, Follow, Overview)
+    sim_tick = Signal()               # each simulated-drive step, and when it ends (sw7_sim_link.py)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -536,6 +537,7 @@ class SW7TileMap(QWidget):
         self._zoom_target = NO_FIX_ZOOM
         self._update_sim_button()
         self._kick()
+        self.sim_tick.emit()
 
     def _sim_point(self, m):
         path = self._sim_path
@@ -563,6 +565,7 @@ class SW7TileMap(QWidget):
             self.sim_arrived = True
             self._update_sim_button()
         self.update()
+        self.sim_tick.emit()
 
     def sim_remaining(self):
         """(metres, minutes) left in the simulated drive."""
@@ -720,8 +723,13 @@ class SW7TileMap(QWidget):
 
     # ---- camera ----------------------------------------------------------------------
     def _insets(self):
+        """Screen margins kept clear of the navigation page's overlays. The left margin made room for the
+        team's Route Guidance panel; that panel is hidden by default since 11 Oct (our turn banner replaces it),
+        so the map then uses the full width."""
         w = self.width()
-        return max(26.0, min(390.0, w * .28)), 130.0, 90.0, 65.0   # left, right, top, bottom
+        guidance = os.environ.get("TUKZIE_ROUTE_GUIDANCE", "0").strip() == "1"
+        left = max(26.0, min(390.0, w * .28)) if guidance else 26.0
+        return left, 130.0, 90.0, 65.0   # left, right, top, bottom
 
     def _usable_centre(self):
         left, right, top, bottom = self._insets()
