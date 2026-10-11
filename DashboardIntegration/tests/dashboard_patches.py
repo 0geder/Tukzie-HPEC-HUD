@@ -580,14 +580,18 @@ NAV_LAYOUT_PATCHES = (
 )
 
 SIM_LINK_PATCHES = (
-    # dashboard_main.py: during the map's simulated drive the Driving page and the status bar show the simulated
-    # speed and heading with a SIMULATED DRIVE badge (sw7_sim_link.py). Battery, obstacles and hazards stay live;
-    # the other pages always get the real state.
+    # dashboard_main.py: during the map's simulated drive every page gets one simulated vehicle state (speed,
+    # battery, power, range, temperatures, trip from sw7_sim_link.SimDrive), with a SIMULATED DRIVE strip on every
+    # page and a data-source chip (LIVE / REPLAY / NO DATA / SIMULATED) in the status bar. Obstacles, hazards and
+    # the Sensors page stay live; the live state itself is kept in _sw7_live_state and never modified.
+    # Planning/simulated-drive-sync-prompt.md.
     ("app/pages/dashboard_main.py",
-     "        self.status.update_state(state)\n        self.driving.set_state(state)\n",
-     "        from .sw7_sim_link import sim_view   # SW-7: simulated drive on the Driving page, labelled\n"
-     "        shown = sim_view(self, state)\n"
-     "        self.status.update_state(shown)\n        self.driving.set_state(shown)\n"),
+     "    def _on_vehicle_state(self, state):\n        self.current_state = state\n",
+     "    def _on_vehicle_state(self, state):\n"
+     "        from .sw7_sim_link import sim_view   # SW-7: simulated drive in step on every page, labelled\n"
+     "        self._sw7_live_state = state\n"
+     "        state = sim_view(self, state)\n"
+     "        self.current_state = state\n"),
     ("app/pages/dashboard_main.py",
      "        self.telemetry.start()\n",
      "        self.telemetry.start()\n"
