@@ -1,7 +1,7 @@
 \chapter{Methodology}
 \label{chap:method}
 
-This chapter describes the system as built and how each part was verified. Development followed a staged approach: each interface was tested on its own before higher-level functions were added, so that a fault could be traced to one change. The faults that shaped the design are given here as short findings; the full development record, with every fault, its cause and its fix, is in Appendix~\ref{app:devrecord}, and the firmware configuration (versions, pins, bus speeds, task priorities, queue depths and partitions) is in Table~\ref{tab:config} of that appendix.
+This chapter describes the system as built and how each part was verified. Development followed a staged approach: each interface was tested on its own before higher-level functions were added, so that a fault could be traced to one change. The seven faults whose diagnosis shaped the design are worked through in Section~\ref{sec:investigations}; the full development record, with every fault, its cause and its fix, is in Appendix~\ref{app:devrecord}, and the firmware configuration (versions, pins, bus speeds, task priorities, queue depths and partitions) is in Table~\ref{tab:config} of that appendix.
 
 \section{System overview and architecture selection}
 \label{sec:architecture}
@@ -143,15 +143,15 @@ which approaches 2 when one sensor sees much more than the other. A pair is fuse
 \section{Battery-management interface}
 \label{sec:bms-interface}
 
-The pack reports voltage, current, state of charge, capacity, temperatures and protection faults over Bluetooth Low Energy in the JBD protocol. An inherited implementation leaked a client object on every reconnection, reconnected on a fixed timer and framed messages by a terminator byte that can occur inside the data. The interface was rewritten with one reused client, reconnection only on a disconnect callback, framing from the declared length field, a checksum, and a plausibility check against a 72\,V pack. It searches every discovered service for the required characteristics instead of assuming the service, and logs every advertiser seen so that a wrong address is visible. The field offsets were confirmed byte for byte against an independently written parser in a teammate's code, which does not check the checksum.
+The pack reports voltage, current, state of charge, capacity, temperatures and protection faults over Bluetooth Low Energy in the JBD protocol. An inherited implementation leaked a client object on every reconnection, reconnected on a fixed timer and framed messages by a terminator byte that can occur inside the data. The interface was rewritten with one reused client, reconnection only on a disconnect callback, framing from the declared length field, a checksum, and a plausibility check against a 72\,V pack. It searches every discovered service for the required characteristics instead of assuming the service, and logs every advertiser seen so that a wrong address is visible. The field offsets were confirmed byte for byte against an independently written parser in a teammate's code.
 
-Current status (11 October 2026). The checksum formula, taken from community reverse engineering, included the register byte, so every genuine frame failed by exactly three; firmware v0.5.4 corrected it. On the vehicle on 30 September the unit then stored 14 consecutive checksum-valid records over about 140\,s (74.78\,V, 0.00\,A, 60\%) before the connection was lost. The link is intermittent: the pack's signal was $-88$ to $-93$\,dBm, near the limit for holding a connection, so the unit may have to be mounted close to the pack. The reading has not been compared with a meter or the pack's app. The pack advertises as \texttt{DB24SA01L24S150ABU}, a 24-cell, 150\,A designation, while inherited documentation describes the main traction pack as lead-acid without a BMS, so this is probably a separate lithium auxiliary pack, which remains to be confirmed with the vehicle team. The earlier connection faults are in Table~\ref{tab:faults}.
+Current status (11 October 2026). Valid frames have been received on the vehicle (74.78\,V, 0.00\,A, 60\%), but the link is intermittent (Section~\ref{sec:inv-bms}). The reading has not been compared with a meter or the pack's app. The pack advertises as \texttt{DB24SA01L24S150ABU}, a 24-cell, 150\,A designation, while inherited documentation describes the main traction pack as lead-acid without a BMS, so this is probably a separate lithium auxiliary pack, which remains to be confirmed with the vehicle team.
 
 \section{Positioning}
 \label{sec:gnss-parsing-validation}
 \label{sec:gnss-outdoor}
 
-The modem's GNSS is polled every 3\,s with \texttt{AT+CGNSSINFO}. The parser was written defensively, checking the field count and logging the raw reply, because published reply formats differ between modem firmware versions \cite{simcoma76xx}. That paid off: the assumed 13-field reply was in fact 9 empty fields indoors, and on a rooftop on 29 and 30 September a fix gave 17 fields (and an 18-field variant while settling) in decimal degrees, so the first mapping had read satellite counts as the position. Since v0.5.3 the parser anchors on the latitude hemisphere letter and reads every field relative to it, which fits all observed layouts, and accepts a fix only if the layout and the coordinate, date and time formats are valid and the implied jump from the previous fix is under 100\,m/s; this rejected replies corrupted when a second query competed with the firmware's polling. A console command prints every raw reply so that the parser can be checked without extra commands. The same session found that the modem's power key toggles the modem, so the boot-time pulse switched a running modem off after every reprogramming; since v0.5.2 the key is pulsed only if the modem does not answer. After GNSS power-on, polls time out entirely for about 60 to 90\,s, so a test must allow this warm-up before recording. The speed field is in knots according to the manual \cite{simcoma76xx}, which has not yet been confirmed on the fitted modem. The reply layouts are in Appendix~\ref{app:devrecord}.
+The modem's GNSS is polled every 3\,s with \texttt{AT+CGNSSINFO}. The parser was written defensively, checking the field count and logging the raw reply, because published reply formats differ between modem firmware versions \cite{simcoma76xx}. The real reply did differ from the assumed one (Section~\ref{sec:inv-gnss}). Since v0.5.3 the parser anchors on the latitude hemisphere letter and reads every field relative to it, which fits all observed layouts, and accepts a fix only if the layout and the coordinate, date and time formats are valid and the implied jump from the previous fix is under 100\,m/s; this rejected replies corrupted when a second query competed with the firmware's polling. A console command prints every raw reply so that the parser can be checked without extra commands. Section~\ref{sec:inv-gnss} covers the modem's start-up and GNSS warm-up. The speed field is in knots according to the manual \cite{simcoma76xx}, which has not yet been confirmed on the fitted modem. The reply layouts are in Appendix~\ref{app:devrecord}.
 
 Firmware v0.7.3 adds assisted GNSS, which downloads orbit data over LTE every two hours (\texttt{AT+CAGPS} returned success on the bench), and, while there is no fix, the modem's network position (\texttt{AT+CLBS}) once a minute. Indoors this answered in about 0.7\,s with a reported accuracy of 550\,m, about 30\,m from the first outdoor fix at the same site; it is kept in separate fields, drawn on the map as an approximate circle, and never used for speed, heading or the ride index.
 
@@ -179,7 +179,7 @@ An alert is raised when a class appears in a band for three consecutive frames, 
 
 Data handling is minimal by design, and was fixed in code before the detector first processed live frames on 28 September 2026. Each alert records five fields: class, band, confidence, timestamp and alert status. Frames exist only in memory and are never written to disk; there is no face or number-plate recognition and no identification of anyone; inference is local; and the output is advisory, with no control of any vehicle function. The ride characterisation of Section~\ref{sec:ride-characterisation} uses no learned model.
 
-Every frame's latency is measured from its \texttt{SensorTimestamp}: the time from readout to capture by the detector, preprocessing, inference, alert logic and the total, reported as median, 95th percentile and maximum every 5\,s and optionally written per frame. The measurement excludes the exposure time itself. Inference uses all four cores. The optional live view draws the detections on the image and serves it as MJPEG from its own thread, which always takes the newest frame, so a slow viewer cannot slow detection. Two input faults were found on the first live run: a placeholder entry in the label file shifted every class by one, and the camera's buffers are in blue, green, red order while the model expects red, green, blue \cite{picamera2manual}. The module's lack of an infrared-cut filter gave a pink cast; its own tuning file with saturation 1.8 restored the colours, and a correction for near-black pixels is applied to the live view only (Appendix~\ref{app:devrecord}).
+Every frame's latency is measured from its \texttt{SensorTimestamp}: the time from readout to capture by the detector, preprocessing, inference, alert logic and the total, reported as median, 95th percentile and maximum every 5\,s and optionally written per frame. The measurement excludes the exposure time itself. Inference uses all four cores. The optional live view draws the detections on the image and serves it as MJPEG from its own thread, which always takes the newest frame, so a slow viewer cannot slow detection. Two input faults were found on the first live run: a placeholder entry in the label file shifted every class by one, and the camera's buffers are in blue, green, red order while the model expects red, green, blue \cite{picamera2manual}. The module's lack of an infrared-cut filter gave a pink cast, corrected by its own tuning file and a saturation of 1.8 (Section~\ref{sec:inv-colour}).
 
 Because the COCO classes include no road-surface hazards, a YOLO11n pothole model was fine-tuned in Colab, first on a public dataset and then on tiles cut from the road band of a South African dashcam dataset (Nienaber, Kroon and Booysen, Stellenbosch University); the data preparation is in Appendix~\ref{app:devrecord}. \outstanding{run of the pothole model on the Raspberry Pi~4 beside the main detector, and its held-out test score.}
 
@@ -189,7 +189,7 @@ Because the COCO classes include no road-surface hazards, a YOLO11n pothole mode
 
 A VL53L5CX was chosen for proximity sensing because its 8$\times$8 zones in a 63\textdegree\ field separate left, centre and right from one device, where single-point sensors would have to be duplicated across directions. It involves no image and no learned model, so it works whatever the detector's state. It had not arrived by 30 September, so the three VL53L0X sensors of a UCT micromouse sensor board stand in, facing left, ahead and right, with a range of about 2\,m (1.2\,m used). They share one address, so the reader holds all three in shutdown and wakes each in turn to give it its own address (Appendix~\ref{app:wiring}). They are on the Raspberry Pi~4, which sits beside the camera and has a free bus, leaving the ESP32's acquisition undisturbed.
 
-Finding: one loose sensor stopped all three. On 6 October every distance was null, because the start-up stopped at the first sensor that did not answer. The reader now skips a sensor that does not answer and logs which one, the bridge looks for it again every 60\,s, and since 10 October each I/O call has a 0.5\,s timeout so that a stuck sensor cannot freeze the reader; all three sensors were reading afterwards (\texttt{Planning/REMAINING\_WORK.md}).
+A sensor that does not answer within 0.5\,s is skipped, logged and looked for again every 60\,s (Section~\ref{sec:inv-tof}).
 
 The camera says what an object is and in which direction, but its distance is uncalibrated; each time-of-flight sensor measures distance well, but only close by, in one direction and without a class. A fusion step in the bridge (\texttt{CameraDetection/sensor\_fusion.py}) combines them. The detector serves each detection with a bearing computed from the box centre and the 53.5\textdegree\ horizontal field, and the bridge polls it five times a second. A detection is matched to a sensor when its bearing lies in that sensor's cone widened by a 5\textdegree\ gate and the sensor's nearest sample is within 200\,ms, valid and in range; the nearest reading wins and each sensor serves one detection. A matched detection becomes a fused hazard with the camera's class and the sensor's distance; an unmatched one keeps the camera estimate; a sensor with three valid in-range readings and no match reports an unclassified obstacle; and camera data older than 1\,s are ignored, so with the detector stopped only obstacles are reported. Hazards are sorted nearest first. The sensor directions ($-35$, 0 and $+35$\textdegree, 12.5\textdegree\ half-angle) are defaults, not measurements, and with them the side cones ($-47.5$ to $-22.5$\textdegree\ and 22.5 to 47.5\textdegree) overlap the camera's $\pm 26.75$\textdegree\ view only at its outer edges (Figure~\ref{fig:fusion-geometry}), so most objects to the side can be reported only by a time-of-flight sensor, without a class. A sensor reports the nearest surface in its cone, which need not be the object the camera saw, and there is no tracking. A continuous record of distances and bearings would collect more than the system needs, so the fusion log is off by default and is switched on only for a validation session, and then holds numbers only, no images. The bench validation (test C9) first calibrates the camera axis, field of view and each sensor's cone with a narrow target on a marked floor, then checks a person crossing at 1\,m, a person standing at 0.5, 1.0 and 1.5\,m against a tape, a box outside the detector's classes at 0.8\,m (to be reported as a time-of-flight obstacle) and a person at 2.5\,m, beyond the sensors' range (camera only).
 
@@ -230,9 +230,117 @@ Each record is also written to a LittleFS file system in the 3.5\,MB data partit
 
 Finding: flash writes pause acquisition. With a write every 10\,s, both IMUs showed a 33 to 40\,ms gap at each write, although they are on separate buses; switching logging off for 120\,s, with publishing continuing, removed the gaps. Writing to flash suspends code executing from flash on both cores, which explains why both stalled together. Since v0.6.0 records are buffered in memory (8\,KB) and written in one append about once a minute. This reduces how often the pause occurs, not its length, and up to a minute of records is lost if power is cut before a flush.
 
-Finding: missing values made invalid JSON. Reading the whole log back through a paced, indexed dump (\texttt{BenchTest/log\_dump.py}) showed that most records contained \texttt{nan} for fields with no value, such as the position before a fix, which JSON does not allow; the same text had been published. Watching the live stream had not shown it. Since v0.6.3 such fields are written as \texttt{null}.
+Finding: missing values made invalid JSON, which only reading the whole log back revealed; since v0.6.3 they are written as \texttt{null} (Section~\ref{sec:inv-json}).
 
 The log is capped at 3\,MB and then truncated rather than rotated, and it does not yet record which lines have been published, so the backlog is not replayed after an outage. The file survives reprogramming and grew by about 160\,KB an hour on the bench, so it must be read back and cleared before a long session such as the road test; after the read-back of 1 October the copy was saved in the repository and the board's file cleared. \outstanding{central database ingest on the Raspberry Pi~5, sequence numbers and backlog replay (firmware v0.7.4), with the synchronisation measurements: completeness, delay and duplicates.}
+
+\section{Fault investigations}
+\label{sec:investigations}
+
+Most faults in Table~\ref{tab:faults} were fixed in one step; the seven below needed a diagnosis, because more than one cause could explain what was seen. Each is told as symptom, candidate causes, deciding test, cause and fix, and consequence, and Table~\ref{tab:investigations} summarises them.
+
+\subsection{Boot loop after enabling the full flash}
+\label{sec:inv-flash}
+
+\emph{Symptom.} The build tool treated the board as an 8\,MB part without PSRAM, although the module has 16\,MB of flash and 8\,MB of PSRAM. Setting the flash size to 16\,MB with a matching partition table made the processor reset about once a second, always at the same program counter.
+
+\emph{Candidate causes and tests.} The PSRAM setting, the flash override, the code or the hardware. One setting was changed at a time. Adding a PSRAM type (\texttt{qio\_opi}) left the same loop at the same program counter, so PSRAM was not the cause on its own. Removing every override restored normal running, which cleared the code and the hardware. Two independent readings then pointed to the flash access mode: the upload tool's chip detection confirmed 8\,MB of PSRAM, and the ROM boot banner reported the flash in dual-I/O (DIO) mode, while the setting tried asked for quad-I/O.
+
+\emph{Fix and consequence.} The firmware used about 9\% of the default partition, so the stock configuration was kept until local logging needed the 16\,MB table. Then 16\,MB with DIO mode, set together with the table, booted and mounted the logging partition, confirming the diagnosis. Size, mode and table must be set together.
+
+\subsection{Modem power key, GNSS warm-up and reply layout}
+\label{sec:inv-gnss}
+
+\emph{Symptoms.} Three problems overlapped. Indoors every GNSS poll had the wrong number of fields; for 60 to 90\,s after the GNSS was switched on, polls got no reply; on a rooftop the first fix was reported near latitude and longitude zero (0.25 and 0.10 degrees); and a later five-minute capture got no reply to any of its 69 polls.
+
+\emph{Candidate causes and tests.} A reply layout other than the 13 fields assumed, a normal receiver start-up delay, or a modem that was not running. Because the parser logged the raw reply, the real layout was visible: nine empty fields indoors and, with a fix, 17 fields (18 while settling) in decimal degrees, so the old mapping had read satellite counts as the position. A modem that had run for several minutes answered every poll, and during warm-up it answered other commands at once, so only the GNSS was waiting. The silent capture did not fit warm-up, as MQTT commands also went unanswered: the power key toggles the modem, which keeps its supply when only the processor restarts, so the pulse sent at every boot switched a running modem off after each reprogramming.
+
+\emph{Fixes and consequence.} Since v0.5.3 the parser anchors on the latitude hemisphere letter (Section~\ref{sec:gnss-parsing-validation}); since v0.5.2 the key is pulsed only if the modem does not answer \texttt{AT}. Tests must allow the warm-up, during which a zero poll count does not mean that polling has stopped.
+
+\subsection{Battery-management connection and checksum}
+\label{sec:inv-bms}
+
+\emph{Symptoms.} In turn: no BLE advertisements from any device; once the pack was powered, a link that dropped before any data; mostly failed connections; and on the vehicle three frames, all rejected on the checksum.
+
+\emph{Tests and causes.} Every advertiser was logged, so seeing no device at all in a room full of them showed that the scanner was idle: scanning depended on an address set only after the pack had been found. A teammate's independently written parser finds the characteristics directly, which showed that in the ESP32 library they are not under the assumed service; every service is now searched. A power cycle of the board did not change the failed connections, which ruled out a stuck BLE stack. The checksum formula came from community reverse engineering. The query frame the firmware itself sends, \texttt{DD A5 03 00 FF FD 77}, carries $\mathtt{0x10000} - (\mathtt{0x03} + \mathtt{0x00}) = \mathtt{0xFFFD}$, which leaves out the byte in the register position; the firmware included it, so every genuine reply failed by exactly three.
+
+\emph{Fix and consequence.} Firmware v0.5.4 corrects the sum and prints the bytes of any frame that still fails; 14 consecutive valid records followed on the vehicle. The protocol is confirmed, but the signal on the vehicle, $-88$ to $-93$\,dBm, is near the limit for a link, so the unit may have to be mounted near the pack.
+
+\subsection{Invalid JSON found only by reading the log back}
+\label{sec:inv-json}
+
+\emph{Symptom.} At the first read-back of the stored log, on 1 October, 5,545 of 6,020 records failed to parse as JSON. Earlier transfer attempts had lost characters.
+
+\emph{Candidate causes and test.} Damage in transfer, over a serial link that also carries other output, or records wrong as stored. The dump command prints each record with its index and length, and the laptop script (\texttt{BenchTest/log\_dump.py}) discards any record whose length does not match and repeats until every index has arrived intact. After four passes all 6,020 records were intact, so transfer was ruled out. Every failing record contained \texttt{nan}: a field with no value, such as the position before a fix, was printed as \texttt{nan}, which JSON does not allow.
+
+\emph{Fix and consequence.} The same text had been published over MQTT, and watching the live output had not shown it. Since v0.6.3 such fields are written as \texttt{null}, and all 6,020 records parse. A strict receiver would have rejected 92\% of the records; later link tests count the lines that fail to parse at the receiving end (Appendix~\ref{app:evidence}).
+
+\subsection{Camera colour cast}
+\label{sec:inv-colour}
+
+\emph{Symptom and candidate causes.} The live view looked reddish. A test was written for each of three causes: the detector's channel order, the camera itself, and the module's lack of an infrared-cut filter, which has its own tuning file.
+
+\emph{Tests and cause.} A still with the standard tuning showed a white wall strongly pink, as did the detector's frames; with the tuning for a module without the filter the wall was neutral. The cause was the module, not the channel order.
+
+\emph{Fix and consequence.} That tuning alone washed the colours out (a blue card at 120, 124 and 125 on red, green and blue); a saturation of 1.8 restored them (Table~\ref{tab:colour-cards}). Black objects then looked purple, since many black materials reflect infrared; greying near-black pixels took 84 to 171\,ms a frame, too slow for the detection loop, so it is done in the live view only. The colours must be checked again in daylight, where there is more infrared. Whether the cast lowered detection confidence was not measured.
+
+\subsection{Time-of-flight start-up hang}
+\label{sec:inv-tof}
+
+\emph{Symptoms.} On 6 October every distance from the three sensors was null; after a first fix, on 10 October the reader froze.
+
+\emph{Tests and causes.} A scan of the I\textsuperscript{2}C bus showed only the left sensor, at its new address, and nothing when the ahead sensor was woken. One sensor was not answering, but the start-up, which gives each sensor its address in turn, stopped at the first failure and lost all three. The reader was changed to skip and log such a sensor, and the bridge to look for it again every 60\,s. That relies on an error being raised, and on 10 October none was: the driver's I/O timeout defaults to zero, which means wait for ever, so one stuck sensor froze all three.
+
+\emph{Fix and result.} Each sensor now has a 0.5\,s I/O timeout. After this change and rewiring all three opened, and in a three-minute hand test the ahead and right sensors read 80 to 264 and 157 to 199\,mm with a hand about 20\,cm away (\texttt{BenchTest/logs/2026-10-10\_tof\_hand\_test.txt}).
+
+\emph{Consequence.} If a shutdown (XSHUT) wire comes off, its pull-up keeps that sensor on at the shared start-up address, where it collides with each sensor being woken, and none of the three starts (Appendix~\ref{app:wiring}). The timeout turns this into a logged failure, visible before a test, but cannot keep the other two running.
+
+\subsection{Raspberry Pi~4 under-voltage and reboots}
+\label{sec:inv-power}
+
+\emph{Symptoms.} Through much of the bench work the Raspberry Pi~4 reported under-voltage and throttled to 600\,MHz. On 4 October the detector ran at 6.1\,frames/s, against 14.6 later on a healthy Pi with the same services (\texttt{BenchTest/logs/2026-10-10\_bench\_observations.md}). On 6 October the Pi stopped booting until everything was disconnected.
+
+\emph{Candidate causes.} The Pi's own supply under the detector's load; the time-of-flight board on its I\textsuperscript{2}C bus; the telemetry unit on its USB port; or heat, since it had no cooling.
+
+\emph{Test.} A logger recorded every 2\,s the power and temperature flags, the I\textsuperscript{2}C addresses and the USB serial devices, so that each change in the flags could be matched to a device (\texttt{BenchTest/logs/2026-10-06\_pi4\_power\_watch.log}). With nothing attached and the detector running, the flags were clear, which cleared the supply. The time-of-flight board stayed disconnected. From 17:45 the soft temperature limit came and went (65 to 69\,\textdegree C) with no under-voltage. The telemetry unit was plugged in at 17:58:05; 14\,s later, when its modem came up, under-voltage and throttling began and recurred every few seconds, and the detector slowed from 14.3 to 12\,frames/s.
+
+\emph{Cause.} The modem's transmit current, drawn through the Pi's USB port, pulls the Pi's supply down; the current was not measured. On 10 October, with the unit on the Pi's USB port, the Pi restarted three times in about 20 minutes; after the unit was moved off, there were none in 4 hours and the flags stayed clear. The boot failure of 6 October was probably the same fault but was not reproduced. Heat was separate: 81\,\textdegree C without cooling, 48 to 66\,\textdegree C with a fan.
+
+\emph{Fix and consequence.} The fault lay in how the parts were powered together, not in any one part. The telemetry unit needs its own supply, such as a powered hub, on the bench and on the vehicle. The Raspberry Pi~5's 3\,A supply limits its USB ports to 600\,mA in total, so the same applies there, and a measured power budget against the 72\,V source is still needed.
+
+{\small
+\begin{longtable}{|>{\raggedright\arraybackslash}p{2.1cm}|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{4.3cm}|>{\raggedright\arraybackslash}p{3.7cm}|}
+\caption{Fault investigations: candidate causes, the test that separated them and the result.}
+\label{tab:investigations}\\
+\hline
+\textbf{Fault} & \textbf{Candidate cause} & \textbf{Test} & \textbf{Result} \\ \hline
+\endfirsthead
+\hline
+\textbf{Fault} & \textbf{Candidate cause} & \textbf{Test} & \textbf{Result} \\ \hline
+\endhead
+Boot loop (\ref{sec:inv-flash}) & PSRAM setting & Add \texttt{qio\_opi} on top of the flash change & Same loop, same program counter: not the cause alone \\ \cline{2-4}
+ & Application code or hardware & Remove every override & Runs, modem works: cleared \\ \cline{2-4}
+ & Flash access mode & ROM banner; chip detection; 16\,MB with DIO & DIO reported; boots, LittleFS mounts: cause \\ \hline
+GNSS (\ref{sec:inv-gnss}) & Reply layout not as assumed & Raw replies indoors and with a rooftop fix & 9 fields empty, 17 or 18 with a fix, decimal degrees: cause \\ \cline{2-4}
+ & GNSS warm-up & Poll a modem already running for minutes & Polls answered: normal 60 to 90\,s delay \\ \cline{2-4}
+ & Modem switched off & Five-minute capture after reprogramming & No reply to GNSS or MQTT commands: boot pulse toggled the modem off \\ \hline
+BMS (\ref{sec:inv-bms}) & Pack absent or scanner idle & Log every advertiser & Nothing at all logged: scanner idle \\ \cline{2-4}
+ & Characteristics under another service & Compare with a teammate's parser & Found directly there: cause of the drop \\ \cline{2-4}
+ & Stuck BLE stack on the ESP32 & Full power cycle & Same pattern: ruled out \\ \cline{2-4}
+ & Checksum formula & Firmware's own query frame & Register byte excluded; replies failed by 3: cause \\ \hline
+Invalid JSON (\ref{sec:inv-json}) & Damage in transfer & Indexed, length-checked, repeated read-back & All 6,020 records intact: ruled out \\ \cline{2-4}
+ & Records wrong as stored & Parse each record & 5,545 contain \texttt{nan}: cause \\ \hline
+Colour cast (\ref{sec:inv-colour}) & Detector channel order & Still with the standard tuning & Also pink: ruled out \\ \cline{2-4}
+ & No infrared-cut filter & Still with the NoIR tuning & Wall neutral: cause \\ \hline
+ToF null, then hang (\ref{sec:inv-tof}) & One sensor not answering & I\textsuperscript{2}C bus scan & Only the left sensor present; start-up stopped at the next \\ \cline{2-4}
+ & Driver waiting for ever & Driver's default I/O timeout & Zero, wait for ever: cause of the freeze \\ \hline
+Pi~4 under-voltage (\ref{sec:inv-power}) & Pi supply under detector load & 2\,s flag log, nothing attached & Flags clear: ruled out \\ \cline{2-4}
+ & ToF board on I\textsuperscript{2}C & Board disconnected throughout & Under-voltage still occurred: ruled out \\ \cline{2-4}
+ & Telemetry unit on Pi USB & Plug in during the log & Under-voltage 14\,s later, recurring: cause \\ \cline{2-4}
+ & & Unit on Pi USB, then moved off (10 Oct) & 3 restarts in 20 min, then none in 4\,h \\ \cline{2-4}
+ & Heat & Same log & Soft limit from 17:45, before the unit: separate; fan fitted \\ \hline
+\end{longtable}
+}
 
 \section{Verification}
 \label{sec:verification}
@@ -272,7 +380,7 @@ Tools were written so that each test leaves a record that can be checked later. 
 \subsection{Integration and power}
 \label{sec:full-system-integration}
 
-All telemetry-unit subsystems were first run together on the target board, and then the whole chain from the telemetry unit through the Raspberry Pi~4 to the dashboard on the Raspberry Pi~5. Finding: the Raspberry Pi~4 ran under-voltage and throttled to 600\,MHz through much of the bench work, and on 6 October stopped booting. A logger of its power and temperature flags every 2\,s showed the flags clear with nothing attached, and under-voltage starting 14\,s after the telemetry unit was plugged into its USB port, when the LTE modem came up. The modem's transmit current through the Pi's USB port is the cause, so the telemetry unit must have its own supply, for example a powered hub. The same log showed the Pi~4 reaching its soft temperature limit with the detector running and no cooling, and a fan was fitted (Appendix~\ref{app:wiring}).
+All telemetry-unit subsystems were first run together on the target board, and then the whole chain from the telemetry unit through the Raspberry Pi~4 to the dashboard on the Raspberry Pi~5. This exposed the Raspberry Pi~4's under-voltage, traced to the telemetry unit's modem (Section~\ref{sec:inv-power}); the unit needs its own supply, and the Pi~4 now has a fan (Appendix~\ref{app:wiring}).
 
 \subsection{Vehicle tests}
 \label{sec:field-test-design}

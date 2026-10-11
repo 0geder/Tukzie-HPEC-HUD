@@ -48,7 +48,7 @@ Queues & imu1Queue, imu2Queue: 100 samples each; imu1CharQueue, imu2CharQueue: 4
 
 \section{Development faults}
 
-Table~\ref{tab:faults} lists the faults found during development, with their cause and fix. The faults that shaped the design are also discussed in Chapter~\ref{chap:method}.
+Table~\ref{tab:faults} lists every fault found during development, with its cause and fix. Seven of them, which needed a diagnosis, are described step by step in Section~\ref{sec:investigations}.
 
 \begin{longtable}{|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{5.0cm}|>{\raggedright\arraybackslash}p{4.9cm}|}
 \caption{Development faults, causes and fixes.}
@@ -96,11 +96,7 @@ Touch felt slow & Panel reports contact with the first position; buttons act on 
 \section{Diagnosis records}
 \label{sec:diagnoses}
 
-Four faults are recorded here in more detail than Table~\ref{tab:faults} gives, because the method of finding them is part of the evidence.
-
-\subsection*{Flash and PSRAM configuration}
-
-The fitted ESP32-S3-WROOM-1-N16R8 has 16\,MB of flash and 8\,MB of PSRAM, but the build tool's platform report showed the stock \texttt{esp32-s3-devkitc-1} definition as an 8\,MB, no-PSRAM board. The correction was made one variable at a time. (1) Baseline: the build reported a 3,342,336-byte application partition, confirming the small default table. (2) Setting the flash size to 16\,MB with a matching 16\,MB partition table alone gave a boot loop, about one reset a second at a fixed program counter. (3) Adding a PSRAM memory type (\texttt{qio\_opi}) left the same loop at the same program counter, so PSRAM was not the cause on its own. (4) Removing every override restored normal running, with the modem working, which placed the fault in the flash-size and partition override, not in the application or the hardware. The upload tool's own chip detection, independent of the board definition, reported 8\,MB of embedded PSRAM, and the ROM boot banner reported the flash in dual-I/O (DIO) mode, so the most probable cause was a quad-I/O request on flash that runs in DIO. Because the firmware then used about 9\% of the default 3.2\,MB application partition, the stock configuration was kept as a deliberate, time-bounded decision. When local logging later needed the 16\,MB table, setting the flash size to 16\,MB and the mode to DIO together with the table booted normally and mounted the LittleFS partition for the first time, which is consistent with the DIO diagnosis; the PSRAM setting was left at its default, since the firmware does not use PSRAM (\texttt{dio\_opi} would be the next setting to test if it is ever needed).
+Two further faults are recorded here in more detail than Table~\ref{tab:faults} gives, because the method of finding them is part of the evidence.
 
 \subsection*{Serial routing on the target board}
 
@@ -110,15 +106,11 @@ After the IMUs were moved onto the target board, nothing beyond the ROM boot ban
 
 A boot drive made by copying boot files had one FAT32 partition and a \texttt{cmdline.txt} pointing to a root partition that did not exist; inspecting the partition table rather than the file listing showed it, and writing the image with Raspberry Pi Imager gave the expected boot (about 512\,MB) and root (about 29\,GB) partitions, checked against the disk signature. The Pi did not join a 5\,GHz laptop hotspot: \texttt{iw reg get} showed the kernel's country code but a generic ``world'' domain on the radio itself, and \texttt{rfkill} showed no block. Moving the hotspot to 2.4\,GHz and setting the country code through the driver-level configuration restored the link; both changes were applied together, so the sufficient fix was not isolated. A second provisioning pass, meant only to change the network credentials, had left ssh disabled, which shows that each field of a staged configuration has to be re-checked rather than assumed.
 
-\subsection*{Camera colour cast}
-
-Three causes were each given a test: the detector's channel order (a blue object should appear blue), the camera itself (compared with the operating system's own preview) and the module's lack of an infrared-cut filter. A still with the standard tuning showed a white wall strongly pink, the detector's frames showed the same cast, and a still with the tuning for a module without the filter showed the wall neutral, so the cause was the module, not the detector. With that tuning alone colours were washed out (a blue card 120, 124 and 125 on red, green and blue); a saturation of 1.8 restored them (the blue card 1, 83 and 218, a red box 213, 7 and 56, the white wall 202, 217 and 214). Whether the cast had lowered detection confidence was not measured.
-
 \section{Supporting detail}
 
 \subsection*{GNSS reply layout}
 
-With a fix, the fitted modem's \texttt{+CGNSSINFO} reply has seventeen fields: fix mode; GPS, GLONASS, BeiDou and Galileo satellite counts; latitude and hemisphere; longitude and hemisphere; date; UTC time; altitude; speed; course; and PDOP, HDOP and VDOP, with latitude and longitude in decimal degrees. It matches the sixteen-field form in version 1.09 of the manual \cite{simcoma76xx} with one extra satellite count; while a fix was settling an eighteen-field variant with an empty course and one undocumented trailing value also appeared, and the nine-field reply seen indoors is the same reply with the empty satellite block collapsed. The first outdoor capture, with a second query competing with the firmware's polling, contained replies with dropped characters, which the jump check now rejects. The modem's start-up command sequence takes about 27\,s after boot before polling begins, and because the statistics count only answered polls, a zero poll count during warm-up does not mean polling has stopped; the timeout log lines distinguish the two.
+With a fix, the fitted modem's \texttt{+CGNSSINFO} reply has seventeen fields: fix mode; GPS, GLONASS, BeiDou and Galileo satellite counts; latitude and hemisphere; longitude and hemisphere; date; UTC time; altitude; speed; course; and PDOP, HDOP and VDOP, with latitude and longitude in decimal degrees. It matches the sixteen-field form in version 1.09 of the manual \cite{simcoma76xx} with one extra satellite count; while a fix was settling an eighteen-field variant with an empty course and one undocumented trailing value also appeared, and the nine-field reply seen indoors is the same reply with the empty satellite block collapsed. The first outdoor capture, with a second query competing with the firmware's polling, contained replies with dropped characters, which the jump check now rejects. The modem's start-up command sequence takes about 27\,s after boot before polling begins (Section~\ref{sec:inv-gnss}).
 
 \subsection*{Camera timing and modes}
 
@@ -141,7 +133,7 @@ The dashboard's resolver (\texttt{DashboardIntegration/sw7\_endpoints.py}) tries
 
 \subsection*{Camera colour}
 
-With the NoIR tuning and saturation 1.8, printed cards held about 1\,m from the camera measured as in Table~\ref{tab:colour-cards} in the detector's own frames under indoor light. The three colours are clearly identified; grey and white show a small cool shift. Held together in one frame the cards remained distinct. The dark-pixel correction scales each pixel's saturation from fully grey at a brightest channel of 50 or below to unchanged at 110 and above; it took 171\,ms a frame in numpy and 84\,ms with Pillow on the Raspberry Pi~4, so it runs only in the live-view thread and the detector's input is unchanged. The colours should be checked again in daylight.
+With the NoIR tuning and saturation 1.8, printed cards held about 1\,m from the camera measured as in Table~\ref{tab:colour-cards} in the detector's own frames under indoor light. The three colours are clearly identified; grey and white show a small cool shift. Held together in one frame the cards remained distinct. The dark-pixel correction (Section~\ref{sec:inv-colour}) scales each pixel's saturation from fully grey at a brightest channel of 50 or below to unchanged at 110 and above, so the cards pass through it unchanged. The colours should be checked again in daylight.
 
 \begin{table}[htbp]
 \centering
