@@ -1,6 +1,6 @@
 # SW7 presentation: question preparation
 
-Likely questions from the examiners and the open day, with short answers based on the report, the test logs and the code (state on 11 October 2026). Where something has not been measured, the answer says so. Saying "not measured yet, and this is how I would measure it" is a strong answer; guessing a number is not.
+Likely questions from the examiners and the open day, with short answers based on the report, the test logs and the code (state on 11 October 2026, updated the same day after the outage test T15). Where something has not been measured, the answer says so. Saying "not measured yet, and this is how I would measure it" is a strong answer; guessing a number is not.
 
 How to answer: give the number, say how it was measured, then state the limit. For example: "102 ms median, measured from the sensor's own readout timestamp over a one-minute run on the bench; not yet on the vehicle."
 
@@ -20,6 +20,8 @@ Contents
 13. New since 6 October
 14. Questions to expect that expose gaps
 15. Numbers to know by heart
+16. New since the 11 October morning update (T15, pothole path, dashboard, report)
+17. The critical review's weak points: questions an examiner who read the report closely will ask
 
 ---
 
@@ -43,10 +45,10 @@ Each part is well known. Our literature check found no system that combines ride
 ## 2. IMUs and signal processing
 
 Why 200 Hz?
-ISO 2631-1 weights whole-body vibration up to 80 Hz, so sampling must exceed 160 Hz. 200 Hz gives margin without overloading the I2C bus. Measured: 200.0 to 200.5 Hz on both sensors, zero dropped samples.
+ISO 2631-1 weights whole-body vibration up to about 80 Hz. The standard sets no sampling rate; 160 Hz is simply the Nyquist rate for 80 Hz, so 200 Hz gives some margin without overloading the I2C bus. Measured: 200.0 to 200.5 Hz on both sensors, zero dropped samples. Be careful: ISO weighting itself is not implemented, so the standard justifies the band, not a comfort figure (section 17).
 
 Your low-pass filter is set to 260 Hz but you sample at 200 Hz. What about aliasing? (Likely from a signal-processing examiner.)
-That's correct, and it's a limitation. Nyquist is 100 Hz, so content between 100 and 260 Hz can fold back into the band. The widest filter was chosen so the 80 Hz band of interest isn't attenuated; the next setting, 94 Hz, would cut into it. The proper fix is to sample faster (the MPU6050 can run at 1 kHz) and filter and decimate digitally to 200 Hz. The report now states this as a limitation. Firmware v0.7.4 (in progress, not flashed) moves the filter to 94 Hz, which reduces aliasing at the cost of some attenuation near the top of the 80 Hz band.
+That's correct, and it's a limitation. Nyquist is 100 Hz, so content between 100 and 260 Hz can fold back into the band. The widest filter was chosen so the 80 Hz band of interest isn't attenuated; the next setting, 94 Hz, would cut into it. The proper fix is to sample faster (the MPU6050 can run at 1 kHz) and filter and decimate digitally to 200 Hz. The report states this as a limitation. Firmware v0.7.4, flashed on 11 October, moves the filter to 94 Hz, which reduces aliasing at the cost of some attenuation near the top of the 80 Hz band. The bench results on the slides were taken with the 260 Hz filter, so R1 has to be re-checked on v0.7.4 (the T15 log already shows 200.0 to 200.5 Hz, zero drops, on v0.7.4).
 
 Why use the acceleration magnitude, not one axis?
 The magnitude is the same whatever way the sensor is mounted, and the mounting orientation wasn't fixed yet. The cost: you can't tell which axis a disturbance came from. Orientation compensation is future work.
@@ -92,10 +94,10 @@ What happens if the signal drops?
 Tested by switching the radio off for 60 s. The firmware saw the loss 0.8 s later from the modem's report (or after three failed publishes, 20.7 s), retried at 30 s and then 60 s, and reconnected about 5 s after the radio came back. There were no failed publishes afterwards.
 
 Is data lost during an outage?
-Not locally: every record is also written to flash. But the backlog is not yet re-sent over MQTT when the connection returns. Firmware v0.7.4 with sequence numbers and backlog replay to a central database is in progress (laptop tests only, not flashed), so for now it remains a limitation. The stored log was read back in full: 6,020 records.
+Not in the outage test (T15, 11 Oct, tested). Firmware v0.7.4 gives every record a boot number and a sequence number, remembers which ones the broker acknowledged, and replays the rest from flash after reconnecting. The radio was switched off for 10 minutes: 60 records built up, the modem reconnected 5.2 s after the radio came back, and the backlog drained in about 37 to 43 s. The SQLite database on the Pi 5 held 112 of 112 records of that boot, no missing sequence numbers and no duplicates, and 111 of 111 against the unit's own log read back over USB. Limits: one run, indoors, on the public broker; 24 records had to be backfilled from the unit's log (section 16).
 
 Which broker? Is it secure?
-For testing, the public `test.mosquitto.org`, unauthenticated and without TLS, and only for the test. The firmware supports a username and password. A real deployment needs a team broker with credentials and TLS. The vac-work team's broker credentials were deliberately not copied into this code.
+For testing, the public `test.mosquitto.org`, unauthenticated and without TLS, and only for the test. It also does not queue messages for a subscriber that is away, which T15 showed (section 16). The firmware supports a username and password. A real deployment needs a team broker with credentials and TLS. The vac-work team's broker credentials were deliberately not copied into this code.
 
 How much data does it use?
 About one record of roughly 700 bytes every 10 s, about 250 KB an hour, under 2 MB for an 8-hour day. This is an estimate from the record size, not a measured data bill.
@@ -140,10 +142,10 @@ Which model and why?
 SSD-MobileNet v1, pretrained on COCO and quantised to 8-bit TensorFlow Lite. It runs on the Pi 4's CPU without an accelerator: 36 ms per inference using four threads. Newer models such as YOLO variants are more accurate, especially for small or distant objects, but slower on this CPU. The live detector is not retrained; a separate pothole model was trained (section 10).
 
 What is the latency?
-Measured from the sensor's own readout timestamp to the alert result: median 102 ms, 95th percentile 120 ms, maximum 136 ms, at 19.5 fps. Of that, 52 ms is readout and the camera's image processing, 12 ms preprocessing, 36 ms inference, and under 0.2 ms alert logic. With one thread it was 186 ms at 7 fps. The CPU reached 65.7 °C with no throttling. These are bench figures. A later check on a healthy Pi 4 gave 14.6 fps and about 120 ms camera to detection (section 13).
+Measured from the sensor's own readout timestamp to the alert result: median 102 ms, 95th percentile 120 ms, maximum 136 ms, at 19.5 fps. Of that, 52 ms is readout and the camera's image processing, 12 ms preprocessing, 36 ms inference, and under 0.2 ms alert logic. With one thread it was 186 ms at 7 fps. The CPU reached 65.7 °C with no throttling. These are bench figures for the detector alone, with no bridge, fusion polling or viewed preview. With the full system running on a healthy Pi 4 it is 14.6 fps, 118 to 122 ms median and 146 to 148 ms at the 95th percentile, and that is the figure to quote for the system (section 17).
 
 Is 0.2 s fast enough?
-The three-frame debounce means an alert comes about 0.2 s after an object appears, about 1.7 m of travel at 30 km/h. A driver's reaction time is typically over a second, so the detector is a small part of the total. The detector advises; it never controls the vehicle.
+The three-frame debounce means an alert is raised at the detector about 0.26 s after an object appears with the full system running (about 2.2 m of travel at 30 km/h), or 0.2 s with the detector alone. The bridge's and dashboard's polling and drawing add a delay that has not been measured. A driver's reaction time is typically over a second, so the detector is a small part of the total. The detector advises; it never controls the vehicle.
 
 How do you get the distance bands?
 From the pinhole model: distance = focal length × real width / width in pixels, with a fixed average width per class (for example 1.8 m for a car). Two limits: the focal length is not calibrated yet (test C5), and real objects vary in width and angle. The bands (immediate, warning, monitoring) are deliberately coarse.
@@ -206,7 +208,7 @@ How does the dashboard get the alerts?
 The detector serves its active alerts as a small JSON record (the five fields plus frame rate and latency), and the page polls it twice a second. Video comes as an MJPEG stream only while the page is visible, and only the newest frame is decoded. It uses Qt networking and widgets only, not the web-engine component that crashed on the Pi 5.
 
 Polling twice a second adds delay, doesn't it?
-Yes: up to 0.5 s on top of the detector's 0.2 s, so about 0.7 s worst case to the screen. Pushing alerts (a websocket or server-sent events) or polling faster would cut that. The page test showed the alert 0.5 s after the page opened.
+Yes: up to 0.5 s on top of the detector's onset of about 0.26 s, so roughly 0.8 s worst case to the screen, an estimate, not a measurement. Pushing alerts (a websocket or server-sent events) or polling faster would cut that. The page test showed the alert 0.5 s after the page opened, with a person already in view: that is not alert latency, and the time from a hazard appearing to the alert on the Pi 5 screen has not been measured.
 
 How does the telemetry reach the dashboard?
 The dashboard had no live input at all: every page ran on simulated data. The telemetry unit now prints one compact JSON line per second on USB to the Pi 4, which sits in the same front box. A bridge on the Pi 4 serves that, plus the three ToF distances, over the local network, and a live-data provider in the dashboard reads it twice a second. So the driver's display does not depend on mobile coverage. Tested: 40 of 40 lines in 40 s, IMUs unaffected at 200 Hz, live record 0.37 s old at the laptop.
@@ -298,7 +300,7 @@ Why did the Raspberry Pi 4 keep rebooting? (tested)
 A logger recorded its power and temperature flags every 2 s. With nothing attached the flags were clear at 1.8 GHz. Fourteen seconds after the telemetry unit was plugged into the Pi's USB port, when its LTE modem came up, under-voltage started and came and went every few seconds, with the processor throttled to 600 MHz and the detector slowed from 14.3 to 12 fps. The modem's transmit bursts were drawn through the Pi's USB port. The fix is a powered USB hub for the telemetry unit and a 5.1 V 3 A supply for the Pi 4 (check whether both are fitted before saying the fix is done). The same applies to the Pi 5, whose USB ports share 600 mA on a 3 A supply. Limitation: the hub fix has not yet been shown on a long run.
 
 Why the fan? (tested)
-The Pi 4 reached its soft temperature limit at 65 to 69 C with the detector running, and 81 C without a fan; with a fan it ran at 48 to 57 C. A throttled Pi lowers the detector's frame rate, so cooling is a requirement, not a comfort. It still has to be tested in a closed box in the sun.
+The Pi 4 reached its soft temperature limit at 65 to 69 C with the detector running, and 81 C without a fan; with a fan it ran at 48 to 66 C. A throttled Pi lowers the detector's frame rate, so cooling is a requirement, not a comfort. It still has to be tested in a closed box in the sun.
 
 What was the distance-sensor hang? (tested)
 If one sensor stopped answering on the I2C bus, the read blocked, so the whole reader froze and all three distances went stale. Each read now has a 0.5 s I/O timeout: a stuck sensor is skipped and logged, the others keep reading, and the bridge re-probes the missing one every 60 s. After the fix all three read again; in a hand test the ahead sensor gave 80 to 264 mm and the right sensor 157 to 199 mm. That is a functional check, not an accuracy test: accuracy against a tape measure is part of test C9, not yet run.
@@ -328,11 +330,9 @@ What changed in the report since the first draft?
 A wiring appendix (Pi 4 header, sensor board and SEN5x pinouts, a connection table per link, the powered-hub and fan requirements), equations for the ride features, calibration, index and fusion, overstated claims corrected after an MSc reviewer's comments, clipping and aliasing stated as limits, and the reference list cut to the 47 sources actually cited.
 
 What is still in progress? (no results to claim)
-- Central database: firmware v0.7.4 adds a boot id and sequence number to every record, tracks which records the broker acknowledged and replays the backlog from flash after an outage; a server stores each record once in SQLite and reports completeness and latency. Logic tested on the laptop; not flashed; outage test T15 not run.
-- v0.7.4 also sets the IMU low-pass filter to 94 Hz against aliasing (section 2).
-- Uber-style destination search: current position as the start, instant recents, fast suggestions biased to where the vehicle is.
-- Pothole model (run 2) on the Pi 4 beside the main detector; held-out test score still to compute.
-- Road test planned for 14 October: mount, recalibrate, then RQ3 and RQ4 on the move. (Update this after the test.)
+- Superseded the same day: the central database, v0.7.4, destination search and the pothole path are now done or built; see section 16.
+- Still open: end-to-end latency (needs GNSS time), the pothole held-out score, a team broker with credentials.
+- Road test planned for 14 October: mount, recalibrate, then RQ1, RQ3 and RQ4 on the move. (Update this after the test.)
 
 ## 14. Questions to expect that expose gaps
 
@@ -341,7 +341,10 @@ Be ready to say these plainly:
 - RQ2's glance time is not measured.
 - The aliasing above 100 Hz (see section 2).
 - Detection accuracy is not evaluated, and distance bands are not calibrated.
-- The backlog is not re-sent after an outage (v0.7.4 in progress).
+- End-to-end latency, sensor to database, is not measured (no GNSS time indoors). Loss and recovery are (T15).
+- Only one outage run, on a public broker that does not queue.
+- The pothole path is too slow beside the main detector on a Pi 4 (off by default) and has no held-out score.
+- The new dashboard items (search, status-bar pill, swipe) are tested offscreen, not by hand on the vehicle.
 - Spoken directions need mobile data (online voice); no speaker fitted yet.
 - The powered hub for the telemetry unit has not been proven on a long run.
 - No power budget or BOM yet.
@@ -354,26 +357,111 @@ Be ready to say these plainly:
 |---|---|
 | IMU rate | 200.0 to 200.5 Hz, 0 dropped |
 | Fused windows | 149 of 149 from both IMUs, skew under 1 ms |
-| IMU disagreement before calibration | about 8% |
+| IMU disagreement before calibration | about 8% in an earlier session; at calibration 10.03 and 9.90 (1.3% apart); after: 9.80 and 9.81 |
 | Flash stall | 33 to 40 ms; worst 5.9 ms with logging off; now once a minute |
-| Camera latency | 102 ms median, 120 ms p95, 19.5 fps |
-| Alert onset | about 0.2 s, 1.7 m at 30 km/h |
+| Camera latency, full system | 14.6 fps, 118 to 122 ms median, 146 to 148 ms p95 (quote this one) |
+| Camera latency, detector alone | 102 ms median, 120 ms p95, 19.5 fps (benchmark) |
+| Alert onset at the detector | about 0.26 s, 2.2 m at 30 km/h in the full system (0.2 s, 1.7 m detector alone); screen delay on the Pi 5 not measured |
 | GNSS | 2.7 m median, 95% within 11 m, fix in 105 s |
 | MQTT | 47 of 47 acknowledged; reconnect about 5 s after signal returns |
+| Outage test T15 | 10 min radio off, 60 records built up, reconnect 5.2 s, drained in 37 to 43 s, 112 of 112 stored, 111 of 111 vs the unit's log |
 | Log read-back | 6,020 records |
 | Sync pulse | 500.06 ms median, spread under 0.7 ms |
 | Battery | 74.78 V, 60%, signal −88 to −93 dBm |
 | Time-of-flight | 3 sensors, about 31 readings/s each |
-| Dashboard | live view in 0.6 s; person alert listed in 0.5 s |
+| Dashboard | live view in 0.6 s; person row 0.5 s after opening the page (not alert latency) |
+| Destination search | offline matches 1 to 20 ms; Photon 1.1 to 1.4 s on the Pi 5 |
 | First fused hazard | camera 0.874 m, ToF 0.096 m, reported 0.096 m (before calibration) |
 | Touch panel | contact reported with the first position (no panel delay); taps 200 to 640 ms |
 | Map prefetch | 656 tiles, 11.9 MB, 320 s, zoom 11 to 16 |
 | Pothole model | run 1: 0.000 mAP@50 on South African frames; run 2: 0.714 (640), 0.566 (320), validation tiles |
 | Camera, later check | 14.6 fps, about 120 ms camera to detection, healthy Pi 4 |
 | Pi 4 brown-out | under-voltage 14 s after the modem came up on the Pi's USB; 600 MHz throttle |
-| Pi 4 temperature | 81 C without a fan, 48 to 57 C with one |
+| Pi 4 temperature | 81 C without a fan, 48 to 66 C with one |
+| Pothole path | test image 0.63; only 0.25 Hz within 10% of the detector's speed (13.9 fps, 125 ms vs 14.6 fps, 121 ms); off by default |
+| Report | 13,476 words (text only, tables removed); seven fault investigations |
 | ToF after the hang fix | 0.5 s timeout; hand test 80 to 264 mm ahead, 157 to 199 mm right |
 | Network position | about 0.7 s, 550 m stated, about 30 m from the outdoor fix |
 | Voice prompt | about 200 m before a turn (about 30 s at 25 km/h) |
-| Report references | 47 cited |
 | Glance rules | 2 s single glance, 12 s per task (NHTSA); 20 arcmin text (ISO 15008) |
+
+## 16. New since the 11 October morning update
+
+Status words: tested (measured on the hardware), tested offscreen (automated tests, not by hand on the real screen or vehicle), off by default (built and checked, not in normal use).
+
+How did you test that no data is lost? (tested, T15)
+Firmware v0.7.4 was flashed and the ingest service ran on the Pi 5. The test script switched the modem's radio off (AT+CFUN=4) for 600 s after 60 s of normal flow. During the outage 60 records built up and the unit's lost counter stayed at 0. The modem reconnected 5.2 s after the radio came back; the unit's backlog was 0 about 43 s after reconnecting, and in the database the 60 replayed records arrived over 37.3 s, about 1.6 a second. The report from the database: 112 of 112 records of that boot stored, 0 missing sequence numbers, 0 duplicates; and against the unit's own log, read back over USB, 111 of 111 logged records stored. The pass criteria were written before the test. Limits: one run, indoors, laptop-powered, public broker.
+
+Why 112 records in the database but 111 in the log?
+The database had one record of that boot that was not in the log dump. Every record in the log is in the database, which is what the check is for. It is one record and I would not over-read it; the likely reason is a record published but not yet flushed to flash when the log was read, which I have not confirmed.
+
+What is the latency to the database?
+Not measured. The latency is receive time minus the device's UTC, and the device only has UTC once GNSS has a fix, which it did not have indoors. The pass criterion (median 2 s or less, 95th percentile 5 s or less) is written down and provisional. It needs an outdoor or road run.
+
+What went wrong during the test? (found and fixed)
+Records reached the broker but none reached the database for over an hour. The ingest used a persistent broker session (so the broker would keep messages for it while it was away), and on test.mosquitto.org that saved session stopped delivering while still connected. Persistent sessions are now opt-in (an environment variable), and the ingest was verified storing again on the Pi 5. Also, 24 records were backfilled from the unit's log with the ingest's import option: two were published while the ingest was being restarted, the rest before the fix.
+
+So the public broker loses data?
+It acknowledges a record even when no subscriber is listening, and it does not queue it. So an acknowledgement from the broker does not prove the database has the record. On this broker the safety net is reading the unit's log back and importing what is missing, which is what closed the gap in T15. A team broker with credentials, TLS and persistent sessions that work would remove that step; the team's broker details are still to be obtained.
+
+What does "+CMQTTPUB: 0,0 means acknowledged" assume?
+That the modem reports success only after the broker's QoS 1 PUBACK arrives. The 900 randomised host simulations test the ledger logic around it, not the modem. T15 is the evidence that, in practice, nothing marked as acknowledged went missing.
+
+Does the replay disturb the IMUs?
+In the T15 log both IMUs stayed at 200.0 to 200.5 Hz with zero dropped samples. The longest single sample interval in that log is 44 ms, a little above the 33 to 40 ms flash stalls. I have not yet checked whether it fell during the replay; that is the honest answer if asked.
+
+The pothole model: does it work on the Pi? (built, off by default)
+It runs and finds the pothole in a test picture at confidence 0.63, centre tile, with an alert after two runs; 22 of 22 offline tests pass. But it costs the main detector. With the path off the service runs at 14.6 fps and 121 ms; at 2 threads up to 4 Hz it fell to 11.7 fps and 137 ms. Only one run every four seconds (0.25 Hz: 13.9 fps, 125 ms) stays within 10 %, and that is too slow to warn a moving vehicle. The cost is in the main model's inference (52 ms rising to 65 to 72 ms), because both compete for the Pi 4's shared cache and memory bandwidth; pinning the worker to its own core made it worse. So it is off by default. Options: a smaller input on only the road tiles, int8, running only when moving, or the Pi 5 with an accelerator.
+
+How good is the pothole model really?
+0.714 mAP@50 on validation tiles, which were also used to choose the best epoch, so it is optimistic. The held-out test score is not made yet (the script is ready). It has not seen a road or this vehicle's camera. The fair claim is "it works on a test picture", nothing more.
+
+Tell me about the destination search. (tested offscreen; deployed on the Pi 5)
+Type-ahead like Uber: recent places and the team's offline map matches appear at once (1 to 20 ms), and Photon suggestions, biased to where the trike is, are merged in when they arrive (1.1 to 1.4 s on the Pi 5, 0.72 to 1.26 s from the laptop). Stale answers are dropped and repeats come from a cache. 33 offscreen checks pass. Not yet tried by hand on the touchscreen, and the no-internet path is tested offscreen only. Photon was chosen over Nominatim because Nominatim is not meant for type-ahead and gave no results for partial words.
+
+Isn't typing a destination a distraction?
+It is meant for planning before moving, like any navigation app. Whether to lock it while moving is part of the open glance-time question (RQ2).
+
+Why move the obstacle warning into the status bar? (tested offscreen)
+The red banner covered the status bar and the top of every page. Now it is a compact red pill on the right of the status bar: tap opens the Sensors page, Hide snoozes it. It is still on every page, so the warning is not lost.
+
+How does the swipe avoid accidental page changes? (tested offscreen)
+Nothing moves until the fingers move sideways together past about 30 px; the page follows the fingers and changes only on release, past a third of the width or on a flick faster than 650 px/s, measured from the touchscreen's own event times so a busy screen does not make a flick look slow. Resting a hand, pinching or a vertical move never changes the page. Two fingers on most pages, three on the map, where two fingers zoom.
+
+What changed in the report?
+It was cut and restructured to 13,476 words (text only, tables removed), and seven fault investigations are told in full as symptom, candidate causes, the deciding test, cause and fix, and consequence (Methodology, fault investigations). A critical review of the report found overstated or unclear points; section 17 has the answers.
+
+## 17. The critical review's weak points (questions an examiner who read the report will ask)
+
+Do your requirements actually measure your research questions?
+Partly, and I would say so. RQ1 asks how accurately and repeatably the ride is characterised; the requirements behind it test sampling, calibration, self-tests and GNSS, which show the instrument works, not that it is repeatable on the vehicle. Repeatability needs repeated traversals of the same road at a set speed, with the spread of the features (for example the coefficient of variation) as the measure; that is in the vehicle plan, not done. RQ2 asks "which layout and update strategy"; I built one design, so the honest answer is "how", with glance time still to measure. RQ4 asks about time- and frequency-domain features; only time-domain features are implemented, and they pass a synthetic self-test, so RQ4 is not answered without road data. RQ3 is the best covered: loss and recovery are measured (T15), latency is not.
+
+Your calibration result is circular, isn't it?
+Yes for the immediate check: reading 9.80 to 9.81 right after calibrating to gravity proves the arithmetic, not accuracy. The meaningful test is drift: a later session on the target board read 9.93 and 10.10, 1.3 and 2.9 % above gravity, because the factor holds only in the orientation it was measured in. That is why it will be redone once mounted. And the 8 % disagreement came from an earlier session than the calibration; at calibration the two read 10.03 and 9.90, about 1.3 % apart. I no longer say "8 % reduced to noise".
+
+Why two IMUs, and why average them?
+The intent was redundancy (one fails, the other carries on, which the 3 s fallback does), lower noise, and a check on each other through the disagreement figure. Averaging only makes sense if both sensors see the same motion, that is, if they are mounted close together on the same part. If they are mounted at different points, they measure different things and should be reported separately, with the disagreement as a comparison, not averaged. The mounting points are not fixed yet. [Student: decide and state the planned mounting before the talk.] Also, the largest disagreement in the bench session (1.68) happened while the board was disturbed by hand, and near rest the noise alone gives a disagreement of about 1.6, so that figure does not show a real difference between the sensors. Why the MPU6050: low cost, available, I2C, and adequate range and rate for a first prototype; its noise and its limited anti-alias filtering are limits.
+
+Sampling rate and aliasing: is your chain consistent?
+Not fully, and I would say what changed. 200 Hz was chosen for the 80 Hz band of ISO 2631-1, but the ISO weighting itself is not implemented, so the standard justifies the band only. With a 260 Hz filter, content between 100 and 260 Hz could fold back; v0.7.4 (flashed 11 Oct) uses 94 Hz, which reduces that but also attenuates near the top of the band. All bench results on the slides were with 260 Hz; the road test runs on v0.7.4, so R1 must be re-checked on it. Also, "zero dropped samples" is true, but the flash stalls cause 30 to 40 ms gaps followed by bunched samples as the task catches up, and the jerk feature uses a fixed time step. The better design is the IMU's own FIFO or sampling faster and decimating, and computing features with the measured timestamps.
+
+Which detector figure represents the vehicle: 19.5 fps or 14.6 fps?
+14.6 fps, 118 to 122 ms median, 146 to 148 ms at the 95th percentile, measured on 11 October from the service's own timing lines with the whole system running. 19.5 fps and 102 ms was the detector alone on 30 September, with no bridge, no fusion polling and no viewed preview. I have not isolated the cause of the difference. The alert is raised about 0.26 s after an object appears at the detector; the time to the driver's screen is not measured.
+
+Where does your 0.5 s onset criterion come from?
+It is a design target, not derived, and that is a fair criticism. A derivation would start from the stopping distance at the trike's top speed (about 42 km/h) and a typical driver reaction time of over a second: at 42 km/h, 0.5 s is about 6 m of travel, small next to the reaction distance but not negligible. The figure that matters is hazard onset to the Pi 5 screen, including the bridge's 5 Hz poll and the dashboard's 0.5 s poll, and that is not measured.
+
+Isn't a public broker a security and reliability problem?
+Yes, for anything beyond a bench test. It is unauthenticated, has no TLS, and does not queue (T15). It was used only for bench tests. For deployment: the team's broker with credentials and TLS, and persistent sessions shown to work; the firmware already supports a username and password.
+
+Is the camera work supported by literature?
+The report's literature review is weakest here: lightweight detectors (SSD, MobileNet), COCO, 8-bit quantisation and monocular distance from box width are used but not reviewed, and the datasets need citing. That is a revision item, not something to defend as complete.
+
+You say "low-cost". How low?
+The bill of materials has not been totalled, so there is no number yet. The parts are commodity boards and sensors. [Student: total the BOM before the talk if possible.]
+
+What about the ethics of a camera on a public road?
+Frames are processed in memory and never stored; each alert keeps five fields only (class, distance band, confidence, time, status); there is no face or plate recognition. Whether an ethics appendix is required is with the supervisor. Adding the pothole class should be checked against the approval ("road obstacles") before field use.
+
+The dashboard runs over a phone hotspot on the bench. Is that acceptable on the vehicle?
+No. On the vehicle the Pi 4 and Pi 5 need their own link (a wired link at 10.20.0.1 is planned), so the driver's display does not depend on a phone or on coverage. Until then it is a bench arrangement.

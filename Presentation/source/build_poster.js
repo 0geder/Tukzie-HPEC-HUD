@@ -71,7 +71,7 @@ const imgW = COLW - 1.4, imgH = imgW * 1349 / 1845;
 let h2 = 2.2 + imgH + 1.3;
 b = panel(2, "System", XL, yL, h2);
 s.addImage({ path: A("bench_labelled.png"), x: b.x, y: b.y, w: imgW, h: imgH });
-s.addText("Bench setup: ESP32-S3 telemetry unit with LTE modem, two IMUs, GNSS, BLE battery link and Hall counter; Raspberry Pi 4 with camera detector and three distance sensors, time-aligned by a sync-pulse wire.", {
+s.addText("Bench setup: ESP32-S3 telemetry unit with LTE modem, two IMUs, GNSS, BLE battery link and Hall counter; Raspberry Pi 4 with camera detector and three distance sensors, time-aligned by a sync-pulse wire; records stored in a central database on the Pi 5.", {
   x: b.x, y: b.y + imgH + 0.15, w: b.w, h: 1.0, fontFace: FONT, fontSize: 24, italic: true, color: C.muted, isTextBox: true, margin: 0,
 });
 
@@ -83,7 +83,7 @@ const steps = [
   "Bring up each interface on the target board",
   "Acquire both IMUs at 200 Hz and calibrate them",
   "Compute ride features and fuse the two IMUs",
-  "Log locally and publish over LTE",
+  "Log locally, publish over LTE, replay after an outage",
   "Validate on the moving vehicle",
 ];
 const stepH = 1.05, stepGap = 0.3;
@@ -107,10 +107,10 @@ const statH = 3.05;
 let h4 = 2.2 + 2 * statH + 0.4 + 0.6 + chartH + 1.3;
 b = panel(4, "Bench results", XR, yR, h4);
 const stats = [
-  ["200 Hz", "both IMUs, zero dropped samples"],
-  ["102 ms", "median camera latency, sensor to result, at 19.5 fps"],
+  ["200 Hz", "both IMUs, no samples dropped; 149 of 149 windows fused"],
+  ["120 ms", "median camera latency in the full system at 14.6 fps (detector alone: 102 ms)"],
   ["2.7 m", "median GNSS error against a phone, 104 fixes"],
-  ["149 / 149", "windows fused from both IMUs"],
+  ["112 / 112", "records stored in the database across a 10-minute LTE outage"],
 ];
 const statW = (b.w - 0.5) / 2;
 stats.forEach(([big, small], i) => {
@@ -127,26 +127,28 @@ s.addText("Recorded 150 s bench session: board still, then disturbed by hand fro
 
 // 5 Faults found and fixed
 yR += h4 + GAP;
-let h5 = 9.3;
-b = panel(5, "Found and fixed", XR, yR, h5);
+let h5 = 9.8;
+b = panel(5, "Fault investigations", XR, yR, h5);
 bullets([
-  "GNSS reply layout differed from the one assumed, so satellite counts were read as the position; the parser was rewritten.",
-  "Battery checksum included one byte too many, so every real frame failed; fixed and confirmed on the pack.",
-  "Flash writes stalled both IMUs (proved by switching the log off); the log is now buffered and written once a minute.",
-  "Pink image: the camera has no infrared filter; the NoIR tuning plus saturation 1.8 restores the colours.",
-  "Pi 4 brown-outs: the ESP32's LTE modem drew its current through the Pi's USB; it needs its own powered hub. A fan took the Pi from 81 C to 48 to 57 C.",
-  "One stuck distance sensor froze the reader; a 0.5 s timeout now skips it, and all three read.",
-], b, h5 - 2.5, 27);
+  "Boot loop: flash asked for quad mode on a dual-mode chip; size, mode and table now set together.",
+  "GNSS reply layout not as assumed; the parser anchors on the hemisphere letter (2.7 m median).",
+  "Battery checksum summed one byte too many, so every frame failed by 3; fixed, 74.78 V read.",
+  "92% of logged records were invalid JSON (nan); read-back proved transfer intact; now null.",
+  "Pink image: no infrared-cut filter on the camera; NoIR tuning and saturation 1.8.",
+  "One stuck distance sensor froze all three; 0.5 s timeout, wiring re-seated.",
+  "Pi 4 reboots: power flags logged every 2 s showed the modem's current drawn through the Pi's USB; the unit needs its own supply.",
+  "Outage test: the ingest's broker session silently stopped delivery; made opt-in, records backfilled.",
+], b, h5 - 2.4, 25);
 
 // 6 Conclusions
 yR += h5 + GAP;
 let h6 = H - 3.1 - yR;
 b = panel(6, "Conclusions and next steps", XR, yR, h6);
 bullets([
-  "Every subsystem runs together on the target hardware; hazards, navigation and spoken directions run on the existing dashboard (Pi 5).",
-  "In progress: central database with backlog replay (v0.7.4) and the pothole model on the Pi 4.",
-  "Next: road test (planned 14 Oct), recalibrate in place, answer RQ3 and RQ4 on the move.",
-], b, h6 - 2.5, 27);
+  "Every subsystem runs together on the target hardware; hazards, navigation and destination search run on the existing dashboard (Pi 5).",
+  "Firmware v0.7.4: no record lost across a 10-minute outage. Pothole path built, off by default: too slow beside the detector on a Pi 4.",
+  "Next: road test (planned 14 Oct), recalibrate, end-to-end latency with GNSS time, RQ1, RQ3 and RQ4 on the move, glance time.",
+], b, h6 - 2.4, 26);
 
 // ---- footer ----
 s.addImage({ path: A("uct_logo.png"), x: M, y: H - 2.75, w: 2.3, h: 2.34 });
