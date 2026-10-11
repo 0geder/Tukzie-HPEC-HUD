@@ -304,11 +304,13 @@ class HazardBanner(QFrame):
         self._was_live = False
         self._lost_since = None
         self._message = None
-        row = QHBoxLayout(self); row.setContentsMargins(16, 6, 8, 6); row.setSpacing(10)
-        self.text = QPushButton(); self.text.setFlat(True); self.text.setFont(THEME.font(17, QFont.Weight.Black))
+        # A compact pill tucked into the right of the status bar, left of the clock (student, 11 Oct): the earlier
+        # centred 900 px banner covered the status bar and the top of every page.
+        row = QHBoxLayout(self); row.setContentsMargins(12, 0, 4, 0); row.setSpacing(6)
+        self.text = QPushButton(); self.text.setFlat(True); self.text.setFont(THEME.font(13, QFont.Weight.Black))
         self.text.setCursor(Qt.CursorShape.PointingHandCursor)
         self.text.clicked.connect(self._open)
-        self.hide_btn = QPushButton("Hide 30 s"); self.hide_btn.setFont(THEME.font(12, QFont.Weight.Bold))
+        self.hide_btn = QPushButton("Hide"); self.hide_btn.setFont(THEME.font(10, QFont.Weight.Bold))
         self.hide_btn.clicked.connect(self._snooze)
         row.addWidget(self.text, 1); row.addWidget(self.hide_btn)
         parent.installEventFilter(self)
@@ -321,9 +323,15 @@ class HazardBanner(QFrame):
         return False
 
     def _place(self):
-        pw = self.parent().width()
-        w = min(900, pw - 120)
-        self.setGeometry(int((pw - w) / 2), 10, int(w), 58)
+        """Right-hand side of the status bar, left of the date and clock, so no page content is covered."""
+        parent = self.parent()
+        pw = parent.width()
+        bar = getattr(parent, "status", None)
+        bar_h = bar.height() if bar is not None and bar.height() > 0 else 38
+        h = max(24, min(32, bar_h - 6))
+        w = min(460, max(200, self.sizeHint().width()))
+        clock_w = 190                      # the status bar's date and clock on the right
+        self.setGeometry(int(max(8, pw - clock_w - w)), int((bar_h - h) / 2), int(w), int(h))
 
     def set_telemetry(self, telemetry):
         link, _ = format_telemetry(telemetry)
@@ -335,11 +343,11 @@ class HazardBanner(QFrame):
             if urgent:
                 text, _src = hazard_text(urgent[0])
                 more = f"  (+{len(urgent) - 1} more)" if len(urgent) > 1 else ""
-                message = ("crit", f"{text.upper()}{more}   ·   tap for sensors")   # no symbol: the bundled font has no warning glyph
+                message = ("crit", f"{text.upper()}{more}")   # no symbol: the bundled font has no warning glyph; tap opens Sensors
         elif self._was_live:
             self._lost_since = self._lost_since or now
             if now - self._lost_since >= LINK_LOST_S:
-                message = ("warn", "Sensor link lost: readings not updating   ·   tap for sensors")
+                message = ("warn", "Sensor link lost")
         self._message = message
         self._refresh()
 
@@ -350,9 +358,9 @@ class HazardBanner(QFrame):
             # Fixed banner colours from Research/DashboardDesign, the same in both themes:
             # white on deep red (7.6:1) for critical, near-black on amber (10.8:1) for warning.
             colour, fg = {"crit": ("#A3201A", "#FFFFFF"), "warn": ("#FFB224", "#0B0D10")}[status]
-            self.setStyleSheet(f"HazardBanner {{ background: {colour}; border-radius: 12px; }}"
+            self.setStyleSheet(f"HazardBanner {{ background: {colour}; border-radius: 9px; }}"
                                f" QPushButton {{ color: {fg}; background: transparent; border: none; text-align: left; }}"
-                               f" QPushButton#hide {{ border: 1px solid {fg}; border-radius: 8px; padding: 6px 10px; }}")
+                               f" QPushButton#hide {{ border: 1px solid {fg}; border-radius: 6px; padding: 1px 6px; }}")
             self.hide_btn.setObjectName("hide")
             self.text.setText(text)
             self._place(); self.show(); self.raise_()
