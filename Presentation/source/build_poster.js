@@ -95,7 +95,7 @@ steps.forEach((t, i) => {
   s.addText([{ text: `${i + 1}  `, options: { bold: true, color: last ? C.accent : C.sky } }, { text: t, options: { color: C.text } }], {
     x: b.x + 0.4, y, w: b.w - 0.8, h: stepH, fontFace: FONT, fontSize: 30, valign: "middle", isTextBox: true, margin: 0 });
 });
-s.addText("Each stage is tested before the next is built on it. Stage 5 is still to come.", {
+s.addText("Each stage is tested before the next is built on it. Stage 5: road test planned for 14 October.", {
   x: b.x, y: b.y + steps.length * (stepH + stepGap) + 0.05, w: b.w, h: 0.9, fontFace: FONT, fontSize: 24, italic: true, color: C.muted, isTextBox: true, margin: 0,
 });
 
@@ -127,14 +127,15 @@ s.addText("Recorded 150 s bench session: board still, then disturbed by hand fro
 
 // 5 Faults found and fixed
 yR += h4 + GAP;
-let h5 = 9.0;
+let h5 = 9.3;
 b = panel(5, "Found and fixed", XR, yR, h5);
 bullets([
   "GNSS reply layout differed from the one assumed, so satellite counts were read as the position; the parser was rewritten.",
   "Battery checksum included one byte too many, so every real frame failed; fixed and confirmed on the pack.",
   "Flash writes stalled both IMUs (proved by switching the log off); the log is now buffered and written once a minute.",
   "Pink image: the camera has no infrared filter; the NoIR tuning plus saturation 1.8 restores the colours.",
-  "Stored records held nan, which is not valid JSON; now written as null.",
+  "Pi 4 brown-outs: the ESP32's LTE modem drew its current through the Pi's USB; it needs its own powered hub. A fan took the Pi from 81 C to 48 to 57 C.",
+  "One stuck distance sensor froze the reader; a 0.5 s timeout now skips it, and all three read.",
 ], b, h5 - 2.5, 27);
 
 // 6 Conclusions
@@ -142,8 +143,9 @@ yR += h5 + GAP;
 let h6 = H - 3.1 - yR;
 b = panel(6, "Conclusions and next steps", XR, yR, h6);
 bullets([
-  "Every subsystem runs together on the target board; camera and distance hazards are fused and shown live on the existing dashboard (Pi 5).",
-  "Next: mount on the trike, recalibrate in place, and run the field test for the ride and latency questions.",
+  "Every subsystem runs together on the target hardware; hazards, navigation and spoken directions run on the existing dashboard (Pi 5).",
+  "In progress: central database with backlog replay (v0.7.4) and the pothole model on the Pi 4.",
+  "Next: road test (planned 14 Oct), recalibrate in place, answer RQ3 and RQ4 on the move.",
 ], b, h6 - 2.5, 27);
 
 // ---- footer ----

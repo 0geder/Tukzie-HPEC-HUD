@@ -68,9 +68,9 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 {
   const s = bannerSlide("Title",
     "Good morning. I'm Samson Okuthe, and my project is SW-7, supervised by Associate Professor Simon Winberg with Sampath Jayalath as co-supervisor. " +
-    "It is part of the TUKZIE programme, which is building a 72 volt electric cargo trike for last-mile freight. " +
-    "My part is the on-board electronics: a telemetry unit that measures how the trike rides, and a way of showing the driver only what matters for safety. " +
-    "In the next ten minutes I'll cover why this is needed, how I built and tested it, what the results show, and what is left.");
+    "It is part of TUKZIE, a 72 volt electric cargo trike for last-mile freight. " +
+    "I built its on-board electronics: a telemetry unit that measures how the trike rides, and a way of showing the driver only what matters for safety. " +
+    "I'll cover why, how I built and tested it, the results, and what is left.");
   txt(s, "EEE4022S Final Year Project 2026, Department of Electrical Engineering, University of Cape Town",
     { x: M, y: 0.35, w: W - 2 * M, h: 0.4, fontSize: 15, color: C.white, align: "center", shadow: shadow() });
   txt(s, TITLE,
@@ -84,9 +84,9 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 // ---------------- 2 Why ----------------
 {
   const s = content("Why this matters",
-    "Two facts frame the project. First, electric trikes can make economic sense for freight in African cities: on the routes a 2025 study examined in Dar es Salaam, an electric cargo tricycle cut operating cost per kilometre by 45.5 percent against a motorcycle and up to 86 percent against a light car. " +
-    "Second, anything that pulls the driver's eyes off the road is a risk. NHTSA guidance says a single glance away should not exceed two seconds, so the driver should see only short, safety-relevant alerts. " +
-    "The open problem is bringing edge telemetry and that kind of sparse driver information together on a low-cost trike, and measuring whether each part works.");
+    "Two facts frame the project. First, electric trikes make economic sense for freight in African cities: on routes studied in Dar es Salaam in 2025, an electric cargo tricycle cut operating cost per kilometre by 45.5 percent against a motorcycle and up to 86 percent against a light car. " +
+    "Second, anything that takes the driver's eyes off the road is a risk: NHTSA guidance limits a single glance to two seconds. " +
+    "The open problem is combining edge telemetry with that kind of sparse, safety-only driver information on a low-cost trike, and measuring whether each part works.");
   const cw = (W - 2 * M - 0.5) / 2, cy = 1.45, ch = 3.3;
   [["45.5 to 86%", "lower operating cost per km for an electric cargo tricycle than a motorcycle, petrol tuk-tuk or light car on delivery routes in Dar es Salaam", "Sebwa et al., 2025"],
    ["2 s", "longest single glance away from the road that NHTSA guidance allows, so driver information must be short and safety-only", "NHTSA, 2013"]]
@@ -105,11 +105,11 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 // ---------------- 3 Research questions ----------------
 {
   const s = content("Aim and research questions",
-    "The aim is a low-cost unit that characterises the trike's ride at the edge and gives the driver only safety-relevant information. I split that into four research questions, and I've marked honestly where each one stands. " +
+    "The aim is a low-cost unit that characterises the ride at the edge and shows the driver only safety-relevant information. There are four research questions, marked honestly. " +
     "RQ1, two IMUs at 200 hertz agreeing within noise, is verified on the bench. " +
-    "RQ3, bounded latency, measured data loss and recovery, is also verified on the bench: no dropped samples, a measured camera latency, and automatic recovery after the signal is cut. It still needs the moving vehicle. " +
+    "RQ3, bounded latency, measured loss and recovery, is verified on the bench but still needs the moving vehicle. " +
     "RQ4, separating road from powertrain vibration, passes its self-tests but needs road data. " +
-    "RQ2 changed during the project, with my supervisor's agreement. The trike already has a dashboard that shows what a HUD would show, and a second display adds distraction, so the camera's alerts now go on that dashboard instead.");
+    "RQ2 changed with my supervisor's agreement: the trike already has a dashboard showing what a HUD would show, and a second display adds distraction, so the alerts now go on that dashboard.");
   const rows = [
     ["RQ1", "Acquire two IMUs at 200 Hz (at least 160 Hz for ISO 2631-1) with the sensors agreeing within noise", "Bench-verified", "solid"],
     ["RQ2", "Show safety-critical alerts on the existing dashboard without exceeding the 2 s glance guidance", "Page tested", "dash"],
@@ -133,10 +133,9 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 // ---------------- 4 System ----------------
 {
   const s = content("The system on the bench",
-    "This is the whole system on the bench. The telemetry unit is an ESP32-S3 on a Makerfabs board with a built-in A7670X LTE modem, which also gives GNSS. Two MPU6050 IMUs are sampled at 200 hertz each, the battery management system is read over Bluetooth Low Energy, and a hardware counter is ready for the motor's Hall sensor. " +
-    "On the camera side, a Raspberry Pi 4 runs the object detector, and three time-of-flight distance sensors facing left, ahead and right. " +
-    "The two boards share one wire: the ESP32 sends a pulse every half second that the Pi logs, so camera and IMU data can be lined up in time. " +
-    "I use the Pi 4 rather than the team's Pi 5, so the dashboard running on the Pi 5 is not disturbed.");
+    "This is the whole system on the bench. The telemetry unit is an ESP32-S3 with a built-in LTE modem that also gives GNSS. It samples two MPU6050 IMUs at 200 hertz each, reads the battery management system over Bluetooth, and has a hardware counter ready for the motor's Hall sensor. " +
+    "A Raspberry Pi 4 runs the camera detector and three time-of-flight distance sensors facing left, ahead and right, apart from the team's Pi 5 so their dashboard is not disturbed. " +
+    "One wire links the boards: the ESP32 pulses it every half second and the Pi logs each edge, so camera and IMU data can be lined up in time.");
   const ih = 5.55, iw = ih * 1845 / 1349;
   s.addImage({ path: A("bench_labelled.png"), x: M, y: 1.35, w: iw, h: ih });
   const x = M + iw + 0.45, w = W - M - x;
@@ -159,10 +158,10 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 // ---------------- 5 Firmware ----------------
 {
   const s = content("Firmware: deterministic acquisition first",
-    "The firmware runs on FreeRTOS and is split across the two cores. " +
-    "Core 1 holds everything timing-critical: one task per IMU at the highest priority, each holding a 5 millisecond period with vTaskDelayUntil so the rate cannot drift. " +
-    "The acquisition tasks never print or block. They time-stamp each sample with a microsecond clock and push it into a bounded queue; if a queue is full the sample is dropped and counted, so a slow consumer can never stall acquisition. " +
-    "Core 0 handles the slow, blocking work: the modem, GNSS, MQTT and the flash log in one task, because the modem's serial line has no lock, plus the battery link and the Hall counter, which counts pulses in hardware.");
+    "The firmware runs on FreeRTOS across the two cores. " +
+    "Core 1 holds the timing-critical work: one task per IMU at the highest priority, each on a fixed 5 millisecond period, so the rate cannot drift. " +
+    "These tasks never print or block. Each sample is time-stamped in microseconds and pushed into a bounded queue; if it is full the sample is dropped and counted, so a slow consumer can never stall acquisition. " +
+    "Core 0 does the blocking work: the modem, GNSS, MQTT and the flash log in one task, because the modem's serial line has no lock, plus the battery link and the Hall counter.");
   const bx = (x, y, w, h, title, sub, fill = C.white, border = C.sky) => {
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, rectRadius: 0.1, fill: { color: fill }, line: { color: border, width: 1.5 } });
     txt(s, title, { x: x + 0.12, y: y + 0.06, w: w - 0.24, h: 0.36, fontSize: 15, bold: true, color: C.navy, align: "center" });
@@ -195,7 +194,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   const qx = px + pw + 0.35, qw = W - M - qx;
   card(s, qx, py, qw, ph);
   txt(s, "Core 0: blocking I/O", { x: qx + 0.25, y: py + 0.12, w: qw - 0.5, h: 0.4, fontSize: 16, bold: true, color: C.sky });
-  bx(qx + 0.3, py + 0.65, qw - 0.6, 1.3, "ModemTask", "AT commands, GNSS, MQTT, signal quality, flash log written once a minute");
+  bx(qx + 0.3, py + 0.65, qw - 0.6, 1.3, "ModemTask", "AT commands, GNSS with assisted GNSS, MQTT, signal quality, flash log once a minute");
   bx(qx + 0.3, py + 2.1, qw - 0.6, 0.8, "BmsTask", "battery over BLE");
   bx(qx + 0.3, py + 3.05, qw - 0.6, 0.8, "HallTask", "hardware pulse counter");
   txt(s, "The modem UART has no lock, so all modem traffic stays in one task.",
@@ -205,10 +204,10 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 // ---------------- 6 Approach ----------------
 {
   const s = content("Approach: prove each stage before building on it",
-    "My method was staged verification. Each interface was brought up on its own on the real board, with a pass criterion written down before the test, before anything was built on top of it. " +
-    "Then both IMUs at 200 hertz, calibrated against gravity. Then the ride features and the fusion, each with a self-test at boot. Then the local log and the LTE publish. " +
-    "The last stage, validation on the moving vehicle, is still to come, and it's drawn dashed for that reason. " +
-    "This order paid off: most of the faults I'll show shortly would have been very hard to trace if I'd integrated everything first.");
+    "My method was staged verification. Each interface was brought up alone on the real board, against a pass criterion written before the test. " +
+    "Then both IMUs at 200 hertz, calibrated; then the ride features and fusion, each self-tested at boot; then the log and the LTE publish. " +
+    "The last stage, the moving vehicle, is drawn dashed: the first road test is planned for 14 October. " +
+    "This order is why the faults I'll show could be traced.");
   const steps = [
     ["Bring up", "each interface alone on the target board"],
     ["Acquire", "both IMUs at 200 Hz, calibrate to gravity"],
@@ -227,18 +226,19 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
     txt(s, b, { x: x + 0.2, y: sy + 1.75, w: sw - 0.4, h: 1.0, fontSize: 15, align: "center", valign: "top" });
     if (!last) s.addShape(pres.shapes.LINE, { x: x + sw + 0.03, y: sy + sh / 2, w: gap - 0.06, h: 0, line: { color: C.navy, width: 2, endArrowType: "triangle" } });
   });
-  txt(s, "Stages 1 to 4 are complete on the bench. Stage 5 depends on vehicle access and is the main outstanding work.",
+  txt(s, "Stages 1 to 4 are complete on the bench. Stage 5: the first road test is planned for 14 October.",
     { x: M, y: 5.4, w: W - 2 * M, h: 0.6, fontSize: 18, italic: true, color: C.muted, align: "center" });
 }
 
 // ---------------- 7 IMU acquisition and fusion ----------------
 {
   const s = content("Result: 200 Hz acquisition and dual-IMU fusion",
-    "First results. Both IMUs run at 200 hertz with zero dropped samples, and the drop counters prove that rather than assuming it. " +
+    "First results. Both IMUs run at 200 hertz with zero dropped samples, which the drop counters prove rather than assume. " +
     "Two identical accelerometers disagreed by about 8 percent at rest; a per-sensor calibration against gravity brought that down to noise. " +
-    "The two are then fused. With equal noise on both, inverse-variance weighting reduces to the mean. Windows are paired only if they end within half a window of each other, a disagreement figure is reported rather than hidden, and if one sensor goes silent for three seconds the output falls back to the other. " +
-    "In this recorded 150 second session all 149 windows were fused from both sensors with under a millisecond of skew. " +
-    "One honest finding: the calibration only holds in the orientation it was taken in, so it will be redone once the sensors are mounted on the trike.");
+    "With equal noise, inverse-variance fusion reduces to the mean. Windows are paired only if they end within half a window, the disagreement is reported, and if one sensor is silent for three seconds the other takes over. " +
+    "In this 150 second session all 149 windows were fused with under a millisecond of skew. " +
+    "A review also caught that my speed-normalised index used the mean square, which gravity dominates; version 0.7.2 uses the variance. " +
+    "The calibration only holds in the orientation it was taken in, so it will be redone once mounted.");
   const stats = [
     ["200 Hz", "on both IMUs, zero dropped samples"],
     ["8%", "IMU gap at rest, calibrated down to noise"],
@@ -260,31 +260,32 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   card(s, rx, gy, rw, rh);
   txt(s, "Fusion rules", { x: rx + 0.3, y: gy + 0.15, w: rw - 0.6, h: 0.4, fontSize: 18, bold: true, color: C.navy });
   bullets(s, [
-    "Equal-weight mean (inverse-variance weighting with equal noise)",
+    "Equal-weight mean (inverse-variance, equal noise)",
     "Paired only if windows end within 500 ms",
     "Disagreement figure reported, not hidden",
     "One-sensor fallback after 3 s of silence",
     "5 / 5 boot self-tests passed",
-  ], { x: rx + 0.3, y: gy + 0.62, w: rw - 0.6, h: rh - 0.75, fontSize: 15 });
+    "Speed index: variance, not mean square (v0.7.2)",
+  ], { x: rx + 0.3, y: gy + 0.62, w: rw - 0.6, h: rh - 0.75, fontSize: 14 });
 }
 
 // ---------------- 8 Found and fixed ----------------
 {
   const s = content("What testing found, and how it was fixed",
-    "Testing each stage on real hardware against a stated pass criterion found six faults that assumptions had hidden. " +
-    "The GNSS reply had a different layout from the one assumed, so the first outdoor fix put the trike in the sea; the parser now anchors on the hemisphere letter. " +
-    "The modem was switching itself off after every reprogramming, because its power key toggles. " +
+    "Testing each stage against a stated pass criterion found faults that assumptions had hidden. " +
+    "The GNSS reply had a different layout from the one assumed, so the first fix put the trike in the sea; the parser now anchors on the hemisphere letter. " +
     "The battery checksum included one byte too many, so every real frame failed by exactly three. " +
-    "Flash writes stalled both IMUs; I proved it by switching the log off, and the log is now buffered and written six times less often. " +
-    "Reading the log back showed most records were invalid JSON. " +
-    "And the pink camera image came from a module with no infrared filter, which I showed by comparing tuning files on the same scene.");
+    "Flash writes stalled both IMUs; switching the log off proved it, and the log is now written six times less often. " +
+    "The pink image came from a camera with no infrared filter. " +
+    "Two are new. The Pi 4 kept browning out and rebooting because the ESP32's LTE modem drew its transmit current through the Pi's USB port; the ESP32 now needs its own powered hub, and a fan brought the Pi down from 81 degrees. " +
+    "And the distance-sensor reader froze when one sensor stopped answering; a half-second timeout now skips it, and all three read.");
   const items = [
     ["GNSS reply layout", "Assumed degrees and minutes in fixed places; the real reply is decimal degrees with a varying layout, so satellite counts were read as the position. Parser now anchors on the hemisphere letter: median 2.7 m from the reference."],
-    ["Modem switched itself off", "Its power key toggles, so pulsing it at every boot turned a running modem off after each reprogramming. Now pulsed only if the modem does not answer."],
     ["Battery checksum", "Summed the register byte as well, so every real frame failed by exactly 3. The protocol's own query frame showed the rule. After the fix: valid readings, 74.78 V and 60%."],
     ["IMU stalls from flash writes", "33 to 40 ms gaps every 10 s on both IMUs. Logging off: worst gap 5.9 ms, so the flash is the cause. The log is now buffered and written once a minute."],
-    ["Stored log not valid JSON", "Reading 6,020 records back found 5,545 holding nan, which JSON does not allow, and the same text went over MQTT. Now written as null; all records parse."],
     ["Pink camera image", "The module has no infrared filter: the same scene was pink with the standard tuning and neutral with the NoIR one. With saturation 1.8 the colour cards read correctly."],
+    ["Pi 4 brown-outs and reboots", "Under-voltage began 14 s after the ESP32 was plugged into the Pi's USB, when its LTE modem came up: throttled to 600 MHz. Fix: a powered hub for the ESP32 (to fit). A fan took the Pi from 81 C to 48 to 57 C."],
+    ["Distance-sensor reader hang", "One stuck sensor froze the whole reader. A 0.5 s I/O timeout now skips and logs it. All three read again: hand test 80 to 264 mm ahead, 157 to 199 mm right."],
   ];
   const cw = (W - 2 * M - 0.3) / 2, ch = 1.55, gy = 0.15;
   items.forEach(([h, b], i) => {
@@ -300,9 +301,9 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 // ---------------- 9 Timing, position, cellular ----------------
 {
   const s = content("Result: timing, position and the cellular link",
-    "Three more bench results. Timing: the Pi now takes each sync edge's time from the kernel, and over 121 edges the median interval was 500.06 milliseconds with a spread under 0.7 milliseconds, so the camera and IMU clocks can be related precisely. A loose jumper twice produced false edges, so the vehicle needs a latched connector. " +
-    "Position: on a rooftop, 104 fixes were a median of 2.7 metres from a phone's position, and 95 percent within 11 metres. " +
-    "Cellular: 47 of 47 publishes were acknowledged. When I cut the radio for 60 seconds, the firmware detected the loss in under a second and reconnected about 5 seconds after the signal came back. Every record is also logged to flash, and all 6,020 stored records were read back.");
+    "Three more bench results. Timing: the Pi takes each sync edge's time from the kernel, and over 121 edges the median interval was 500.06 milliseconds with a spread under 0.7, so the camera and IMU clocks can be related precisely. " +
+    "Position: on a rooftop, 104 fixes were a median of 2.7 metres from a phone's position. Version 0.7.3 does what a phone does: assisted GNSS loads satellite data over LTE, and indoors the modem gives a network position in 0.7 seconds, stated to 550 metres, and here about 30 metres from the outdoor fix. " +
+    "Cellular: 47 of 47 publishes were acknowledged, and after a 60 second radio cut the link recovered by itself about 5 seconds after the signal returned.");
   const n = 3, g = 0.35, cw = (W - 2 * M - (n - 1) * g) / n, cy = 1.4, ch = 5.35;
   const col = (x, title, big, bigSub, items) => {
     card(s, x, cy, cw, ch);
@@ -316,29 +317,30 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
      "Video frames placed on the IMU clock within 1 s",
      "A loose jumper twice gave false edges: a latched connector is needed"]);
   col(M + cw + g, "GNSS outdoors", "2.7 m", "median from a phone's position over 104 fixes",
-    ["95% within 11 m",
-     "3D fix 105 s after a cold start, 23 to 25 satellites",
-     "Speed units still to confirm on the vehicle"]);
+    ["95% within 11 m; fix 105 s after a cold start",
+     "Assisted GNSS loads (+AGPS: success); effect on fix time not yet measured",
+     "Indoors: network position in 0.7 s, 550 m stated, about 30 m from the outdoor fix"]);
   col(M + 2 * (cw + g), "Cellular link", "47 / 47", "MQTT publishes acknowledged",
     ["Radio cut for 60 s: loss seen in 0.8 s, reconnected about 5 s after it returned",
      "Every record also logged to flash: 6,020 read back",
-     "Signal strength sent with each record"]);
+     "In progress: sequence numbers, backlog replay, central database (v0.7.4)"]);
 }
 
 // ---------------- 10 Camera, alerts, distance ----------------
 {
   const s = content("Camera hazard detection and distance sensing",
-    "The camera's role grew, on supervisor direction, from a visual record to hazard awareness. I designed and 3D printed the three-part casing on the left, with a 30 degree corner mount. " +
-    "The live detector is a pretrained 8-bit SSD-MobileNet sized for the Pi 4. COCO has no potholes, so I also trained my own pothole model: trained on a public set, it found none of the potholes in South African dashcam footage; trained on tiles cut from the road band of that footage, it reached 0.71 mAP at 50 on the validation tiles. The held-out test score and a run on the Pi are next. Using all four cores, the live detector it runs at 19.5 frames per second, with a median of 102 milliseconds from the sensor to a result. With the three-frame debounce an alert comes about 0.2 seconds after an object appears, about 1.7 metres at 30 kilometres per hour. " +
-    "An alert clears only after five empty frames, which stopped one person producing 16 alerts in 47 seconds. Only five fields are logged and no frame is stored. " +
-    "For close range, three time-of-flight sensors stand in until the 8 by 8 zone sensor arrives.");
+    "The camera's role grew, on supervisor direction, from a visual record to hazard awareness. I designed and 3D printed this casing. " +
+    "The live detector is a pretrained 8-bit SSD-MobileNet sized for the Pi 4: 19.5 frames per second and 102 milliseconds median from sensor to result in the benchmark, and 14.6 frames per second, about 120 milliseconds, in the latest check on a healthy Pi 4. " +
+    "An alert needs three frames to raise and five empty frames to clear, which stopped one person causing 16 alerts in 47 seconds; no frame is stored. " +
+    "COCO has no potholes, so I trained my own model: zero on South African dashcam footage at first, 0.71 mAP at 50 on validation tiles after training on the road band. Running it on the Pi is in progress. " +
+    "Three time-of-flight sensors cover close range until the 8 by 8 zone sensor arrives.");
   const ih = 5.35, iw = ih * 1827 / 1306;
   s.addImage({ path: A("casing_labelled.png"), x: M, y: 1.4, w: iw, h: ih });
   const x = M + iw + 0.4, w = W - M - x;
   const blocks = [
-    ["Object detection", "Live: pretrained SSD-MobileNet, 19.5 fps, 102 ms median. Own pothole model on South African roads: mAP@50 0.000 before, 0.714 after training on road-band tiles (validation)."],
+    ["Object detection", "Live: pretrained SSD-MobileNet, 19.5 fps and 102 ms median (benchmark); 14.6 fps and about 120 ms on a healthy Pi 4 (Oct). Own pothole model: mAP@50 0.000 before, 0.714 after road-band tiles (validation); on the Pi: in progress."],
     ["Alert logic", "Raised after 3 frames, cleared after 5 empty frames. Five fields logged per alert; frames are never stored."],
-    ["Distance sensors", "Three VL53L0X stand in for the VL53L5CX: left, ahead and right at 31 readings/s each; labels confirmed by covering each."],
+    ["Distance sensors", "Three VL53L0X stand in for the VL53L5CX: left, ahead, right. Reader hang fixed (0.5 s timeout); all three reading: 80 to 264 mm ahead, 157 to 199 mm right in a hand test."],
   ];
   const bh = 1.65, bg = 0.2;
   blocks.forEach(([h, b], i) => {
@@ -351,23 +353,28 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 
 // ---------------- 11 Dashboard ----------------
 {
-  const s = content("Hazard alerts on the existing dashboard",
-    "This is where RQ2 now lands. Instead of a separate windshield display, I wrote a camera page for the dashboard the TUKZIE team already runs. " +
-    "Three reasons: that dashboard already carries what a HUD would show, two displays compete for the driver's attention, and the programme's move towards autonomy makes the camera's alerts more useful than a second screen. " +
-    "It now runs as the default dashboard on the team's Pi 5, in a separate copy so their own build is untouched. The Pi 4 sends the ESP32, distance-sensor and camera data over Wi-Fi twice a second, and the dashboard shows only real values, with dashes where data is missing. " +
-    "This Sensors page shows the three distance sensors and the fused hazards: here the camera recognises an object and the distance sensor gives its range. If anything is in the immediate band, a red banner appears over whichever page the driver is on. " +
-    "What's still open is the glance-time check on the vehicle, and a design review against the NHTSA two-second rule and the ISO legibility standard.");
-  const iw = 7.4, imW = 5.2, ih = imW * 800 / 1280;
+  const s = content("Hazard alerts and navigation on the existing dashboard",
+    "This is where RQ2 lands: my pages on the dashboard the team already runs, now the default at boot on their Pi 5, with their own build untouched. " +
+    "The Pi 4 sends ESP32, distance and camera data twice a second, and the dashboard shows only real values, with dashes where data is missing. " +
+    "On the left, the Sensors page shows the distance gauges and fused hazards, and a red banner covers any page for an immediate hazard. " +
+    "On the right is navigation: a Google-style turn banner with spoken directions. For indoor demonstrations a simulated drive moves every page in step under a yellow SIMULATED strip, and a status chip always reads LIVE, REPLAY, NO DATA or SIMULATED, so simulated numbers are never taken for real ones. " +
+    "Pages change with a two-finger swipe, three on the map. " +
+    "Still open: glance time on the vehicle, against the NHTSA two-second rule.");
+  const iw = 7.4, imW = (iw - 0.2) / 2, ih = imW * 800 / 1280;
   s.addImage({ path: A("sensors_page.png"), x: M, y: 1.4, w: imW, h: ih });
-  txt(s, "Sensors page on the Pi 5, live data: distance gauges and hazards, nearest first.",
-    { x: M, y: 1.4 + ih + 0.08, w: iw, h: 0.35, fontSize: 13, italic: true, color: C.muted });
-  const wy = 1.4 + ih + 0.55, wh = 6.75 - wy;
+  s.addImage({ path: A("nav_simulated.png"), x: M + imW + 0.2, y: 1.4, w: imW, h: ih });
+  txt(s, "Sensors page, live data on the Pi 5",
+    { x: M, y: 1.4 + ih + 0.06, w: imW, h: 0.3, fontSize: 12, italic: true, color: C.muted });
+  txt(s, "Navigation during a simulated drive (labelled)",
+    { x: M + imW + 0.2, y: 1.4 + ih + 0.06, w: imW, h: 0.3, fontSize: 12, italic: true, color: C.muted });
+  const wy = 1.4 + ih + 0.5, wh = 6.75 - wy;
   card(s, M, wy, iw, wh);
-  txt(s, "Why not a windshield HUD", { x: M + 0.3, y: wy + 0.12, w: iw - 0.6, h: 0.38, fontSize: 16, bold: true, color: C.navy });
+  txt(s, "Added 7 to 11 Oct (tested offscreen, not yet on the vehicle)", { x: M + 0.3, y: wy + 0.12, w: iw - 0.6, h: 0.38, fontSize: 16, bold: true, color: C.navy });
   bullets(s, [
-    "The dashboard already shows what a HUD would",
-    "Two displays compete for the driver's attention",
-    "A move towards autonomy makes the camera more useful",
+    "Turn banner and spoken turn-by-turn directions",
+    "Simulated drive in step on every page, clearly marked",
+    "Network-position circle on the map when there is no fix",
+    "Finger scrolling; two-finger page swipe (three on the map)",
   ], { x: M + 0.3, y: wy + 0.55, w: iw - 0.6, h: wh - 0.6, fontSize: 14 });
   const rx = M + iw + 0.35, rw = W - M - rx;
   card(s, rx, 1.4, rw, 5.35);
@@ -375,38 +382,40 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   bullets(s, [
     "Default dashboard at boot; team's copy untouched",
     "Live sensor data every 0.5 s",
+    "LIVE / REPLAY / NO DATA / SIMULATED chip",
     "Camera + distance fusion shown live",
     "Red banner over any page for immediate hazards",
-    "Street map with routing; campus tiles cached",
-  ], { x: rx + 0.3, y: 2.1, w: rw - 0.6, h: 3.3, fontSize: 15 });
+    "In progress: Uber-style destination search",
+  ], { x: rx + 0.3, y: 2.1, w: rw - 0.6, h: 3.4, fontSize: 15 });
   txt(s, [{ text: "Still open: ", options: { bold: true, color: C.accent } }, { text: "glance time on the vehicle, and a design review against NHTSA and ISO 15008." }],
-    { x: rx + 0.3, y: 5.55, w: rw - 0.6, h: 1.0, fontSize: 15, valign: "top" });
+    { x: rx + 0.3, y: 5.65, w: rw - 0.6, h: 0.95, fontSize: 15, valign: "top" });
 }
 
 // ---------------- 12 Conclusions ----------------
 {
   const s = content("Conclusions and next steps",
-    "To conclude. Every subsystem runs together on the target board: two IMUs at 200 hertz with no loss, calibrated and fused; GNSS within about 3 metres; the battery read over Bluetooth; a cellular link that recovers by itself; a full local log; camera alerts in about a tenth of a second; and the camera and distance sensors fused and shown live on the existing dashboard. " +
-    "Each fault was found by a test with a stated pass criterion, then fixed and tested again. " +
-    "What's left is the vehicle: mount and recalibrate the unit in place, then the field test that answers the ride and latency questions on the move, calibrate and validate the fusion, and fit the zoned distance and air-quality sensors when they arrive. Thank you, I'm happy to take questions.");
+    "To conclude. Every subsystem runs together on the target hardware: two IMUs at 200 hertz with no loss, calibrated and fused; GNSS within about 3 metres, with a network position indoors; the battery over Bluetooth; a cellular link that recovers by itself; a full local log; camera alerts in about a tenth of a second; and hazards, navigation and spoken directions on the existing dashboard. " +
+    "Each fault was found by a test, fixed and tested again. " +
+    "In progress: a central database with backlog replay, and the pothole model on the Pi. " +
+    "Next is the vehicle: the road test on 14 October, then the fusion calibration. Thank you, I'm happy to take questions.");
   const cw = (W - 2 * M - 0.4) / 2, cy = 1.4, ch = 4.45;
   card(s, M, cy, cw, ch);
   txt(s, "Done on the bench", { x: M + 0.35, y: cy + 0.2, w: cw - 0.7, h: 0.45, fontSize: 20, bold: true, color: C.navy });
   bullets(s, [
     "Two IMUs at 200 Hz, no loss, calibrated and fused",
-    "GNSS within 2.7 m median; battery read over BLE",
+    "GNSS 2.7 m median; network position indoors; battery over BLE",
     "Cellular publish with automatic recovery; full local log",
-    "Camera + distance fusion live on the Pi 5 dashboard",
+    "Hazards, navigation and voice on the Pi 5 dashboard",
     "Each fault found by a test, fixed and re-tested",
   ], { x: M + 0.35, y: cy + 0.85, w: cw - 0.7, h: ch - 1.0, fontSize: 16 });
   const x2 = M + cw + 0.4;
   dashedCard(s, x2, cy, cw, ch);
-  txt(s, "Next", { x: x2 + 0.35, y: cy + 0.2, w: cw - 0.7, h: 0.45, fontSize: 20, bold: true, color: C.accent });
+  txt(s, "In progress and next", { x: x2 + 0.35, y: cy + 0.2, w: cw - 0.7, h: 0.45, fontSize: 20, bold: true, color: C.accent });
   bullets(s, [
-    "Mount on the trike and recalibrate in place",
-    "Field test: ride features (RQ4), latency and loss on the move (RQ3)",
+    "In progress: central database, backlog replay (v0.7.4)",
+    "In progress: pothole model on the Pi 4; destination search",
+    "Road test (planned 14 Oct): mount, recalibrate, RQ3 and RQ4 on the move",
     "Calibrate and validate the fusion (test C9)",
-    "Check the battery against its app; wire the Hall tap",
     "Fit the VL53L5CX and SEN55 when they arrive",
   ], { x: x2 + 0.35, y: cy + 0.85, w: cw - 0.7, h: ch - 1.0, fontSize: 16 });
   txt(s, "Thank you. Questions?", { x: M, y: 6.05, w: W - 2 * M, h: 0.6, fontSize: 26, bold: true, color: C.navy, align: "center", valign: "middle" });

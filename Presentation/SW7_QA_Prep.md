@@ -1,6 +1,6 @@
 # SW7 presentation: question preparation
 
-Likely questions from the examiners and the open day, with short answers based on the report, the test logs and the code (state on 5 October 2026). Where something has not been measured, the answer says so. Saying "not measured yet, and this is how I would measure it" is a strong answer; guessing a number is not.
+Likely questions from the examiners and the open day, with short answers based on the report, the test logs and the code (state on 11 October 2026). Where something has not been measured, the answer says so. Saying "not measured yet, and this is how I would measure it" is a strong answer; guessing a number is not.
 
 How to answer: give the number, say how it was measured, then state the limit. For example: "102 ms median, measured from the sensor's own readout timestamp over a one-minute run on the bench; not yet on the vehicle."
 
@@ -17,8 +17,9 @@ Contents
 10. Dashboard
 11. Testing and engineering method
 12. Power, cost, mounting, environment
-13. Questions to expect that expose gaps
-14. Numbers to know by heart
+13. New since 6 October
+14. Questions to expect that expose gaps
+15. Numbers to know by heart
 
 ---
 
@@ -45,7 +46,7 @@ Why 200 Hz?
 ISO 2631-1 weights whole-body vibration up to 80 Hz, so sampling must exceed 160 Hz. 200 Hz gives margin without overloading the I2C bus. Measured: 200.0 to 200.5 Hz on both sensors, zero dropped samples.
 
 Your low-pass filter is set to 260 Hz but you sample at 200 Hz. What about aliasing? (Likely from a signal-processing examiner.)
-That's correct, and it's a limitation. Nyquist is 100 Hz, so content between 100 and 260 Hz can fold back into the band. The widest filter was chosen so the 80 Hz band of interest isn't attenuated; the next setting, 94 Hz, would cut into it. The proper fix is to sample faster (the MPU6050 can run at 1 kHz) and filter and decimate digitally to 200 Hz. This is not yet in the report and should be added as a limitation.
+That's correct, and it's a limitation. Nyquist is 100 Hz, so content between 100 and 260 Hz can fold back into the band. The widest filter was chosen so the 80 Hz band of interest isn't attenuated; the next setting, 94 Hz, would cut into it. The proper fix is to sample faster (the MPU6050 can run at 1 kHz) and filter and decimate digitally to 200 Hz. The report now states this as a limitation. Firmware v0.7.4 (in progress, not flashed) moves the filter to 94 Hz, which reduces aliasing at the cost of some attenuation near the top of the 80 Hz band.
 
 Why use the acceleration magnitude, not one axis?
 The magnitude is the same whatever way the sensor is mounted, and the mounting orientation wasn't fixed yet. The cost: you can't tell which axis a disturbance came from. Orientation compensation is future work.
@@ -66,7 +67,7 @@ How do you know the features separate road from powertrain vibration (RQ4)?
 Not yet. They pass synthetic self-tests (a sine wave with known RMS and crest factor, within 5%) and respond to a hand disturbance. Separation needs road data. The plan: run the motor with the trike stationary (powertrain only), drive over known bumps, and use the Hall-sensor motor speed, since motor vibration follows motor speed and road vibration follows the road.
 
 What is the speed-normalised index?
-Mean-square acceleration divided by GNSS speed, following Li et al. 2018, because the same road driven faster shakes more. Two differences from that study: our sensors are on the body rather than the axle, and we use the magnitude. It is undefined below a minimum speed, and it hasn't yet been computed from real driving.
+The variance of the acceleration magnitude divided by GNSS speed, following Li et al. 2018, because the same road driven faster shakes more. Up to v0.7.1 it used the mean square, which gravity dominates; v0.7.2 uses the variance (section 13). Two differences from that study: our sensors are on the body rather than the axle, and we use the magnitude. It is undefined below a minimum speed, and it hasn't yet been computed from real driving.
 
 ## 3. Firmware and real-time behaviour
 
@@ -91,7 +92,7 @@ What happens if the signal drops?
 Tested by switching the radio off for 60 s. The firmware saw the loss 0.8 s later from the modem's report (or after three failed publishes, 20.7 s), retried at 30 s and then 60 s, and reconnected about 5 s after the radio came back. There were no failed publishes afterwards.
 
 Is data lost during an outage?
-Not locally: every record is also written to flash. But the backlog is not yet re-sent over MQTT when the connection returns; that is a stated limitation. The stored log was read back in full: 6,020 records.
+Not locally: every record is also written to flash. But the backlog is not yet re-sent over MQTT when the connection returns. Firmware v0.7.4 with sequence numbers and backlog replay to a central database is in progress (laptop tests only, not flashed), so for now it remains a limitation. The stored log was read back in full: 6,020 records.
 
 Which broker? Is it secure?
 For testing, the public `test.mosquitto.org`, unauthenticated and without TLS, and only for the test. The firmware supports a username and password. A real deployment needs a team broker with credentials and TLS. The vac-work team's broker credentials were deliberately not copied into this code.
@@ -136,10 +137,10 @@ The Hall signal is 5 or 12 V and referenced to the drivetrain's ground. The opto
 ## 7. Camera and detector
 
 Which model and why?
-SSD-MobileNet v1, pretrained on COCO and quantised to 8-bit TensorFlow Lite. It runs on the Pi 4's CPU without an accelerator: 36 ms per inference using four threads. Newer models such as YOLO variants are more accurate, especially for small or distant objects, but slower on this CPU. No training was done in this project.
+SSD-MobileNet v1, pretrained on COCO and quantised to 8-bit TensorFlow Lite. It runs on the Pi 4's CPU without an accelerator: 36 ms per inference using four threads. Newer models such as YOLO variants are more accurate, especially for small or distant objects, but slower on this CPU. The live detector is not retrained; a separate pothole model was trained (section 10).
 
 What is the latency?
-Measured from the sensor's own readout timestamp to the alert result: median 102 ms, 95th percentile 120 ms, maximum 136 ms, at 19.5 fps. Of that, 52 ms is readout and the camera's image processing, 12 ms preprocessing, 36 ms inference, and under 0.2 ms alert logic. With one thread it was 186 ms at 7 fps. The CPU reached 65.7 °C with no throttling. These are bench figures.
+Measured from the sensor's own readout timestamp to the alert result: median 102 ms, 95th percentile 120 ms, maximum 136 ms, at 19.5 fps. Of that, 52 ms is readout and the camera's image processing, 12 ms preprocessing, 36 ms inference, and under 0.2 ms alert logic. With one thread it was 186 ms at 7 fps. The CPU reached 65.7 °C with no throttling. These are bench figures. A later check on a healthy Pi 4 gave 14.6 fps and about 120 ms camera to detection (section 13).
 
 Is 0.2 s fast enough?
 The three-frame debounce means an alert comes about 0.2 s after an object appears, about 1.7 m of travel at 30 km/h. A driver's reaction time is typically over a second, so the detector is a small part of the total. The detector advises; it never controls the vehicle.
@@ -165,7 +166,7 @@ Frames exist only in memory and are never saved. Each alert logs five fields: cl
 ## 8. Distance sensors
 
 What are the time-of-flight sensors?
-The planned VL53L5CX (8×8 zones over 63°, up to 4 m) has not arrived. As a stand-in, three VL53L0X on a UCT micromouse sensor board face left, ahead and right: single-zone sensors with about 2 m range. All three share one address at power-up, so each shutdown pin is released in turn and the sensor given its own address (0x30, 0x31, 0x32). They read at about 31 times a second each, and covering each one confirmed the labels. Accuracy against a tape measure is still to check.
+The planned VL53L5CX (8×8 zones over 63°, up to 4 m) has not arrived. As a stand-in, three VL53L0X on a UCT micromouse sensor board face left, ahead and right: single-zone sensors with about 2 m range. All three share one address at power-up, so each shutdown pin is released in turn and the sensor given its own address (0x30, 0x31, 0x32). They read at about 31 times a second each, and covering each one confirmed the labels. Accuracy against a tape measure is still to check. Since 10 Oct a 0.5 s I/O timeout stops one stuck sensor freezing the reader (section 13).
 
 Why on the Pi and not the ESP32?
 The Pi sits at the front next to the camera, its I2C bus is free, and the ESP32's 200 Hz acquisition stays untouched.
@@ -278,7 +279,7 @@ Reach the vehicle earlier. Sample faster and decimate, to avoid aliasing. Use th
 ## 12. Power, cost, mounting, environment
 
 What evidence is there for the power supply requirement?
-The Pi 4 must have a supply that does not sag: under-voltage makes it throttle the processor, which would cut the detector's frame rate (19.5 fps on the bench with no throttling, 30 Sep). The pre-test check reads the Pi 4's under-voltage and throttling flags every session so this is caught. A recorded under-voltage reading and its effect on the frame rate are not yet in the repo; record them in TEST_PROCEDURES T13 before quoting numbers.
+The Pi 4 must have a supply that does not sag: under-voltage makes it throttle the processor, which would cut the detector's frame rate (19.5 fps on the bench with no throttling, 30 Sep). The pre-test check reads the Pi 4's under-voltage and throttling flags every session so this is caught. The cause has since been found: the telemetry unit's LTE modem drawing its transmit current through the Pi's USB port (section 13). The power-watch log is BenchTest/logs/2026-10-06_pi4_power_watch.log.
 
 What is the power consumption?
 Not measured yet. The power budget is outstanding. The modem's transmit bursts and the Pi 4 (several watts under load) dominate. The plan is a DC-DC converter from the vehicle supply, and the current needs measuring on each rail.
@@ -289,19 +290,65 @@ A bill of materials has not been totalled yet. Prepare this before the presentat
 How will it survive the vehicle?
 Not tested. The camera casing (three 3D-printed parts with a 30° corner mount) exists. Enclosures for the telemetry unit and the Pi are planned. Vibration, heat and water are untested. The jumper wires already failed under handling on the bench, so the vehicle needs latched connectors.
 
-## 13. Questions to expect that expose gaps
+## 13. New since 6 October (likely questions)
+
+Status words used here: tested (measured on the hardware), tested offscreen (automated tests without the real display and vehicle), in progress (being built, no result to claim).
+
+Why did the Raspberry Pi 4 keep rebooting? (tested)
+A logger recorded its power and temperature flags every 2 s. With nothing attached the flags were clear at 1.8 GHz. Fourteen seconds after the telemetry unit was plugged into the Pi's USB port, when its LTE modem came up, under-voltage started and came and went every few seconds, with the processor throttled to 600 MHz and the detector slowed from 14.3 to 12 fps. The modem's transmit bursts were drawn through the Pi's USB port. The fix is a powered USB hub for the telemetry unit and a 5.1 V 3 A supply for the Pi 4 (check whether both are fitted before saying the fix is done). The same applies to the Pi 5, whose USB ports share 600 mA on a 3 A supply. Limitation: the hub fix has not yet been shown on a long run.
+
+Why the fan? (tested)
+The Pi 4 reached its soft temperature limit at 65 to 69 C with the detector running, and 81 C without a fan; with a fan it ran at 48 to 57 C. A throttled Pi lowers the detector's frame rate, so cooling is a requirement, not a comfort. It still has to be tested in a closed box in the sun.
+
+What was the distance-sensor hang? (tested)
+If one sensor stopped answering on the I2C bus, the read blocked, so the whole reader froze and all three distances went stale. Each read now has a 0.5 s I/O timeout: a stuck sensor is skipped and logged, the others keep reading, and the bridge re-probes the missing one every 60 s. After the fix all three read again; in a hand test the ahead sensor gave 80 to 264 mm and the right sensor 157 to 199 mm. That is a functional check, not an accuracy test: accuracy against a tape measure is part of test C9, not yet run.
+
+Why did the speed-normalised index change in v0.7.2? (flashed; index not yet exercised)
+It divided the mean square of the acceleration magnitude by speed. The mean square includes gravity, about 96 m²/s⁴ at rest, so the index mostly measured gravity divided by speed. v0.7.2 uses the variance, which removes the constant part. It was found in the review of the report, not by a test, which is a fair criticism of my own checking. It needs GNSS speed from real driving before it means anything.
+
+What do assisted GNSS and the network position give you? (tested on the bench; effect on fix time untested)
+v0.7.3 downloads satellite orbit data over LTE (AT+CAGPS; the modem replied +AGPS: success) and repeats it every two hours, so the receiver need not decode it from the satellites before the first fix. Whether that shortens the 105 s cold start has not been measured; that needs an outdoor test. Indoors, with no fix, the modem's network position (AT+CLBS) is read every minute: on the bench it answered in about 0.7 s with a stated accuracy of 550 m, and was about 30 m from the outdoor fix. That 30 m is one reading and is luck as much as accuracy; the honest figure is the stated 550 m, which is why the map draws a circle rather than a point.
+
+How does the spoken navigation work, and does it work offline? (tested offscreen; heard through Bluetooth earphones on the Pi 5)
+Turns come from the map's turn banner, which places a manoeuvre where the road name changes and types it from the bearing change, because the team's route planner returns no turn steps. The voice says the route start, an early prompt about 200 m before a turn (about 30 s at 25 km/h), the turn itself (chained with a close next turn) and arrival, each once, and drops a phrase if it is delayed past its use. It goes through the team's own voice system, so their volume and mute apply. The voice is Google's online text-to-speech (gTTS); the Microsoft Edge voice was tried and refused by its server. Limitations: gTTS needs mobile data, so there is no voice offline; turns found from road-name changes can miss a turn that keeps the same road name; no speaker is fitted yet. An offline map, offline routing and an offline voice are planned, not started.
+
+Isn't a simulated drive misleading, especially at Open Day? (tested offscreen)
+It exists for indoor demonstrations, where there is no GNSS fix. It is marked on every page: a yellow strip "SIMULATED DRIVE, not live data", and a status chip that reads SIMULATED (otherwise LIVE, REPLAY or NO DATA). Obstacles, camera hazards and the Sensors page stay live during it, a real GNSS fix stops it at once, and ending it restores the live values and removes the simulated points from the Analytics history. It never writes into the live state. Say "this is simulated" when demonstrating it.
+
+Swiping between pages while driving? (tested offscreen; not on the vehicle)
+Two fingers sideways change page (three on the map, where two fingers zoom). The page follows the fingers and changes only on release past a third of the width or on a flick; resting a hand, pinching or a vertical move never changes it. Whether any touch interaction is acceptable while moving is exactly the open glance-time question; the safety alerts (the red banner and the voice) need no touch.
+
+What happened to the Route Guidance panel?
+Hidden: the turn banner on the map gives the same information in less space, so the map uses the full width. One setting restores it.
+
+Camera frame rate: 19.5 or 14.6 fps?
+Both are measured, under different conditions. 19.5 fps and 102 ms median (95th percentile 120 ms) was the 30 Sep benchmark on a properly powered Pi 4. The later check on a healthy Pi 4 gave 14.6 fps and about 120 ms from camera to detection. I have not yet broken down the difference, so quote each with its conditions. An alert needs three frames, so onset is about 0.2 to 0.3 s either way.
+
+What changed in the report since the first draft?
+A wiring appendix (Pi 4 header, sensor board and SEN5x pinouts, a connection table per link, the powered-hub and fan requirements), equations for the ride features, calibration, index and fusion, overstated claims corrected after an MSc reviewer's comments, clipping and aliasing stated as limits, and the reference list cut to the 47 sources actually cited.
+
+What is still in progress? (no results to claim)
+- Central database: firmware v0.7.4 adds a boot id and sequence number to every record, tracks which records the broker acknowledged and replays the backlog from flash after an outage; a server stores each record once in SQLite and reports completeness and latency. Logic tested on the laptop; not flashed; outage test T15 not run.
+- v0.7.4 also sets the IMU low-pass filter to 94 Hz against aliasing (section 2).
+- Uber-style destination search: current position as the start, instant recents, fast suggestions biased to where the vehicle is.
+- Pothole model (run 2) on the Pi 4 beside the main detector; held-out test score still to compute.
+- Road test planned for 14 October: mount, recalibrate, then RQ3 and RQ4 on the move. (Update this after the test.)
+
+## 14. Questions to expect that expose gaps
 
 Be ready to say these plainly:
 - No on-vehicle test yet. RQ3 and RQ4 are answered on the bench only.
 - RQ2's glance time is not measured.
 - The aliasing above 100 Hz (see section 2).
 - Detection accuracy is not evaluated, and distance bands are not calibrated.
-- The backlog is not re-sent after an outage.
+- The backlog is not re-sent after an outage (v0.7.4 in progress).
+- Spoken directions need mobile data (online voice); no speaker fitted yet.
+- The powered hub for the telemetry unit has not been proven on a long run.
 - No power budget or BOM yet.
 - The BMS reading is not cross-checked with the app.
 - The IMU calibration must be redone once mounted.
 
-## 14. Numbers to know by heart
+## 15. Numbers to know by heart
 
 | What | Number |
 |---|---|
@@ -322,4 +369,11 @@ Be ready to say these plainly:
 | Touch panel | contact reported with the first position (no panel delay); taps 200 to 640 ms |
 | Map prefetch | 656 tiles, 11.9 MB, 320 s, zoom 11 to 16 |
 | Pothole model | run 1: 0.000 mAP@50 on South African frames; run 2: 0.714 (640), 0.566 (320), validation tiles |
+| Camera, later check | 14.6 fps, about 120 ms camera to detection, healthy Pi 4 |
+| Pi 4 brown-out | under-voltage 14 s after the modem came up on the Pi's USB; 600 MHz throttle |
+| Pi 4 temperature | 81 C without a fan, 48 to 57 C with one |
+| ToF after the hang fix | 0.5 s timeout; hand test 80 to 264 mm ahead, 157 to 199 mm right |
+| Network position | about 0.7 s, 550 m stated, about 30 m from the outdoor fix |
+| Voice prompt | about 200 m before a turn (about 30 s at 25 km/h) |
+| Report references | 47 cited |
 | Glance rules | 2 s single glance, 12 s per task (NHTSA); 20 arcmin text (ISO 15008) |
