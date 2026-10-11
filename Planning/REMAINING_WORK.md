@@ -14,7 +14,7 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 | 1.1 | Central database (SQLite ingest on the Pi 5), sequence numbers, backlog replay after an outage, sync report (completeness, latency) | Agent | Planning/central-database-sync-prompt.md, Server/ | Done 11 Oct (7a754c6); ingest running on the Pi 5 as a user service; host and server tests pass |
 | 1.2 | Firmware v0.7.4: the above plus the IMU low-pass filter at 94 Hz (anti-aliasing) | Agent (same) | as 1.1 | Compiled; needs flashing from the laptop (COM10) |
 | 1.3 | Road test protocol and printable checklist | Agent | Planning/road-test-2026-10-14.md, Planning/road-test-checklist.md | Drafted; writing the files waits for the student's permission (declined once) |
-| 1.4 | Pothole model (run 2) running on the Pi 4 beside the main detector, debounced, experimental | Agent | Planning/pothole-integration-prompt.md | In progress |
+| 1.4 | Pothole model (run 2) running on the Pi 4 beside the main detector, debounced, experimental | Agent | Planning/pothole-integration-prompt.md | Built, off by default (too slow on the Pi 4 beside the main detector: only 0.25 Hz fits); held-out score script ready for Colab |
 | 1.5 | Hub with its own power adapter for the ESP32 (the modem browns out the Pi 4 otherwise) | Student | Report Appendix C | Open |
 | 1.6 | 5.1 V 3 A supply for the Pi 4 | Student | Appendix C | Open |
 | 1.7 | Send the joint road-test email; confirm the EcoFlow with Melokuhle | Student | chat 9 to 10 Oct | Open |
