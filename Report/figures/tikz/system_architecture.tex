@@ -1,4 +1,4 @@
-% System as built, 6 October 2026. Sources: TelemetryUnit/src/main.cpp (v0.7.1), CameraDetection/
+% System as built, 11 October 2026 (ingest node added). Sources: TelemetryUnit/src/main.cpp (v0.7.4), Server/sw7_ingest.py, CameraDetection/
 % telemetry_bridge.py, hazard_detector.py, tof_reader.py, sync_logger.py, DashboardIntegration/
 % live_data_provider.py, sw7_endpoints.py, TELEMETRY_LINK.md. Dashed amber = not yet working.
 \begin{tikzpicture}[x=1cm, y=1cm]
@@ -21,6 +21,7 @@
   \node[swbox, text width=\tw] (c3) at (13.2,-2.3) {Pages on the 1280\,$\times$\,800 touch screen: driving, Sensors, camera, map};
   \node[swbox, text width=\tw] (c2) at (13.2,-4.5) {\texttt{live\_data\_provider.py}\\ polls every 0.5\,s};
   \node[swbox, text width=\tw] (c1) at (13.2,-6.2) {\texttt{sw7\_endpoints.py}\\ finds the Raspberry Pi~4};
+  \node[swbox, text width=\tw] (c4) at (13.2,-8.9) {\texttt{sw7\_ingest.py}: SQLite database, one copy per record};
   % ---- outside the vehicle ----
   \node[swbox, draw=swGrey, fill=white, text width=\tw] (mq) at (2.2,-8.9) {Public MQTT test broker};
   \node[swbox, draw=swGrey, fill=white, text width=\tw] (net) at (13.2,-0.6) {Internet: OpenStreetMap tiles, OSRM routes};
@@ -29,9 +30,9 @@
   \begin{scope}[on background layer]
     \node[swlane, fit=(a1)(a0)(a2)(a3), minimum width=4.6cm] (la) {};
     \node[swlane, fit=(b1)(b2)(b4)(b3)(b5), minimum width=4.6cm] (lb) {};
-    \node[swlane, fit=(c3)(c2)(c1), minimum width=4.6cm] (lc) {};
+    \node[swlane, fit=(c3)(c2)(c1)(c4), minimum width=4.6cm] (lc) {};
   \end{scope}
-  \node[swlanetitle] at (la.north west) {Telemetry unit (ESP32-S3, v0.7.1)};
+  \node[swlanetitle] at (la.north west) {Telemetry unit (ESP32-S3, v0.7.4)};
   \node[swlanetitle] at (lb.north west) {Raspberry Pi~4};
   \node[swlanetitle] at (lc.north west) {Raspberry Pi~5: dashboard};
 
@@ -54,5 +55,6 @@
   \draw[swlink] (b2.east) -- node[swlabel, above=2pt] {video, alerts} (c3.west);
   \draw[swlink, dashed] ($(b4.east)+(0,-0.3)$) -- (10.45,-4.8) -- (10.45,-6.2) -- (c1.west);
   \node[swlabel, rotate=90, anchor=south] at (10.45,-5.62) {beacon, 2\,s};
-  \draw[swlink] (a3) -- node[swlabel, left=1pt] {MQTT over LTE,\\ every 10\,s} (mq);
+  \draw[swlink] (a3) -- node[swlabel, left=1pt] {MQTT over LTE,\\ every 10\,s, replays} (mq);
+  \draw[swlink] (mq.east) -- node[swlabel, above=2pt] {MQTT subscription over the Internet} (c4.west);
 \end{tikzpicture}
