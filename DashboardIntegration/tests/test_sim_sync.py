@@ -107,6 +107,23 @@ def after():
     t_fix, interval = m._last_fix_time, m._interval
     for _ in range(5): d._on_vehicle_state(d._sw7_live_state)
     check(m._last_fix_time == t_fix and m._interval == interval, "the map ignores its own simulated position echoed back")
+    # spoken directions over the whole simulated route: right onto Station Road at 400 m, arrival at 800 m
+    g = d._sw7_voice_guide
+    m.stop_simulation(); g.tick()
+    g.spoken.clear()
+    m.start_simulation(); g.tick()
+    for _ in range(200):
+        if m.sim_arrived: break
+        m._sim_step(); g.tick()
+    said = [t for _, t in g.spoken]
+    print("     spoken:", said)
+    want = ["Continue for 400 metres, then turn right onto Station Road.",
+            "In 200 metres, turn right onto Station Road.",
+            "Turn right onto Station Road.",
+            "In 200 metres, you will arrive at your destination.",
+            "You have arrived at your destination."]
+    check(said == want, "spoken directions: start, 200 m, the turn, arrival warning, arrival, each once")
+    m.stop_simulation(); m.start_simulation(); m._sim_step()
     # a real GPS fix ends the simulation on every page
     fix = copy.copy(d._sw7_live_state); fix.data_source = "sw7_telemetry"
     fix.latitude, fix.longitude = -33.9570, 18.4610
@@ -120,7 +137,7 @@ QTimer.singleShot(18000, start)
 a.exec()
 '''
 r = subprocess.run([sys.executable, "-c", script, out], cwd=build, env=env, capture_output=True, text=True, timeout=240)
-print("\n".join(l for l in r.stdout.splitlines() if l.startswith(("ok", "FAIL", "RESULT"))))
+print("\n".join(l for l in r.stdout.splitlines() if l.lstrip().startswith(("ok", "FAIL", "RESULT", "spoken"))))
 err = [l for l in r.stderr.splitlines() if "Error" in l and "_Dummy" not in l and "PyObject_HasAttr" not in l]
 print("\n".join(err[-8:]))
 shutil.rmtree(SP, ignore_errors=True)
