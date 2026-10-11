@@ -26,12 +26,12 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 
 | # | Item | Owner | Brief / record | Status |
 |---|---|---|---|---|
-| 2.1 | Length cut 31k to about 14k words, about 70 to 50 pages, restructure per the MSc review | Agent | Planning/report-cut-plan.md, archive in Report/archive_full_2026-10-11/ | In progress |
+| 2.1 | Length cut 31k to about 14k words, about 70 to 50 pages, restructure per the MSc review | Agent | Planning/report-cut-plan.md, archive in Report/archive_full_2026-10-11/ | Done 11 Oct (782fa23): 11,118 words, 34 body pages; outstanding results marked [Outstanding] |
 | 2.2 | Road-test results into Results and Discussion, answer RQ1 to RQ4 explicitly | Claude | after 14 Oct | Waiting on the test |
 | 2.3 | Database sync and latency results (Deliverable 3) | Claude | after 1.9 and the test | Waiting |
 | 2.4 | Pothole held-out test score (Colab cell 5b or the agent's script) | Student (Colab) | 1.4 brief | Open |
 | 2.5 | Ethics appendix decision with Prof. Winberg (course requires it; the student's rule D20 says leave it out) | Student | Planning/report-review.md | Open |
-| 2.6 | Configuration table (versions, pins, bus speeds, priorities, queues, partitions) | Agent (2.1) | report-cut-plan.md | In progress |
+| 2.6 | Configuration table (versions, pins, bus speeds, priorities, queues, partitions) | Agent (2.1) | report-cut-plan.md | Done (Appendix E.1, firmware v0.7.3) |
 | 2.7 | Final format checks (font, spacing, word count line, AI prompt examples, GA 10) | Agent (2.1) then Claude | Planning/brief-compliance.md | In progress |
 | 2.8 | Ask Maisha for a second look at the pre-submission draft | Student | | Open |
 
@@ -39,7 +39,7 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 
 | # | Item | Owner | Brief / record | Status |
 |---|---|---|---|---|
-| 3.1 | Uber-style destination search: current location as start, instant recents, fast relevant suggestions | Agent | Planning/destination-search-prompt.md | In progress |
+| 3.1 | Uber-style destination search: current location as start, instant recents, fast relevant suggestions | Agent | Planning/destination-search-prompt.md | Done 11 Oct (4cab2e8), deployed; not yet tried by hand on the touchscreen |
 | 3.2 | Deck, poster, talking points, Q&A updated with all results since 6 Oct; talk down to 10 minutes | Agent | Presentation/ | Done 11 Oct (eee1296), about 9.2 min; refresh after the road test and v0.7.4 |
 | 3.3 | SEN55 environmental sensor: firmware read, dashboard, bench test; air-quality anomaly rule (PM2.5 with VOC rise) | Claude | wiring in Report Appendix C | Blocked: JST GH 6-pin cable |
 | 3.4 | Sensor pod and telemetry housing finalised for printing | Claude | CameraMount/sensor_pod/README.md | Blocked: board measurements (Student) |
