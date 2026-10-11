@@ -1,7 +1,7 @@
 \chapter{Supporting Figures}
 \label{app:figures}
 
-The figures below support the text of Chapters~1 and~3, where each is referenced.
+The figures below support the text of Chapters~1 and~3, where each is referenced. The parametric bracket of Figure~\ref{fig:camera-mount} was modelled first but not printed; the printed casing of Figure~\ref{fig:camera-casing} was used instead.
 
 \begin{figure}[htbp]
 \centering
@@ -29,4 +29,30 @@ The figures below support the text of Chapters~1 and~3, where each is referenced
 \includegraphics[width=0.6\textwidth]{figures/camera_mount_render.png}
 \caption{Initial parametric camera bracket (OpenSCAD, full render), showing the corrected lens-retention lip and cable-routing slots. This design was not printed.}
 \label{fig:camera-mount}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  lbl/.style={font=\footnotesize, text width=3.5cm, inner sep=1pt},
+  pin/.style={draw=black, fill=white, circle, inner sep=0pt, minimum size=4.5pt},
+  lead/.style={line width=0.6pt, draw=black, preaction={draw=white, line width=2.2pt}}]
+\node[anchor=south west, inner sep=0] (img) at (0,0) {\includegraphics[width=0.5\textwidth]{figures/camera_casing_setup.jpg}};
+\begin{scope}[x={(img.south east)}, y={(img.north west)}]
+  \node[lbl, anchor=east, align=right] (rib) at (-0.04,0.86) {\textbf{Camera ribbon cable}\\CSI link from the camera to the Raspberry Pi};
+  \node[lbl, anchor=east, align=right] (cs1) at (-0.04,0.66) {\textbf{3D-printed camera casing}\\houses and protects the OV5647 camera module};
+  \node[lbl, anchor=east, align=right] (esp) at (-0.04,0.30) {\textbf{ESP32-S3 and A7670X board}\\telemetry unit};
+  \node[lbl, anchor=west, align=left] (imu) at (1.04,0.88) {\textbf{MPU6050 IMU}\\inertial sensing};
+  \node[lbl, anchor=west, align=left] (pi)  at (1.04,0.73) {\textbf{Raspberry Pi 4}\\camera host};
+  \node[lbl, anchor=west, align=left] (cs2) at (1.04,0.55) {\textbf{3D-printed camera casing}\\houses the second camera};
+  \draw[lead] (rib.east) -- (0.50,0.80); \node[pin] at (0.50,0.80) {};
+  \draw[lead] (cs1.east) -- (0.29,0.69); \node[pin] at (0.29,0.69) {};
+  \draw[lead] (esp.east) -- (0.33,0.32); \node[pin] at (0.33,0.32) {};
+  \draw[lead] (imu.west) -- (0.93,0.79); \node[pin] at (0.93,0.79) {};
+  \draw[lead] (pi.west)  -- (0.78,0.75); \node[pin] at (0.78,0.75) {};
+  \draw[lead] (cs2.west) -- (0.87,0.64); \node[pin] at (0.87,0.64) {};
+\end{scope}
+\end{tikzpicture}
+\caption{The cameras fitted in their 3D-printed casings, shown with the rest of the bench setup.}
+\label{fig:camera-casing}
 \end{figure}

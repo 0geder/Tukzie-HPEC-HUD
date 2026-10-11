@@ -1,0 +1,135 @@
+\chapter{Configuration and Development Record}
+\label{app:devrecord}
+
+This appendix holds the firmware configuration, the record of development faults, and supporting detail moved out of Chapter~\ref{chap:method}. The full text of the earlier, chronological Methodology is kept in the project repository (\texttt{Report/archive\_full\_2026-10-11/}).
+
+\section{Firmware configuration}
+
+Table~\ref{tab:config} gives the telemetry unit's configuration as committed for firmware v0.7.3, the last version flashed before this report was cut (11 October 2026). It is taken from \texttt{TelemetryUnit/platformio.ini} and \texttt{TelemetryUnit/src/main.cpp}; installed package versions are those in the PlatformIO folders on the development laptop, since \texttt{platformio.ini} does not pin them. Firmware v0.7.4, in preparation at the time of writing, changes the IMU low-pass filter to 94\,Hz and adds sequence numbers for database synchronisation; tasks and queues are unchanged.
+
+\begin{longtable}{|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{9.8cm}|}
+\caption{Telemetry unit configuration (firmware v0.7.3).}
+\label{tab:config}\\
+\hline
+\textbf{Item} & \textbf{Setting} \\ \hline
+\endfirsthead
+\hline
+\textbf{Item} & \textbf{Setting} \\ \hline
+\endhead
+Build environment & PlatformIO, environment \texttt{esp32-s3-devkitc-1}, Arduino framework \\ \hline
+Platform and core (installed) & \texttt{espressif32} platform 7.0.1; \texttt{framework-arduinoespressif32} 3.20017.241212 (Arduino-ESP32 core 2.0.17) \\ \hline
+Libraries (installed) & Adafruit MPU6050 2.2.9 (declared \^{}2.2.4); Adafruit Unified Sensor 1.1.15 (\^{}1.1.14); Adafruit BusIO 1.17.4 (\^{}1.14.1) \\ \hline
+Build flags & \texttt{ARDUINO\_USB\_MODE=1}, \texttt{ARDUINO\_USB\_CDC\_ON\_BOOT=1} (application serial on native USB) \\ \hline
+Flash & 16\,MB, DIO mode; PSRAM memory type left at default (PSRAM not used) \\ \hline
+Partition table & \texttt{default\_16MB.csv}: nvs 0x9000 (20\,KB), otadata 0xE000 (8\,KB), app0 0x10000 and app1 0x650000 (6.25\,MB each), data 0xC90000 (3.375\,MiB, LittleFS), coredump 0xFF0000 (64\,KB) \\ \hline
+Serial & USB CDC at 115200\,bit/s; bounded 3\,s wait for a host at boot \\ \hline
+IMU1 & MPU6050 at 0x68, I\textsuperscript{2}C bus 0, SDA GPIO8, SCL GPIO9 \\ \hline
+IMU2 & MPU6050 at 0x68, I\textsuperscript{2}C bus 1, SDA GPIO17, SCL GPIO18 \\ \hline
+I\textsuperscript{2}C clock & 400\,kHz on both buses \\ \hline
+IMU settings & $\pm 8\,g$, $\pm 500^{\circ}$/s, low-pass filter 260\,Hz; 200\,Hz (5\,ms) sampling \\ \hline
+Calibration & 200 samples at rest; factor accepted in 0.5 to 2.0; stored in NVS namespace \texttt{imucal} \\ \hline
+Modem & A7670X on UART1, RX GPIO47, TX GPIO48, 115200\,bit/s 8N1; PWRKEY GPIO4, RESET GPIO5 \\ \hline
+Sync pulse & GPIO15, toggled every 500\,ms \\ \hline
+Hall counter & Pulse counter unit 0, both edges, filter 1000 APB cycles (12.5\,$\mu$s); input on GPIO15 (loopback) until the tap is wired; pole pairs not set \\ \hline
+BMS & BLE, service 0xFF00, notify 0xFF01, write 0xFF02; query every 3\,s; receive buffer 128 bytes \\ \hline
+Periods & GNSS poll 3\,s; statistics 2\,s; ride window 1\,s (200 samples); dashboard line 1\,s (at most 480 bytes); MQTT publish 10\,s; network position 60\,s without a fix; assisted GNSS every 2\,h \\ \hline
+Fusion & Pair skew at most 0.5\,s; fallback after 3\,s; $\sigma$ floor 0.05\,m/s\textsuperscript{2}; speed index needs $v \ge 1$ \\ \hline
+MQTT & Broker \texttt{test.mosquitto.org}:1883, topic \texttt{sw7/telemetry}, keep-alive 60\,s; retry 30\,s doubling to 300\,s; session lost after 3 failed publishes \\ \hline
+Local log & LittleFS \texttt{/telemetry.log}; cap 3\,MB; 8\,KB memory buffer flushed every 60\,s \\ \hline
+\multicolumn{2}{|l|}{Tasks (name: core, priority, stack in bytes)} \\ \hline
+Acquisition & Imu1Task, Imu2Task: core 1, priority 3, 4096 \\ \hline
+Statistics, sync & StatsTask: core 1, priority 2, 4096; SyncTask: core 1, priority 2, 2048 \\ \hline
+Ride features & RideChar1Task, RideChar2Task: core 1, priority 1, 4096 \\ \hline
+Modem, BMS, dashboard, Hall & ModemTask: core 0, priority 1, 4096; BmsTask: core 0, priority 1, 8192; DashTask: core 0, priority 1, 4096; HallTask: core 0, priority 1, 2048 \\ \hline
+\multicolumn{2}{|l|}{Queues (depth in items)} \\ \hline
+Queues & imu1Queue, imu2Queue: 100 samples each; imu1CharQueue, imu2CharQueue: 400 each; gnssQueue: 20; bmsQueue: 20 \\ \hline
+\end{longtable}
+
+\section{Development faults}
+
+Table~\ref{tab:faults} lists the faults found during development, with their cause and fix. The faults that shaped the design are also discussed in Chapter~\ref{chap:method}.
+
+\begin{longtable}{|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{5.0cm}|>{\raggedright\arraybackslash}p{4.9cm}|}
+\caption{Development faults, causes and fixes.}
+\label{tab:faults}\\
+\hline
+\textbf{Symptom} & \textbf{Cause (how found)} & \textbf{Fix and lesson} \\ \hline
+\endfirsthead
+\hline
+\textbf{Symptom} & \textbf{Cause (how found)} & \textbf{Fix and lesson} \\ \hline
+\endhead
+Boot loop at a fixed program counter after enabling 16\,MB flash and PSRAM & Quad-I/O access requested on flash that runs in DIO mode (one setting changed at a time; ROM banner reports DIO; chip detection confirmed 8\,MB PSRAM) & 16\,MB with DIO mode set together with the partition table; PSRAM setting left at default. Set flash size, mode and table together \\ \hline
+No output past the ROM banner on the target board & Serial had been routed to UART0 for the bare development board; on the target board UART0 goes to a separate CH340K port (each hypothesis tested in turn; schematic) & Native-USB flags restored and documented in \texttt{platformio.ini}. The two boards need opposite settings \\ \hline
+Modem silent after a reset & Power key not pulsed (v0.1); later, the pulse at every boot switched an already running modem off & v0.2.0 pulses GPIO4 for 3\,s; v0.5.2 pulses only if \texttt{AT} gets no answer \\ \hline
+GNSS queue full after about a minute & Statistics task drained the IMU queues but not the GNSS queue & GNSS queue added to the drain cycle \\ \hline
+Every GNSS poll rejected, then the first fix at 0.25 and 0.10 degrees & Assumed 13-field reply; real reply 9 fields indoors, 17 or 18 with a fix, decimal degrees (raw replies logged) & Parser anchored on the hemisphere letter, layout and jump checks (v0.5.1 to v0.5.3) \\ \hline
+Zero GNSS polls reported for the first minutes & Polls time out for 60 to 90\,s after GNSS power-on; statistics count only answered polls & Timeout lines distinguish the cases; allow warm-up before recording \\ \hline
+Sync output pin not on any header & Placeholder chosen before the schematic was available (schematic and inspection) & Reassigned to GPIO15 before wiring \\ \hline
+No sync edges, later a burst of spurious edges & Jumper disturbed by handling (ESP32 log showed the pulse still running) & Reseated; secured connector needed on the vehicle; off-pattern edges discarded \\ \hline
+BMS scan never retried & Scan made conditional on an address set only after the device is found & Scan whenever disconnected and not scanning \\ \hline
+BMS connection dropped before reading & Characteristics not under the assumed service in this BLE library (compared with a teammate's parser) & All discovered services searched \\ \hline
+Every BMS frame rejected & Checksum included the register byte, so it failed by exactly 3 (the firmware's own query frame shows the rule) & v0.5.4; confirmed by 14 valid records on 30 Sep \\ \hline
+MQTT reported connected when it was not; no retry after a failure & First \texttt{OK} taken as success; separate result line ignored (modem manual) & v0.5.0 waits for the result code; retry with backoff \\ \hline
+Reconnection 36\,s after coverage returned & Waited for the next scheduled retry although data were back in 2.4\,s & v0.5.3 reconnects on the modem's data-available report (about 5\,s) \\ \hline
+33 to 40\,ms acquisition gaps every 10\,s & Flash writes suspend code running from flash on both cores (logging on and off test) & v0.6.0 buffers and flushes once a minute; pause length unchanged \\ \hline
+Most stored records not valid JSON & Missing values printed as \texttt{nan} (full log read-back) & v0.6.3 writes \texttt{null} \\ \hline
+Speed index dominated by a constant & Mean square of the magnitude includes gravity & v0.7.2 uses the variance \\ \hline
+A person reported as ``motorcycle''; poor confidence & Placeholder label shifted every class; camera buffers in BGR order & Label list and channel order corrected (fixed together) \\ \hline
+16 alert activations in 47\,s for one person & Alert cleared on a single missed frame near the threshold & Clears after 5 frames; nearer band needs 3 frames \\ \hline
+Detector slower with the live view on & Drawing and encoding in the detection loop & Moved to a separate thread taking the newest frame \\ \hline
+Pink image; later black objects purple & Module has no infrared-cut filter (stills with standard and NoIR tuning) & NoIR tuning and saturation 1.8; dark-pixel correction in the live view only \\ \hline
+Raspberry Pi~4 drive would not boot & Boot files copied instead of an image written: one partition, missing root & Rewritten with Raspberry Pi Imager \\ \hline
+Raspberry Pi~4 did not join the hotspot; ssh closed & 5\,GHz hotspot without a regulatory domain; ssh not re-enabled in a second provisioning pass & Hotspot on 2.4\,GHz and country code set (sufficient fix not isolated); ssh enabled \\ \hline
+Recording aimed at the ceiling & No rigid camera mount & Live preview before recording; printed casing \\ \hline
+Bracket model with no lens lip & Cavity cut through the face, visible only in a full render & Cut bounded; checked by full render (bracket not printed) \\ \hline
+Simulated speed and battery on the dashboard with no sign & Dashboard fell back to simulation when the bridge address changed & Live-only mode and network discovery \\ \hline
+Pi~4 not found on a phone hotspot; 6,828 lookup warnings & 1\,s probe shorter than the hotspot round trip; searches every 2\,s & 3\,s probe; back-off to 30\,s; beacon tried at once \\ \hline
+Dashboard crash about 2\,s after showing the web map & Native crash in the web engine on the Pi~5 & Native map selected, web map not created; Qt tile map \\ \hline
+Screen blank after 600\,s; poller at 53\% of a core & X11 screensaver and power management; game-controller poller & Both switched off by the start script \\ \hline
+Team's dashboard started after a reboot & Desktop auto-start is not read on the bare X display & System service for the integrated copy \\ \hline
+All three distances null & Start-up stopped at the first sensor that did not answer & Skip, log and re-probe; 0.5\,s I/O timeout \\ \hline
+Pi~4 under-voltage, throttling, failure to boot & LTE modem powered from the Pi's USB port (2\,s power-flag log) & Separate supply for the telemetry unit; fan for temperature \\ \hline
+Touch felt slow & Panel reports contact with the first position; buttons act on release (25 taps read directly) & Act on press and hide the pointer (next step) \\ \hline
+\end{longtable}
+
+\section{Supporting detail}
+
+\subsection*{Raspberry Pi~4 discovery}
+
+The dashboard's resolver (\texttt{DashboardIntegration/sw7\_endpoints.py}) tries, in order: localhost, an explicit override, a fixed address on a planned Ethernet link (10.20.0.1 and 10.20.0.2), the source of a UDP beacon sent by the bridge every 2\,s on port 50808 (ignored if older than 10\,s), \texttt{pi4-camera.local} through mDNS, and the last address that worked (Figure~\ref{fig:pi4-discovery}). A candidate is accepted when it answers with valid JSON within 3\,s; three failed polls start a new search, with the wait doubling to 30\,s. The offscreen tests pass; the wired link has a setup script but its use on the vehicle is not recorded.
+
+\begin{figure}[htbp]
+\centering
+\input{figures/tikz/pi4_discovery}
+\caption{How the dashboard finds the Raspberry Pi~4 (\texttt{DashboardIntegration/sw7\_endpoints.py}). The same resolver serves the camera page and the live-data provider.}
+\label{fig:pi4-discovery}
+\end{figure}
+
+\subsection*{Camera colour}
+
+With the NoIR tuning and saturation 1.8, printed cards held about 1\,m from the camera measured as in Table~\ref{tab:colour-cards} in the detector's own frames under indoor light. The three colours are clearly identified; grey and white show a small cool shift. Held together in one frame the cards remained distinct. The dark-pixel correction scales each pixel's saturation from fully grey at a brightest channel of 50 or below to unchanged at 110 and above; it took 84\,ms a frame with Pillow on the Raspberry Pi~4, so it runs only in the live-view thread and the detector's input is unchanged. The colours should be checked again in daylight.
+
+\begin{table}[htbp]
+\centering
+\caption{Colour cards in the detector's frames with the NoIR tuning and saturation 1.8 (mean red, green and blue, 0 to 255; 1 October 2026, indoor light).}
+\label{tab:colour-cards}
+\begin{tabular}{lrrr}
+\hline
+Card & R & G & B \\
+\hline
+Blue & 1 & 86 & 216 \\
+Red & 222 & 8 & 77 \\
+Green & 6 & 124 & 103 \\
+Grey & 124 & 129 & 138 \\
+White & 186 & 199 & 197 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection*{Pothole model}
+
+Run 1 (2 October 2026) fine-tuned YOLO11n, pretrained on COCO, on a public 608-image pothole dataset in Colab: 46 epochs, stopped 15 epochs after the best validation result; mAP@50 59.7\% at 640 pixels (precision 66\%, recall 50\%) and 55.0\% at 320 on the dataset's own test images. Validation loss stopped improving after about 20 epochs, so more varied images were needed, not longer training. On the South African dataset's 605 test images (1,238 potholes) it scored 0.000 at 640, 1280 and 1920 pixels, recall at most 1.2\%; drawing the converted labels on an image confirmed that the label conversion was correct. Of that dataset's 4,337 images (3680$\times$2760 pixels), 1,987 contain 5,029 potholes, with a median size of 100 by 26 pixels, about 17 by 4.5 pixels after reduction to a 640-pixel input, and all centres lie between 48 and 62\% of the image height. Run 2 (6 October) cropped each frame to the band from 42 to 68\% of its height and cut it into three overlapping 1280-pixel tiles, so that a median pothole is about 50 by 13 pixels at the training input; after 60 epochs on a T4 it reached a validation mAP@50 of 0.714 at 640 pixels (precision 81\%, recall 62\%) and 0.566 at 320. These are validation scores, optimistic because validation chose the best epoch, and per tile. On the Raspberry Pi~4, a COCO YOLO11n through NCNN at a 320-pixel input ran at 7.9\,frames/s, 175\,ms median from readout to result (\texttt{CameraDetection/ncnn\_bench.py}).
+
+\subsection*{Dashboard map and navigation}
+
+The street-tile map (\texttt{DashboardIntegration/sw7\_tile\_map.py}) draws OpenStreetMap tiles with Qt's painter under the tile usage policy (at most two requests at a time, an identifying user agent, no bulk download), caches tiles for 30 days, falls back to scaled lower-zoom tiles or the team's vector roads, and follows heading-up at zoom 17. A prefetch tool cached 656 tiles (11.9\,MB) at zoom 11 to 16 around the campus. Routes come from the public OSRM service. A generated replay track and a simulated drive allow the map to be shown indoors; both are labelled on screen (REPLAY, Simulated drive) so that they cannot be taken for real positions, and a real fix stops the simulation. The Raspberry Pi~5 also carries a Hailo-8 accelerator, which did not appear on the PCI Express bus because the external connector is not enabled in its boot configuration.

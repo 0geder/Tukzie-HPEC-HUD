@@ -35,6 +35,9 @@
   \usepackage{newtxtext,newtxmath}
 \fi
 
+% Marks results not yet measured, so they are easy to find and replace.
+\newcommand{\outstanding}[1]{\textit{[Outstanding: #1]}}
+
 % Include page formatting here.
 \parskip = 6mm
 \parindent = 0mm
@@ -116,7 +119,7 @@ Signature: \raisebox{-0.3\height}{\includegraphics[height=1.2cm]{Signature.png}}
 \vskip10mm
 Date: \today
 \vskip10mm
-Word count of the body of the report (Chapters 1 to 7, text only, excluding headings, tables, figures, captions and code listings; measured with TeXcount on 7 October 2026): 31\,500.
+Word count of the body of the report (Chapters 1 to 7, text only, excluding headings, tables, figures, captions and code listings; measured with TeXcount on 11 October 2026): 11\,118.
 
 \newpage
 \thispagestyle{empty}
@@ -178,5 +181,6 @@ This report describes the development of an embedded telemetry unit for the TUKZ
 \include{appendixb}
 \include{appendixd}
 \include{appendixc}
+\include{appendixe}
 }
 \end{document}
