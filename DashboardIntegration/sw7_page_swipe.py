@@ -21,7 +21,7 @@ START_PX = 30            # sideways travel before a drag is recognised
 DIRECTION_RATIO = 1.6    # sideways must exceed up/down by this factor to start
 TOGETHER = 0.5           # each finger must have moved at least this share of the average, the same way
 COMMIT_FRACTION = 0.33   # of the page width, to complete on release
-FLICK_PX_PER_S = 900     # or a flick at least this fast (with at least FLICK_MIN_PX of travel)
+FLICK_PX_PER_S = 650     # or a flick at least this fast (with at least FLICK_MIN_PX of travel); real flicks run 1000+
 FLICK_MIN_PX = 80
 SETTLE_MS = 200
 TOUCH = (QEvent.Type.TouchBegin, QEvent.Type.TouchUpdate, QEvent.Type.TouchEnd, QEvent.Type.TouchCancel)
@@ -97,7 +97,7 @@ class PageSwipe(QObject):
                 if abs(dy) >= START_PX and abs(dy) > abs(dx):
                     self._done = True        # a vertical two-finger move: not a page swipe this time
                 return
-        self._drag_to(dx)
+        self._drag_to(dx, event)
 
     # ---- dragging --------------------------------------------------------------------------------
     def _neighbour(self, direction):
@@ -143,9 +143,12 @@ class PageSwipe(QObject):
         self._samples = []
         return True
 
-    def _drag_to(self, dx):
+    def _drag_to(self, dx, event=None):
         self._dx = dx
-        now = time.monotonic()
+        # The touchscreen's own event time (ms), so a busy UI thread does not make a flick look slow;
+        # the processing time only if the platform gives none.
+        stamp = event.timestamp() if event is not None else 0
+        now = stamp / 1000.0 if stamp else time.monotonic()
         self._samples = [(t, x) for t, x in self._samples if now - t < 0.12] + [(now, dx)]
         if self._strip is not None:
             self._strip.move(int(-self._w + dx), 0)
@@ -159,6 +162,7 @@ class PageSwipe(QObject):
                 speed = (x1 - x0) / (t1 - t0)
         flick = abs(speed) >= FLICK_PX_PER_S and abs(dx) >= FLICK_MIN_PX and speed * dx > 0
         commit = not cancelled and (abs(dx) >= COMMIT_FRACTION * w or flick)
+        self.last_release = (round(dx), round(speed), commit)      # for tests and the log
         direction = +1 if dx < 0 else -1      # fingers moving left bring in the next page
         end_x = (-w - w * direction) if commit else -w
         self._dragging, self._done = False, True

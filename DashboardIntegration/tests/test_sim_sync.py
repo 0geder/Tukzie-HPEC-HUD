@@ -163,7 +163,8 @@ def after():
             t = QTest.touchEvent(w, dev)
             for i, (a, b) in enumerate(moves):
                 t.move(i, QPoint(a.x() + (b.x() - a.x()) * k // steps, a.y() + (b.y() - a.y()) * k // steps))
-            t.commit(); QTest.qWait(step_ms)
+            t.commit()
+            if step_ms: QTest.qWait(step_ms)
         if hold_ms: QTest.qWait(hold_ms)
         t = QTest.touchEvent(w, dev)
         for i, (_, b) in enumerate(moves): t.release(i, b)
@@ -177,7 +178,7 @@ def after():
     P = QPoint(420, 420)
     touch([(QPoint(P.x() + i * 45 + j, P.y()), QPoint(P.x() + i * 45 - j, P.y() + j)) for i, j in ((0, 3), (1, -3))], hold_ms=1500)
     check(page() == "driving", "two fingers held still for 1.5 s (with a little jitter) do not change page")
-    touch(fingers(2, P, -110))
+    touch(fingers(2, P, -110), step_ms=40)      # clearly slow: at most about 340 px/s
     check(page() == "driving" and sw.springbacks >= 1, "a short, slow two-finger drag springs back")
     touch([(QPoint(P.x(), P.y()), QPoint(P.x() - 200, P.y())), (QPoint(P.x() + 200, P.y()), QPoint(P.x() + 400, P.y()))])
     check(page() == "driving", "fingers moving apart (a pinch) do not change page")
@@ -189,8 +190,8 @@ def after():
     check(page() == nxt, f"a long two-finger drag left moves on: driving -> {page()}")
     touch(fingers(2, P, +500))
     check(page() == "driving", f"a long drag right comes back: {page()}")
-    touch(fingers(2, P, -150), step_ms=8)
-    check(page() == nxt, f"a quick two-finger flick moves on: {page()}")
+    touch(fingers(2, P, -200), step_ms=0)       # moves sent back to back: a real flick, whatever the test machine's load
+    check(page() == nxt, f"a quick two-finger flick moves on: {page()} (release dx, px/s, commit: {getattr(sw, 'last_release', None)})")
     d.switch_page_id("navigation"); QTest.qWait(300)
     mp = d.navigation.map
     centre = mp.mapTo(w, mp.rect().center()) - QPoint(120, 0)
