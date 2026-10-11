@@ -106,6 +106,24 @@ filter, and `--verbose` prints every detection.
 
 To start it at boot and restart it on failure, see `deploy/INSTALL.md`.
 
+## Experimental pothole path (off by default)
+
+`pothole_detector.py` runs the run-2 YOLO11n pothole model (NCNN, 320 input, folder
+`yolo11n_sa_band_tiles_320_ncnn_model` next to the detector, ncnn installed in the venv) on the
+road band it was trained on, 42 to 68 % of the frame height cut into three tiles, in a separate
+low-priority process. Turn it on with `--potholes on` or `{"potholes": true}` in
+`detector_options.json`. Results appear only under new keys, `road_hazards` and
+`road_hazards_meta` in `/detections` and `road_hazards` in `/alerts`, each marked
+`"experimental": true`; a pothole alert needs potholes in 2 of the last 3 runs (confidence 0.5 or
+more) and is logged with the same five fields (class `pothole`, band null).
+
+It is off because it does not fit next to the main detector on the Pi 4: only at 0.25 runs per
+second (its default rate) did the main detector stay within 10 % (13.9 against 14.6 fps); at 1 Hz
+it fell to 12 fps. Measurements and limits: `../Planning/pothole-integration-prompt.md` and
+BenchTest C10. `--test-image PATH` replaces the camera with a saved picture for checks without
+driving. Adding a model and an alert class is a change the ethics conditions above ask to be
+reviewed before field use.
+
 ## Status
 
 First run against the live camera on the bench on 28 September 2026

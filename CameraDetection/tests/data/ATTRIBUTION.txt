@@ -1,0 +1,6 @@
+pothole_slievebane_road.jpg
+  "Potholes, Slievebane Road" by Kenneth Allen, 18 Feb 2013, geograph.org.uk 3337624,
+  via Wikimedia Commons (File:Potholes,_Slievebane_Road_-_geograph.org.uk_-_3337624.jpg).
+  Licence CC BY-SA 2.0. Unmodified, 640 x 480. Used as a fixed test picture for the pothole path
+  (tests/test_pothole.py and the --test-image check on the Pi). A rural road in Northern Ireland,
+  photographed from standing height, not from this vehicle's camera.

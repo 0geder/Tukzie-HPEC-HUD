@@ -62,9 +62,28 @@ Time-to-collision (TTC = distance / closing_speed) is only computed if a
 vehicle speed is supplied externally (e.g. from the ESP32's GNSS speed
 field) - that field's units are not yet confirmed (see Methodology.tex,
 GNSS section), so TTC output is clearly marked provisional whenever shown.
+
+Experimental pothole path, off by default (pothole_detector.py, --potholes on|off or
+"potholes" in detector_options.json): the run-2 YOLO11n pothole model runs
+in a separate low-priority process on the road band of the latest frame
+(42 to 68 % of the height, three tiles, as it was trained), at 0.25 Hz by default,
+without the main loop ever waiting for it. Its results are published as
+new keys only: "road_hazards" and "road_hazards_meta" in GET /detections
+and "road_hazards" in GET /alerts, each marked "experimental": true; the
+existing "detections" and "active" lists never contain a pothole, so the
+fusion, the bridge and the dashboard are unaffected. A pothole alert needs
+potholes in 2 of the last 3 runs and is logged with the same five fields
+(class "pothole", distance band null). The band is passed to the worker
+in memory over a pipe and never written to disk.
+
+--test-image PATH replaces the camera with one saved picture, repeated at
+about 15 fps, for checking the whole pipeline (including the endpoints)
+without the camera; it can run as a second instance on another
+--preview-port while the service holds the camera.
 """
 import argparse
 import json
+import os
 import time
 import numpy as np
 
@@ -338,10 +357,10 @@ class PreviewServer:
             img = Image.fromarray(rgb_frame)
             draw = ImageDraw.Draw(img)
             for d in detections:
-                colour = BAND_COLOURS.get(d["band"], (150, 150, 150))
+                colour = d.get("colour") or BAND_COLOURS.get(d["band"], (150, 150, 150))
                 draw.rectangle(d["box"], outline=colour, width=3)
                 dist = f"{d['distance_m']:.1f}m" if d["distance_m"] is not None else "?"
-                label = f"{d['class']} {d['confidence']:.2f} {dist} {d['band'] or 'out of range'}"
+                label = d.get("label") or f"{d['class']} {d['confidence']:.2f} {dist} {d['band'] or 'out of range'}"
                 x, y = d["box"][0], max(0, d["box"][1] - 14)
                 draw.rectangle((x, y, x + 7 * len(label), y + 14), fill=colour)
                 draw.text((x + 2, y + 1), label, fill=(0, 0, 0))
@@ -353,18 +372,24 @@ class PreviewServer:
                 self._jpeg = buf.getvalue()
                 self._lock.notify_all()
 
-    def set_alerts(self, active, fps, latency_ms):
+    def set_alerts(self, active, fps, latency_ms, road_hazards=None):
         """Publish the currently active alerts for GET /alerts. Same five
-        fields as the alert log, nothing else about the scene."""
-        body = json.dumps({
+        fields as the alert log, nothing else about the scene. With the
+        pothole path on, "road_hazards" lists the active experimental
+        pothole alerts (a new key, so readers of "active" are unaffected)."""
+        d = {
             "active": active,
             "fps": round(fps, 1),
             "latency_ms": None if latency_ms is None else round(latency_ms),
-        }).encode()
+        }
+        if road_hazards is not None:
+            d["road_hazards"] = road_hazards
+        body = json.dumps(d).encode()
         with self._lock:
             self._alerts_json = body
 
-    def set_detections(self, detections, frame_t_mono, fps, hfov_deg=DEFAULT_HFOV_DEG):
+    def set_detections(self, detections, frame_t_mono, fps, hfov_deg=DEFAULT_HFOV_DEG,
+                       road_hazards=None, road_hazards_meta=None):
         """Publish the latest frame's detections for GET /detections (see
         detection_record). frame_t_mono is the frame's time on this Pi's
         monotonic clock, seconds; the response also carries t_mono, the
@@ -378,6 +403,9 @@ class PreviewServer:
             "bands": [[limit, band] for limit, band in DISTANCE_BANDS],
             "confidence_threshold": CONFIDENCE_THRESHOLD,
         }
+        if road_hazards_meta is not None:   # new keys only; "detections" never holds a pothole
+            d["road_hazards"] = list(road_hazards or [])
+            d["road_hazards_meta"] = road_hazards_meta
         with self._lock:
             self._detections = d
 
@@ -491,6 +519,23 @@ def main():
                               "otherwise only alerts and a timing summary every 5 s are printed")
     parser.add_argument("--timing-log", default=None,
                          help="Optional CSV of per-frame stage timings (no image data), for latency analysis")
+    parser.add_argument("--potholes", choices=("on", "off"), default=None,
+                        help="Experimental pothole path (pothole_detector.py). Default: \"potholes\" in "
+                             "detector_options.json if present, else %s" % ("on" if POTHOLES_DEFAULT else "off"))
+    parser.add_argument("--pothole-model", default=None,
+                        help="NCNN model folder (default: options file \"pothole_model\", else "
+                             + DEFAULT_POTHOLE_MODEL + " next to this script)")
+    parser.add_argument("--pothole-threads", type=int, default=None,
+                        help="ncnn threads in the pothole worker (default 1; it runs at nice 19 on its own core)")
+    parser.add_argument("--pothole-rate", type=float, default=None,
+                        help="Maximum pothole runs per second (default 0.25, the rate that kept the main detector within 10 %%)")
+    parser.add_argument("--pothole-band", default=None, metavar="TOP,BOTTOM",
+                        help="Road band as fractions of the frame height (default 0.42,0.68, as trained)")
+    parser.add_argument("--pothole-conf", type=float, default=None,
+                        help="Pothole confidence threshold (default 0.5)")
+    parser.add_argument("--test-image", default=None,
+                        help="Use this saved picture instead of the camera (repeated at about 15 fps), "
+                             "to test the pipeline without the camera")
     args = parser.parse_args()
 
     # ai_edge_litert is the successor to tflite_runtime and the only one
@@ -503,17 +548,58 @@ def main():
         except ImportError:
             from tensorflow.lite.python.interpreter import Interpreter
 
-    from picamera2 import Picamera2
+    here = os.path.dirname(os.path.abspath(__file__))
+    options_path = os.path.join(here, "detector_options.json")
+    # Start the pothole worker before the camera, so the new process starts clean.
+    pothole_cfg = pothole_settings(args, options_path, here)
+    pothole = None
+    infer_threads = args.threads
+    if pothole_cfg["enabled"]:
+        # Optional ("pothole_reserve_core": true): pin the worker to the last core
+        # and the main detector to the others. Tried on the Pi 4 on 11 Oct 2026 and
+        # worse (10.9 fps against 12 fps sharing all four cores at 1 Hz): the cost
+        # is shared cache and memory bandwidth, not CPU time, so it is off by default.
+        ncpu = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else 1
+        reserve = pothole_cfg["reserve_core"] and ncpu >= 2
+        try:
+            import pothole_detector as pd
+            pothole = pd.PotholeWorker(pothole_cfg["model"], threads=pothole_cfg["threads"],
+                                       max_rate_hz=pothole_cfg["rate"], band=pothole_cfg["band"],
+                                       conf=pothole_cfg["conf"],
+                                       cpus={max(os.sched_getaffinity(0))} if reserve else None)
+            pothole_debounce = pd.RunDebouncer()
+            if reserve:
+                main_cpus = set(sorted(os.sched_getaffinity(0))[:-1])
+                os.sched_setaffinity(0, main_cpus)   # threads started from here on inherit it
+                infer_threads = min(args.threads, len(main_cpus))
+            print(f"Pothole path (EXPERIMENTAL): {pothole_cfg['model']} at {pothole.imgsz} px, band "
+                  f"{pothole_cfg['band'][0]:.2f}-{pothole_cfg['band'][1]:.2f} of the height, 3 tiles, "
+                  f"conf {pothole_cfg['conf']}, alert after {pd.DEBOUNCE_K} of {pd.DEBOUNCE_N} runs, "
+                  f"up to {pothole_cfg['rate']:g} Hz, {pothole_cfg['threads']} thread(s) at nice 19"
+                  + (f", own core; main detector on {infer_threads} cores" if reserve else ""))
+        except Exception as e:   # never let the experimental path stop the main detector
+            if pothole is not None:
+                pothole.close()
+            pothole = None
+            infer_threads = args.threads
+            print(f"Pothole path disabled: {e!r}")
+    else:
+        print("Pothole path: off")
+
+    if args.test_image:
+        Picamera2 = still_image_camera(args.test_image, args.width, args.height)
+    else:
+        from picamera2 import Picamera2
 
     labels = load_labels(args.labels)
-    interpreter = Interpreter(model_path=args.model, num_threads=args.threads)
+    interpreter = Interpreter(model_path=args.model, num_threads=infer_threads)
     interpreter.allocate_tensors()
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
     input_height = input_details[0]['shape'][1]
     input_width = input_details[0]['shape'][2]
 
-    if args.tuning:
+    if args.tuning and not args.test_image:
         picam2 = Picamera2(tuning=Picamera2.load_tuning_file(args.tuning))
         print(f"Camera tuning: {args.tuning}")
     else:
@@ -521,18 +607,16 @@ def main():
     picam2.configure(picam2.create_preview_configuration(
         main={"size": (args.width, args.height), "format": "RGB888"}))
     picam2.start()
-    if args.saturation is not None:
+    if args.saturation is not None and not args.test_image:
         picam2.set_controls({"Saturation": args.saturation})
         print(f"Camera saturation: {args.saturation}")
 
-    import os
-    dn = dark_neutral_setting(args.dark_neutral,
-                              os.path.join(os.path.dirname(os.path.abspath(__file__)), "detector_options.json"))
+    dn = dark_neutral_setting(args.dark_neutral, options_path)
     neutralise = DarkNeutraliser(*dn) if dn else None
     if neutralise:
         print(f"Dark neutralise (live view only, detector input unchanged): neutral with all channels "
               f"at {dn[0]} or below, unchanged from {dn[1]}")
-    print(f"Model loaded: {args.model} (input {input_width}x{input_height}, {args.threads} inference threads)")
+    print(f"Model loaded: {args.model} (input {input_width}x{input_height}, {infer_threads} inference threads)")
     print(f"WARNING: focal_length_px={args.focal_length_px} is UNCALIBRATED - "
           f"distance estimates are order-of-magnitude only until calibrated.")
     print("Watching for:", ", ".join(sorted(HAZARD_CLASSES)))
@@ -557,6 +641,9 @@ def main():
     nearer = {cls: 0 for cls in HAZARD_CLASSES}  # consecutive frames nearer than the active band
     active_band = {cls: None for cls in HAZARD_CLASSES}  # None = no active alert
     active_record = {}  # class -> the last "active" record logged, for GET /alerts
+    pothole_records = []    # latest pothole run's detections, for GET /detections road_hazards
+    pothole_alert = None    # active experimental pothole alert, for GET /alerts road_hazards
+    pothole_last = {"frame_t_mono": None, "infer_ms": None}
 
     preview = None
     timing = LatencyStats(args.timing_log)
@@ -674,6 +761,41 @@ def main():
                             log_alert(args.log_path, class_name, None, 0.0, "cleared")
                             print(f"[{ts_console}] cleared: {class_name}")
 
+            if pothole is not None:
+                # Never waits: collect a finished run if there is one, then hand
+                # over this frame's band if the worker is idle and due.
+                res = pothole.poll()
+                if res is not None:
+                    pothole_records = [pd.pothole_record(det, frame_w, frame_h, args.hfov_deg)
+                                       for det in res["dets"]]
+                    pothole_last = {"frame_t_mono": round(res["frame_t"], 4), "infer_ms": round(res["infer_ms"], 1)}
+                    top = max(pothole_records, key=lambda r: r["confidence"], default=None)
+                    change = pothole_debounce.update(top is not None)
+                    if args.verbose and top is not None:
+                        print(f"[{ts_console}] pothole x{len(pothole_records)} best={top['confidence']:.2f} "
+                              f"({res['infer_ms']:.0f} ms)")
+                    if change == "active":
+                        rec = log_alert(args.log_path, "pothole", None, top["confidence"], "active")
+                        pothole_alert = dict(rec, bearing_deg=top["bearing_deg"], model=top["model"],
+                                             experimental=True)
+                        print(f"[{ts_console}] ALERT pothole (EXPERIMENTAL) conf={top['confidence']:.2f} "
+                              f"bearing={top['bearing_deg']:.1f} deg")
+                    elif change == "cleared":
+                        pothole_alert = None
+                        log_alert(args.log_path, "pothole", None, 0.0, "cleared")
+                        print(f"[{ts_console}] cleared: pothole (experimental)")
+                    elif pothole_alert is not None and top is not None:
+                        pothole_alert = dict(pothole_alert, bearing_deg=top["bearing_deg"])
+                pothole.maybe_submit(rgb, (sensor_ns if sensor_ns else t_got) / 1e9)
+                if preview is not None:
+                    for r in pothole_records:
+                        x0, y0, x1, y1 = r["bbox"]
+                        drawn.append({"box": (int(x0 * frame_w), int(y0 * frame_h), int(x1 * frame_w),
+                                              int(y1 * frame_h)),
+                                      "class": "pothole", "confidence": r["confidence"], "distance_m": None,
+                                      "band": None, "colour": (200, 80, 230),
+                                      "label": f"pothole? {r['confidence']:.2f} (experimental)"})
+
             t_post = time.monotonic_ns()
             timing.add({
                 "frame": frame_count,
@@ -692,11 +814,22 @@ def main():
                 fps_now = frame_count / elapsed_now if elapsed_now > 0 else 0.0
                 total_ms = (t_post - sensor_ns) / 1e6 if sensor_ns else 0.0
                 preview.publish(rgb, drawn, f"{fps_now:.1f} fps  sensor-to-result {total_ms:.0f} ms")
+                # Pothole keys are only passed when the path is on, so the
+                # output (and any stand-in preview object) is unchanged when off.
+                alert_extra, det_extra = {}, {}
+                if pothole is not None:
+                    alert_extra = {"road_hazards": [pothole_alert] if pothole_alert else []}
+                    det_extra = {"road_hazards": pothole_records, "road_hazards_meta": {
+                        "experimental": True, "model": pd.MODEL_NAME, "imgsz": pothole.imgsz,
+                        "band": list(pothole_cfg["band"]), "tiles": 3,
+                        "confidence_threshold": pothole_cfg["conf"],
+                        "debounce": f"{pd.DEBOUNCE_K} of {pd.DEBOUNCE_N} runs",
+                        "rate_hz": round(pothole.rate_hz(), 2), "runs": pothole.runs, **pothole_last}}
                 preview.set_alerts(sorted(active_record.values(),
                                           key=lambda r: BAND_RANK.get(r["distance_band"], 9)),
-                                   fps_now, total_ms if sensor_ns else None)
+                                   fps_now, total_ms if sensor_ns else None, **alert_extra)
                 frame_t = (sensor_ns if sensor_ns else t_got) / 1e9
-                preview.set_detections(frame_dets, frame_t, fps_now, args.hfov_deg)
+                preview.set_detections(frame_dets, frame_t, fps_now, args.hfov_deg, **det_extra)
 
     except KeyboardInterrupt:
         pass
@@ -708,6 +841,9 @@ def main():
         picam2.stop()
         if preview is not None:
             preview.close()
+        if pothole is not None:
+            print(f"Pothole runs: {pothole.runs} ({pothole.rate_hz():.1f} Hz over the last 10 s)")
+            pothole.close()
 
 
 class DarkNeutraliser:
@@ -755,6 +891,104 @@ def dark_neutral_setting(cli_value, options_path):
         return None
     lo, hi = (int(v) for v in (raw.split(",") if isinstance(raw, str) else raw))
     return lo, hi
+
+
+# Experimental pothole path: off by default. Measured on the Pi 4 with the
+# service running (11 Oct 2026, Planning/pothole-integration-prompt.md): the
+# main detector stays within 10 % of its 14.6 fps / 121 ms only with the pothole
+# model at 0.25 Hz (13.9 fps, 125 ms median, 157 ms p95); at 0.5 Hz the p95
+# latency rose 12 %, and at 1 Hz or more fps fell 18 to 25 %. 0.25 Hz is too slow
+# to warn a moving vehicle, so the 2 to 5 Hz the path was meant to run at does
+# not fit on the Pi 4 next to the main detector. Turn it on with --potholes on
+# or {"potholes": true} in detector_options.json.
+POTHOLES_DEFAULT = False
+POTHOLE_RATE_DEFAULT_HZ = 0.25
+DEFAULT_POTHOLE_MODEL = "yolo11n_sa_band_tiles_320_ncnn_model"
+
+
+def pothole_settings(args, options_path, here):
+    """Pothole path settings: command line first, then detector_options.json
+    ("potholes", "pothole_model", "pothole_threads", "pothole_rate",
+    "pothole_band", "pothole_conf"), then the defaults."""
+    try:
+        with open(options_path) as f:
+            opts = json.load(f)
+    except (OSError, ValueError):
+        opts = {}
+
+    def pick(cli, key, default):
+        return cli if cli is not None else opts.get(key, default)
+
+    enabled = args.potholes == "on" if args.potholes is not None else bool(opts.get("potholes", POTHOLES_DEFAULT))
+    model = pick(args.pothole_model, "pothole_model", None)
+    if model is None:
+        model = os.path.join(here, DEFAULT_POTHOLE_MODEL)
+        if not os.path.isdir(model):   # development checkout: the training run's export
+            model = os.path.join(here, "training", "runs", "run2_sa_band_tiles_640", DEFAULT_POTHOLE_MODEL)
+    elif not os.path.isabs(model):
+        model = os.path.join(here, model)
+    band = pick(args.pothole_band, "pothole_band", (0.42, 0.68))
+    band = tuple(float(v) for v in (band.split(",") if isinstance(band, str) else band))
+    if len(band) != 2 or not 0.0 <= band[0] < band[1] <= 1.0:
+        raise ValueError("pothole band must be TOP,BOTTOM with 0 <= TOP < BOTTOM <= 1")
+    return {"enabled": enabled, "model": model, "band": band,
+            "threads": int(pick(args.pothole_threads, "pothole_threads", 1)),
+            "reserve_core": bool(opts.get("pothole_reserve_core", False)),
+            "rate": float(pick(args.pothole_rate, "pothole_rate", POTHOLE_RATE_DEFAULT_HZ)),
+            "conf": float(pick(args.pothole_conf, "pothole_conf", 0.5))}
+
+
+def still_image_camera(path, width, height):
+    """A stand-in for Picamera2 that returns one saved picture, resized to
+    width x height, at about 15 fps, stored B, G, R like Picamera2's
+    "RGB888". For pipeline tests without the camera; the picture is only
+    read, never written."""
+    from PIL import Image
+    rgb = np.asarray(Image.open(path).convert("RGB").resize((width, height), Image.BILINEAR))
+    bgr = np.ascontiguousarray(rgb[..., ::-1])
+
+    class _Request:
+        def __init__(self):
+            self.ts = time.monotonic_ns()
+
+        def make_array(self, name):
+            return bgr.copy()
+
+        def get_metadata(self):
+            return {"SensorTimestamp": self.ts}
+
+        def release(self):
+            pass
+
+    class StillCamera:
+        def __init__(self, *a, **k):
+            self.next_t = time.monotonic()
+
+        def create_preview_configuration(self, main):
+            return main
+
+        def configure(self, c):
+            pass
+
+        def start(self):
+            print(f"Test image instead of the camera: {path}")
+
+        def stop(self):
+            pass
+
+        def set_controls(self, c):
+            pass
+
+        def capture_request(self):
+            self.next_t += 1 / 15.0
+            delay = self.next_t - time.monotonic()
+            if delay > 0:
+                time.sleep(delay)
+            else:
+                self.next_t = time.monotonic()
+            return _Request()
+
+    return StillCamera
 
 
 def np_resize(frame, width, height):

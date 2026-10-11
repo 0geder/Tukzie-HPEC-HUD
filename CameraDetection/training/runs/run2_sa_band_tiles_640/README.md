@@ -16,7 +16,11 @@ Read with care:
 - Per tile, not per full frame.
 - `training_record.json` says "yolo11n.pt (COCO-pretrained)" because cell 6 used to write that text whatever the
   start; cell 4b starts from run 1's weights when they are on Drive. Cell 5b prints the real start from `args.yaml`.
-- Not yet run on the Raspberry Pi or on the vehicle's camera.
+- Held-out test score: still to be made. `../../score_heldout.py` scores `best.pt` on the test tiles in Colab
+  (instructions at the top of that script); it refuses to report the validation split as held out.
+- On the Raspberry Pi 4 (11 Oct 2026): the 320 export runs inside the detector as an experimental, off-by-default
+  path (`../../../pothole_detector.py`); three tiles take 0.55 to 0.75 s next to the main detector. Not yet run on
+  the vehicle's camera on a road.
 
 Files: `best.pt`, NCNN models for the Pi at 320 and 640, `results.csv` and `results.png` (training curves),
 `confusion_matrix.png`, `BoxPR_curve.png`, `training_record.json`.
