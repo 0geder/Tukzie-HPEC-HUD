@@ -13,7 +13,7 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 |---|---|---|---|---|
 | 1.1 | Central database (SQLite ingest on the Pi 5), sequence numbers, backlog replay after an outage, sync report (completeness, latency) | Agent | Planning/central-database-sync-prompt.md, Server/ | In progress |
 | 1.2 | Firmware v0.7.4: the above plus the IMU low-pass filter at 94 Hz (anti-aliasing) | Agent (same) | as 1.1 | In progress, needs flashing from the laptop |
-| 1.3 | Road test protocol and printable checklist | Agent | Planning/road-test-2026-10-14.md, Planning/road-test-checklist.md | In progress |
+| 1.3 | Road test protocol and printable checklist | Agent | Planning/road-test-2026-10-14.md, Planning/road-test-checklist.md | Drafted; writing the files waits for the student's permission (declined once) |
 | 1.4 | Pothole model (run 2) running on the Pi 4 beside the main detector, debounced, experimental | Agent | Planning/pothole-integration-prompt.md | In progress |
 | 1.5 | Hub with its own power adapter for the ESP32 (the modem browns out the Pi 4 otherwise) | Student | Report Appendix C | Open |
 | 1.6 | 5.1 V 3 A supply for the Pi 4 | Student | Appendix C | Open |
@@ -40,7 +40,7 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 | # | Item | Owner | Brief / record | Status |
 |---|---|---|---|---|
 | 3.1 | Uber-style destination search: current location as start, instant recents, fast relevant suggestions | Agent | Planning/destination-search-prompt.md | In progress |
-| 3.2 | Deck, poster, talking points, Q&A updated with all results since 6 Oct; talk down to 10 minutes | Agent | Presentation/ | In progress |
+| 3.2 | Deck, poster, talking points, Q&A updated with all results since 6 Oct; talk down to 10 minutes | Agent | Presentation/ | Done 11 Oct (eee1296), about 9.2 min; refresh after the road test and v0.7.4 |
 | 3.3 | SEN55 environmental sensor: firmware read, dashboard, bench test; air-quality anomaly rule (PM2.5 with VOC rise) | Claude | wiring in Report Appendix C | Blocked: JST GH 6-pin cable |
 | 3.4 | Sensor pod and telemetry housing finalised for printing | Claude | CameraMount/sensor_pod/README.md | Blocked: board measurements (Student) |
 | 3.5 | Offline map stage 1 (whole Western Cape vector map), stage 2 (offline routing), offline voice | Claude | Planning/map-offline-navigation-prompt.md | Not started (about 1.5 GB of downloads; after the report) |
