@@ -6,9 +6,16 @@ map page one should use three fingers".
 
 ## Behaviour
 
-- Two fingers moved together sideways (about 140 px or more, mostly horizontal, within about a second) go to the
-  next page (swipe left) or the previous page (swipe right), in the same order and wrap-around as the dashboard's
-  own left and right arrows (dashboard_main normal_ids).
+Revised the same day after the first version flipped a page when two fingers merely rested on the screen
+("it has to be smooth ... some decorum please"): the change now follows the fingers and is decided on release.
+
+- Nothing happens until the fingers move sideways together: every finger the same way, mostly horizontal, past
+  about 30 px. Holding, resting a hand, a pinch or a vertical move never moves a page.
+- While dragging, the current page follows the fingers and the neighbouring page slides in beside it.
+- On lifting, the page changes only if the drag passed a third of the width or ended in a quick flick the same
+  way; otherwise it springs back. Both settle in about 0.2 s.
+- Swipe left for the next page and right for the previous one, in the same order and wrap-around as the
+  dashboard's own left and right arrows (dashboard_main normal_ids).
 - On the map itself, two fingers keep zooming and panning the map; three fingers swipe pages. Elsewhere on the
   Navigation page (search bar, buttons) two fingers swipe as on any page.
 - The map ignores three-finger touches (no zoom or pan jump while swiping).

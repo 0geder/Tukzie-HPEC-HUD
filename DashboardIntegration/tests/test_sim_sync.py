@@ -146,43 +146,61 @@ def after():
     d._on_vehicle_state(fix)
     check(not m.simulating and d.current_state.data_source == "sw7_telemetry" and m.vehicle == (-33.9570, 18.4610),
           "a real GPS fix stops the simulation and every page shows live data")
-    # multi-finger page swipes (Planning/page-swipe-prompt.md)
+    # multi-finger page swipes, carousel style (Planning/page-swipe-prompt.md)
     from PySide6.QtTest import QTest
     from PySide6.QtCore import QPoint
     dev = QTest.createTouchDevice()
+    sw = d._sw7_page_swipe
     def page():
         return d.page_ids[d.stack.currentIndex()]
-    def swipe(n, start, dx, steps=8):
-        pts = [QPoint(start.x() + i * 45, start.y() + i * 12) for i in range(n)]
+    def touch(moves, hold_ms=0, step_ms=20):
+        """moves: per finger (start QPoint, end QPoint); fingers go down, move in steps, rest, lift."""
+        steps = 8
         t = QTest.touchEvent(w, dev)
-        for i, p in enumerate(pts): t.press(i, p)
-        t.commit(); QTest.qWait(20)
+        for i, (a, _) in enumerate(moves): t.press(i, a)
+        t.commit(); QTest.qWait(step_ms)
         for k in range(1, steps + 1):
             t = QTest.touchEvent(w, dev)
-            for i, p in enumerate(pts): t.move(i, QPoint(p.x() + dx * k // steps, p.y()))
-            t.commit(); QTest.qWait(20)
+            for i, (a, b) in enumerate(moves):
+                t.move(i, QPoint(a.x() + (b.x() - a.x()) * k // steps, a.y() + (b.y() - a.y()) * k // steps))
+            t.commit(); QTest.qWait(step_ms)
+        if hold_ms: QTest.qWait(hold_ms)
         t = QTest.touchEvent(w, dev)
-        for i, p in enumerate(pts): t.release(i, QPoint(p.x() + dx, p.y()))
-        t.commit(); QTest.qWait(400)
+        for i, (_, b) in enumerate(moves): t.release(i, b)
+        t.commit(); QTest.qWait(450)          # settle animation
+    def fingers(n, start, dx, dy=0):
+        return [(QPoint(start.x() + i * 45, start.y() + i * 12), QPoint(start.x() + i * 45 + dx, start.y() + i * 12 + dy))
+                for i in range(n)]
     d.switch_page_id("driving"); QTest.qWait(200)
     order = d.normal_ids
     nxt = order[(order.index("driving") + 1) % len(order)]
-    swipe(2, QPoint(450, 420), -320)
-    check(page() == nxt, f"two fingers swiped left: driving -> {page()} (expected {nxt})")
-    swipe(2, QPoint(450, 420), +320)
-    check(page() == "driving", f"two fingers swiped right: back to {page()}")
-    swipe(1, QPoint(450, 420), -320)
+    P = QPoint(420, 420)
+    touch([(QPoint(P.x() + i * 45 + j, P.y()), QPoint(P.x() + i * 45 - j, P.y() + j)) for i, j in ((0, 3), (1, -3))], hold_ms=1500)
+    check(page() == "driving", "two fingers held still for 1.5 s (with a little jitter) do not change page")
+    touch(fingers(2, P, -110))
+    check(page() == "driving" and sw.springbacks >= 1, "a short, slow two-finger drag springs back")
+    touch([(QPoint(P.x(), P.y()), QPoint(P.x() - 200, P.y())), (QPoint(P.x() + 200, P.y()), QPoint(P.x() + 400, P.y()))])
+    check(page() == "driving", "fingers moving apart (a pinch) do not change page")
+    touch(fingers(2, P, -200, 260))
+    check(page() == "driving", "a mostly vertical two-finger move does not change page")
+    touch(fingers(1, P, -500))
     check(page() == "driving", "one finger does not change page")
+    touch(fingers(2, P, -500))
+    check(page() == nxt, f"a long two-finger drag left moves on: driving -> {page()}")
+    touch(fingers(2, P, +500))
+    check(page() == "driving", f"a long drag right comes back: {page()}")
+    touch(fingers(2, P, -150), step_ms=8)
+    check(page() == nxt, f"a quick two-finger flick moves on: {page()}")
     d.switch_page_id("navigation"); QTest.qWait(300)
     mp = d.navigation.map
-    centre = mp.mapTo(w, mp.rect().center()) - QPoint(80, 0)
-    swipe(2, centre, -320)
+    centre = mp.mapTo(w, mp.rect().center()) - QPoint(120, 0)
+    touch(fingers(2, centre, -500))
     check(page() == "navigation", "two fingers on the map stay on the map (they zoom and pan)")
     z0 = mp._zoom_target
     after_nav = order[(order.index("navigation") + 1) % len(order)]
-    swipe(3, centre, -320)
+    touch(fingers(3, centre, -500))
     check(page() == after_nav and abs(mp._zoom_target - z0) < 1e-9,
-          f"three fingers on the map change page to {page()} without zooming")
+          f"three fingers on the map move to {page()} without zooming")
     d.switch_page_id("driving")
     QTimer.singleShot(800, lambda: (w.grab().save(f"{OUT}/live_driving.png"), print("RESULT", "PASS" if not fails else f"FAIL {fails}"), a.quit()))
 QTimer.singleShot(18000, start)
