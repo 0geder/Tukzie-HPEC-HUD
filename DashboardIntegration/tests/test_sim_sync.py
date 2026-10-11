@@ -49,7 +49,7 @@ for _n in ("QSoundEffect", "QMediaPlayer", "QAudioOutput", "QMediaDevices", "QAu
 sys.modules["PySide6.QtMultimedia"] = _m
 from types import SimpleNamespace
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, Qt
 a = QApplication(sys.argv)
 from app.main_window import MainWindow
 w = MainWindow(); w.resize(1280, 800); w.show()
@@ -107,6 +107,21 @@ def after():
     t_fix, interval = m._last_fix_time, m._interval
     for _ in range(5): d._on_vehicle_state(d._sw7_live_state)
     check(m._last_fix_time == t_fix and m._interval == interval, "the map ignores its own simulated position echoed back")
+    # finger-drag scrolling on Diagnostics (it only scrolled with a scrollbar or wheel before 11 Oct)
+    from PySide6.QtWidgets import QScrollArea, QScroller
+    from PySide6.QtTest import QTest
+    from PySide6.QtCore import QPoint
+    d.switch_page_id("diagnostics")
+    area = d.diagnostics.findChild(QScrollArea)
+    vp = area.viewport(); bar = area.verticalScrollBar(); bar.setValue(0)
+    QTest.mousePress(vp, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, QPoint(400, 500))
+    for y in range(500, 150, -25):
+        QTest.mouseMove(vp, QPoint(400, y), 15)
+    QTest.mouseRelease(vp, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, QPoint(400, 150), 15)
+    QTest.qWait(600)
+    check(QScroller.hasScroller(vp) and bar.maximum() > 0 and bar.value() > 0,
+          f"a finger drag scrolls Diagnostics (position {bar.value()} of {bar.maximum()})")
+    d.switch_page_id("navigation")
     # spoken directions over the whole simulated route: right onto Station Road at 400 m, arrival at 800 m
     g = d._sw7_voice_guide
     m.stop_simulation(); g.tick()
