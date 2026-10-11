@@ -17,6 +17,7 @@ exists, git-ignored), defaults.
   SW7_MQTT_TOPIC     topic filter           (default sw7/telemetry)
   SW7_MQTT_TLS       1 to use TLS           (default 0)
   SW7_CLIENT_ID      MQTT client id         (default sw7-ingest-<hostname>)
+  SW7_PERSISTENT_SESSION  1 = keep a broker session that queues QoS 1 while down (default 0)
   SW7_DB             SQLite file            (default Server/sw7_telemetry.db)
 
 The session is persistent (clean session off, QoS 1), so a broker that keeps
@@ -267,6 +268,11 @@ def load_config(argv=None):
         "tls": tls,
         "client_id": pick(a.client_id, "SW7_CLIENT_ID", f"sw7-ingest-{socket.gethostname()}"),
         "db": pick(a.db, "SW7_DB", DEFAULT_DB),
+        # Persistent broker session (the broker queues QoS 1 messages while the ingest is down). Off by default:
+        # test.mosquitto.org does not queue them anyway, and on 11 Oct its saved session for this client id stopped
+        # delivering while still connected (records reached the broker, none reached the database). Turn on
+        # (SW7_PERSISTENT_SESSION=1) for a broker that queues, such as a project broker.
+        "persistent": str(pick(None, "SW7_PERSISTENT_SESSION", "0")).strip() == "1",
         "once": a.once,
         "quiet": a.quiet,
         "import_log": a.import_log,
@@ -280,9 +286,10 @@ def make_client(cfg, store, log=print):
 
     try:   # paho-mqtt 2.x
         client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=cfg["client_id"],
-                             clean_session=False, protocol=mqtt.MQTTv311)
+                             clean_session=not cfg.get("persistent", False), protocol=mqtt.MQTTv311)
     except AttributeError:   # paho-mqtt 1.x
-        client = mqtt.Client(client_id=cfg["client_id"], clean_session=False, protocol=mqtt.MQTTv311)
+        client = mqtt.Client(client_id=cfg["client_id"], clean_session=not cfg.get("persistent", False),
+                             protocol=mqtt.MQTTv311)
     if cfg.get("user"):
         client.username_pw_set(cfg["user"], cfg.get("password"))
     if cfg.get("tls"):
