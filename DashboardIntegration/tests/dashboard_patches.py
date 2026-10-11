@@ -20,6 +20,7 @@ LOGIN_PATCHES: skip the driver/PIN page when TUKZIE_SKIP_LOGIN=1.
 SENSORS_PATCHES: the Sensors page on the nav bar and the hazard banner over every page.
 ANALYTICS_CAROUSEL_PATCHES: the Analytics page as an infinite vertical carousel with a Graphs card.
 DRIVING_PATCHES: large speed, battery and range in place of the dial and pedal bars.
+SEARCH_PATCHES: destination search with Photon type-ahead, recents and a start-position header (sw7_search.py).
 THEME_PATCHES: Night and Day themes, flat surfaces and the Atkinson Hyperlegible font (TUKZIE_SW7_THEME=0 restores the original).
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
@@ -40,6 +41,7 @@ COPIES = (
     ("sw7_voice_guide.py", "app/pages/sw7_voice_guide.py"),
     ("sw7_touch.py", "app/pages/sw7_touch.py"),
     ("sw7_page_swipe.py", "app/pages/sw7_page_swipe.py"),
+    ("sw7_search.py", "app/pages/sw7_search.py"),
     ("fonts/AtkinsonHyperlegible-Regular.ttf", "app/fonts/AtkinsonHyperlegible-Regular.ttf"),
     ("fonts/AtkinsonHyperlegible-Bold.ttf", "app/fonts/AtkinsonHyperlegible-Bold.ttf"),
     ("fonts/OFL.txt", "app/fonts/OFL.txt"),
@@ -608,4 +610,40 @@ SIM_LINK_PATCHES = (
      "        _sw7_page_swipe(self)   # SW-7: two-finger swipe between pages (three on the map)\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES
+SEARCH_PATCHES = (
+    # navigation_page.py: destination search like a ride-hailing app (sw7_search.py; Planning/destination-search-prompt.md).
+    # Photon type-ahead biased to the current position, recents and offline matches shown at once, two-line rows with
+    # distances, a "From:" header row, placeholder "Where to?". Only the destination field changes; the team's
+    # request_suggestions stays the fallback and the path for any other field. TUKZIE_SW7_SEARCH=0 keeps the team's search.
+    ("app/pages/navigation_page.py",
+     "        timer.timeout.connect(lambda n=name, e=edit: self.coordinator.request_suggestions(n, e.text()))\n",
+     "        from .sw7_search import enabled as _sw7_search_enabled\n"
+     "        if name == \"destination\" and _sw7_search_enabled():   # SW-7: 120 ms debounce, Photon type-ahead\n"
+     "            timer.setInterval(120)\n"
+     "            timer.timeout.connect(lambda e=edit: self._sw7_search.request(e.text()) if getattr(self, \"_sw7_search\", None)\n"
+     "                                  else self.coordinator.request_suggestions(\"destination\", e.text()))\n"
+     "        else:\n"
+     "            timer.timeout.connect(lambda n=name, e=edit: self.coordinator.request_suggestions(n, e.text()))\n"),
+    ("app/pages/navigation_page.py",
+     "            self.suggestions.setGeometry(p.x(), p.y() + 4, self.destination.width(), min(160, 32 * max(1, self.suggestions.count())))\n",
+     "            if getattr(self, \"_sw7_search\", None) is not None:   # SW-7: two-line rows, up to five, above the keyboard\n"
+     "                self.suggestions.setGeometry(self._sw7_search.list_geometry())\n"
+     "            else:\n"
+     "                self.suggestions.setGeometry(p.x(), p.y() + 4, self.destination.width(), min(160, 32 * max(1, self.suggestions.count())))\n"),
+    ("app/pages/navigation_page.py",
+     "        QTimer.singleShot(0, self._restore_latest_service_state)\n",
+     "        QTimer.singleShot(0, self._restore_latest_service_state)\n"
+     "        from .sw7_search import install as _sw7_search_install\n"
+     "        _sw7_search_install(self)   # SW-7: destination search (sets self._sw7_search unless TUKZIE_SW7_SEARCH=0)\n"),
+    # coordinator.py: with no GPS fix the route starts at the modem's network position, then the last known fix, and
+    # only then at UCT; each start is labelled for what it is.
+    ("app/asis/coordinator.py",
+     "            return {'name':'Current location','label':'Current location','lat':float(lat),'lon':float(lon),'kind':'gps'}\n",
+     "            return {'name':'Current location','label':'Current location','lat':float(lat),'lon':float(lon),'kind':'gps'}\n"
+     "        if __import__('os').environ.get('TUKZIE_SW7_SEARCH','1').strip()!='0':   # SW-7: network position, then last fix\n"
+     "            from ..pages.sw7_search import fallback_start\n"
+     "            start=fallback_start(raw,self.last_asis_fix)\n"
+     "            if start: return start\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES
