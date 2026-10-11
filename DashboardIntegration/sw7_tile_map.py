@@ -331,6 +331,11 @@ class SW7TileMap(QWidget):
         self.update()
 
     def update_vehicle(self, state):
+        # The dashboard's simulated state (sw7_sim_link) carries this map's own simulated position back to it on
+        # every dispatch. Taking it would count each echo as a new fix and shorten the glide between steps to the
+        # live polling rate, so the marker moved in jerks (seen 11 Oct). The map is the source: ignore the echo.
+        if getattr(state, "sw7_from_dashboard", False):
+            return
         now = time.monotonic()
         simulated = bool(getattr(state, "sw7_simulated", False))
         if not simulated and _num(getattr(state, "latitude", None)) is not None \

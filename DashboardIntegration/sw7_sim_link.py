@@ -16,7 +16,7 @@ import math
 import time
 from collections import deque
 
-from PySide6.QtCore import QEvent, QObject, Qt
+from PySide6.QtCore import QEvent, QObject, Qt, QTimer
 from PySide6.QtWidgets import QLabel
 
 try:
@@ -152,6 +152,7 @@ class SimDrive:
         s.data_source = SIM_SOURCE
         s.is_simulated = True
         s.sw7_simulated = True
+        s.sw7_from_dashboard = True       # the map ignores its own position coming back (sw7_tile_map.update_vehicle)
         s.sw7_soc_seeded = self.soc_seeded
         return s
 
@@ -235,6 +236,11 @@ def sim_view(main, live):
         marks = main._sw7_marks = _Indicators(main)
     m = getattr(getattr(main, "navigation", None), "map", None)
     simulating = bool(getattr(m, "simulating", False)) and getattr(m, "vehicle", None) is not None
+    real_fix = (_num(getattr(live, "latitude", None)) is not None and _num(getattr(live, "longitude", None)) is not None
+                and bool((getattr(live, "signal_validity", None) or {}).get("gps")))
+    if simulating and real_fix:
+        m.stop_simulation()          # a real position always wins; every page goes back to live
+        simulating = False
     if simulating and not sim.active:
         sim.begin(main, live)
     elif not simulating and sim.active:
@@ -261,4 +267,5 @@ def refresh(main):
 def connect(main):
     m = getattr(getattr(main, "navigation", None), "map", None)
     if m is not None and hasattr(m, "sim_tick"):      # the team's own map has no simulated drive
-        m.sim_tick.connect(lambda: refresh(main))
+        # after the step has finished, not inside it (a step can end the simulation from within a dispatch)
+        m.sim_tick.connect(lambda: QTimer.singleShot(0, lambda: refresh(main)))

@@ -101,6 +101,19 @@ def after():
     live = copy.copy(d._sw7_live_state); live.data_source = "sw7_telemetry"
     d._on_vehicle_state(live)
     check(d._sw7_marks.chip.text() == "LIVE", "LIVE chip with live telemetry")
+    # the echo of the map's own position must not disturb its glide timing (the jerky drive of 11 Oct)
+    m = d.navigation.map
+    m.start_simulation(); m._sim_step()
+    t_fix, interval = m._last_fix_time, m._interval
+    for _ in range(5): d._on_vehicle_state(d._sw7_live_state)
+    check(m._last_fix_time == t_fix and m._interval == interval, "the map ignores its own simulated position echoed back")
+    # a real GPS fix ends the simulation on every page
+    fix = copy.copy(d._sw7_live_state); fix.data_source = "sw7_telemetry"
+    fix.latitude, fix.longitude = -33.9570, 18.4610
+    fix.signal_validity = dict(fix.signal_validity or {}, gps=True)
+    d._on_vehicle_state(fix)
+    check(not m.simulating and d.current_state.data_source == "sw7_telemetry" and m.vehicle == (-33.9570, 18.4610),
+          "a real GPS fix stops the simulation and every page shows live data")
     d.switch_page_id("driving")
     QTimer.singleShot(800, lambda: (w.grab().save(f"{OUT}/live_driving.png"), print("RESULT", "PASS" if not fails else f"FAIL {fails}"), a.quit()))
 QTimer.singleShot(18000, start)
