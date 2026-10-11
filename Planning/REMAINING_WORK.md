@@ -12,14 +12,14 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 | # | Item | Owner | Brief / record | Status |
 |---|---|---|---|---|
 | 1.1 | Central database (SQLite ingest on the Pi 5), sequence numbers, backlog replay after an outage, sync report (completeness, latency) | Agent | Planning/central-database-sync-prompt.md, Server/ | Done 11 Oct (7a754c6); ingest running on the Pi 5 as a user service; host and server tests pass |
-| 1.2 | Firmware v0.7.4: the above plus the IMU low-pass filter at 94 Hz (anti-aliasing) | Agent (same) | as 1.1 | Compiled; needs flashing from the laptop (COM10) |
+| 1.2 | Firmware v0.7.4: the above plus the IMU low-pass filter at 94 Hz (anti-aliasing) | Agent (same) | as 1.1 | Flashed 11 Oct, running |
 | 1.3 | Road test protocol and printable checklist | Agent | Planning/road-test-2026-10-14.md, Planning/road-test-checklist.md | Drafted; writing the files waits for the student's permission (declined once) |
 | 1.4 | Pothole model (run 2) running on the Pi 4 beside the main detector, debounced, experimental | Agent | Planning/pothole-integration-prompt.md | Built, off by default (too slow on the Pi 4 beside the main detector: only 0.25 Hz fits); held-out score script ready for Colab |
 | 1.5 | Hub with its own power adapter for the ESP32 (the modem browns out the Pi 4 otherwise) | Student | Report Appendix C | Open |
 | 1.6 | 5.1 V 3 A supply for the Pi 4 | Student | Appendix C | Open |
 | 1.7 | Send the joint road-test email; confirm the EcoFlow with Melokuhle | Student | chat 9 to 10 Oct | Open |
 | 1.8 | Ask Melokuhle for broker details (host, port, user, TLS) and agree a topic | Student | Planning/central-database-sync-prompt.md | Open |
-| 1.9 | Flash v0.7.4 and run the bench outage test before Wednesday | Claude + Student | BenchTest/TEST_PROCEDURES.md (T15), BenchTest/sync_outage_test.py | Ready: ESP32 to the laptop, flash, run T15 |
+| 1.9 | Flash v0.7.4 and run the bench outage test before Wednesday | Claude + Student | BenchTest/TEST_PROCEDURES.md (T15), BenchTest/sync_outage_test.py | Done 11 Oct: PASS, 112 of 112 records, 60 replayed in 37 s; latency to measure outdoors |
 | 1.10 | Temporary mounts on the trike for camera and sensor board, Pi 4 box, ESP32 near the pack for the BMS | Student | road-test plan | Open |
 
 ## Priority 2: report (pre-submission about 22 Oct)

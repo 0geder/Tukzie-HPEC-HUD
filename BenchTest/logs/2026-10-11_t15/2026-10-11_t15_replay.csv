@@ -1,0 +1,2 @@
+episode,records,boots,first_recv_ms,last_recv_ms,drain_s,rate_per_s,outage_span_s,oldest_record_age_s
+1,60,1,1791701340584,1791701377889,37.305,1.5815574319796275,600.11,

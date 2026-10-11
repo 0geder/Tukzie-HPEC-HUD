@@ -1,0 +1,2 @@
+dev,boot,first_seq,last_seq,expected,stored,missing,missing_ranges,replayed,imported,duplicates,in_log,in_log_not_db,in_db_not_log
+sw7-esp32-telemetry,2,65,176,112,112,0,none,60,24,0,111,0,1
