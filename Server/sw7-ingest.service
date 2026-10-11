@@ -1,0 +1,23 @@
+# systemd user unit for the SW-7 ingest (no root needed).
+# Install as the normal user:
+#   mkdir -p ~/.config/systemd/user
+#   cp ~/sw7_server/sw7-ingest.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now sw7-ingest
+#   journalctl --user -u sw7-ingest -f
+# A user unit runs while the user's systemd instance runs (a login or desktop
+# session). To keep it running with nobody logged in, the user needs "linger"
+# (loginctl enable-linger), which may need an administrator; see README.md.
+[Unit]
+Description=SW-7 telemetry ingest (MQTT to SQLite)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/sw7_server
+ExecStart=%h/sw7_server/run_ingest.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

@@ -11,7 +11,9 @@
 #include <Preferences.h>
 #include <LittleFS.h>
 
-#define FIRMWARE_VERSION "v0.7.3"
+#include "sync_ledger.h"
+
+#define FIRMWARE_VERSION "v0.7.4"
 
 // ============================================================
 // SW-7 ESP32-S3 Firmware (version: FIRMWARE_VERSION above)
@@ -564,11 +566,15 @@ bool initImu(Adafruit_MPU6050* sensor, TwoWire* wire, int sda, int scl) {
   sensor->setAccelerometerRange(MPU6050_RANGE_8_G);
   sensor->setGyroRange(MPU6050_RANGE_500_DEG);
 
-  // Filter bandwidth: ISO 2631-1 requires content up to 80 Hz. The
-  // library's narrower filter presets would attenuate exactly the band
-  // this project needs, so the widest available bandwidth is set
-  // explicitly rather than left at the library default.
-  sensor->setFilterBandwidth(MPU6050_BAND_260_HZ);
+  // Filter bandwidth (v0.7.4): 94 Hz, was 260 Hz up to v0.7.3. Sampling is
+  // 200 Hz, so the Nyquist frequency is 100 Hz: with the 260 Hz filter,
+  // vibration between 100 and 260 Hz passed the sensor's own low-pass filter
+  // and aliased into the 0 to 100 Hz band the ride features are computed
+  // from. 94 Hz is the widest MPU6050 preset below Nyquist and still covers
+  // the ISO 2631-1 whole-body band (weighting up to 80 Hz), as the report's
+  // Methodology (ride features) recommends before field data. The filter
+  // adds a few ms of group delay, which the 1 s ride windows do not notice.
+  sensor->setFilterBandwidth(MPU6050_BAND_94_HZ);
 
   return true;
 }
@@ -1347,6 +1353,43 @@ bool parseGnssInfo(const String& raw, GnssFix* out) {
   return true;
 }
 
+// ============================================================
+// Device UTC from GNSS (v0.7.4), for the record's utc_ms and the server's
+// end-to-end latency figure. Kept as an offset between UTC and the ESP32's
+// own esp_timer clock, set from each fix's date and time. +CGNSSINFO reports
+// the time of the last fix, which is at or before the poll, so the largest
+// offset seen is the freshest: a new fix replaces the anchor when its offset
+// is larger (by under 5 s; anything bigger is treated as a glitch), or when
+// the anchor is over 10 minutes old (clock drift). Uncertainty is about the
+// modem's fix-to-report delay, under about 1 s (not measured). Without a fix
+// for 6 hours, utc_ms goes back to null rather than trusting the drift.
+// ============================================================
+bool utcAnchorValid = false;
+int64_t utcOffsetMs = 0;      // UTC ms minus esp_timer ms
+int64_t utcAnchorSetUs = 0;
+#define UTC_ANCHOR_REFRESH_US (600LL * 1000000LL)
+#define UTC_ANCHOR_MAX_AGE_US (6LL * 3600LL * 1000000LL)
+
+void updateUtcAnchor(const GnssFix& fix) {
+  if (!fix.valid || fix.utc_date == 0 || isnan(fix.utc_time)) return;
+  const int64_t epochMs = syncGnssUtcToEpochMs(fix.utc_date, (double)fix.utc_time);
+  if (epochMs < 0) return;
+  const int64_t offset = epochMs - fix.timestamp_us / 1000;
+  const bool stale = (fix.timestamp_us - utcAnchorSetUs) > UTC_ANCHOR_REFRESH_US;
+  if (!utcAnchorValid || stale || (offset > utcOffsetMs && offset - utcOffsetMs < 5000)) {
+    if (!utcAnchorValid) Serial.printf("[UTC] device time set from GNSS: %lld ms\n", (long long)epochMs);
+    utcOffsetMs = offset;
+    utcAnchorSetUs = fix.timestamp_us;
+    utcAnchorValid = true;
+  }
+}
+
+// UTC in ms for esp_timer time nowUs, or -1 when not known.
+int64_t deviceUtcMs(int64_t nowUs) {
+  if (!utcAnchorValid || (nowUs - utcAnchorSetUs) > UTC_ANCHOR_MAX_AGE_US) return -1;
+  return nowUs / 1000 + utcOffsetMs;
+}
+
 // Polls AT+CGNSSINFO, parses the response, logs a one-line summary
 // (instead of the raw dump used elsewhere), and enqueues the result for
 // later consumers (local logging / the unified telemetry packet).
@@ -1402,6 +1445,7 @@ void pollAndParseGnss() {
     latestGnssFix.satellites = fix.satellites;
     latestGnssFix.utc_date = fix.utc_date;
     latestGnssFix.utc_time = fix.utc_time;
+    updateUtcAnchor(fix);
 
     // Queue is not expected to fill at a 3 s poll rate, but don't block
     // the modem task if it somehow does.
@@ -1758,6 +1802,20 @@ bool mqttPublish(const String& payload) {
   return true;
 }
 
+// Shared by live and replay publishes: three failures in a row mark the
+// session as lost, so the reconnect logic takes over.
+void mqttNotePublishResult(bool ok) {
+  if (ok) {
+    mqttConsecutivePublishFailures = 0;
+    return;
+  }
+  if (++mqttConsecutivePublishFailures >= MQTT_MAX_CONSECUTIVE_PUB_FAILURES) {
+    Serial.println("[MQTT] 3 publishes failed in a row, treating the session as lost.");
+    mqttConnected = false;
+    mqttNextAttemptMs = millis();
+  }
+}
+
 // ============================================================
 // Local telemetry logging.
 //
@@ -1770,14 +1828,71 @@ bool mqttPublish(const String& payload) {
 // forward buffering under intermittent uplink is addressed, not merely
 // assumed).
 //
-// Scope of this first version, stated plainly rather than left implicit:
-// this unconditionally appends every sample to a single file, with a size
-// cap that truncates the file if exceeded. It does NOT yet track which
-// lines have been successfully published over MQTT and replay only the
-// unpublished backlog on reconnect - that is the natural next step, not
-// yet built. What exists now already satisfies the literal "logged
-// locally" requirement and gives a real local record to inspect even with
-// zero cellular connectivity for an entire session.
+// Since v0.7.4 every line carries dev, boot and seq, and the sync section
+// below replays the lines the broker has not acknowledged after an outage.
+// The file is still a single append-only file with a size cap that deletes
+// it when exceeded; unacknowledged records deleted that way are counted as
+// lost in the sync ledger, not skipped silently.
+// ============================================================
+// Store-and-forward sync state (v0.7.4). The bookkeeping itself is the pure
+// code in include/sync_ledger.h (model and state machine described there,
+// tested on the laptop by test_host/test_sync_ledger.cpp); this file only
+// feeds it and keeps it in NVS. Everything here runs on ModemTask (core 0),
+// the only task that touches the modem UART and the log file.
+//
+// NVS namespace "sw7sync":
+//   boot    boot counter, +1 at every boot (the record's "boot")
+//   seqblk  seq numbers below this may have been used. At boot the unit
+//           starts at seqblk and reserves the next SYNC_SEQ_BLOCK, so NVS is
+//           written once per 64 records (about 11 min), not per record.
+//   acked   ledger watermark, and lost, the lost count: saved together after
+//           each log flush (about once a minute, next to the flush's own flash
+//           write) or, with logging off, every 60 s when changed. After a
+//           power cut up to a minute of acknowledgements is forgotten, so a few
+//           records are sent twice; the server stores them once.
+// ============================================================
+#define SYNC_SEQ_BLOCK 64
+#define SYNC_REPLAY_INTERVAL_MS 300      // at most about 3 replayed records per second
+#define SYNC_REPLAY_RETRY_MS 5000        // after a failed replay publish
+#define SYNC_REPLAY_LINES_PER_PASS 25    // log lines read per pass, bounds the time per pass
+#define SYNC_PERSIST_INTERVAL_MS 60000UL // only used while logging is off
+
+Preferences syncPrefs;
+SyncLedger syncLedger;
+bool syncReady = false;
+uint32_t syncBootId = 0;
+uint32_t syncBootFirstSeq = 0;
+uint32_t syncNextSeq = 0;
+uint32_t syncSeqReservedTo = 0;
+uint32_t syncLastLoggedAtBoot = 0;
+uint32_t syncLastSavedAcked = 0, syncLastSavedLost = 0;
+unsigned long syncLastSaveMs = 0;
+uint32_t syncBufferFirstSeq = 0;   // seq of the first line waiting in the RAM log buffer
+uint32_t syncReplayOffset = 0;     // byte offset of the next log line to examine
+uint32_t syncReplayPrevBoot = 0;   // boot of the last seq-carrying line examined
+unsigned long syncReplayNextMs = 0;
+uint32_t syncReplayFailures = 0;
+uint32_t syncLiveAcked = 0;        // this boot
+
+void syncSave(bool force) {
+  if (!syncReady) return;
+  if (!force && syncLedger.acked == syncLastSavedAcked && syncLedger.lost == syncLastSavedLost) return;
+  syncPrefs.putUInt("acked", syncLedger.acked);
+  syncPrefs.putUInt("lost", syncLedger.lost);
+  syncLastSavedAcked = syncLedger.acked;
+  syncLastSavedLost = syncLedger.lost;
+  syncLastSaveMs = millis();
+}
+
+uint32_t syncAssignSeq() {
+  uint32_t s = syncNextSeq++;
+  if (syncNextSeq >= syncSeqReservedTo) {
+    syncSeqReservedTo += SYNC_SEQ_BLOCK;
+    syncPrefs.putUInt("seqblk", syncSeqReservedTo);
+  }
+  return s;
+}
+
 #define LOCAL_LOG_PATH "/telemetry.log"
 #define LOCAL_LOG_MAX_BYTES (3 * 1024 * 1024)  // stay under the ~3.375MB
                                                  // LittleFS partition with margin
@@ -1832,14 +1947,20 @@ bool initLocalLog() {
 void flushLocalLog() {
   if (!localLogReady || localLogBuffer.length() == 0) return;
   uint32_t t0 = micros();
+  bool truncated = false;
   if (localLogFileBytes + localLogBuffer.length() > LOCAL_LOG_MAX_BYTES) {
-    // Provisional: truncate rather than rotate to a second file. This
-    // loses the oldest data rather than preserving it, which is an
-    // honest limitation of this first version, not a hidden one - see
-    // the comment above this section.
+    // Truncate rather than rotate to a second file: the oldest data is lost.
+    // At 10 s records the 3 MB cap is roughly two days, so this only bites
+    // after a very long outage or if the log is never read back and cleared.
+    // Records not yet acknowledged by the broker are counted as lost (v0.7.4).
+    if (syncReady && syncBufferFirstSeq > 0) ledgerGiveUpThrough(syncLedger, syncBufferFirstSeq - 1);
     LittleFS.remove(LOCAL_LOG_PATH);
     localLogFileBytes = 0;
-    Serial.println("[LOG] Local log exceeded size cap, truncated.");
+    syncReplayOffset = 0;
+    syncReplayPrevBoot = 0;
+    truncated = true;
+    Serial.printf("[LOG] Local log exceeded size cap, truncated (sync: %u records lost in total).\n",
+                  (unsigned)syncLedger.lost);
   }
   File f = LittleFS.open(LOCAL_LOG_PATH, "a");
   uint32_t lines = localLogBufferedLines;
@@ -1862,17 +1983,159 @@ void flushLocalLog() {
                 (unsigned)localLogBuffer.length(), localLogLastFlushUs / 1000.0f);
   localLogBuffer = "";
   localLogBufferedLines = 0;
+  syncBufferFirstSeq = 0;
   localLogLastFlushMs = millis();
+  // Saved straight after the log write, so the NVS write lands next to the
+  // flush's own flash pause instead of adding a second one each minute.
+  syncSave(truncated);
 }
 
-void appendLocalLog(const String& jsonLine) {
-  if (!localLogReady || !localLogEnabled) return;
+// Returns false if the line was not kept (logging off or not mounted).
+bool appendLocalLog(const String& jsonLine, uint32_t seq) {
+  if (!localLogReady || !localLogEnabled) return false;
+  if (localLogBufferedLines == 0) syncBufferFirstSeq = seq;
   localLogBuffer += jsonLine;
   localLogBuffer += '\n';
   localLogBufferedLines++;
   if (localLogBuffer.length() >= LOCAL_LOG_BUFFER_BYTES - 700 ||
       millis() - localLogLastFlushMs >= LOCAL_LOG_FLUSH_INTERVAL_MS) {
     flushLocalLog();
+  }
+  return true;
+}
+
+// ============================================================
+// Store-and-forward sync (v0.7.4): boot, replay and status.
+// ============================================================
+
+// Highest seq in the last ~2 KB of the log (a record is under 1.2 KB), 0 if
+// none (no file, or only lines from firmware before v0.7.4).
+uint32_t findLastLoggedSeq() {
+  File f = LittleFS.open(LOCAL_LOG_PATH, "r");
+  if (!f) return 0;
+  const size_t size = f.size();
+  if (size > 2048) f.seek(size - 2048);
+  uint32_t last = 0;
+  while (f.available()) {
+    String rec = f.readStringUntil('\n');
+    uint32_t s, b;
+    if (syncParseSeqBoot(rec.c_str(), &s, &b) && s > last) last = s;
+  }
+  f.close();
+  return last;
+}
+
+void initSync() {
+  syncPrefs.begin("sw7sync", false);
+  syncBootId = syncPrefs.getUInt("boot", 0) + 1;
+  syncPrefs.putUInt("boot", syncBootId);
+  syncBootFirstSeq = syncPrefs.getUInt("seqblk", 1);
+  if (syncBootFirstSeq == 0) syncBootFirstSeq = 1;
+  syncNextSeq = syncBootFirstSeq;
+  syncSeqReservedTo = syncBootFirstSeq + SYNC_SEQ_BLOCK;
+  syncPrefs.putUInt("seqblk", syncSeqReservedTo);
+  ledgerInit(syncLedger, syncPrefs.getUInt("acked", 0), syncPrefs.getUInt("lost", 0));
+  syncLastLoggedAtBoot = localLogReady ? findLastLoggedSeq() : 0;
+  ledgerBoot(syncLedger, syncBootFirstSeq, syncLastLoggedAtBoot);
+  syncReady = true;
+  syncSave(true);
+  Serial.printf("[SYNC] boot %u, first seq %u, last logged seq %u, acked through %u, backlog %u, lost so far %u\n",
+                (unsigned)syncBootId, (unsigned)syncBootFirstSeq, (unsigned)syncLastLoggedAtBoot,
+                (unsigned)syncLedger.acked, (unsigned)ledgerBacklog(syncLedger, syncNextSeq),
+                (unsigned)syncLedger.lost);
+}
+
+// One replay pass, called from ModemTask's loop. Reads at most
+// SYNC_REPLAY_LINES_PER_PASS log lines from the saved offset and publishes at
+// most one record, then returns, so GNSS polling, the live 10 s publish and
+// the serial console keep running between replayed records. Replayed records
+// are the stored line with "replay":true added, on the same topic.
+void syncReplayStep() {
+  if (!syncReady || !mqttConnected) return;
+  if ((long)(millis() - syncReplayNextMs) < 0) return;
+  if (ledgerBacklog(syncLedger, syncNextSeq) == 0) return;
+
+  File f;
+  if (localLogReady) f = LittleFS.open(LOCAL_LOG_PATH, "r");
+  if (f) {
+    if (syncReplayOffset > f.size()) {  // file replaced since the last pass
+      syncReplayOffset = 0;
+      syncReplayPrevBoot = 0;
+    }
+    f.seek(syncReplayOffset);
+    for (int i = 0; i < SYNC_REPLAY_LINES_PER_PASS && f.available(); i++) {
+      String rec = f.readStringUntil('\n');
+      const uint32_t lineEnd = f.position();
+      if (rec.endsWith("\r")) rec.remove(rec.length() - 1);
+      uint32_t s, b;
+      if (rec.length() < 2 || rec[0] != '{' || !syncParseSeqBoot(rec.c_str(), &s, &b)) {
+        syncReplayOffset = lineEnd;  // line from older firmware, or damaged
+        continue;
+      }
+      const SyncScanAction action = ledgerOnLogRecord(syncLedger, s, b, syncReplayPrevBoot);
+      syncReplayPrevBoot = b;
+      if (action == SYNC_SCAN_SKIP) {
+        syncReplayOffset = lineEnd;
+        continue;
+      }
+      f.close();
+      String out;
+      out.reserve(rec.length() + 16);
+      out = "{\"replay\":true,";
+      out += rec.c_str() + 1;
+      const bool ok = mqttPublish(out);
+      mqttNotePublishResult(ok);
+      if (ok) {
+        ledgerReplayAck(syncLedger, s);
+        syncReplayOffset = lineEnd;
+        syncReplayNextMs = millis() + SYNC_REPLAY_INTERVAL_MS;
+        if (ledgerBacklog(syncLedger, syncNextSeq) == 0) {
+          Serial.printf("[SYNC] backlog cleared, %u replayed this boot\n", (unsigned)syncLedger.replayed);
+        }
+      } else {
+        syncReplayFailures++;
+        syncReplayNextMs = millis() + SYNC_REPLAY_RETRY_MS;
+      }
+      return;
+    }
+    const bool atEnd = !f.available();
+    f.close();
+    if (!atEnd) return;  // line budget used; carry on next pass
+  }
+  // End of the file (or no file). What is still open is either in the RAM
+  // buffer or was never stored.
+  const uint32_t firstUnflushed = localLogBufferedLines > 0 ? syncBufferFirstSeq : syncNextSeq;
+  const uint32_t lostBefore = syncLedger.lost;
+  ledgerOnEof(syncLedger, firstUnflushed, syncReplayPrevBoot, syncBootId, syncBootFirstSeq);
+  if (syncLedger.lost != lostBefore) {
+    Serial.printf("[SYNC] %u records not in the log, counted lost\n", (unsigned)(syncLedger.lost - lostBefore));
+  }
+  if (ledgerBacklog(syncLedger, syncNextSeq) > 0 && localLogBufferedLines > 0) {
+    flushLocalLog();  // the rest is in RAM: write it now so the next pass can send it
+  } else {
+    syncReplayNextMs = millis() + 1000;
+  }
+}
+
+void printSyncStatus() {
+  const uint32_t backlog = syncReady ? ledgerBacklog(syncLedger, syncNextSeq) : 0;
+  Serial.printf("[SYNC] boot=%u first_seq=%u next_seq=%u generated=%u acked=%u run=%u-%u skip=%u-%u "
+                "backlog=%u live_acked=%u replayed=%u replay_failures=%u lost=%u forgotten=%u "
+                "replay_offset=%u buffered=%u mqtt=%s\n",
+                (unsigned)syncBootId, (unsigned)syncBootFirstSeq, (unsigned)syncNextSeq,
+                (unsigned)(syncNextSeq - syncBootFirstSeq), (unsigned)syncLedger.acked,
+                (unsigned)syncLedger.runLo, (unsigned)syncLedger.runHi,
+                (unsigned)syncLedger.skipLo, (unsigned)syncLedger.skipHi, (unsigned)backlog,
+                (unsigned)syncLiveAcked, (unsigned)syncLedger.replayed, (unsigned)syncReplayFailures,
+                (unsigned)syncLedger.lost, (unsigned)syncLedger.forgotten,
+                (unsigned)syncReplayOffset, (unsigned)localLogBufferedLines,
+                mqttConnected ? "up" : "down");
+  const int64_t utc = deviceUtcMs(esp_timer_get_time());
+  if (utc < 0) {
+    Serial.println("[SYNC] utc=unknown (no GNSS time yet, or none for 6 h)");
+  } else {
+    Serial.printf("[SYNC] utc_ms=%lld anchor_age_s=%lld\n", (long long)utc,
+                  (long long)((esp_timer_get_time() - utcAnchorSetUs) / 1000000LL));
   }
 }
 
@@ -1978,7 +2241,7 @@ void HallTask(void* pvParameters) {
 // Security team's own JSON schema (their broker/credentials are not used
 // here, per the note above) - this is this project's own telemetry
 // payload, to whatever broker MQTT_BROKER_HOST is actually pointed at.
-String buildTelemetryJson() {
+String buildTelemetryJson(uint32_t seq) {
   RideFeatures r1, r2;
   FusedRide fz;
   portENTER_CRITICAL(&rideMux);
@@ -2004,9 +2267,23 @@ String buildTelemetryJson() {
   // Cell-tower position in the record only while there is no GNSS fix (as on the DASH line).
   const bool cellJson = !latestGnssFix.valid && latestCellLoc.valid &&
                         (esp_timer_get_time() - latestCellLoc.timestamp_us) <= CELL_LOC_STALE_US;
-  char buf[896];
+  // Record identity (v0.7.4): device, firmware, boot, seq, uptime and device
+  // UTC (null until the first GNSS time). dev, boot and seq identify the
+  // record on the server, which stores each (dev, boot, seq) once. Kept at the
+  // start of the line so syncParseSeqBoot() finds them quickly.
+  const int64_t nowUs = esp_timer_get_time();
+  const int64_t utcMs = deviceUtcMs(nowUs);
+  char utc[24];
+  if (utcMs < 0) snprintf(utc, sizeof(utc), "null");
+  else snprintf(utc, sizeof(utc), "%lld", (long long)utcMs);
+  const char* fw = FIRMWARE_VERSION;
+  if (fw[0] == 'v') fw++;
+
+  // Static: only ModemTask calls this, and 1.1 KB is too much for its 4 KB stack.
+  static char buf[1152];
   snprintf(buf, sizeof(buf),
            "{"
+           "\"dev\":\"%s\",\"fw\":\"%s\",\"boot\":%lu,\"seq\":%lu,\"up_ms\":%lld,\"utc_ms\":%s,"
            "\"imu1\":{\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"crest\":%.3f,\"jerk\":%.3f,\"crossings\":%u},"
            "\"imu2\":{\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"crest\":%.3f,\"jerk\":%.3f,\"crossings\":%u},"
            "\"fused\":{\"src\":%u,\"rms\":%.3f,\"std\":%.3f,\"p2p\":%.3f,\"jerk\":%.3f,\"dis\":%s},"
@@ -2015,6 +2292,7 @@ String buildTelemetryJson() {
            "\"cell\":{\"csq\":%d,\"lat\":%.6f,\"lon\":%.6f,\"acc_m\":%.0f},"
            "\"hall\":{\"eps\":%.1f,\"rpm\":%s}"
            "}",
+           MQTT_CLIENT_ID, fw, (unsigned long)syncBootId, (unsigned long)seq, (long long)(nowUs / 1000), utc,
            r1.rms_mps2, r1.std_mps2, r1.peak_to_peak_mps2, r1.crest_factor,
            r1.mean_abs_jerk_mps3, (unsigned)r1.threshold_crossings,
            r2.rms_mps2, r2.std_mps2, r2.peak_to_peak_mps2, r2.crest_factor,
@@ -2195,12 +2473,23 @@ void DashTask(void* pvParameters) {
 //   !dash on     start it again (default on)
 //   !recal       erase both stored IMU calibrations and restart; the board
 //                must be kept still for the ~2 s calibration after boot
+//   !sync        store-and-forward status: boot, seq, acked, backlog, replayed,
+//                lost (one key=value line, read by tests), and device UTC
+//   !sync drop   give up the whole backlog (counted as lost), for tests
 // ============================================================
 void handleLocalCommand(String line) {
   line.trim();
   line.toLowerCase();
   if (line == "!help") {
-    Serial.println("[CMD] !status  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !dash off  !dash on  !recal  !agps  !cellpos");
+    Serial.println("[CMD] !status  !sync  !sync drop  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !dash off  !dash on  !recal  !agps  !cellpos");
+  } else if (line == "!sync") {
+    printSyncStatus();
+  } else if (line == "!sync drop") {
+    flushLocalLog();
+    const uint32_t before = syncLedger.lost;
+    ledgerGiveUpThrough(syncLedger, syncNextSeq - 1);
+    syncSave(true);
+    Serial.printf("[CMD] sync backlog dropped, %u records counted lost\n", (unsigned)(syncLedger.lost - before));
   } else if (line == "!agps") {
     agpsNextMs = millis();      // the modem loop runs it on its next pass
     Serial.println("[CMD] assisted GNSS download requested");
@@ -2238,6 +2527,7 @@ void handleLocalCommand(String line) {
     Serial.printf("[CMD] dash line: %s, %u lines sent, %u skipped as too long\n",
                   dashEnabled ? "on" : "OFF", (unsigned)dashLineCount,
                   (unsigned)dashTruncatedCount);
+    printSyncStatus();
   } else if (line == "!log off") {
     flushLocalLog();
     localLogEnabled = false;
@@ -2273,9 +2563,16 @@ void handleLocalCommand(String line) {
     }
   } else if (line == "!log clear") {
     flushLocalLog();
+    // Unacknowledged records in the file go with it: counted as lost.
+    const uint32_t before = syncLedger.lost;
+    ledgerGiveUpThrough(syncLedger, syncNextSeq - 1);
     LittleFS.remove(LOCAL_LOG_PATH);
     localLogFileBytes = 0;
-    Serial.println("[CMD] local log file deleted");
+    syncReplayOffset = 0;
+    syncReplayPrevBoot = 0;
+    syncSave(true);
+    Serial.printf("[CMD] local log file deleted (%u unacknowledged records counted lost)\n",
+                  (unsigned)(syncLedger.lost - before));
   } else if (line == "!log on") {
     localLogEnabled = true;
     Serial.println("[CMD] local flash logging on");
@@ -2436,20 +2733,26 @@ void ModemTask(void* pvParameters) {
       // Built and logged locally on this cadence regardless of MQTT state -
       // the "logged locally" obligation does not depend on connectivity.
       pollSignalQuality();
-      String payload = buildTelemetryJson();
-      appendLocalLog(payload);
+      const uint32_t seq = syncAssignSeq();
+      String payload = buildTelemetryJson(seq);
+      const bool stored = appendLocalLog(payload, seq);
+      bool acked = false;
       if (mqttConnected) {
-        if (mqttPublish(payload)) {
-          mqttConsecutivePublishFailures = 0;
-        } else {
-          Serial.println("[MQTT] publish failed");
-          if (++mqttConsecutivePublishFailures >= MQTT_MAX_CONSECUTIVE_PUB_FAILURES) {
-            Serial.println("[MQTT] 3 publishes failed in a row, treating the session as lost.");
-            mqttConnected = false;
-            mqttNextAttemptMs = millis();
-          }
-        }
+        acked = mqttPublish(payload);
+        if (!acked) Serial.println("[MQTT] publish failed");
+        mqttNotePublishResult(acked);
       }
+      if (acked) {
+        ledgerLiveAck(syncLedger, seq);
+        syncLiveAcked++;
+      } else if (!stored) {
+        ledgerUnstoredLost(syncLedger, seq);  // neither sent nor kept: can never be replayed
+      }
+    }
+    // Backlog replay after an outage: at most one record per pass.
+    syncReplayStep();
+    if (!(localLogReady && localLogEnabled) && millis() - syncLastSaveMs >= SYNC_PERSIST_INTERVAL_MS) {
+      syncSave(false);  // with logging on, the log flush saves the ledger instead
     }
     while (Serial1.available()) {
       char c = static_cast<char>(Serial1.read());
@@ -2508,6 +2811,7 @@ void setup() {
   Serial.println();
 
   localLogReady = initLocalLog();
+  initSync();
 
   imu1Ready = initImu(&mpu1, &Wire, IMU1_SDA_PIN, IMU1_SCL_PIN);
   Serial.println(imu1Ready ? "IMU1 found and configured (stem/chassis - confirm on bracket)."

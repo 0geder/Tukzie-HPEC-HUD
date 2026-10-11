@@ -1,0 +1,8 @@
+# Local configuration and data: never committed.
+sw7_ingest.env
+*.db
+*.db-wal
+*.db-shm
+venv/
+__pycache__/
+reports/
