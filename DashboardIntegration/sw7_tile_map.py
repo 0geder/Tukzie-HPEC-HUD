@@ -67,7 +67,7 @@ from collections import OrderedDict
 from types import SimpleNamespace
 
 from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen, QPixmap, QPolygonF, QTransform
+from PySide6.QtGui import QColor, QEventPoint, QFont, QPainter, QPainterPath, QPen, QPixmap, QPolygonF, QTransform
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 from PySide6.QtWidgets import QAbstractButton, QPushButton, QWidget
 
@@ -251,6 +251,7 @@ class SW7TileMap(QWidget):
         self._press = None
         self._dragging = False
         self._pinch = None
+        self._multi = False               # a three-finger page swipe is in progress (sw7_page_swipe)
         self._last_tick = time.monotonic()
         self._timer = QTimer(self)
         self._timer.setTimerType(Qt.TimerType.PreciseTimer)
@@ -1442,9 +1443,19 @@ class SW7TileMap(QWidget):
                     event.ignore()
                     return False
             if kind in (QEvent.Type.TouchEnd, QEvent.Type.TouchCancel):
-                if points:
+                if points and not self._multi:
                     self._release(points[0].position())
                 self._pinch = None
+                self._multi = False
+                event.accept()
+                return True
+            # Three or more fingers swipe between dashboard pages (sw7_page_swipe): the map neither zooms nor
+            # pans for them, and does not treat the lift as a tap or drag end.
+            if len([q for q in points if q.state() != QEventPoint.State.Released]) >= 3 or self._multi:
+                self._multi = True
+                self._pinch = None
+                self._press = None
+                self._dragging = False
                 event.accept()
                 return True
             if len(points) >= 2:

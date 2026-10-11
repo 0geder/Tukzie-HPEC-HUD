@@ -146,6 +146,43 @@ def after():
     d._on_vehicle_state(fix)
     check(not m.simulating and d.current_state.data_source == "sw7_telemetry" and m.vehicle == (-33.9570, 18.4610),
           "a real GPS fix stops the simulation and every page shows live data")
+    # multi-finger page swipes (Planning/page-swipe-prompt.md)
+    from PySide6.QtTest import QTest
+    from PySide6.QtCore import QPoint
+    dev = QTest.createTouchDevice()
+    def page():
+        return d.page_ids[d.stack.currentIndex()]
+    def swipe(n, start, dx, steps=8):
+        pts = [QPoint(start.x() + i * 45, start.y() + i * 12) for i in range(n)]
+        t = QTest.touchEvent(w, dev)
+        for i, p in enumerate(pts): t.press(i, p)
+        t.commit(); QTest.qWait(20)
+        for k in range(1, steps + 1):
+            t = QTest.touchEvent(w, dev)
+            for i, p in enumerate(pts): t.move(i, QPoint(p.x() + dx * k // steps, p.y()))
+            t.commit(); QTest.qWait(20)
+        t = QTest.touchEvent(w, dev)
+        for i, p in enumerate(pts): t.release(i, QPoint(p.x() + dx, p.y()))
+        t.commit(); QTest.qWait(400)
+    d.switch_page_id("driving"); QTest.qWait(200)
+    order = d.normal_ids
+    nxt = order[(order.index("driving") + 1) % len(order)]
+    swipe(2, QPoint(450, 420), -320)
+    check(page() == nxt, f"two fingers swiped left: driving -> {page()} (expected {nxt})")
+    swipe(2, QPoint(450, 420), +320)
+    check(page() == "driving", f"two fingers swiped right: back to {page()}")
+    swipe(1, QPoint(450, 420), -320)
+    check(page() == "driving", "one finger does not change page")
+    d.switch_page_id("navigation"); QTest.qWait(300)
+    mp = d.navigation.map
+    centre = mp.mapTo(w, mp.rect().center()) - QPoint(80, 0)
+    swipe(2, centre, -320)
+    check(page() == "navigation", "two fingers on the map stay on the map (they zoom and pan)")
+    z0 = mp._zoom_target
+    after_nav = order[(order.index("navigation") + 1) % len(order)]
+    swipe(3, centre, -320)
+    check(page() == after_nav and abs(mp._zoom_target - z0) < 1e-9,
+          f"three fingers on the map change page to {page()} without zooming")
     d.switch_page_id("driving")
     QTimer.singleShot(800, lambda: (w.grab().save(f"{OUT}/live_driving.png"), print("RESULT", "PASS" if not fails else f"FAIL {fails}"), a.quit()))
 QTimer.singleShot(18000, start)

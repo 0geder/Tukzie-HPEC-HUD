@@ -39,6 +39,7 @@ COPIES = (
     ("sw7_sim_link.py", "app/pages/sw7_sim_link.py"),
     ("sw7_voice_guide.py", "app/pages/sw7_voice_guide.py"),
     ("sw7_touch.py", "app/pages/sw7_touch.py"),
+    ("sw7_page_swipe.py", "app/pages/sw7_page_swipe.py"),
     ("fonts/AtkinsonHyperlegible-Regular.ttf", "app/fonts/AtkinsonHyperlegible-Regular.ttf"),
     ("fonts/AtkinsonHyperlegible-Bold.ttf", "app/fonts/AtkinsonHyperlegible-Bold.ttf"),
     ("fonts/OFL.txt", "app/fonts/OFL.txt"),
@@ -602,7 +603,9 @@ SIM_LINK_PATCHES = (
      "        from .sw7_voice_guide import install as _sw7_voice_guide\n"
      "        _sw7_voice_guide(self)   # SW-7: spoken turn-by-turn directions from the map's turn banner\n"
      "        from .sw7_touch import enable_all as _sw7_touch_scroll\n"
-     "        _sw7_touch_scroll(self)   # SW-7: finger-drag scrolling on Diagnostics, Charging and every list\n"),
+     "        _sw7_touch_scroll(self)   # SW-7: finger-drag scrolling on Diagnostics, Charging and every list\n"
+     "        from .sw7_page_swipe import install as _sw7_page_swipe\n"
+     "        _sw7_page_swipe(self)   # SW-7: two-finger swipe between pages (three on the map)\n"),
 )
 
 PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES
