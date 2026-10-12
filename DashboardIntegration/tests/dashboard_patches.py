@@ -34,6 +34,9 @@ Open-Meteo weather. TUKZIE_SW7_STYLE=team installs nothing (the layout-pass look
 STYLE_DRIVE_PATCHES: the paper style on Driving (the glance page: speed disc, Next turn, Around and Range tiles) and
 Analytics (five cards, hero values, ink charts). No anchors: the code is in sw7_driving.py and sw7_analytics.py,
 reached through the layout pass's own hooks; TUKZIE_SW7_STYLE=team leaves both pages as the layout pass drew them.
+STYLE_PAGES_PATCHES: the paper and depth style, page agent P2 (sw7_style_pages.py, added to COPIES by
+STYLE_PAGES_COPIES): Front camera and Sensors merged into Surroundings (7 nav items, page id "sensors", aliases
+"camera" and "surroundings"), Diagnostics and Charging with one home per value. TUKZIE_SW7_STYLE=team: nothing.
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -756,3 +759,26 @@ STYLE_DRIVE_PATCHES = (
 )
 
 PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_FRAME_PATCHES + LAYOUT_DRIVE_PATCHES + LAYOUT_PAGES_PATCHES + LAYOUT_MAP_PATCHES + STYLE_CORE_PATCHES + STYLE_DRIVE_PATCHES
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_FRAME_PATCHES + LAYOUT_DRIVE_PATCHES + LAYOUT_PAGES_PATCHES + LAYOUT_MAP_PATCHES + STYLE_CORE_PATCHES
+
+
+STYLE_PAGES_COPIES = (
+    ("sw7_style_pages.py", "app/pages/sw7_style_pages.py"),
+)
+COPIES = COPIES + STYLE_PAGES_COPIES
+
+STYLE_PAGES_PATCHES = (
+    # dashboard_main.py: the paper and depth style for Surroundings (Front camera and Sensors as one page), Diagnostics
+    # and Charging (Planning/paper-depth-theme-prompt.md section 10, page agent P2). sw7_style_pages.install wraps the
+    # shell and the pages after sw7_style has; nothing with TUKZIE_SW7_STYLE=team, so the 8-page build is unchanged.
+    # The anchor is the team's last line, so the group also applies (and does nothing) on a build without the core.
+    ("app/pages/dashboard_main.py",
+     "Dashboard = DashboardMain\n",
+     "try:   # SW-7 paper style: Surroundings, Diagnostics, Charging (only on top of sw7_style)\n"
+     "    from . import sw7_style_pages as _sw7_style_pages\n"
+     "    _sw7_style_pages.install(DashboardMain)\n"
+     "except ImportError:\n"
+     "    pass\n"
+     "Dashboard = DashboardMain\n"),
+)
+PATCHES = PATCHES + STYLE_PAGES_PATCHES

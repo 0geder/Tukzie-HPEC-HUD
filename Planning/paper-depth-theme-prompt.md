@@ -228,3 +228,19 @@ Page agents, after the core:
 - P2: Surroundings (the camera and Sensors merge, the nav and swipe order change, and the pill target), plus
   Diagnostics and Charging de-duplication.
 - P3: Map (slab, warm tiles, a single ETA) and Settings.
+
+P2 done (12 Oct): `DashboardIntegration/sw7_style_pages.py` (app/pages), groups `STYLE_PAGES_COPIES` and
+`STYLE_PAGES_PATCHES`, test `tests/test_style_pages.py` (screenshots in `tests/style/pages/`).
+- Surroundings keeps the page id `"sensors"`. `switch_page_id("camera")` and `switch_page_id("surroundings")` are
+  aliases that open it and select its nav item, and `page_by_id` has both. P1's Around tile opens it with
+  `main.switch_page_id("sensors")`. The view is `main.sw7_surroundings` (its `rows` are the combined hazards, nearest
+  first, and `figure.values()` the left, ahead and right ToF texts).
+- The camera nav item is hidden and `"camera"` leaves `normal_ids` (the arrows and the swipe follow); `page_ids` and
+  the stack keep an empty slot for it, so indexes do not shift. The FrontCameraPage object lives inside Surroundings
+  and still streams only while that page is shown. The reverse camera page is untouched.
+- Diagnostics: Controls, Health ("Ambient (vehicle)", and "Outside (weather)" as a signal glance that opens the
+  weather card), Position, Link. Speed, gear, battery, range, battery temp, odometer, charging and data source are
+  only in the folded details; the details toggle sits beside the title. Charging: one power, voltage, current, time
+  to full and cell health figure on the ring (BMS voltage and current when not charging, "--" for cell health unless
+  reported), one state line, tiles Range, Range added and Energy delivered.
+- With `TUKZIE_SW7_STYLE=team` nothing is installed: the 8-page build, checked widget for widget against the base.
