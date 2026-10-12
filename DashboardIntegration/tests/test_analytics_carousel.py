@@ -25,6 +25,7 @@ from types import SimpleNamespace
 
 # Paper and depth style (sw7_weather): never the real weather API in a test, and no shared weather cache.
 os.environ.setdefault("TUKZIE_WEATHER_URL", "http://127.0.0.1:9/v1/forecast")
+os.environ["TUKZIE_SW7_STYLE"] = "team"   # the layout-pass carousel (8 cards); the paper Analytics is in test_style_drive
 os.environ.setdefault("TUKZIE_REVERSE_URL", "http://127.0.0.1:9/reverse")
 os.environ.setdefault("TUKZIE_WEATHER_CACHE", os.path.join(__import__("tempfile").mkdtemp(prefix="sw7_wx_"), "last.json"))
 HERE = Path(__file__).resolve().parent
