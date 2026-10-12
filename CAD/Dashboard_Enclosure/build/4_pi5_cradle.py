@@ -2,7 +2,8 @@
 
 Modelled in the shell's frame: the cradle's base sits on the shell's back face (Y = 0) and everything grows towards
 -Y, so its coordinates are the shell's and the bolt holes line up directly. It bolts through the shell with four M3:
-the two left joiner holes (so it also does the left joiner plate's job across the split line) and two of its own.
+two either side of the Z split line, so it also joins the two left quarters. It sits 10 mm above centre
+to keep the USB end 13 mm clear of the handlebar.
 
 The Pi screws to four standoffs with M2.5 x 6 screws (pilot 2.2 mm), component side out, USB and Ethernet end
 pointing down (+Z) so the cables hang and water runs off. Screws rather than snap clips: the vehicle shakes, and
@@ -20,13 +21,13 @@ OUT = os.path.join(os.path.dirname(HERE), "print_parts")
 
 src = open(os.path.join(HERE, "1_back_shell.py"), encoding="utf-8").read()
 ns = {}
-exec(src[src.index("RAIL_HOLES ="):src.index("L = P[")], ns)
-BOLTS = [h for h in ns["JOINER_HOLES"] if h[0] < -100] + ns["PI_HOLES"]
+exec(src[src.index("RAIL_CZ ="):src.index("L = P[")], ns)
+BOLTS = ns["PI_HOLES"]
 
 P = {"BaseT": 3.0, "StandH": 7.0, "StandD": 6.0, "PilotD": 2.2, "BoltD": 3.4,
-     "PiCX": -98.0, "PiCZ": -10.0,          # centre of the Pi's hole pattern on the shell's back
+     "PiCX": -98.0, "PiCZ": -20.0,          # centre of the Pi's hole pattern on the shell's back
      "HoleL": 58.0, "HoleW": 49.0}
-X0, X1, Z0, Z1 = -131.0, -65.0, -47.5, 47.5     # base outline (66 x 95 mm)
+X0, X1, Z0, Z1 = -131.0, -65.0, -57.5, 37.5     # base outline (66 x 95 mm)
 
 sw = win32com.client.GetActiveObject("SldWorks.Application")
 sw.SetUserPreferenceToggle(10, False)

@@ -3,9 +3,10 @@ and the joiner plate. Everything is in the shell's frame (back face at Y = 0, ou
 line up in an assembly. The plates are modelled lying on their bolting face (Y = 0), rail or plate upwards, so
 in the assembly they are flipped onto the shell's back face; the hole pattern is symmetric so that is all.
 
-  rail plate   120 x 120 x 4 mm, bolted across the centre with eight M3 (two per quarter); carries the dovetail
-               rail (30 to 38 mm, 6 mm high, 90 mm long) that slides into SW7_Dash_Bracket.
-  joiner plate 44 x 20 x 3 mm, four of them across the outer ends of the two split lines, two M3 each.
+  rail plate   120 x 86 x 4 mm, low on the back (centre Z = RAIL_CZ), eight M3, across the bottom of the X split;
+               carries the dovetail rail (30 to 38 mm, 6 mm high, 80 mm long) that slides into SW7_Dash_Bracket.
+  joiner plate 44 x 20 x 3 mm, two: top of the X split and right of the Z split.
+  cross joiner 40 x 40 x 3 mm, at the centre, one M3 into each quarter.
 """
 import importlib.util
 import os
@@ -24,9 +25,9 @@ QDIR = os.path.join(OUT, "print_parts")
 # Hole layout comes from the shell script so the two cannot drift apart.
 src = open(os.path.join(HERE, "1_back_shell.py"), encoding="utf-8").read()
 ns = {}
-exec(src[src.index("RAIL_HOLES ="):src.index("L = P[")], ns)
-RAIL_HOLES, JOINER_HOLES = ns["RAIL_HOLES"], ns["JOINER_HOLES"]
-R = {"PlateS": 120.0, "PlateT": 4.0, "RailW": 30.0, "RailW2": 38.0, "RailH": 6.0, "RailL": 90.0,
+exec(src[src.index("RAIL_CZ ="):src.index("L = P[")], ns)
+RAIL_HOLES, RAIL_CZ = ns["RAIL_HOLES"], ns["RAIL_CZ"]
+R = {"PlateW": 120.0, "PlateH": 86.0, "PlateT": 4.0, "RailW": 30.0, "RailW2": 38.0, "RailH": 6.0, "RailL": 80.0,
      "JoinL": 44.0, "JoinW": 20.0, "JoinT": 3.0, "JoinPitch": 24.0, "BoltD": 3.4}
 
 sw = win32com.client.GetActiveObject("SldWorks.Application")
@@ -120,8 +121,7 @@ eq = m.GetEquationMgr
 for k, v in R.items():
     eq.Add2(-1, f'"{k}" = {v}', True)
 s = p.sketch("Top Plane")
-h = R["PlateS"] / 2
-p.rect(-h, -h, h, h)
+p.rect(-R["PlateW"] / 2, -R["PlateH"] / 2, R["PlateW"] / 2, R["PlateH"] / 2)   # centred; sits at Z = RAIL_CZ
 f = p.extrude(s, R["PlateT"])                       # plate Y 0..PlateT; Y = 0 is the face against the shell
 f.Name = "Rail Plate"
 s = p.sketch("Front Plane")
@@ -131,13 +131,13 @@ rail = p.extrude(s, R["RailL"], mid=True)
 rail.Name = "Dovetail Rail"
 s = p.sketch("Top Plane")
 for x, z in RAIL_HOLES:
-    p.sm.CreateCircleByRadius(x * mm, z * mm, 0, R["BoltD"] / 2 * mm)
+    p.sm.CreateCircleByRadius(x * mm, (z - RAIL_CZ) * mm, 0, R["BoltD"] / 2 * mm)   # pattern is symmetric
 p.cut_all(s, "Bolt Holes")
 print("rail plate box", p.box(), "volume", p.vol(),
       "save", p.save(os.path.join(QDIR, "SW7_Dash_Rail_Plate.SLDPRT"), os.path.join(shots, "dash_rail_plate.bmp")))
 sw.CloseDoc(m.GetTitle)
 
-# Joiner plate (one part, print four).
+# Joiner plate (one part, print two).
 time.sleep(2)
 m = sw.NewDocument(sw.GetUserPreferenceStringValue(8), 0, 0, 0)
 p = Part(m)
@@ -150,4 +150,20 @@ for sx in (-1, 1):
     p.sm.CreateCircleByRadius(sx * R["JoinPitch"] / 2 * mm, 0, 0, R["BoltD"] / 2 * mm)
 p.cut_all(s, "Bolt Holes")
 print("joiner box", p.box(), "save", p.save(os.path.join(QDIR, "SW7_Dash_Joiner_Plate.SLDPRT")))
+sw.CloseDoc(m.GetTitle)
+
+# Cross joiner at the centre, one bolt into each quarter.
+time.sleep(2)
+m = sw.NewDocument(sw.GetUserPreferenceStringValue(8), 0, 0, 0)
+p = Part(m)
+s = p.sketch("Top Plane")
+p.rect(-20, -20, 20, 20)
+f = p.extrude(s, R["JoinT"])
+f.Name = "Cross Joiner"
+s = p.sketch("Top Plane")
+for sx in (-1, 1):
+    for sz in (-1, 1):
+        p.sm.CreateCircleByRadius(sx * 12 * mm, sz * 12 * mm, 0, R["BoltD"] / 2 * mm)
+p.cut_all(s, "Bolt Holes")
+print("cross joiner box", p.box(), "save", p.save(os.path.join(QDIR, "SW7_Dash_Cross_Joiner.SLDPRT")))
 sw.CloseDoc(m.GetTitle)

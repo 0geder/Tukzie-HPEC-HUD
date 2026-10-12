@@ -27,10 +27,14 @@ P = {
     "BoltD": 3.4,       # M3 clearance
 }
 # Bolt hole centres (x, z) in mm, shared with 3_split_and_plates.py.
-RAIL_HOLES = [(sx * 40, sz * 45) for sx in (-1, 1) for sz in (-1, 1)] +              [(sx * 52, sz * 15) for sx in (-1, 1) for sz in (-1, 1)]
-JOINER_HOLES = [(sx * 12, sz * 82) for sx in (-1, 1) for sz in (-1, 1)] +                [(sx * 124, sz * 12) for sx in (-1, 1) for sz in (-1, 1)]
-# Pi 5 cradle (4_pi5_cradle.py) bolts on the left of the back with the two left joiner holes plus these two.
-PI_HOLES = [(-72, 12), (-72, -12)]
+RAIL_CZ = 53.0      # rail plate centre: low on the back, so the display stands above the handlebar
+RAIL_HOLES = [(sx * 40, RAIL_CZ + sz * 35) for sx in (-1, 1) for sz in (-1, 1)] +              [(sx * 52, RAIL_CZ + sz * 13) for sx in (-1, 1) for sz in (-1, 1)]
+# Joiners: one straight across the top of the X split, one straight across the right of the Z split, one cross
+# plate at the centre (one bolt per quarter). The rail plate bridges the bottom of the X split and the Pi 5 cradle
+# the left of the Z split.
+JOINER_HOLES = [(sx * 12, -82) for sx in (-1, 1)] + [(124, sz * 12) for sz in (-1, 1)] +                [(sx * 12, sz * 12) for sx in (-1, 1) for sz in (-1, 1)]
+# Pi 5 cradle (4_pi5_cradle.py): four bolts of its own, two either side of the Z split.
+PI_HOLES = [(-110, 12), (-110, -12), (-86, 12), (-86, -12)]   # clear of the standoffs at x -122.5 and -73.5
 L = P["DispL"] + 2 * P["Clr"] + 2 * P["Wall"]
 W = P["DispW"] + 2 * P["Clr"] + 2 * P["Wall"]
 IL, IW = P["DispL"] + 2 * P["Clr"], P["DispW"] + 2 * P["Clr"]
