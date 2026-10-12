@@ -9,6 +9,12 @@ patch group, one without LAYOUT_FRAME_PATCHES. Runs them offscreen at 1280 x 800
 Run: TUKZIE_DASHBOARD_DIR=<team Dashboard folder> python tests/test_layout_frame.py
 """
 import glob, json, os, shutil, subprocess, sys, tempfile, time
+# Paper and depth style (sw7_weather): never the real weather API in a test, and no shared weather cache.
+os.environ.setdefault("TUKZIE_WEATHER_URL", "http://127.0.0.1:9/v1/forecast")
+os.environ.setdefault("TUKZIE_REVERSE_URL", "http://127.0.0.1:9/reverse")
+os.environ.setdefault("TUKZIE_WEATHER_CACHE", os.path.join(__import__("tempfile").mkdtemp(prefix="sw7_wx_"), "last.json"))
+# This test checks the layout pass in the team look: the paper style is tested in test_style_core.py.
+os.environ["TUKZIE_SW7_STYLE"] = "team"
 HERE = os.path.dirname(os.path.abspath(__file__))
 INTEG = os.path.dirname(HERE)
 TEAM = os.environ.get("TUKZIE_DASHBOARD_DIR", "").strip()
@@ -28,7 +34,7 @@ def build(name, without_group):
     shutil.copytree(os.path.join(INTEG, "fonts"), os.path.join(src, "fonts"))
     if without_group:
         with open(os.path.join(src, "dashboard_patches.py"), "a", encoding="utf-8") as f:
-            f.write("\nPATCHES = tuple(p for p in PATCHES if p not in LAYOUT_FRAME_PATCHES)\n")
+            f.write("\nPATCHES = tuple(p for p in PATCHES if p not in LAYOUT_FRAME_PATCHES and p not in STYLE_CORE_PATCHES)\n")
     r = subprocess.run([sys.executable, os.path.join(INTEG, "deploy", "apply_patches.py"), target, "--source", src,
                         "--native-map", "--team-dir", os.path.join(SP, "nonexistent")], capture_output=True, text=True)
     print(name + ": " + (r.stdout.strip().splitlines()[-1] if r.returncode == 0 else r.stdout + r.stderr))

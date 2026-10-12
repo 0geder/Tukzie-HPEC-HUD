@@ -8,6 +8,10 @@ live data, the NO DATA chip and the Analytics chart history. Saves a screenshot 
 Run: TUKZIE_DASHBOARD_DIR=<team Dashboard folder> python tests/test_sim_sync.py
 """
 import glob, os, shutil, subprocess, sys, tempfile, time
+# Paper and depth style (sw7_weather): never the real weather API in a test, and no shared weather cache.
+os.environ.setdefault("TUKZIE_WEATHER_URL", "http://127.0.0.1:9/v1/forecast")
+os.environ.setdefault("TUKZIE_REVERSE_URL", "http://127.0.0.1:9/reverse")
+os.environ.setdefault("TUKZIE_WEATHER_CACHE", os.path.join(__import__("tempfile").mkdtemp(prefix="sw7_wx_"), "last.json"))
 HERE = os.path.dirname(os.path.abspath(__file__))
 INTEG = os.path.dirname(HERE)
 TEAM = os.environ.get("TUKZIE_DASHBOARD_DIR", "").strip()

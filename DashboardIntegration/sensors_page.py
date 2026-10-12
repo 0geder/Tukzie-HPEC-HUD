@@ -592,8 +592,41 @@ class HazardBanner(QFrame):
         self._message = message
         self._refresh()
 
+    def sw7_paper(self):
+        """Paper and depth style (sw7_style, called by the frame): a charcoal pill with a status dot and white text;
+        Hide is the only signal-coloured thing in it. Position and size stay as in the layout pass."""
+        from PySide6.QtWidgets import QLabel
+        from ..widgets import sw7_style as S
+        self._paper = S
+        self.dot = QLabel(self); self.dot.setFixedSize(12, 12)
+        self.dot.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.layout().insertWidget(0, self.dot)
+        self.layout().setContentsMargins(16, 0, 6, 0); self.layout().setSpacing(10)
+        self.text.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
+        self.hide_btn.setFont(S.font(S.LABEL, QFont.Weight.Bold))
+        self.hide_btn.setFixedHeight(28); self.hide_btn.setObjectName("hide")
+        S.mark_exempt(self.text, "the alert text opens Sensors; the brief keeps the pill charcoal with Hide as its control")
+        S.elevate(self, 1)
+        THEME.changed.connect(self._refresh)
+        self._refresh()
+
     def _refresh(self):
         show = self._message is not None and time.monotonic() >= self._snooze_until and not self._shown_check()
+        if show and getattr(self, "_paper", None) is not None:
+            S = self._paper
+            status, text = self._message
+            h = 40
+            self.setStyleSheet(f"HazardBanner {{ background: {S.hx('charcoal')}; border-radius: {h // 2}px; }}"
+                               f" QPushButton {{ color: {S.hx('on_charcoal')}; background: transparent; border: none;"
+                               f" text-align: left; padding: 0px; }}"
+                               f" QPushButton#hide {{ background: {S.hx('signal')}; color: {S.hx('card')};"
+                               f" border-radius: 14px; padding: 0px 14px; }}"
+                               f" QPushButton#hide:pressed {{ background: {S.hx('signal_pressed')}; }}")
+            self.dot.setStyleSheet(f"background: {S.hx('critical' if status == 'crit' else 'warn')}; border-radius: 6px;")
+            self.hide_btn.setObjectName("hide")
+            self.text.setText(text)
+            self._place(); self.show(); self.raise_()
+            return
         if show:
             status, text = self._message
             # Fixed banner colours from Research/DashboardDesign, the same in both themes:

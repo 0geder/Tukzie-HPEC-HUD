@@ -28,6 +28,9 @@ LAYOUT_DRIVE_PATCHES: the layout pass for Driving (TUKZIE_SW7_LAYOUT=0 restores 
 LAYOUT_PAGES_PATCHES: Diagnostics as four cards with the advice list folded away (sw7_layout_pages.py, added to
 COPIES by LAYOUT_PAGES_COPIES); TUKZIE_SW7_LAYOUT=0 keeps the earlier layout.
 LAYOUT_MAP_PATCHES: the Navigation page's overlays around the map's control column and turn banner (TUKZIE_SW7_LAYOUT=0 restores them).
+STYLE_CORE_PATCHES: the paper and depth style, core (sw7_style.py and sw7_weather.py, added to COPIES by STYLE_CORE_COPIES):
+palette, THEME in Paper or Ink, the frame (status bar, floating nav pill, arrows, chip, strip, obstacle pill) and the
+Open-Meteo weather. TUKZIE_SW7_STYLE=team installs nothing (the layout-pass look).
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -725,4 +728,22 @@ LAYOUT_MAP_PATCHES = (
      "        self.overview_btn.setVisible(not getattr(self.map, \"sw7_layout\", False))   # SW-7: Overview is in the map's column\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_FRAME_PATCHES + LAYOUT_DRIVE_PATCHES + LAYOUT_PAGES_PATCHES + LAYOUT_MAP_PATCHES
+
+STYLE_CORE_COPIES = (
+    ("sw7_style.py", "app/widgets/sw7_style.py"),
+    ("sw7_weather.py", "app/widgets/sw7_weather.py"),
+)
+COPIES = COPIES + STYLE_CORE_COPIES
+
+STYLE_CORE_PATCHES = (
+    # dashboard_main.py: the paper and depth style (Planning/paper-depth-theme-prompt.md, core). sw7_style.install wraps
+    # the theme, the status bar, the nav bar and the shell after the layout pass has wrapped them; it does nothing with
+    # TUKZIE_SW7_STYLE=team (or TUKZIE_SW7_LAYOUT=0).
+    ("app/pages/dashboard_main.py",
+     "_sw7_layout_frame.install_classes(DashboardMain)\n",
+     "_sw7_layout_frame.install_classes(DashboardMain)\n"
+     "from ..widgets import sw7_style as _sw7_style   # SW-7 paper and depth style (TUKZIE_SW7_STYLE=team: off)\n"
+     "_sw7_style.install(DashboardMain)\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_FRAME_PATCHES + LAYOUT_DRIVE_PATCHES + LAYOUT_PAGES_PATCHES + LAYOUT_MAP_PATCHES + STYLE_CORE_PATCHES
