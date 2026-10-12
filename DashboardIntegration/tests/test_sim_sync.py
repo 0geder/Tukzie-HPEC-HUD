@@ -112,6 +112,9 @@ def after():
     from PySide6.QtTest import QTest
     from PySide6.QtCore import QPoint
     d.switch_page_id("diagnostics")
+    lay = getattr(d.diagnostics, "_sw7_layout", None)
+    if lay:                                    # TUKZIE_SW7_LAYOUT: the four cards fit; open the advice list to scroll
+        lay["toggle"].setChecked(True); QTest.qWait(200)
     area = d.diagnostics.findChild(QScrollArea)
     vp = area.viewport(); bar = area.verticalScrollBar(); bar.setValue(0)
     QTest.mousePress(vp, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, QPoint(400, 500))
@@ -121,6 +124,8 @@ def after():
     QTest.qWait(600)
     check(QScroller.hasScroller(vp) and bar.maximum() > 0 and bar.value() > 0,
           f"a finger drag scrolls Diagnostics (position {bar.value()} of {bar.maximum()})")
+    if lay:
+        lay["toggle"].setChecked(False)
     d.switch_page_id("navigation")
     # spoken directions over the whole simulated route: right onto Station Road at 400 m, arrival at 800 m
     g = d._sw7_voice_guide

@@ -402,7 +402,10 @@ assert dm3.driving.speed.speed_known is False and dm3.driving.brake.known is Fal
 for name in ("Speed", "Throttle", "Brake", "Signed power", "Battery SOC", "Range", "Battery temp", "Motor temp",
              "Ambient", "Incline", "Odometer", "GPS", "Altitude"):
     assert dm3.diagnostics._values[name].text() == "Unavailable", (name, dm3.diagnostics._values[name].text())
-assert dm3.diagnostics._values["Source"].text() == "no_data"
+# the raw source string, or with TUKZIE_SW7_LAYOUT (default) the plain words and the raw string in the details
+_lay = getattr(dm3.diagnostics, "_sw7_layout", None)
+assert (dm3.diagnostics._values["Source"].text() == "No data" and _lay["raw"]["Source"].text() == "no_data") if _lay \
+    else dm3.diagnostics._values["Source"].text() == "no_data", dm3.diagnostics._values["Source"].text()
 for stat_name in ("s_soc", "s_btemp", "s_atemp", "s_odo", "s_power", "s_eff"):
     assert getattr(dm3.analytics, stat_name).value.text() == "--", stat_name
 assert all(dm3.charging.tuk.unknown.values()), dm3.charging.tuk.unknown

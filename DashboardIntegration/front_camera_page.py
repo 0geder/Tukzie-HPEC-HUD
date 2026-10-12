@@ -19,6 +19,11 @@ Drop this file into app/pages/ and wire it up as described in
 DashboardIntegration/README.md. It uses only QtNetwork and QtWidgets (no
 QtWebEngine), streams video only while the page is on screen, and keeps
 only the newest frame, so a slow link drops frames rather than lagging.
+
+Layout (TUKZIE_SW7_LAYOUT, default on; Planning/layout-improvements-prompt.md): the connection status is a
+coloured chip like the LIVE / NO DATA source chip, alerts are 64 px rows with a 12 px band colour bar
+(nearest band first, the top immediate or warning alert filled), and no text is under 16 px, since glare
+washes small text out on the glossy panel. TUKZIE_SW7_LAYOUT=0 gives the earlier page exactly.
 """
 from __future__ import annotations
 
@@ -39,12 +44,88 @@ CAMERA_URL = (os.environ.get("TUKZIE_CAMERA_URL", "").strip().rstrip("/") or Non
 # Band -> dashboard status colour key (fixed across every palette).
 BAND_STATUS = {"immediate": "crit", "warning": "warn", "monitoring": "normal"}
 BAND_TEXT = {"immediate": "Immediate", "warning": "Warning", "monitoring": "Monitoring"}
+BAND_RANGE = {"immediate": "under 3 m", "warning": "under 8 m", "monitoring": "under 15 m"}
+BAND_ORDER = {"immediate": 0, "warning": 1, "monitoring": 2}
+# Filled top-alert colours, the same as the obstacle pill (Planning/google-stitch-dashboard-prompt.md section 2).
+FILLED = {"crit": ("#A3201A", "#FFFFFF"), "warn": ("#FFB224", "#0B0D10")}
 
 MAX_BUFFER_BYTES = 2_000_000   # drop the buffer if no complete frame turns up in this much data
 ALERT_POLL_MS = 500
 RECONNECT_MS = 3000
 STALE_MS = 2500                # no new frame for this long: show the image as stale
 STREAM_SILENCE_MS = 5000       # no stream bytes for this long: drop the connection and retry
+
+
+def layout_on():
+    """SW-7 layout pass (TUKZIE_SW7_LAYOUT, default on); 0 keeps the earlier layout exactly."""
+    return os.environ.get("TUKZIE_SW7_LAYOUT", "1").strip() != "0"
+
+
+class AlertRow(QFrame):
+    """One alert, 64 px tall: a 12 px band colour bar, the main text 24 px bold, a detail line 18 px and an
+    optional right-hand note 16 px. filled=True paints the whole row in the obstacle pill colours."""
+
+    def __init__(self, status, main, detail="", note="", filled=False, parent=None):
+        super().__init__(parent)
+        self.setObjectName("sw7AlertRow")
+        self.setFixedHeight(64)
+        colour = THEME.color(status).name()
+        bg, fg = FILLED.get(status, (None, None)) if filled else (None, None)
+        bg = bg or THEME.hex("card_alt")
+        fg = fg or THEME.hex("text")
+        dim = fg if filled else THEME.hex("text_dim")
+        self.setStyleSheet(f"QFrame#sw7AlertRow {{ background: {bg}; border: 1px solid {THEME.hex('border')};"
+                           f" border-radius: 10px; }} QLabel {{ background: transparent; border: none; color: {fg}; }}"
+                           f" QLabel#sw7AlertDim {{ color: {dim}; }}"
+                           f" QFrame#sw7AlertBar {{ background: {colour}; border: none; border-radius: 4px; }}")
+        row = QHBoxLayout(self)
+        row.setContentsMargins(8, 4, 12, 4)
+        row.setSpacing(12)
+        bar = QFrame(); bar.setObjectName("sw7AlertBar"); bar.setFixedWidth(12)
+        row.addWidget(bar)
+        text = QVBoxLayout(); text.setContentsMargins(0, 0, 0, 0); text.setSpacing(0)
+        self.main = QLabel(main); self.main.setFont(THEME.font(24 if detail else 22, QFont.Weight.Bold))
+        text.addWidget(self.main)
+        self.detail = QLabel(detail); self.detail.setFont(THEME.font(18))
+        if detail:
+            text.addWidget(self.detail)
+        row.addLayout(text, 1)
+        self.note = QLabel(note); self.note.setObjectName("sw7AlertDim"); self.note.setFont(THEME.font(16))
+        if note:
+            row.addWidget(self.note, 0, Qt.AlignmentFlag.AlignVCenter)
+
+
+class StatusChip(QLabel):
+    """The camera status as a chip like the LIVE / NO DATA source chip: 28 px tall, 16 px bold, filled.
+    text() returns the plain status ("Live", "Camera image stale", ...), so callers see what they set;
+    the chip shows the frame rate after "Live"."""
+    STATUS = {"Live": "normal", "Camera image stale": "warn"}
+
+    def __init__(self, text=""):
+        super().__init__()
+        self._status = ""
+        self._fps = None
+        self.setObjectName("sw7CameraChip")
+        self.setFixedHeight(28)
+        self.setFont(THEME.font(16, QFont.Weight.Bold))
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setText(text)
+
+    def text(self):
+        return self._status
+
+    def set_fps(self, fps):
+        self._fps = fps
+        self.setText(self._status)
+
+    def setText(self, text):
+        self._status = text
+        shown = f"{text} · {self._fps:.1f} fps" if text == "Live" and self._fps is not None else text
+        super().setText(shown)
+        key = self.STATUS.get(text, "inactive")
+        fg = "#0B0D10" if key in ("normal", "warn") else "#FFFFFF"
+        self.setStyleSheet(f"QLabel#sw7CameraChip {{ background: {THEME.color(key).name()}; color: {fg};"
+                           " border-radius: 8px; padding: 0px 14px; }")
 
 
 def extract_latest_jpeg(buf: bytes) -> tuple[bytes | None, bytes]:
@@ -85,6 +166,69 @@ class FrontCameraPage(BasePage):
             self.resolver = shared_resolver()
             self.resolver.host_changed.connect(self._on_pi4_changed)
 
+        self._layout = layout_on()
+        if self._layout:
+            self._build_layout()
+        else:
+            self._build_classic()
+        self._render_alerts([])
+
+        self._alert_timer = QTimer(self)
+        self._alert_timer.timeout.connect(self._poll_alerts)
+        self._alert_timer.start(ALERT_POLL_MS)
+
+        self._stale_timer = QTimer(self)
+        self._stale_timer.setSingleShot(True)
+        self._stale_timer.timeout.connect(self._mark_stale)
+
+        THEME.changed.connect(lambda *_: self._render_alerts(self._last_alerts))
+
+    def _build_layout(self):
+        """Title and status chip on one line; the video beside a 340 px alerts card."""
+        self._root.setContentsMargins(24, 16, 24, 16)
+        self._root.setSpacing(16)
+        header = QHBoxLayout()
+        header.setSpacing(16)
+        title = QLabel(self.title)
+        title.setFont(THEME.font(24, QFont.Weight.Bold))
+        header.addWidget(title)
+        self.status_label = StatusChip("Connecting")
+        header.addWidget(self.status_label, 0, Qt.AlignmentFlag.AlignVCenter)
+        header.addStretch(1)
+        self._root.addLayout(header)
+
+        body = QHBoxLayout()
+        body.setSpacing(16)
+        self.video = QLabel("Waiting for the camera")
+        self.video.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.video.setMinimumSize(320, 240)
+        self.video.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.video.setObjectName("dim")
+        self.video.setFont(THEME.font(20))
+        body.addWidget(self.video, 1)
+
+        side = QFrame()
+        side.setObjectName("card")
+        side.setFixedWidth(340)
+        side_lay = QVBoxLayout(side)
+        side_lay.setContentsMargins(16, 16, 16, 16)
+        side_lay.setSpacing(12)
+        heading = QLabel("Alerts")
+        heading.setFont(THEME.font(20, QFont.Weight.Bold))
+        side_lay.addWidget(heading)
+        self.alert_box = QVBoxLayout()
+        self.alert_box.setSpacing(8)
+        side_lay.addLayout(self.alert_box)
+        side_lay.addStretch(1)
+        self.metrics_label = QLabel("")
+        self.metrics_label.setObjectName("dim")
+        self.metrics_label.setFont(THEME.font(16))
+        self.metrics_label.setWordWrap(True)
+        side_lay.addWidget(self.metrics_label)
+        body.addWidget(side, 0)
+        self._root.addLayout(body, 1)
+
+    def _build_classic(self):
         header = QHBoxLayout()
         title = QLabel(self.title)
         title.setFont(THEME.font(24, QFont.Weight.Bold))
@@ -128,17 +272,6 @@ class FrontCameraPage(BasePage):
         body.addWidget(side, 1)
 
         self._root.addLayout(body, 1)
-        self._render_alerts([])
-
-        self._alert_timer = QTimer(self)
-        self._alert_timer.timeout.connect(self._poll_alerts)
-        self._alert_timer.start(ALERT_POLL_MS)
-
-        self._stale_timer = QTimer(self)
-        self._stale_timer.setSingleShot(True)
-        self._stale_timer.timeout.connect(self._mark_stale)
-
-        THEME.changed.connect(lambda *_: self._render_alerts(self._last_alerts))
 
     def camera_url(self):
         """The camera address in use, or None while the Pi 4 is being searched for."""
@@ -273,7 +406,11 @@ class FrontCameraPage(BasePage):
                 parts.append(f"{fps:.1f} frames per second")
             if latency is not None:
                 parts.append(f"{latency:.0f} ms sensor to result")
-            self.metrics_label.setText("\n".join(parts))
+            if self._layout:                        # one footer line; the frame rate is on the chip
+                self.status_label.set_fps(fps if isinstance(fps, (int, float)) else None)
+                self.metrics_label.setText(f"{latency:.0f} ms sensor to result" if latency is not None else "")
+            else:
+                self.metrics_label.setText("\n".join(parts))
             if self._stream_reply is not None or not self._streaming_wanted:
                 self.status_label.setText("Live")
         if active != self._last_alerts:
@@ -289,6 +426,9 @@ class FrontCameraPage(BasePage):
                 w.hide()          # off screen now, not at the next event loop pass
                 w.setParent(None)
                 w.deleteLater()
+        if self._layout:
+            self._render_alert_rows(active)
+            return
         if not active:
             none = QLabel("No hazards")
             none.setObjectName("dim")
@@ -302,6 +442,31 @@ class FrontCameraPage(BasePage):
             row.setFont(THEME.font(16, QFont.Weight.Bold))
             row.setStyleSheet(f"color: #000; background: {colour}; border-radius: 8px; padding: 8px 10px;")
             self.alert_box.addWidget(row)
+
+    def _render_alert_rows(self, active):
+        """64 px rows, nearest band first; the top one filled red or amber when immediate or warning."""
+        if not active:
+            none = QLabel("No hazards")
+            none.setObjectName("dim")
+            none.setFont(THEME.font(20))
+            none.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            none.setMinimumHeight(64)
+            self.alert_box.addWidget(none)
+            return
+        ordered = sorted(active, key=lambda a: BAND_ORDER.get(a.get("distance_band"), 3))
+        for n, a in enumerate(ordered[:6]):
+            band = a.get("distance_band")
+            status = BAND_STATUS.get(band, "inactive")
+            detail = " · ".join(t for t in (BAND_TEXT.get(band, band or ""), BAND_RANGE.get(band, "")) if t)
+            conf = a.get("confidence")
+            note = f"{conf * 100:.0f} %" if isinstance(conf, (int, float)) and not isinstance(conf, bool) else ""
+            self.alert_box.addWidget(AlertRow(status, str(a.get("class", "?")).capitalize(), detail, note,
+                                              filled=(n == 0 and status in FILLED)))
+        if len(ordered) > 6:
+            more = QLabel(f"+{len(ordered) - 6} more")
+            more.setObjectName("dim")
+            more.setFont(THEME.font(16))
+            self.alert_box.addWidget(more)
 
     def update_state(self, state):
         """Vehicle telemetry is not needed here; the camera feeds this page."""

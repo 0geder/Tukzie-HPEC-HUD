@@ -295,6 +295,29 @@ The Pi 4 is found automatically (above). To pin it, set `TUKZIE_PI4_HOST`
 (or `pi4_host=` in `~/.config/sw7/endpoints.conf`); to bypass the resolver
 altogether, set `TUKZIE_TELEMETRY_URL` and `TUKZIE_CAMERA_URL`.
 
+## Layout pass: Diagnostics, Front camera, Sensors (12 Oct)
+
+From Planning/google-stitch-dashboard-prompt.md (sections 1, 2, 3.4, 3.7, 3.8), behind `TUKZIE_SW7_LAYOUT`
+(default on; `=0` gives the earlier pages exactly, checked pixel for pixel by `tests/test_layout_pages.py`).
+Layout, sizes and grouping only; the team's colours and fonts stay.
+
+- Diagnostics (`sw7_layout_pages.py`, `LAYOUT_PAGES_PATCHES`): four cards, Drive, Energy, Position and Link,
+  values 18 px, labels 14 px, a status dot in each header; the data source and the Pi 4 address in plain words
+  ("Simulated drive", "On this Pi"), the raw strings in the details; the ASIS, route and voice list folded behind
+  a 64 px "Show advice and details" row. The ride card is hidden (ToF and vibration are on Sensors); it still
+  receives the telemetry and feeds the Link card. The page still scrolls by finger.
+- Front camera (`front_camera_page.py`): the status is a 28 px chip like the source chip ("Live · 7.0 fps"),
+  alerts are 64 px rows with a 12 px band colour bar, the class in 24 px and "Immediate · under 3 m" under it,
+  nearest band first, the top immediate or warning alert filled in the obstacle pill colours; alerts card 340 px;
+  nothing under 16 px.
+- Sensors (`sensors_page.py`): the three gauges are replaced by a tuk-tuk outline seen from above with a wedge
+  per ToF sensor (as long as the free space, in its band colour) and the distance in 40 px by each sensor, with a
+  word under it (Very close, Close, Clear, No reading); the hazards list beside it in 64 px rows; Vehicle,
+  Position and Ride and link below in three columns; the link chip 120 x 36. The obstacle pill is unchanged; it
+  now also re-places itself when the status bar changes height.
+
+Screenshots (made-up test readings): `tests/layout/pages/before_*.png` and `after_*.png`.
+
 ## Tests
 
 `tests/test_live_data_provider.py` (run with `python
