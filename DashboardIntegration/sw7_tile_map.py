@@ -72,6 +72,15 @@ The altitude is a small chip left of the compass, only when known. layout_page()
 overlays around these (search field right of the banner, team Follow/Overview hidden, status line bottom left at
 18 px); navigation_page.py calls it at the end of _position_overlays (dashboard_patches.LAYOUT_MAP_PATCHES).
 
+Paper and depth style (Planning/paper-depth-theme-prompt.md, page agent P3; only when sw7_style is installed, so
+TUKZIE_SW7_STYLE=team and the map on its own look exactly as before): the map is the middle plane, a raised slab
+(slab_rect) with rounded corners, a warm edge and a long shadow, all in one cached pixmap with four corner patches
+(no live effect: the map repaints every frame). Tiles are tinted once each and cached (tint_tile: warm by day, a
+dark warm map at night). The route, the vehicle and the destination are ink (information); only the controls are
+signal, and the column, search field, Simulate drive and arrival-time bar overlap the slab's edges by 20 to 24 px on
+cached shadows. The turn banner is the charcoal card with the distance as the page's hero (120 px). The arrival-time
+bar is the page's one remaining-distance and ETA figure, with the plan's arrival battery; there is no ALT chip.
+
 Drop this file into app/pages/ (tests/dashboard_patches.py does, and swaps
 the import in navigation_page.py; TUKZIE_TILE_MAP=0 restores NativeRouteMap).
 QtWidgets, QtGui and QtNetwork only; colours from THEME.
