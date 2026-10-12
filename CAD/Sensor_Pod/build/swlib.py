@@ -11,9 +11,11 @@ Checked on SolidWorks 2025 (12 Oct 2026):
   An angled plane = a Top-plane sketch line selected with its end point (mark 1), InsertRefPlane(2, 0, 4, ...).
 Every cut is checked by volume; a cut that removes nothing stops the script.
 """
+import atexit
 import math
 import os
 import time
+import types
 import pythoncom
 import win32com.client
 from win32com.client import VARIANT
@@ -29,6 +31,16 @@ PREV = os.path.join(OUT, "previews")
 
 sw = win32com.client.GetActiveObject("SldWorks.Application")
 sw.SetUserPreferenceToggle(10, False)      # no dimension pop-ups while scripting
+OPENED = []          # titles of documents this run created or opened; closed at exit, even after an error
+
+
+@atexit.register
+def _close_all():
+    for t in OPENED:
+        try:
+            sw.CloseDoc(t)
+        except Exception:
+            pass
 
 
 def model_pt(x, y, z):
@@ -41,6 +53,12 @@ def invoke(obj, name, kind, *args):
     return o.Invoke(o.GetIDsOfNames(name), 0, kind, True, *args)
 
 
+def call0(obj, name):
+    """Zero-argument API call: late binding exposes some as properties and some as methods."""
+    a = getattr(obj, name)
+    return a() if isinstance(a, types.MethodType) else a
+
+
 def arr(vals):
     return VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(v) for v in vals])
 
@@ -51,6 +69,7 @@ class Part:
         self.m = sw.NewDocument(sw.GetUserPreferenceStringValue(8), 0, 0, 0)
         if self.m is None:
             raise SystemExit("could not create a part")
+        OPENED.append(self.m.GetTitle)
         self.sm, self.fm, self.eq = self.m.SketchManager, self.m.FeatureManager, self.m.GetEquationMgr
         self.planes = {}
         for k, v in (globals_ or {}).items():
@@ -194,13 +213,36 @@ class Part:
         print(f"  {label}: -{removed} mm3")
         return f
 
-    def shell(self, face_pt, t, label):
-        """Hollow the solid, removing the face through the pod point face_pt."""
+    def planar_face(self, face_pt, normal):
+        """The planar face through the pod point face_pt whose outward normal is the pod direction `normal`."""
+        want_n = (normal[0], normal[2], -normal[1])
+        p = model_pt(*face_pt)
+        for body in self.m.GetBodies2(0, False):
+            for f in call0(body, "GetFaces"):
+                srf = call0(f, "GetSurface")
+                if not call0(srf, "IsPlane"):
+                    continue
+                pp = call0(srf, "PlaneParams")                     # normal (3), root point (3)
+                n = pp[:3]
+                if call0(f, "FaceInSurfaceSense"):
+                    n = [-v for v in n]
+                if sum(a * b for a, b in zip(n, want_n)) < 0.999:
+                    continue
+                if abs(sum((p[i] - pp[3 + i]) * n[i] for i in range(3))) > 1e-6:
+                    continue
+                cp = f.GetClosestPointOn(*p)
+                if cp is not None and math.dist(cp[:3], p) < 1e-6:
+                    return f
+        return None
+
+    def shell(self, face_pt, t, label, normal=(0, 0, 1)):
+        """Hollow the solid, removing the planar face through face_pt with outward normal `normal` (pod)."""
         self.m.ClearSelection2(True)
-        if not self.m.Extension.SelectByID2("", "FACE", *model_pt(*face_pt), False, 0, NONE, 0):
+        f = self.planar_face(face_pt, normal)
+        if f is None or not f.Select4(False, NONE):
             raise SystemExit(f"{label}: no face at {face_pt}")
         before = self.vol()
-        self.fm.InsertFeatureShell(t * mm, False)
+        self.m.InsertFeatureShell(t * mm, False)
         if self.vol() >= before:
             raise SystemExit(f"{label}: shell failed")
         f = self.m.FeatureByPositionReverse(0)
@@ -264,7 +306,7 @@ class Part:
 
     # ---- output ----
     def save(self, path, shot=None, view="*Isometric"):
-        self.m.EditRebuild3
+        call0(self.m, "EditRebuild3")
         os.makedirs(os.path.dirname(path), exist_ok=True)
         err = self.m.SaveAs3(path, 0, 1)
         print("save", os.path.basename(path), "error code", err, "size", self.size(), "box", self.box())
@@ -279,10 +321,29 @@ class Part:
         time.sleep(1)
 
 
+def hide_refs(m):
+    """Hide reference planes and sketches so the pictures show only solids."""
+    f = m.FirstFeature
+    while f is not None:
+        t = f.GetTypeName2
+        if t in ("RefPlane", "ProfileFeature", "3DProfileFeature"):
+            m.ClearSelection2(True)
+            f.Select2(False, 0)
+            call0(m, "BlankRefGeom" if t == "RefPlane" else "BlankSketch")
+        f = f.GetNextFeature
+    m.ClearSelection2(True)
+
+
 def snap(m, png, view="*Isometric", w=1400, h=1000):
+    """view: a named view, or "front_iso" (isometric from the front-right-above of the pod)."""
     os.makedirs(PREV, exist_ok=True)
-    m.ShowNamedView2(view, -1)
-    m.ViewZoomtofit2
+    hide_refs(m)
+    if view == "front_iso":
+        m.ShowNamedView2("*Isometric", -1)
+        m.ActiveView.RotateAboutAxis(-math.pi / 2, 0, 0, 0, 0, 1, 0)
+    else:
+        m.ShowNamedView2(view, -1)
+    call0(m, "ViewZoomtofit2")
     bmp = os.path.join(PREV, png.replace(".png", ".bmp"))
     m.SaveBMP(bmp, w, h)
     try:
