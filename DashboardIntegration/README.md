@@ -382,6 +382,36 @@ changes with `TUKZIE_SW7_STYLE=team` (checked widget for widget, and pixel for p
 
 Test: `tests/test_style_refine.py` (screenshots `tests/style/refine/before_*.png` and `after_*.png`, day and night).
 
+## Three planes: hero type and the TUKZIE renders (12 Oct)
+
+From Planning/three-planes-hero-prompt.md, on top of the refinement; nothing changes with `TUKZIE_SW7_STYLE=team`.
+
+- Back plane: one huge word per page in Archivo Black (Omnibus-Type, google/fonts, SIL Open Font Licence 1.1,
+  `fonts/OFL-ArchivoBlack.txt`), heavy and wide so a word across the page stays short enough to sit in the open
+  space: DRIVE, STATS, SYSTEM, MAP, AROUND, CHARGE, SETUP. It is ink at 14 % over paper by day (#D5CFC9) and a
+  lifted charcoal (#363331) at night, clipped by the page edges, and never over a value: the gear row and warning lamps on
+  Drive sit on a paper card, and the Surroundings word stays under the nearest-distance hero.
+- Middle plane: the student's TUKZIE renders, cut out of their white backgrounds by `tools/cut_tukzie_renders.py`
+  (Pillow, numpy, scipy; development only) into `assets/tukzie_three_quarter.png`, `tukzie_front.png` and
+  `tukzie_side.png`, with a feathered edge and the render's own ground shadow kept as a soft shadow. Drive has the
+  three-quarter view above the Around tile (the advice strip stops short of it), Charging the front view under the
+  tiles, Settings the side view under the Save card. Map has none; Diagnostics and Surroundings have no free space
+  for one. Word and render are painted once into a cached pixmap per page size and variant (`S.Plane`, `S.PLANES`,
+  `S.set_plane`, `S.page_plane_geometry`).
+- Top plane: the widgets. After the student's review (AURA pass) Drive's tiles and dial sit low so DRIVE and the
+  vehicle fill the open upper area (the render is about 1.7 times larger), the advice strip, the Charging column,
+  the Settings and Diagnostics groups and the hazards list have no cards (groups under a hairline), and the Charging
+  ring has no disc. Cards stay where they group data or keep text legible (the Drive tiles, the gear row, the
+  Range tile, the camera frame, the tuk-tuk card).
+- Charging: the team's composition (Planning/reference_team_charging_page.jpg) in paper and ink: a card disc with the
+  ring arc (its length the state of charge, turning slowly, ink), the tuk-tuk outline from above filled with rising
+  bubbles to the state of charge (ok-green while charging or above 30 %, ink below), the percentage above it, and
+  the readings round the ring: power input, voltage, current, charging state, time to full, cell health. 30 fps only
+  while shown; "--" for anything without a reading, and cell health is "--" until it is reported.
+- COPIES: group `STYLE_PLANES_COPIES` (the font, its licence, the three renders to `app/assets`).
+
+Test: `tests/test_style_planes.py` (screenshots `tests/style/planes/`, day and night).
+
 ## Tests
 
 `tests/test_live_data_provider.py` (run with `python

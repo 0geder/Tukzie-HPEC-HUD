@@ -310,7 +310,7 @@ def _settings_init(page, *_a, **_k):
             if event.type() == QEvent.Type.Paint and enabled():
                 p = QPainter(obj)
                 for c in _cards(page):
-                    if c.isVisible():
+                    if c.isVisible() and not S.BACK_WORDS_SHOWN:      # three planes: no cards, no shadows
                         S.paint_shadow(p, QRectF(c.geometry()), 8, 1)
                 p.end()
             return False
@@ -355,6 +355,16 @@ def _settings_theme(page, *_a, **_k):
         QPushButton:pressed {{ background: {p['signal_tint']}; }}
         QScrollArea, QWidget#settingsContent {{ background: transparent; border: none; }}
         """)
+    if S.BACK_WORDS_SHOWN:
+        # three planes: the groups sit on the paper under a hairline (no cards), so SETUP and the vehicle show
+        # between them; the controls keep their own fills
+        for c in _cards(page):
+            name = c.objectName() or "sw7SettingsGroup"
+            c.setObjectName(name)
+            c.setProperty("sw7_open", True)          # a ThemedCard paints only a hairline (sw7_style._card_paint)
+            c.update()
+            c.setStyleSheet(f"QFrame#{name} {{ background: transparent; border: none; border-top: 1px solid {p['hairline']};"
+                            " border-radius: 0px; }")
     save = getattr(page, "save_button", None)
     if save is not None:                  # the page's one primary action: filled
         save.setStyleSheet(S.button_qss("filled", 16, 16))

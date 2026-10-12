@@ -42,6 +42,7 @@ def build(name):
         shutil.copy(f, src)
     shutil.copy(os.path.join(INTEG, "tests", "dashboard_patches.py"), src)
     shutil.copytree(os.path.join(INTEG, "fonts"), os.path.join(src, "fonts"))
+    shutil.copytree(os.path.join(INTEG, "assets"), os.path.join(src, "assets"))
     r = subprocess.run([sys.executable, os.path.join(INTEG, "deploy", "apply_patches.py"), target, "--source", src,
                         "--native-map", "--team-dir", os.path.join(SP, "nonexistent")], capture_output=True, text=True)
     print(name + ": " + (r.stdout.strip().splitlines()[-1] if r.returncode == 0 else r.stdout + r.stderr))

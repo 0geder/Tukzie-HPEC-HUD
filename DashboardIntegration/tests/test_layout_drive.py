@@ -47,6 +47,7 @@ def build(name, overrides=None):
         shutil.copy(f, src)
     shutil.copy(os.path.join(INTEG, "tests", "dashboard_patches.py"), src)
     shutil.copytree(os.path.join(INTEG, "fonts"), os.path.join(src, "fonts"))
+    shutil.copytree(os.path.join(INTEG, "assets"), os.path.join(src, "assets"))
     for rel, text in (overrides or {}).items():
         with open(os.path.join(src, os.path.basename(rel)), "w", encoding="utf-8", newline="") as fh:
             fh.write(text)

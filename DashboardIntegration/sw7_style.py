@@ -35,9 +35,11 @@ API for the page agents (everything else in this file is the frame and can be ig
     S.type_audit(root) -> [(widget, px)] for visible text widgets outside {13, 16, 22, 120..180}
 
   Surfaces (the refinement of 12 Oct: restrained, Planning/ui-theme-refinement-prompt.md)
-    Back plane:   S.set_back_word(page, "DRIVE", corner="bl") / S.attach_back_plane(widget, "CHARGE") /
-                  S.paint_back_plane(p, rect, word, ...) keep their API; the plane is plain paper now (BACK_WORDS_SHOWN
-                  is False), so nothing decorative competes with the data.
+    Back plane:   three planes (Planning/three-planes-hero-prompt.md). S.set_plane(page, S.Plane(word, word_box,
+                  anchor, subject, subject_box)) gives a page its hero word (Archivo Black, hero_word colour) and its subject
+                  (a cut-out TUKZIE render, assets/tukzie_*.png); both are painted once into a cached pixmap behind
+                  every widget. S.PLANES holds each page's placement, S.page_plane_geometry(page) the word and subject
+                  rects. S.set_back_word / S.attach_back_plane / S.paint_back_plane keep their API.
     Cards:        S.elevate(widget, level=2)   a very light warm shadow (QGraphicsDropShadowEffect). Only for widgets
                   that do not repaint every frame; for those paint a cached shadow:
                   S.paint_card(p, rect, radius=8, level=2, fill="card")   cached shadow + card + hairline border
@@ -84,6 +86,7 @@ DAY = {
     "signal": "#B9562F", "signal_pressed": "#96421F", "signal_tint": "#F1DDD2",
     "shadow": "#6E4A32",
     "ok": "#4F7A55", "warn": "#C98A16", "critical": "#B3261E", "warn_tint": "#F2E0B8",
+    "hero_word": "#D5CFC9",          # ink at 14 % over paper: reads at a glance, never over a value
 }
 NIGHT = {
     "paper": "#1C1A18", "paper_deep": "#24211F", "card": "#26231F", "card_alt": "#2C2925", "hairline": "#3A3531",
@@ -92,12 +95,13 @@ NIGHT = {
     "signal": "#D9744A", "signal_pressed": "#B85C35", "signal_tint": "#4A2C20",
     "shadow": "#070504",
     "ok": "#86B08C", "warn": "#E0A63A", "critical": "#E25A4E", "warn_tint": "#4A3B1C",
+    "hero_word": "#363331",          # a lifted charcoal: ink at 12 % over the night paper
 }
 SHADOW_ALPHA = {False: (0.07, 0.09, 0.12), True: (0.30, 0.36, 0.44)}     # day, night; by level 1..3 (very light)
 LEVELS = {1: (8, 1), 2: (12, 2), 3: (18, 4)}                             # blur radius, y offset
 RADIUS_MAX = 8              # surfaces: small radii (4 to 8 px); circles stay circles
 RADIUS_SM = 4               # chips, bars, small controls
-BACK_WORDS_SHOWN = False    # the giant back-plane words of the depth pass: off (nothing decorative competes)
+BACK_WORDS_SHOWN = True     # the hero word of the three-planes pass (Planning/three-planes-hero-prompt.md)
 SPACE = (4, 8, 12, 16, 24, 32)   # the spacing scale
 
 # ---- type scale ---------------------------------------------------------------------------------------------------
@@ -106,6 +110,8 @@ SECONDARY, BODY, LABEL = 22, 16, 13
 TEXT_SIZES = (LABEL, BODY, SECONDARY)
 SANS, MONO = "IBM Plex Sans", "IBM Plex Mono"
 FALLBACK = "Atkinson Hyperlegible"
+HERO_FACE = "Archivo Black"  # the back-plane word only: heavy and wide (a full-width word stays short enough to sit
+                             # in the open space), bundled (SIL OFL, fonts/OFL-ArchivoBlack.txt)
 
 # ---- frame sizes (1280 x 800, on top of the layout pass) --------------------------------------------------------
 NAV_H = 72                  # the nav row: a flat bar, its 64 px targets inside
@@ -393,45 +399,200 @@ def paint_card(p, rect, radius: float = RADIUS_MAX, level: int = 2, fill: str = 
     p.restore()
 
 
-# ---- back plane ---------------------------------------------------------------------------------------------------
+# ---- back plane: the three planes ----------------------------------------------------------------------------------
+# Planning/three-planes-hero-prompt.md. Back: one huge, heavy word per page (Archivo Black, hero_word colour: ink at
+# 14 % over paper by day, a lifted charcoal at night). Middle: the subject, one of the student's TUKZIE renders (assets/tukzie_*.png, cut out by
+# tools/cut_tukzie_renders.py), drawn in front of the word so the word reads through behind it. Top: the page's own
+# widgets. Word and subject are painted once into one cached pixmap per page size and variant (never per frame).
 _PLANE_CACHE = {}
+_SUBJECT_CACHE = {}
+SUBJECTS = ("three_quarter", "front", "side")
 
 
-def paint_back_plane(p, rect, word: str = "", corner: str = "bl", px: int = 260, ground=None):
-    """Paper ground with the page's word huge and faint (paper_deep), bleeding off the given corner (bl, br, tl, tr).
-    ground: optional QPainterPath(s) filled with paper_deep (a road or ground shape). Cached as a pixmap."""
-    from PySide6.QtCore import QRectF, Qt
-    from PySide6.QtGui import QFont, QFontMetrics, QPainter, QPixmap
+def hero_family() -> str:
+    family()                                       # registers the bundled fonts
+    from PySide6.QtGui import QFontDatabase
+    return HERO_FACE if HERO_FACE in QFontDatabase.families() else family()
+
+
+def hero_font(px: int):
+    from PySide6.QtGui import QFont
+    f = QFont(hero_family())
+    f.setPixelSize(max(8, int(px)))
+    if hero_family() != HERO_FACE:
+        f.setWeight(QFont.Weight.Bold)
+    f.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 97)       # set tight, like a poster
+    f.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+    return f
+
+
+def asset_path(name: str):
+    here = os.path.dirname(os.path.abspath(__file__))
+    for folder in (os.path.join(here, "..", "assets"), os.path.join(here, "assets")):
+        path = os.path.join(folder, name)
+        if os.path.isfile(path):
+            return os.path.normpath(path)
+    return None
+
+
+def subject_image(view: str):
+    """The cut-out render (QImage with alpha), loaded once; None when the asset is missing."""
+    from PySide6.QtGui import QImage
+    key = ("img", view)
+    if key not in _SUBJECT_CACHE:
+        path = asset_path(f"tukzie_{view}.png")
+        img = QImage(path) if path else QImage()
+        _SUBJECT_CACHE[key] = None if img.isNull() else img
+    return _SUBJECT_CACHE[key]
+
+
+def subject_pixmap(view: str, w: int, h: int):
+    """The render scaled once to fit w x h (aspect kept, smooth), cached."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtGui import QPixmap
+    key = ("pix", view, int(w), int(h))
+    hit = _SUBJECT_CACHE.get(key)
+    if hit is None:
+        img = subject_image(view)
+        if img is None:
+            return None
+        hit = QPixmap.fromImage(img.scaled(int(w), int(h), Qt.AspectRatioMode.KeepAspectRatio,
+                                           Qt.TransformationMode.SmoothTransformation))
+        _SUBJECT_CACHE[key] = hit
+    return hit
+
+
+class Plane:
+    """One page's back and middle planes, in fractions of the page rect.
+    word_box (x, y, w, h): the word is fitted to the box width, its capitals' top at the box top (anchor "top"), or
+    its baseline at the box bottom (anchor "bottom"), clipped by the page edges. subject_box: the render, fitted into
+    the box (aspect kept) and standing on the box bottom (align centre, left or right)."""
+
+    def __init__(self, word, word_box=(-0.02, 0.0, 1.04, 1.0), anchor="top", subject=None, subject_box=None,
+                 align="center", strength=1.0):
+        self.word, self.word_box, self.anchor = word, word_box, anchor
+        self.subject, self.subject_box, self.align = subject, subject_box, align
+        self.strength = strength              # 1.0: the hero_word tone; less: fainter (a page whose controls sit on it)
+
+    def key(self):
+        return (self.word, self.word_box, self.anchor, self.subject, self.subject_box, self.align, self.strength)
+
+
+def _box(rect, frac):
+    from PySide6.QtCore import QRectF
+    return QRectF(rect.width() * frac[0], rect.height() * frac[1], rect.width() * frac[2], rect.height() * frac[3])
+
+
+def plane_geometry(plane, w: float, h: float):
+    """{"word": QRectF of the word's capitals, "subject": QRectF of the drawn render, "font_px"} in page coordinates."""
+    from PySide6.QtCore import QRectF
+    from PySide6.QtGui import QFontMetricsF
+    page = QRectF(0, 0, w, h)
+    out = {"word": QRectF(), "subject": QRectF(), "font_px": 0}
+    if plane.word:
+        box = _box(page, plane.word_box)
+        fm = QFontMetricsF(hero_font(200))
+        adv = fm.tightBoundingRect(plane.word).width() or fm.horizontalAdvance(plane.word)
+        px = max(40, int(200 * box.width() / max(1.0, adv)))
+        cap_k = QFontMetricsF(hero_font(200)).capHeight() / 200.0
+        px = min(px, max(40, int(box.height() / cap_k)))          # the capitals stay inside the box's height
+        fm = QFontMetricsF(hero_font(px))
+        tight = fm.tightBoundingRect(plane.word)
+        cap = fm.capHeight()
+        base = box.top() + cap if plane.anchor == "top" else box.bottom()
+        x = box.left() - tight.left() + max(0.0, (box.width() - tight.width()) / 2)
+        out["word"] = QRectF(x + tight.left(), base - cap, tight.width(), cap)
+        out["font_px"] = px
+        out["_word_origin"] = (x, base)
+    if plane.subject and plane.subject_box:
+        box = _box(page, plane.subject_box)
+        img = subject_image(plane.subject)
+        if img is not None:
+            k = min(box.width() / img.width(), box.height() / img.height())
+            sw, sh = img.width() * k, img.height() * k
+            x = box.left() + (box.width() - sw) / 2 if plane.align == "center" else \
+                box.left() if plane.align == "left" else box.right() - sw
+            out["subject"] = QRectF(x, box.bottom() - sh, sw, sh)
+    return out
+
+
+def paint_back_plane(p, rect, word: str = "", corner: str = "bl", px: int = 260, ground=None, plane=None):
+    """Paper ground, the page's hero word (back plane) and its subject (middle plane), cached as one pixmap.
+    plane: a Plane (set with set_plane); without one, word is shown with a default placement. ground: optional
+    QPainterPath(s) filled with paper_deep. Returns the geometry (plane_geometry) of what was drawn."""
+    from PySide6.QtCore import QPointF, QRectF, Qt
+    from PySide6.QtGui import QColor, QPainter, QPixmap
     rect = QRectF(rect)
-    key = (int(rect.width()), int(rect.height()), word, corner, px, is_night(), id(ground) if ground is not None else 0)
-    pix = _PLANE_CACHE.get(key)
-    if pix is None:
+    if plane is None and word:
+        plane = Plane(word, (-0.02, 0.62, 1.04, 0.38), "bottom") if corner in ("bl", "br") else Plane(word)
+    pkey = plane.key() if plane is not None else None
+    key = (int(rect.width()), int(rect.height()), pkey, is_night(), id(ground) if ground is not None else 0,
+           BACK_WORDS_SHOWN)
+    hit = _PLANE_CACHE.get(key)
+    if hit is None:
         pix = QPixmap(max(1, int(rect.width())), max(1, int(rect.height())))
         pix.fill(c("paper"))
-        q = QPainter(pix); q.setRenderHint(QPainter.RenderHint.Antialiasing); q.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+        geo = {}
+        q = QPainter(pix)
+        q.setRenderHint(QPainter.RenderHint.Antialiasing); q.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+        q.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         if ground is not None:
             q.setPen(Qt.PenStyle.NoPen); q.setBrush(c("paper_deep"))
             for path in (ground if isinstance(ground, (list, tuple)) else [ground]):
                 q.drawPath(path)
-        if word and BACK_WORDS_SHOWN:
-            f = font(px, QFont.Weight.Bold); f.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 92)
-            q.setFont(f); q.setPen(c("paper_deep"))
-            fm = QFontMetrics(f)
-            tw = fm.horizontalAdvance(word)
-            x = -px * 0.06 if corner in ("bl", "tl") else pix.width() - tw + px * 0.06
-            # bottom corners: about 60 % of the capitals show above the floating nav pill
-            y = pix.height() - NAV_OVERLAP + px * 0.22 if corner in ("bl", "br") else fm.ascent() - px * 0.22
-            q.drawText(int(x), int(y), word)
+        if plane is not None and BACK_WORDS_SHOWN:
+            geo = plane_geometry(plane, rect.width(), rect.height())
+            if plane.word:
+                x, base = geo["_word_origin"]
+                tone = hx("hero_word") if plane.strength >= 1.0 else blend(hx("paper"), hx("hero_word"), plane.strength)
+                q.setFont(hero_font(geo["font_px"])); q.setPen(QColor(tone))
+                q.drawText(QPointF(x, base), plane.word)
+            sub = geo.get("subject")
+            if sub is not None and not sub.isEmpty():
+                pm = subject_pixmap(plane.subject, round(sub.width()), round(sub.height()))
+                if pm is not None:
+                    if is_night():
+                        q.setOpacity(0.9)           # a touch quieter on the dark ground (less glare)
+                    q.drawPixmap(QPointF(sub.x(), sub.y()), pm)
+                    q.setOpacity(1.0)
         q.end()
         if len(_PLANE_CACHE) > 24:
             _PLANE_CACHE.clear()
-        _PLANE_CACHE[key] = pix
-    p.drawPixmap(int(rect.x()), int(rect.y()), pix)
+        hit = _PLANE_CACHE[key] = (pix, geo)
+    p.drawPixmap(int(rect.x()), int(rect.y()), hit[0])
+    return hit[1]
 
 
 def set_back_word(page, word: str, corner: str = "bl", px: int = 260):
     page.setProperty("sw7_word", word); page.setProperty("sw7_word_corner", corner); page.setProperty("sw7_word_px", px)
     page.update()
+
+
+def set_plane(page, plane):
+    """Give a page its hero word and subject (a Plane)."""
+    page.sw7_plane = plane
+    page.setProperty("sw7_word", plane.word if plane is not None else "")
+    stage = getattr(page, "sw7_stage", None)
+    if stage is not None and hasattr(stage, "place"):
+        stage.place()                       # Drive: the advice strip makes room for the subject
+    page.update()
+
+
+def page_plane_geometry(page):
+    """The word and subject rects of a page's plane in page coordinates (for tests and placement checks)."""
+    plane = getattr(page, "sw7_plane", None)
+    if plane is None:
+        return {"word": None, "subject": None}
+    g = plane_geometry(plane, page.width(), page.height())
+    return {"word": g["word"] if not g["word"].isEmpty() else None,
+            "subject": g["subject"] if not g["subject"].isEmpty() else None}
+
+
+def _paint_page_plane(page, p):
+    page.sw7_plane_geo = paint_back_plane(p, page.rect(), page.property("sw7_word") or "",
+                                          page.property("sw7_word_corner") or "bl",
+                                          int(page.property("sw7_word_px") or 260),
+                                          plane=getattr(page, "sw7_plane", None))
 
 
 def attach_back_plane(widget, word: str = "", corner: str = "bl", px: int = 260):
@@ -443,8 +604,7 @@ def attach_back_plane(widget, word: str = "", corner: str = "bl", px: int = 260)
         def eventFilter(self, obj, event):
             if event.type() == QEvent.Type.Paint and enabled():
                 p = QPainter(obj)
-                paint_back_plane(p, obj.rect(), obj.property("sw7_word") or "", obj.property("sw7_word_corner") or "bl",
-                                 int(obj.property("sw7_word_px") or 260))
+                _paint_page_plane(obj, p)
                 p.end()
             return False
 
@@ -560,6 +720,7 @@ def audit_signal(root, ignore=(), mark_px: int = MARK_PX, step: int = 2, image=N
             x = x.parentWidget()
         return False
 
+    photos = _photo_rects(root)
     buf = bytes(img.constBits())
     bpl = img.bytesPerLine()
     tap_hits, info_hits, info_status = {}, {}, {}
@@ -590,6 +751,8 @@ def audit_signal(root, ignore=(), mark_px: int = MARK_PX, step: int = 2, image=N
             if under_ignored(owner):
                 continue
             tap = _tap_owner(owner, root)
+            if tap is None and photos and any(q.contains(x, y) for q in photos):
+                continue                     # the render itself (a control over it still counts)
             if tap is not None:
                 tap_hits[id(tap)] = (tap, tap_hits.get(id(tap), (tap, 0))[1] + step * step)
             else:
@@ -617,6 +780,23 @@ def audit_signal(root, ignore=(), mark_px: int = MARK_PX, step: int = 2, image=N
             continue
         if tap_hits.get(id(wd), (wd, 0))[1] < 12:
             out.append(Finding(wd, "tap_without_signal", 0, "tappable but no signal colour"))
+    return out
+
+
+def _photo_rects(root):
+    """Where a TUKZIE render (a photograph in the middle plane) shows, in root coordinates: its red light bar is the
+    vehicle's, not interface colour, so the audit skips it (as it skips the map and the camera frame)."""
+    from PySide6.QtCore import QPoint, QRect
+    from PySide6.QtWidgets import QWidget
+    out = []
+    for wd in [root] + root.findChildren(QWidget):
+        plane = getattr(wd, "sw7_plane", None)
+        if plane is None or not plane.subject or not wd.isVisible():
+            continue
+        r = page_plane_geometry(wd).get("subject")
+        if r is not None:
+            o = wd.mapTo(root, QPoint(0, 0))
+            out.append(QRect(int(r.x()) + o.x(), int(r.y()) + o.y(), int(r.width()) + 1, int(r.height()) + 1))
     return out
 
 
@@ -742,8 +922,7 @@ def _surface_paint(orig, page, event):
     from PySide6.QtGui import QPainter
     from PySide6.QtWidgets import QWidget
     p = QPainter(page)
-    paint_back_plane(p, page.rect(), page.property("sw7_word") or "", page.property("sw7_word_corner") or "bl",
-                     int(page.property("sw7_word_px") or 260))
+    _paint_page_plane(page, p)
     p.end()
     QWidget.paintEvent(page, event)
 
@@ -754,14 +933,36 @@ def _card_paint(orig, card, event):
     from PySide6.QtWidgets import QFrame
     from PySide6.QtGui import QPen
     p = QPainter(card); p.setRenderHint(QPainter.RenderHint.Antialiasing)
-    p.setPen(QPen(c("hairline"), 1.0)); p.setBrush(c("card"))
-    p.drawRoundedRect(QRectF(card.rect()).adjusted(0.5, 0.5, -0.5, -0.5), RADIUS_MAX, RADIUS_MAX); p.end()
+    if card.property("sw7_open") and BACK_WORDS_SHOWN:
+        p.fillRect(QRectF(0, 0, card.width(), 1), c("hairline"))     # an open group: a hairline, no card
+    else:
+        p.setPen(QPen(c("hairline"), 1.0)); p.setBrush(c("card"))
+        p.drawRoundedRect(QRectF(card.rect()).adjusted(0.5, 0.5, -0.5, -0.5), RADIUS_MAX, RADIUS_MAX)
+    p.end()
     QFrame.paintEvent(card, event)
 
 
 # ---- the frame ----------------------------------------------------------------------------------------------------
-BACK_WORDS = {"driving": "DRIVE", "analytics": "TRIPS", "diagnostics": "HEALTH", "camera": "ROAD",
-              "sensors": "AROUND", "charging": "CHARGE", "settings": "SETUP"}
+BACK_WORDS = {"driving": "DRIVE", "analytics": "STATS", "diagnostics": "SYSTEM", "camera": "ROAD",
+              "navigation": "MAP", "sensors": "AROUND", "charging": "CHARGE", "settings": "SETUP"}
+# Each page's word and subject (fractions of the 1280 x 680 page). Values and tiles are top-plane widgets drawn over
+# this; the subjects sit where no value is (tests/test_style_planes.py checks the boxes against every driving value).
+PLANES = {
+    # Drive: the whole word in the open band between the advice row (with the gear and lamps) and the tiles, which sit
+    # low; the vehicle cuts into the end of the "E"; its wheels stand just above the Around tile's readings (the tile's
+    # label row passes in front of them)
+    "driving": Plane("DRIVE", (0.03, 0.12, 0.76, 0.30), "top", "three_quarter", (0.735, 0.12, 0.265, 0.395), "right"),
+    "analytics": Plane("STATS", (0.015, 0.0, 0.97, 0.985), "bottom"),
+    "diagnostics": Plane("SYSTEM", (0.015, 0.0, 0.97, 0.985), "bottom"),      # the band above the nav bar
+    "camera": Plane("ROAD", (-0.03, 0.0, 1.06, 0.98), "bottom"),
+    "navigation": Plane("MAP", (-0.03, 0.0, 1.06, 0.98), "bottom"),
+    "sensors": Plane("AROUND", (0.015, 0.42, 0.97, 0.565), "bottom"),     # under the nearest-distance hero
+    # Charging: CHARGE across the band above the nav bar, read through the ring (no disc); the front view stands in the
+    # lower right under the compact column, cutting into "GE"
+    "charging": Plane("CHARGE", (0.015, 0.0, 0.97, 0.985), "bottom", "front", (0.70, 0.56, 0.28, 0.425)),
+    # Settings: fainter (its buttons and sliders sit on the letters), the side view standing in it
+    "settings": Plane("SETUP", (0.015, 0.0, 0.97, 0.985), "bottom", "side", (0.52, 0.745, 0.46, 0.25), strength=0.45),
+}
 
 _installed = False
 
@@ -923,6 +1124,7 @@ def _main_init(main, *_a, **_k):
             set_back_word(page, word)
         else:
             attach_back_plane(page, word)
+        set_plane(page, PLANES.get(pid) or Plane(word))
     # hazard pill (sensors_page.HazardBanner) and the weather chip and card
     banner = getattr(main, "hazard_banner", None)
     if banner is not None and hasattr(banner, "sw7_paper"):

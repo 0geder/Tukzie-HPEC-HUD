@@ -68,6 +68,10 @@ echo "Copied ${#FILES[@]} files to ~/sw7_integration"
 ssh "${SSH_OPTS[@]}" "$TARGET" 'mkdir -p ~/sw7_integration/fonts'
 scp -q "${SSH_OPTS[@]}" "$INTEG"/fonts/* "$TARGET:sw7_integration/fonts/"
 echo "Copied the fonts to ~/sw7_integration/fonts"
+# The TUKZIE renders, cut out (assets/tukzie_*.png, the back plane's middle plane); COPIES puts them in app/assets.
+ssh "${SSH_OPTS[@]}" "$TARGET" 'mkdir -p ~/sw7_integration/assets'
+scp -q "${SSH_OPTS[@]}" "$INTEG"/assets/* "$TARGET:sw7_integration/assets/"
+echo "Copied the assets to ~/sw7_integration/assets"
 
 # The remote part. CR characters are stripped in case this file was checked out
 # with Windows line endings.

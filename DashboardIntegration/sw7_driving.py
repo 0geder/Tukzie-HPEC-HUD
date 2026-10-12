@@ -1037,16 +1037,39 @@ class DriveStage(QWidget):
     def place(self):
         pg = self.page
         W, H = self.width(), self.height()
-        pg.asis_panel.setGeometry(32, 12, W - 64, LAYOUT_STRIP_H)
+        # the advice strip stops short of the subject (the TUKZIE render, middle plane) so it never hides it
+        right = W - 32
+        sub = self.S.page_plane_geometry(pg).get("subject") if hasattr(self.S, "page_plane_geometry") else None
+        if sub is not None and sub.top() < 12 + LAYOUT_STRIP_H:
+            right = int(sub.left()) - 16
+        pg.asis_panel.setGeometry(32, 12, right - 32, LAYOUT_STRIP_H)
         gw = pg.gear.width()
-        pg.gear.setGeometry(int((W - gw) / 2), 84, gw, pg.gear.height())
         fw = max(pg.faults.sizeHint().width(), 300)
-        pg.faults.setGeometry(int((W - fw) / 2), 140, fw, 37)
-        top = 184
-        R = int(max(150, min(232, (H - top - 24 - 40) / 2)))
+        planes = getattr(self.S, "BACK_WORDS_SHOWN", False)
+        if planes:
+            # Three planes: the tiles and the dial sit low (16 px over the nav bar), so the upper area stays open for
+            # the hero word and the vehicle; the gear row and lamps stand on the dial's top edge.
+            ty = H - 16 - TILE_H
+            cy = ty + TILE_H / 2 - 2
+            R = int(max(165, min(232, cy - ty + 2)))
+            top = int(cy - R)
+            # the gear, turn indicators and lamps in one row at the right of the advice row, so the band between the
+            # status row and the tiles is free for the whole word
+            mid = 12 + LAYOUT_STRIP_H // 2
+            fx = W - 32 - 16 - fw
+            pg.faults.setGeometry(fx, mid - 18, fw, 37)
+            gx = fx - 8 - gw
+            pg.gear.setGeometry(gx, mid - pg.gear.height() // 2, gw, pg.gear.height())
+            pg.asis_panel.setGeometry(32, 12, max(240, gx - 16 - 16 - 32), LAYOUT_STRIP_H)
+        else:
+            pg.gear.setGeometry(int((W - gw) / 2), 84, gw, pg.gear.height())
+            pg.faults.setGeometry(int((W - fw) / 2), 140, fw, 37)
+            top = 184
+            R = int(max(150, min(232, (H - top - 24 - 40) / 2)))
+            cy = top + R
+            ty = int(cy - TILE_H / 2 + 2)
         pg.speed.setGeometry(int(W / 2 - R), top, 2 * R, 2 * R + SLAB_EDGE)
-        cy = top + R
-        ty = int(cy - TILE_H / 2 + 2)
+        ty = int(ty)
         self.next_turn.setGeometry(int(W / 2 - R - TILE_W + TILE_OVERLAP), ty, TILE_W, TILE_H)
         self.around.setGeometry(int(W / 2 + R - TILE_OVERLAP), ty, TILE_W, TILE_H)
         r = R - 30
@@ -1057,10 +1080,24 @@ class DriveStage(QWidget):
             t.raise_()
         self.update()
 
+    def cluster_rect(self):
+        """The card under the gear row and the warning lamps (None when the hero word is off)."""
+        S, pg = self.S, self.page
+        if not getattr(S, "BACK_WORDS_SHOWN", False):
+            return None
+        g, f = pg.gear.geometry(), pg.faults.geometry()
+        left, right = min(g.left(), f.left()) - 16, max(g.right(), f.right()) + 16
+        top, bottom = min(g.top(), f.top()) - 6, max(g.bottom(), f.bottom()) + 6
+        return QRectF(left, top, right - left, bottom - top)
+
     def paintEvent(self, _):
         S = self.S
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        # the gear, turn indicators and warning lamps sit on one paper card (they lie over the hero word)
+        r = self.cluster_rect()
+        if r is not None:
+            S.paint_card(p, r, 8, 1)
         sp = self.page.speed
         if hasattr(sp, "disc"):
             cx, cy, R = sp.disc()
@@ -1111,8 +1148,12 @@ def _paper_strip(panel, S):
         sev = panel.property("severity") or "normal"
         no_data = panel.line1.text().strip().lower().startswith("no live")
         key = {"critical": "critical", "warning": "warn"}.get(sev, "ink_3" if no_data else "ok")
+        # three planes: no card, the advice sits on the paper over a hairline (the hero word starts below it)
+        strip_box = (f"background: transparent; border: none; border-bottom: 1px solid {S.hx('hairline')}; border-radius: 0px;"
+                     if getattr(S, "BACK_WORDS_SHOWN", False) else
+                     f"background: {S.hx('card')}; border: 1px solid {S.hx('hairline')}; border-radius: {S.RADIUS_MAX}px;")
         panel.setStyleSheet(f"""
-            QFrame#asisAdvisoryPanel {{ background: {S.hx('card')}; border: 1px solid {S.hx('hairline')}; border-radius: {S.RADIUS_MAX}px; }}
+            QFrame#asisAdvisoryPanel {{ {strip_box} }}
             QFrame#asisAdvisoryPanel QLabel {{ background: transparent; color: {S.hx('ink')}; border: none; }}
         """)
         panel.heading.setText(panel.heading.text().upper())
