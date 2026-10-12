@@ -15,13 +15,24 @@ Carousel behaviour:
   - dots on the right show the position.
 No automatic scrolling: moving content on a driver display draws the eye.
 Turned off with TUKZIE_ANALYTICS_CAROUSEL=0 (the original grid comes back).
+
+Layout pass (12 Oct 2026, Planning/google-stitch-dashboard-prompt.md 3.3), behind TUKZIE_SW7_LAYOUT (default
+on; 0 gives the carousel exactly as before). Same cards, gradients and colours; only sizes and spacing:
+  - the centre card up to 480 px tall with the neighbours peeking 60 px;
+  - each value card: value 96 px bold with its unit at 32 px, one 18 px context line, and a 120 px
+    sparkline of the page's own chart history where there is one (battery %, odometer, consumption);
+  - 64 x 64 px up and down buttons, 12 px dots with the current card's name at 14 px;
+  - Graphs: 64 px Back button, charts scaled to their data (speed 0 to 50 km/h, battery 0 to 100 %,
+    consumption 0 to 120 Wh/km, distance fitted), axis text at least 12 px, current value 24 px;
+  - headings in the theme's text colour (they were dark on dark where no app stylesheet applies).
 """
 from __future__ import annotations
 
 import math
+import os
 
-from PySide6.QtCore import QEasingCurve, QRectF, Qt, QVariantAnimation, Signal
-from PySide6.QtGui import QColor, QFont, QPainter
+from PySide6.QtCore import QEasingCurve, QPointF, QRectF, Qt, QVariantAnimation, Signal
+from PySide6.QtGui import QColor, QFont, QFontMetricsF, QLinearGradient, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import (QGraphicsOpacityEffect, QGridLayout, QHBoxLayout, QLabel, QPushButton,
                                QSizePolicy, QStackedWidget, QVBoxLayout, QWidget)
 
@@ -29,6 +40,25 @@ from ..theme import THEME
 
 ANIM_MS = 250
 TAP_SLOP_PX = 10
+
+# layout pass sizes (px at 1280 x 800)
+VALUE_PX = 96
+UNIT_PX = 32
+CONTEXT_PX = 18
+CAPTION_PX = 20
+SPARK_H = 120
+PEEK_PX = 60
+CARD_GAP = 18
+CARD_MAX_H = 480
+BUTTON_PX = 64
+AXIS_PX = 12
+CHART_VALUE_PX = 24
+CHART_TITLE_PX = 14
+CHART_RANGES = {"speed_chart": (0.0, 50.0), "soc_chart": (0.0, 100.0), "dist_chart": None, "eff_chart": (0.0, 120.0)}
+
+
+def layout_enabled():
+    return os.environ.get("TUKZIE_SW7_LAYOUT", "1").strip() != "0"
 
 
 class InfiniteCarousel(QWidget):
@@ -55,6 +85,7 @@ class InfiniteCarousel(QWidget):
         self._anim.valueChanged.connect(self._set_pos)
         self._anim.finished.connect(self._settle)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self._layout_pass = layout_enabled()
 
     # ---- state ---------------------------------------------------------------------------
     @property
@@ -98,6 +129,10 @@ class InfiniteCarousel(QWidget):
 
     # ---- geometry ------------------------------------------------------------------------
     def _geometry(self):
+        if self._layout_pass:                       # neighbours peek PEEK_PX each, centre card up to 480 px
+            card_h = max(170.0, min(float(CARD_MAX_H), self.height() - 2.0 * (PEEK_PX + CARD_GAP)))
+            card_w = max(300.0, min(self.width() - 40.0, 900.0))
+            return card_w, card_h, card_h + CARD_GAP
         card_h = max(170.0, min(360.0, self.height() * 0.56))
         card_w = max(300.0, min(self.width() - 40.0, 900.0))
         return card_w, card_h, card_h + 18.0
@@ -182,10 +217,11 @@ class InfiniteCarousel(QWidget):
 class _Dots(QWidget):
     """Vertical position dots; the current one is filled in the accent colour."""
 
-    def __init__(self, count, parent=None):
+    def __init__(self, count, parent=None, names=None):
         super().__init__(parent)
         self.count, self.current = count, 0
-        self.setFixedWidth(28)
+        self.names = list(names) if names else None   # layout pass: the current card's name beside its dot
+        self.setFixedWidth(150 if self.names else 28)
         THEME.changed.connect(self.update)
 
     def set_current(self, i):
@@ -193,6 +229,8 @@ class _Dots(QWidget):
         self.update()
 
     def paintEvent(self, _event):
+        if self.names:
+            return self._paint_named()
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         gap = 22.0
@@ -203,6 +241,25 @@ class _Dots(QWidget):
             p.setBrush(THEME.color("accent") if on else QColor(THEME.hex("border")))
             r = 6.0 if on else 4.5
             p.drawEllipse(QRectF(self.width() / 2.0 - r, top + i * gap - r, 2 * r, 2 * r))
+        p.end()
+
+    def _paint_named(self):
+        """12 px dots, 12 px apart, at the right edge; the current card's name at 14 px to the left of its dot."""
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        gap, r = 24.0, 6.0
+        x = self.width() - BUTTON_PX / 2.0               # under the centre of the up and down buttons
+        top = self.height() / 2.0 - gap * (self.count - 1) / 2.0
+        for i in range(self.count):
+            on = i == self.current
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(THEME.color("accent") if on else QColor(THEME.hex("border")))
+            p.drawEllipse(QRectF(x - r, top + i * gap - r, 2 * r, 2 * r))
+        name = self.names[self.current % len(self.names)] if self.names else ""
+        p.setPen(QColor(THEME.hex("text")))
+        p.setFont(THEME.font(14, QFont.Weight.DemiBold))
+        y = top + self.current * gap
+        p.drawText(QRectF(0, y - 12, x - r - 8, 24), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, name)
         p.end()
 
 
@@ -218,6 +275,294 @@ def _enlarge_value_card(card):
             label.setFont(THEME.font(20, QFont.Weight.ExtraBold))
 
 
+# ---- layout pass widgets ---------------------------------------------------------------------------------------
+def _split_value(text):
+    """'80 %' -> ('80', '%'); '12.3 km' -> ('12.3', 'km'); '--' -> ('--', '')."""
+    text = (text or "").strip()
+    if " " in text:
+        num, unit = text.split(" ", 1)
+        return num, unit
+    return text, ""
+
+
+class _BigValue(QWidget):
+    """The card's value: number at VALUE_PX bold, unit at UNIT_PX, on one baseline, centred.
+
+    It mirrors the team's value label (still set by update_state, kept hidden), so the label's text stays the
+    reference for tests and for the TUKZIE_SW7_LAYOUT=0 look."""
+
+    def __init__(self, label, color_key, parent=None):
+        super().__init__(parent)
+        self.label, self.color_key = label, color_key
+        self.setFixedHeight(int(VALUE_PX * 1.2))
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        THEME.changed.connect(self.update)
+
+    def paintEvent(self, _event):
+        num, unit = _split_value(self.label.text())
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        fn, fu = THEME.font(VALUE_PX, QFont.Weight.Bold), THEME.font(UNIT_PX, QFont.Weight.DemiBold)
+        mn, mu = QFontMetricsF(fn), QFontMetricsF(fu)
+        gap = 12.0 if unit else 0.0
+        total = mn.horizontalAdvance(num) + gap + (mu.horizontalAdvance(unit) if unit else 0.0)
+        x = (self.width() - total) / 2.0
+        base = (self.height() + mn.capHeight()) / 2.0
+        p.setPen(QColor(THEME.hex("text")))
+        p.setFont(fn)
+        p.drawText(QPointF(x, base), num)
+        if unit:
+            p.setPen(QColor(THEME.hex("text_dim")))
+            p.setFont(fu)
+            p.drawText(QPointF(x + mn.horizontalAdvance(num) + gap, base), unit)
+        p.end()
+
+
+class _Sparkline(QWidget):
+    """The last points of one of the page's own charts (the same history the Graphs view shows)."""
+
+    def __init__(self, chart, color_key, parent=None):
+        super().__init__(parent)
+        self.chart, self.color_key = chart, color_key
+        self.setFixedHeight(SPARK_H)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        THEME.changed.connect(self.update)
+
+    def paintEvent(self, _event):
+        data = list(getattr(self.chart, "_data", []) or [])
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        dim = QColor(THEME.hex("text_dim"))
+        p.setPen(dim)
+        p.setFont(THEME.font(AXIS_PX, QFont.Weight.DemiBold))
+        p.drawText(QRectF(0, 0, self.width(), 18), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, "RECENT")
+        plot = QRectF(0, 22, self.width(), self.height() - 26)
+        if len(data) < 2:
+            p.setFont(THEME.font(14, QFont.Weight.Medium))
+            p.drawText(plot, Qt.AlignmentFlag.AlignCenter, "No history yet")
+            p.end()
+            return
+        lo, hi = min(data), max(data)
+        if hi - lo < 1e-9:
+            lo, hi = lo - 1.0, hi + 1.0
+        p.drawText(QRectF(0, 0, self.width(), 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop,
+                   f"{lo:.1f} to {hi:.1f}" if hi - lo < 10 else f"{lo:.0f} to {hi:.0f}")
+        n = len(data)
+        pts = [QPointF(plot.left() + plot.width() * i / (n - 1), plot.bottom() - (v - lo) / (hi - lo) * plot.height())
+               for i, v in enumerate(data)]
+        col = THEME.color(self.color_key)
+        top_c, bot_c = QColor(col), QColor(col)
+        top_c.setAlpha(60)
+        bot_c.setAlpha(0)
+        grad = QLinearGradient(QPointF(0, plot.top()), QPointF(0, plot.bottom()))
+        grad.setColorAt(0.0, top_c)
+        grad.setColorAt(1.0, bot_c)
+        area = QPainterPath()
+        area.moveTo(pts[0].x(), plot.bottom())
+        for pt in pts:
+            area.lineTo(pt)
+        area.lineTo(pts[-1].x(), plot.bottom())
+        area.closeSubpath()
+        p.fillPath(area, grad)
+        pen = QPen(col, 3.0)
+        pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        p.setPen(pen)
+        for i in range(1, n):
+            p.drawLine(pts[i - 1], pts[i])
+        p.end()
+
+
+def _label_style(label, key="text"):
+    label.setStyleSheet(f"background: transparent; color: {THEME.hex(key)};")
+
+
+def _layout_value_card(card, color_key, chart=None):
+    """Value card for the layout pass: caption, 96 px value with 32 px unit, 18 px context line, sparkline."""
+    card.setMaximumWidth(16777215)
+    card.setMaximumHeight(16777215)
+    lay = card.content_layout()
+    lay.setContentsMargins(28, 22, 28, 18)
+    caption = None
+    for label in card.findChildren(QLabel):
+        if label is not getattr(card, "value", None):
+            caption = label
+            label.setFont(THEME.font(CAPTION_PX, QFont.Weight.ExtraBold))
+    card.value.hide()                                   # still holds the text; _BigValue draws it
+    card.sw7_big = _BigValue(card.value, color_key)
+    card.sw7_context = QLabel("")
+    card.sw7_context.setFont(THEME.font(CONTEXT_PX, QFont.Weight.Medium))
+    card.sw7_context.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+    card.sw7_spark = _Sparkline(chart, color_key) if chart is not None else None
+    lay.insertStretch(1, 1)
+    lay.insertWidget(2, card.sw7_big)
+    lay.insertWidget(3, card.sw7_context)
+    if card.sw7_spark is not None:
+        lay.addWidget(card.sw7_spark)
+
+    def colours():
+        if caption is not None:
+            _label_style(caption)
+        _label_style(card.sw7_context, "text_dim")
+
+    THEME.changed.connect(colours)
+    colours()
+    card.sw7_caption = caption
+
+
+def _context_lines(page, s):
+    """One short line per value card (18 px), from the same state update_state() shows."""
+    def num(name):
+        v = getattr(s, name, None)
+        return None if v is None or isinstance(v, bool) else float(v)
+    soc, rng = num("soc_pct"), num("range_km")
+    try:
+        from ..asis.config import VEHICLE_SPEC
+        cap_wh = float(getattr(VEHICLE_SPEC, "battery_capacity_wh", None) or 7200.0)
+    except Exception:  # noqa: BLE001
+        cap_wh = 7200.0
+    if soc is None:
+        soc_line = "No battery data"
+    else:
+        soc_line = f"{soc / 100.0 * cap_wh / 1000.0:.1f} of {cap_wh / 1000.0:.1f} kWh left"
+        if rng is not None:
+            soc_line += f" · about {rng:.0f} km"
+    trip = num("trip_km")
+    return {
+        "s_soc": soc_line,
+        "s_btemp": "Battery pack",
+        "s_atemp": "Outside air",
+        "s_odo": "Total distance" + (f" · this trip {trip:.1f} km" if trip else ""),
+        "s_power": "Drawn from the battery now",
+        "s_eff": "Energy used per km",
+    }
+
+
+def _paint_chart(chart, name, _event):
+    """The team's MiniChart drawn with real ranges, 12 px axis text and a 24 px current value."""
+    p = QPainter(chart)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing)
+    w, h = chart.width(), chart.height()
+    dim, text = QColor(THEME.hex("text_dim")), QColor(THEME.hex("text"))
+    data = list(chart._data)
+    p.setPen(text)
+    p.setFont(THEME.font(CHART_TITLE_PX, QFont.Weight.DemiBold))
+    p.drawText(QRectF(96, 4, w - 96 - 150, 26), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, chart._title)
+    p.setPen(THEME.color(chart._color_key))
+    p.setFont(THEME.font(CHART_VALUE_PX, QFont.Weight.Bold))
+    digits = 2 if name == "dist_chart" and data and abs(data[-1]) < 10 else 1   # short trips: metres matter
+    current = f"{data[-1]:.{digits}f} {chart._unit}" if data else f"-- {chart._unit}"
+    p.drawText(QRectF(8, 0, w - 16, 34), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, current)
+
+    left = 60.0
+    plot = QRectF(left, 44, w - left - 18, h - 44 - 46)
+    fixed = CHART_RANGES.get(name)
+    if fixed is not None:
+        lo, hi = fixed
+        if data:
+            lo = min(lo, min(data))
+            top = max(data)
+            if top > hi:                                  # never clip: widen to the next round step
+                step = 10.0 ** math.floor(math.log10(max(1.0, top)))
+                hi = math.ceil(top / step) * step
+    elif len(data) >= 1:                                  # distance: fitted to the data
+        lo, hi = min(data), max(data)
+        pad = max(0.05, (hi - lo) * 0.1)
+        lo, hi = lo - pad, hi + pad
+    else:
+        lo, hi = 0.0, 1.0
+    rng = (hi - lo) or 1.0
+
+    axis = QColor(THEME.hex("border"))
+    axis.setAlpha(160)
+    p.setPen(QPen(axis, 1.5))
+    p.drawLine(QPointF(plot.left(), plot.top()), QPointF(plot.left(), plot.bottom()))
+    p.drawLine(QPointF(plot.left(), plot.bottom()), QPointF(plot.right(), plot.bottom()))
+    grid = QColor(THEME.hex("border"))
+    grid.setAlpha(70)
+    p.setPen(QPen(grid, 1, Qt.PenStyle.DashLine))
+    for i in range(1, 4):
+        y = plot.top() + plot.height() * i / 4
+        p.drawLine(QPointF(plot.left(), y), QPointF(plot.right(), y))
+
+    p.setPen(dim)
+    p.setFont(THEME.font(AXIS_PX, QFont.Weight.Medium))
+    fmt = "{:.0f}" if rng >= 10 else "{:.1f}" if rng >= 1 else "{:.2f}"
+    for frac in (0.0, 0.5, 1.0):
+        val, y = lo + rng * frac, plot.bottom() - plot.height() * frac
+        p.drawText(QRectF(18, y - 9, left - 24, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, fmt.format(val))
+    p.save()
+    p.translate(10, plot.center().y())
+    p.rotate(-90)
+    p.drawText(QRectF(-50, -9, 100, 18), Qt.AlignmentFlag.AlignCenter, chart._unit)
+    p.restore()
+    _, _, label_full, label_half = chart.TIMELINES[chart._combo.currentIndex()]
+    for label, x, align in ((label_full, plot.left(), Qt.AlignmentFlag.AlignLeft),
+                            (label_half, plot.center().x() - 30, Qt.AlignmentFlag.AlignHCenter),
+                            ("now", plot.right() - 60, Qt.AlignmentFlag.AlignRight)):
+        p.drawText(QRectF(x, plot.bottom() + 4, 60, 18), align | Qt.AlignmentFlag.AlignVCenter, label)
+    p.drawText(QRectF(plot.left(), plot.bottom() + 22, plot.width(), 18), Qt.AlignmentFlag.AlignHCenter, "Time")
+
+    if len(data) < 2:
+        p.setFont(THEME.font(14, QFont.Weight.Medium))
+        p.drawText(plot, Qt.AlignmentFlag.AlignCenter, "No data yet" if not data else "One point so far")
+        p.end()
+        return
+    n = len(data)
+    pts = [QPointF(plot.left() + plot.width() * i / (n - 1), plot.bottom() - (v - lo) / rng * plot.height())
+           for i, v in enumerate(data)]
+    col = THEME.color(chart._color_key)
+    top_c, bot_c = QColor(col), QColor(col)
+    top_c.setAlpha(50)
+    bot_c.setAlpha(0)
+    grad = QLinearGradient(QPointF(0, plot.top()), QPointF(0, plot.bottom()))
+    grad.setColorAt(0.0, top_c)
+    grad.setColorAt(1.0, bot_c)
+    area = QPainterPath()
+    area.moveTo(pts[0].x(), plot.bottom())
+    for pt in pts:
+        area.lineTo(pt)
+    area.lineTo(pts[-1].x(), plot.bottom())
+    area.closeSubpath()
+    p.setPen(Qt.PenStyle.NoPen)
+    p.fillPath(area, grad)
+    pen = QPen(col, 2.5)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    p.setPen(pen)
+    for i in range(1, n):
+        p.drawLine(pts[i - 1], pts[i])
+    chart.sw7_range = (lo, hi)
+    p.end()
+
+
+def _layout_chart(chart, name):
+    """Instance overrides on the team's MiniChart (its class and the TUKZIE_SW7_LAYOUT=0 look stay as they are)."""
+    import types
+    chart.sw7_range = CHART_RANGES.get(name)
+    chart.paintEvent = types.MethodType(lambda self, e: _paint_chart(self, name, e), chart)
+    chart.setMinimumHeight(200)
+
+    def restyle():
+        bg = THEME.hex('bg_alt') if not THEME.is_light else "rgba(255, 255, 255, 0.7)"
+        chart._combo.setStyleSheet(f"""
+            QComboBox {{ background: {bg}; color: {THEME.hex('text')}; border: 1px solid {THEME.hex('border')};
+                         border-radius: 6px; padding: 2px 8px; font-weight: bold; font-size: {AXIS_PX + 2}px; }}
+            QComboBox::drop-down {{ border: none; width: 18px; }}
+            QComboBox QAbstractItemView {{ background: {THEME.hex('card')}; color: {THEME.hex('text')};
+                selection-background-color: {THEME.hex('accent')}; border: 1px solid {THEME.hex('border')};
+                font-size: {AXIS_PX + 4}px; }}
+        """)
+        chart._combo.setGeometry(8, 2, 84, 32)
+
+    def resize(self, event):
+        type(self).resizeEvent(self, event)
+        self._combo.setGeometry(8, 2, 84, 32)
+
+    chart.resizeEvent = types.MethodType(resize, chart)
+    THEME.changed.connect(restyle)
+    restyle()
+
+
 def install_carousel(page, root, grid, chart_grid):
     from .analytics_page import _GradientCard          # the team's card, so the look matches
 
@@ -230,8 +575,37 @@ def install_carousel(page, root, grid, chart_grid):
     root.removeItem(grid)
     root.removeItem(chart_grid)
     root.removeWidget(page.insights)
-    for w in stats:
-        _enlarge_value_card(w)
+    layout_pass = layout_enabled()
+    if layout_pass:
+        sparks = {"s_soc": (page.soc_chart, "normal"), "s_odo": (page.dist_chart, "accent"),
+                  "s_eff": (page.eff_chart, "info")}
+        keys = {"s_soc": "normal", "s_btemp": "warn", "s_atemp": "info", "s_odo": "accent",
+                "s_power": "accent", "s_eff": "info"}
+        for name, key in keys.items():
+            chart, _ = sparks.get(name, (None, None))
+            _layout_value_card(getattr(page, name), key, chart)
+        for name in CHART_RANGES:
+            _layout_chart(getattr(page, name), name)
+        root.setContentsMargins(24, 12, 24, 12)
+        title_label = root.itemAt(0).widget() if root.count() else None   # the team's "Analytics" title
+        team_update = page.update_state
+
+        def update_state(s):
+            team_update(s)
+            lines = _context_lines(page, s)
+            for name in keys:
+                card = getattr(page, name)
+                card.sw7_context.setText(lines[name])
+                card.sw7_big.update()
+                if card.sw7_spark is not None:
+                    card.sw7_spark.update()
+
+        page.update_state = update_state
+        page.open_log.setMinimumHeight(BUTTON_PX)
+        page.open_log.setFont(THEME.font(16, QFont.Weight.Bold))
+    else:
+        for w in stats:
+            _enlarge_value_card(w)
     page.insight_title.setFont(THEME.font(20, QFont.Weight.Bold))
     page.insight_body.setFont(THEME.font(18, QFont.Weight.Medium))
 
@@ -264,14 +638,17 @@ def install_carousel(page, root, grid, chart_grid):
     row.addWidget(carousel, 1)
     side = QVBoxLayout()
     up, down = QPushButton("▲"), QPushButton("▼")
-    dots = _Dots(len(items))
+    names = ["Battery %", "Battery temp", "Ambient temp", "Odometer", "Battery output", "Consumption",
+             "Graphs", "Driver insights"]
+    dots = _Dots(len(items), names=names if layout_pass else None)
     for b in (up, down):
-        b.setFixedSize(56, 56)
+        b.setFixedSize(*((BUTTON_PX, BUTTON_PX) if layout_pass else (56, 56)))
         b.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         b.setFont(THEME.font(18, QFont.Weight.Bold))
-    side.addWidget(up)
+    right = Qt.AlignmentFlag.AlignRight if layout_pass else Qt.AlignmentFlag(0)
+    side.addWidget(up, 0, right)
     side.addWidget(dots, 1)
-    side.addWidget(down)
+    side.addWidget(down, 0, right)
     row.addLayout(side)
     up.clicked.connect(lambda: carousel.step(-1))
     down.clicked.connect(lambda: carousel.step(1))
@@ -301,6 +678,23 @@ def install_carousel(page, root, grid, chart_grid):
             chart.setMaximumHeight(16777215)
         cg.addWidget(card, i // 2, i % 2)
     gv.addLayout(cg, 1)
+    if layout_pass:
+        back.setFixedHeight(BUTTON_PX)
+        back.setMinimumWidth(140)
+        back.setFont(THEME.font(18, QFont.Weight.Bold))
+        heading.setFont(THEME.font(24, QFont.Weight.Bold))
+        gv.setSpacing(12)
+        cg.setSpacing(16)
+
+        def colours():                                  # explicit colours: never dark on dark
+            for lbl in (heading, title, body) + ((title_label,) if isinstance(title_label, QLabel) else ()):
+                _label_style(lbl)
+            hint.setStyleSheet(f"background: transparent; color: {THEME.hex('accent')};")
+            _label_style(page.insight_title)
+            _label_style(page.insight_body)
+
+        THEME.changed.connect(colours)
+        colours()
 
     stack = QStackedWidget()
     stack.addWidget(carousel_view)

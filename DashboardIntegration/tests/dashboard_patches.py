@@ -22,6 +22,7 @@ ANALYTICS_CAROUSEL_PATCHES: the Analytics page as an infinite vertical carousel 
 DRIVING_PATCHES: large speed, battery and range in place of the dial and pedal bars.
 SEARCH_PATCHES: destination search with Photon type-ahead, recents and a start-position header (sw7_search.py).
 THEME_PATCHES: Night and Day themes, flat surfaces and the Atkinson Hyperlegible font (TUKZIE_SW7_THEME=0 restores the original).
+LAYOUT_DRIVE_PATCHES: the layout pass for Driving (TUKZIE_SW7_LAYOUT=0 restores the current look); Analytics' part is in sw7_analytics.py.
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -646,4 +647,16 @@ SEARCH_PATCHES = (
      "            if start: return start\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES
+LAYOUT_DRIVE_PATCHES = (
+    # driving_page.py: the layout pass for the Driving page in the team look (sw7_driving.install_layout;
+    # Planning/layout-improvements-prompt.md, agent B): 64 px advice strip across the page, whole-number speed at
+    # 140 px in a larger dial, range and battery at 36 px under it, short pedal bars. TUKZIE_SW7_LAYOUT=0 (or the
+    # SW-7 theme) leaves the page as it was. The Analytics part needs no patch: it is in sw7_analytics.py.
+    ("app/pages/driving_page.py",
+     "    def set_state(self,s):\n        if self.sw7 is not None: self.sw7.set_state(s)\n",
+     "        from ..widgets.sw7_driving import install_layout as _sw7_layout\n"
+     "        _sw7_layout(self)   # SW-7 layout pass (TUKZIE_SW7_LAYOUT, default on)\n"
+     "    def set_state(self,s):\n        if self.sw7 is not None: self.sw7.set_state(s)\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_DRIVE_PATCHES
