@@ -33,6 +33,7 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 | 2.5 | Ethics appendix decision with Prof. Winberg (course requires it; the student's rule D20 says leave it out) | Student | Planning/report-review.md | Open |
 | 2.6 | Configuration table (versions, pins, bus speeds, priorities, queues, partitions) | Agent (2.1) | report-cut-plan.md | Done (Appendix E.1, firmware v0.7.3) |
 | 2.7 | Final format checks (font, spacing, word count line, AI prompt examples, GA 10) | Agent (2.1) then Claude | Planning/brief-compliance.md | In progress |
+| 2.9 | Appendix F (enclosures and mounts) and Appendix G (dashboard interface design) | Claude | Report/appendixf.tex, appendixg.tex | Done 12 to 13 Oct; G to get the three-planes screenshots after deploy |
 | 2.8 | Ask Maisha for a second look at the pre-submission draft | Student | | Open |
 
 ## Priority 3: features and presentation
@@ -42,11 +43,15 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 | 3.1 | Uber-style destination search: current location as start, instant recents, fast relevant suggestions | Agent | Planning/destination-search-prompt.md | Done 11 Oct (4cab2e8), deployed; not yet tried by hand on the touchscreen |
 | 3.2 | Deck, poster, talking points, Q&A updated with all results since 6 Oct; talk down to 10 minutes | Agent | Presentation/ | Done 11 Oct (eee1296), about 9.2 min; refresh after the road test and v0.7.4 |
 | 3.3 | SEN55 environmental sensor: firmware read, dashboard, bench test; air-quality anomaly rule (PM2.5 with VOC rise) | Claude | wiring in Report Appendix C | Blocked: JST GH 6-pin cable |
-| 3.4 | Sensor pod and telemetry housing finalised for printing | Claude | CameraMount/sensor_pod/README.md | Blocked: board measurements (Student) |
+| 3.4 | Sensor pod, dashboard mount and IMU pods designed, audited and sliced | Claude | CAD/, Report Appendix F, Desktop/Fourth Year/EEE4022S/3D Prints/ | Done 12 Oct (revision 2, 13 beds, about 75 h, 0.9 kg PLA); printing from 13 Oct; measurements still to confirm (F outstanding list) |
 | 3.5 | Offline map stage 1 (whole Western Cape vector map), stage 2 (offline routing), offline voice | Claude | Planning/map-offline-navigation-prompt.md | Not started (about 1.5 GB of downloads; after the report) |
 | 3.6 | USB speaker for the Pi 5 (Bluetooth earphones work for testing) | Student | | Open |
 | 3.7 | Fusion calibration test C9 | Claude + Student | BenchTest/TEST_PROCEDURES.md | Open |
 | 3.8 | Stale-BMS marking on the dashboard | Claude | | Open |
+| 3.9 | Dashboard redesign: layout pass, data ownership (7 pages), paper theme, refinement, three planes | Agents + Claude | Planning/three-planes-hero-prompt.md, Report Appendix G | Refinement deployed 12 Oct (5baa5f2); three planes approved for deploy 13 Oct |
+| 3.10 | Right ToF returns no range (answers on I2C, signal 0 to 13) | Student | Results R6 to R8 row | Open: peel the lens film, check nothing covers it, else swap the board |
+| 3.11 | 9.3 % unusable DASH lines at the Pi 4 bridge over 4.7 h | Claude | Results R10 | Open: log the bad lines and find the cause |
+| 3.12 | Side ToF direction: 90 degrees as built or 35 degrees as fusion_config.json assumes | Student | Appendix F | Open: decide before the pod is fitted |
 
 ## Priority 4: future work unless time allows
 
@@ -56,6 +61,16 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 | 4.2 | Hall RPM: motor pole pairs, optocoupler tap on the vehicle | Student (supervisor approval, D31) | |
 | 4.3 | MQTT over TLS | Claude | Depends on the broker |
 | 4.4 | Debris (rocks, branches) detector | | No dataset; close range covered by ToF only |
+
+## Today, Tue 13 Oct (road test tomorrow)
+
+1. Print: start 07 (clamp, 9 h; print it twice) and 05 (rail plate, 4 h 20 min); then 13 and 06; the shell quarters and the pod after the road test unless a second MINI is free.
+2. Right ToF: peel the film, check the view, hand test with Claude watching; swap the board if still blind.
+3. Hardware for tomorrow: powered USB hub for the ESP32 (1.5), 5.1 V 3 A Pi 4 supply (1.6), temporary mounts (1.10).
+4. People: send the joint road-test email and confirm the EcoFlow (1.7); broker details from Melokuhle (1.8).
+5. Allow the road-test protocol files to be written (1.3), print the checklist.
+6. Check the three-planes dashboard on the Pi 5 by touch; say if anything should change.
+7. Report: ethics appendix decision with Prof. Winberg (2.5); pothole held-out score in Colab (2.4) if time allows.
 
 ## Done on 10 to 11 Oct (for reference)
 
