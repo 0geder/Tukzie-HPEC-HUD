@@ -61,6 +61,29 @@ Key assumptions: the sizes marked estimated in `build/params.py`. The most impor
 | 8 | Whole pod | Mount | The pod hangs on one dovetail and an M4 thumb screw | Vibration loads on a tuk-tuk are unknown | Physical test: shake on the vehicle; check the thumb screw torque and rail wear. Add a safety tie as on the dashboard | Major (unverified) | Open, needs a physical test |
 | 9 | Head upper | Brow and hoods | Overhangs over the camera and ToF windows | They need support, or the head must print on its back | Print on its back, with support under the brow only. Check in the slicer | Minor | Open, needs a slicer check |
 
+## D0. How each component is supported, connected, made and assembled
+
+Every joint in this table was confirmed in the saved geometry by `build/audit_2_fasteners.py` (coaxial holes of the
+right size in both parts) and by the contact check in `build/audit_1_assembly.py`. "Estimated" marks a dimension that
+still needs measuring.
+
+| Component | Supported by | Connected to neighbours by | Made by | Assembled |
+|---|---|---|---|---|
+| Sensor board (bought) | 4 pillars in the head tray (estimated positions) | 4 M2 x 8 self-tapping into 1.6 mm pilots, 8 mm deep | Bought | Step 2 |
+| Camera in its yellow case (printed earlier) | A cradle in the head upper, with 0.3 mm clearance and a foam ring at the front | The retainer plate over it, with 4 M2 x 6 into 1.6 mm pilots | Existing part | Step 3 |
+| Camera retainer | The cradle rails in the head upper | 4 M2 x 6 | FDM, flat | Step 3 |
+| Head tray | The box front wall, through the flange | 2 M3 x 8 flange screws into inserts in the tray's rear bosses; 2 M3 x 8 seam screws through its side walls into the upper shell | FDM, floor down | Steps 4 and 5 |
+| Head upper shell | The tray (its skirt sits inside the tray walls) and the box front wall | 2 M3 x 8 flange screws into its rear bosses; 2 seam screws | FDM, on its back, support under the brow | Steps 4 and 5 |
+| Box base | The rail plate, so the whole pod hangs from the clamp | 4 M3 x 8 through the rail plate into inserts in floor bosses | FDM, floor down | Steps 5 and 8 |
+| Raspberry Pi 4 (bought) | 4 standoffs, 8 mm, in the box floor | 4 M2.5 x 8 into 2.2 mm pilots | Bought | Step 6, after the flange bolts |
+| ESP32-S3 A7670 (bought) | 4 standoffs, 12 mm (LiPo underneath) | 4 M2 x 8 into 1.6 mm pilots | Bought | Step 6 |
+| 5 V converter (not chosen) | Box floor, rear bay | 2 cable-tie anchors | Bought | Step 6, size estimated |
+| Box lid | The box walls (tongue inside, drip skirt outside) | 6 M3 x 8 into inserts in corner bosses | FDM, outer face down | Step 7 |
+| Sunshade | 4 posts on its underside, standing on the lid | 4 M3 x 8 self-tapping up through the lid into the posts | FDM, flat | Step 7, before the lid goes on |
+| USB hatch cover | The -X box wall | 4 M3 x 8 into inserts in the wall bosses | FDM, flat | Step 7 |
+| Rail plate | The box floor | 4 M3 x 8, counterbored | FDM, plate down | Step 8 |
+| Bar clamp (dashboard bracket and cap) | The tube, over a 1 mm rubber liner | Dovetail: 0.3 mm sliding fit, closed end forward, M4 thumb screw. Clamp halves: 2 M5 x 30 into inserts | FDM, from `CAD/Dashboard_Enclosure` | Step 8 |
+
 ## D. Mechanical notes
 
 - **Load path.** Pod weight (about 0.5 to 0.7 kg estimated: printed parts about 315 cm3 of PETG at 1.27 g/cm3 is about
