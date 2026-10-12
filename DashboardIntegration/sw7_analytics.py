@@ -55,6 +55,7 @@ AXIS_PX = 12
 CHART_VALUE_PX = 24
 CHART_TITLE_PX = 14
 CHART_RANGES = {"speed_chart": (0.0, 50.0), "soc_chart": (0.0, 100.0), "dist_chart": None, "eff_chart": (0.0, 120.0)}
+PAPER_RADIUS = 24
 
 
 def layout_enabled():
@@ -161,10 +162,26 @@ class InfiniteCarousel(QWidget):
         for i, w in enumerate(self._items):
             if i not in shown:
                 w.hide()
+        self._layout_shadow_update()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._layout()
+
+    def paintEvent(self, event):
+        S = getattr(self, "sw7_paper", None)
+        if S is None:
+            return super().paintEvent(event)
+        p = QPainter(self)                         # paper: each shown card floats on a cached shadow
+        for w, eff in zip(self._items, self._effects):
+            if w.isVisible():
+                p.setOpacity(max(0.0, min(1.0, eff.opacity())))
+                S.paint_shadow(p, QRectF(w.geometry()), PAPER_RADIUS, 2)
+        p.end()
+
+    def _layout_shadow_update(self):
+        if getattr(self, "sw7_paper", None) is not None:
+            self.update()
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -245,6 +262,9 @@ class _Dots(QWidget):
 
     def _paint_named(self):
         """12 px dots, 12 px apart, at the right edge; the current card's name at 14 px to the left of its dot."""
+        S = getattr(self, "sw7_paper", None)
+        if S is not None:
+            return self._paint_paper(S)
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         gap, r = 24.0, 6.0
@@ -260,6 +280,28 @@ class _Dots(QWidget):
         p.setFont(THEME.font(14, QFont.Weight.DemiBold))
         y = top + self.current * gap
         p.drawText(QRectF(0, y - 12, x - r - 8, 24), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, name)
+        p.end()
+
+
+    def _paint_paper(self, S):
+        """Paper: the dots are information, so ink (current) and hairline, never signal; the name at 13 px."""
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        gap, r = 24.0, 6.0
+        x = self.width() - BUTTON_PX / 2.0
+        top = self.height() / 2.0 - gap * (self.count - 1) / 2.0
+        for i in range(self.count):
+            on = i == self.current
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(S.c("ink") if on else S.c("ink_3"))
+            rr = r if on else 4.0
+            p.drawEllipse(QRectF(x - rr, top + i * gap - rr, 2 * rr, 2 * rr))
+        name = self.names[self.current % len(self.names)] if self.names else ""
+        p.setPen(S.c("ink"))
+        p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
+        y = top + self.current * gap
+        p.drawText(QRectF(0, y - 12, x - r - 10, 24), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+                   name.upper())
         p.end()
 
 
@@ -300,6 +342,9 @@ class _BigValue(QWidget):
 
     def paintEvent(self, _event):
         num, unit = _split_value(self.label.text())
+        S = getattr(self, "sw7_paper", None)
+        if S is not None:
+            return self._paint_paper(S, num, unit)
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         fn, fu = THEME.font(VALUE_PX, QFont.Weight.Bold), THEME.font(UNIT_PX, QFont.Weight.DemiBold)
@@ -318,6 +363,26 @@ class _BigValue(QWidget):
         p.end()
 
 
+    def _paint_paper(self, S, num, unit):
+        """Paper: the card's one huge value (S.HERO) in ink, its unit at 22 px in ink_2."""
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        fn, fu = S.font(S.HERO, QFont.Weight.Bold), S.font(S.SECONDARY, QFont.Weight.Bold)
+        mn, mu = QFontMetricsF(fn), QFontMetricsF(fu)
+        gap = 14.0 if unit else 0.0
+        total = mn.horizontalAdvance(num) + gap + (mu.horizontalAdvance(unit) if unit else 0.0)
+        x = (self.width() - total) / 2.0
+        base = (self.height() + mn.capHeight()) / 2.0
+        p.setPen(S.c("ink") if num != "--" else S.c("ink_3"))
+        p.setFont(fn)
+        p.drawText(QPointF(x, base), num)
+        if unit:
+            p.setPen(S.c("ink_2"))
+            p.setFont(fu)
+            p.drawText(QPointF(x + mn.horizontalAdvance(num) + gap, base), unit)
+        p.end()
+
+
 class _Sparkline(QWidget):
     """The last points of one of the page's own charts (the same history the Graphs view shows)."""
 
@@ -330,6 +395,9 @@ class _Sparkline(QWidget):
 
     def paintEvent(self, _event):
         data = list(getattr(self.chart, "_data", []) or [])
+        S = getattr(self, "sw7_paper", None)
+        if S is not None:
+            return _paint_spark_paper(self, S, data)
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         dim = QColor(THEME.hex("text_dim"))
@@ -439,6 +507,9 @@ def _context_lines(page, s):
 
 def _paint_chart(chart, name, _event):
     """The team's MiniChart drawn with real ranges, 12 px axis text and a 24 px current value."""
+    S = getattr(chart, "sw7_paper", None)
+    if S is not None:
+        return _paint_chart_paper(chart, name, S)
     p = QPainter(chart)
     p.setRenderHint(QPainter.RenderHint.Antialiasing)
     w, h = chart.width(), chart.height()
@@ -570,6 +641,11 @@ def install_carousel(page, root, grid, chart_grid):
     chart_cards = [chart_grid.itemAt(i).widget() for i in range(chart_grid.count())]
     for w in stats:
         grid.removeWidget(w)
+    S = _style() if layout_enabled() else None
+    if S is not None:   # paper: battery %, battery temp and ambient temp have their homes elsewhere (merge plan, A)
+        for w in (page.s_soc, page.s_btemp, page.s_atemp):
+            w.hide()
+        stats = [page.s_odo, page.s_power, page.s_eff]
     for w in chart_cards:
         chart_grid.removeWidget(w)
     root.removeItem(grid)
@@ -640,6 +716,8 @@ def install_carousel(page, root, grid, chart_grid):
     up, down = QPushButton("▲"), QPushButton("▼")
     names = ["Battery %", "Battery temp", "Ambient temp", "Odometer", "Battery output", "Consumption",
              "Graphs", "Driver insights"]
+    if S is not None:
+        names = ["Odometer", "Battery output", "Consumption", "Graphs", "Driver insights"]
     dots = _Dots(len(items), names=names if layout_pass else None)
     for b in (up, down):
         b.setFixedSize(*((BUTTON_PX, BUTTON_PX) if layout_pass else (56, 56)))
@@ -655,7 +733,7 @@ def install_carousel(page, root, grid, chart_grid):
     carousel.current_changed.connect(dots.set_current)
 
     # graphs view: the four charts, larger, with a back button
-    graphs_view = QWidget()
+    graphs_view = _ShadowHost(S) if S is not None else QWidget()
     gv = QVBoxLayout(graphs_view)
     gv.setContentsMargins(0, 0, 0, 0)
     top = QHBoxLayout()
@@ -710,4 +788,294 @@ def install_carousel(page, root, grid, chart_grid):
     page.sw7_carousel, page.sw7_stack = carousel, stack
     page.sw7_graphs_view, page.sw7_carousel_view, page.sw7_graphs_index = graphs_view, carousel_view, graphs_index
     page.sw7_back, page.sw7_up, page.sw7_down = back, up, down
+    if S is not None:
+        _install_paper(page, S, carousel, dots, graphs_card, (title, body, hint), heading, title_label, chart_cards)
     return carousel
+
+
+# ---- paper and depth style (12 Oct 2026, Planning/paper-depth-theme-prompt.md sections 3 to 5 and 10) ------------
+# Behind TUKZIE_SW7_STYLE (paper by default; "team", or a build without sw7_style, keeps everything above exactly).
+#   - five cards instead of eight: Odometer, Battery output, Consumption, Graphs, Driver insights (battery %, battery
+#     temp and ambient temp have their homes in the status bar, Charging and Diagnostics);
+#   - each value card: one huge value (S.HERO) in ink, the unit at 22 px, a 13 px caps label, a 16 px context line;
+#   - flat paper cards on cached warm shadows (the carousel and the graphs view paint them, so the cards keep their
+#     opacity effect and nothing that repaints often carries a live effect);
+#   - charts in ink: ink_3 axes, 13 px text, one status-colour line (ok) over a faint ink wash;
+#   - signal only on what reacts to a tap: the up and down buttons, Back, the chart period boxes, "Tap to open" on
+#     the Graphs card; the position dots are information, so ink;
+#   - Driver insights keep only the latest-trip summary (the live route text is on the Map).
+def _style():
+    try:
+        from ..widgets import sw7_style as S
+    except ImportError:
+        return None
+    return S if S.enabled() else None
+
+
+class _ShadowHost(QWidget):
+    """A plain container that paints cached card shadows under the children listed in .shadowed."""
+
+    def __init__(self, S, parent=None):
+        super().__init__(parent)
+        self.S, self.shadowed = S, []
+
+    def paintEvent(self, _event):
+        p = QPainter(self)
+        for w in self.shadowed:
+            if w.isVisible():
+                self.S.paint_shadow(p, QRectF(w.geometry()), PAPER_RADIUS, 2)
+        p.end()
+
+
+class _GraphsPreview(QWidget):
+    """Paper Graphs card: the four histories as small ink sparklines (13 px caps names, one ok line each)."""
+
+    def __init__(self, S, charts, parent=None):
+        super().__init__(parent)
+        self.S, self.charts = S, charts
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)   # taps go to the carousel
+        self.setMinimumHeight(180)
+        THEME.changed.connect(self.update)
+
+    def paintEvent(self, _event):
+        S = self.S
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        gap = 24.0
+        cw = (self.width() - gap) / 2.0
+        ch = (self.height() - gap) / 2.0
+        for i, chart in enumerate(self.charts):
+            r = QRectF((i % 2) * (cw + gap), (i // 2) * (ch + gap), cw, ch)
+            p.setPen(S.c("ink_2"))
+            p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
+            p.drawText(QRectF(r.left(), r.top(), r.width(), 18), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                       chart._title.replace(" vs Time", "").upper())
+            plot = QRectF(r.left(), r.top() + 24, r.width(), r.height() - 28)
+            p.setPen(QPen(S.c("hairline"), 1))
+            p.drawLine(plot.bottomLeft(), plot.bottomRight())
+            data = list(chart._data)
+            if len(data) >= 2:
+                lo, hi = min(data), max(data)
+                if hi - lo < 1e-9:
+                    lo, hi = lo - 1.0, hi + 1.0
+                _paper_line(p, S, plot, data, lo, hi)
+        p.end()
+
+
+def _paper_card_paint(card, S):
+    p = QPainter(card)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing)
+    p.setPen(Qt.PenStyle.NoPen)
+    p.setBrush(S.c("card"))
+    p.drawRoundedRect(QRectF(card.rect()), PAPER_RADIUS, PAPER_RADIUS)
+    p.end()
+
+
+def _paint_spark_paper(spark, S, data):
+    p = QPainter(spark)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing)
+    p.setPen(S.c("ink_2"))
+    p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
+    p.drawText(QRectF(0, 0, spark.width(), 18), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, "RECENT")
+    plot = QRectF(0, 24, spark.width(), spark.height() - 28)
+    p.setPen(QPen(S.c("hairline"), 1))
+    p.drawLine(plot.bottomLeft(), plot.bottomRight())
+    if len(data) < 2:
+        p.setPen(S.c("ink_3"))
+        p.setFont(S.font(S.BODY))
+        p.drawText(plot, Qt.AlignmentFlag.AlignCenter, "No history yet")
+        p.end()
+        return
+    lo, hi = min(data), max(data)
+    if hi - lo < 1e-9:
+        lo, hi = lo - 1.0, hi + 1.0
+    p.setPen(S.c("ink_2"))
+    p.drawText(QRectF(0, 0, spark.width(), 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop,
+               f"{lo:.1f} TO {hi:.1f}" if hi - lo < 10 else f"{lo:.0f} TO {hi:.0f}")
+    _paper_line(p, S, plot, data, lo, hi)
+    p.end()
+
+
+def _paper_line(p, S, plot, data, lo, hi):
+    """One status-colour (ok) line over a faint ink wash."""
+    n = len(data)
+    rng = (hi - lo) or 1.0
+    pts = [QPointF(plot.left() + plot.width() * i / (n - 1), plot.bottom() - (v - lo) / rng * plot.height())
+           for i, v in enumerate(data)]
+    grad = QLinearGradient(QPointF(0, plot.top()), QPointF(0, plot.bottom()))
+    grad.setColorAt(0.0, S.c("ink", 18))
+    grad.setColorAt(1.0, S.c("ink", 0))
+    area = QPainterPath()
+    area.moveTo(pts[0].x(), plot.bottom())
+    for pt in pts:
+        area.lineTo(pt)
+    area.lineTo(pts[-1].x(), plot.bottom())
+    area.closeSubpath()
+    p.setPen(Qt.PenStyle.NoPen)
+    p.fillPath(area, grad)
+    pen = QPen(S.c("ok"), 3.0)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    p.setPen(pen)
+    p.setBrush(Qt.BrushStyle.NoBrush)
+    line = QPainterPath(pts[0])
+    for pt in pts[1:]:
+        line.lineTo(pt)
+    p.drawPath(line)
+
+
+def _paint_chart_paper(chart, name, S):
+    """A MiniChart in paper: 13 px caps title, the current value at 16 px bold, ink_3 axes, one ok line."""
+    p = QPainter(chart)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing)
+    w, h = chart.width(), chart.height()
+    data = list(chart._data)
+    p.setPen(S.c("ink_2"))
+    p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
+    p.drawText(QRectF(112, 2, w - 112 - 150, 34), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+               chart._title.upper())
+    p.setPen(S.c("ink"))
+    p.setFont(S.font(S.BODY, QFont.Weight.Bold))
+    digits = 2 if name == "dist_chart" and data and abs(data[-1]) < 10 else 1
+    current = f"{data[-1]:.{digits}f} {chart._unit}" if data else f"-- {chart._unit}"
+    p.drawText(QRectF(8, 2, w - 22, 34), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, current)
+    fixed = CHART_RANGES.get(name)
+    if fixed is not None:
+        lo, hi = fixed
+        if data:
+            lo = min(lo, min(data))
+            top = max(data)
+            if top > hi:
+                step = 10.0 ** math.floor(math.log10(max(1.0, top)))
+                hi = math.ceil(top / step) * step
+    elif data:
+        lo, hi = min(data), max(data)
+        pad = max(0.05, (hi - lo) * 0.1)
+        lo, hi = lo - pad, hi + pad
+    else:
+        lo, hi = 0.0, 1.0
+    rng = (hi - lo) or 1.0
+    fmt = "{:.0f}" if rng >= 10 else "{:.1f}" if rng >= 1 else "{:.2f}"
+    fm = QFontMetricsF(S.font(S.LABEL))
+    left = max(60.0, 34.0 + max(fm.horizontalAdvance(fmt.format(lo + rng * k)) for k in (0.0, 0.5, 1.0)))
+    plot = QRectF(left, 48, w - left - 18, h - 48 - 46)
+    p.setPen(QPen(S.c("hairline"), 1))
+    for i in range(1, 4):
+        y = plot.top() + plot.height() * i / 4
+        p.drawLine(QPointF(plot.left(), y), QPointF(plot.right(), y))
+    p.setPen(QPen(S.c("ink_3"), 1.5))
+    p.drawLine(QPointF(plot.left(), plot.top()), QPointF(plot.left(), plot.bottom()))
+    p.drawLine(QPointF(plot.left(), plot.bottom()), QPointF(plot.right(), plot.bottom()))
+    p.setPen(S.c("ink_2"))
+    p.setFont(S.font(S.LABEL))
+    for frac in (0.0, 0.5, 1.0):
+        val, y = lo + rng * frac, plot.bottom() - plot.height() * frac
+        p.drawText(QRectF(22, y - 9, left - 30, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+                   fmt.format(val))
+    p.save()
+    p.translate(10, plot.center().y())
+    p.rotate(-90)
+    p.drawText(QRectF(-50, -9, 100, 18), Qt.AlignmentFlag.AlignCenter, chart._unit)
+    p.restore()
+    _, _, label_full, label_half = chart.TIMELINES[chart._combo.currentIndex()]
+    for label, x, align in ((label_full, plot.left(), Qt.AlignmentFlag.AlignLeft),
+                            (label_half, plot.center().x() - 30, Qt.AlignmentFlag.AlignHCenter),
+                            ("now", plot.right() - 60, Qt.AlignmentFlag.AlignRight)):
+        p.drawText(QRectF(x, plot.bottom() + 4, 60, 18), align | Qt.AlignmentFlag.AlignVCenter, label)
+    p.drawText(QRectF(plot.left(), plot.bottom() + 22, plot.width(), 18), Qt.AlignmentFlag.AlignHCenter, "Time")
+    chart.sw7_range = (lo, hi)
+    if len(data) < 2:
+        p.setPen(S.c("ink_3"))
+        p.setFont(S.font(S.BODY))
+        p.drawText(plot, Qt.AlignmentFlag.AlignCenter, "No data yet" if not data else "One point so far")
+        p.end()
+        return
+    _paper_line(p, S, plot, data, lo, hi)
+    p.end()
+
+
+def _paper_label(label, S, px, colour="ink", weight=QFont.Weight.Normal, caps=False):
+    label.setFont(S.font(px, weight, caps=caps))
+    if caps:
+        label.setText(label.text().upper())
+    label.setStyleSheet(f"background: transparent; color: {S.hx(colour)};")
+
+
+def _install_paper(page, S, carousel, dots, graphs_card, graphs_texts, heading, title_label, chart_cards):
+    import types
+    page.paintEvent = types.MethodType(lambda self, e: None, page)   # the back plane (sw7_style) shows through
+    page.layout().setContentsMargins(24, 8, 24, 32)   # tap targets clear of the floating nav pill (sw7_style)
+    carousel.sw7_paper = dots.sw7_paper = S
+    cards = [page.s_odo, page.s_power, page.s_eff, graphs_card, page.insights] + list(chart_cards)
+    for card in cards:
+        card.paintEvent = types.MethodType(lambda self, e: _paper_card_paint(self, S), card)
+    page.sw7_graphs_view.shadowed = list(chart_cards)
+    for card in (page.s_odo, page.s_power, page.s_eff):
+        card.sw7_big.sw7_paper = S
+        card.sw7_big.setFixedHeight(int(S.HERO * 1.15))
+        card.content_layout().setContentsMargins(32, 26, 32, 22)
+        if card.sw7_spark is not None:
+            card.sw7_spark.sw7_paper = S
+    for name in CHART_RANGES:
+        getattr(page, name).sw7_paper = S
+    title, body, hint = graphs_texts
+    S.mark_tappable(graphs_card)                      # the carousel opens it on a tap
+    lay = graphs_card.content_layout()
+    lay.setContentsMargins(32, 26, 32, 28)
+    while lay.count() and lay.itemAt(0).spacerItem() is not None:     # text at the top, the previews under it
+        lay.takeAt(0)
+    if lay.count() and lay.itemAt(lay.count() - 1).spacerItem() is not None:
+        lay.takeAt(lay.count() - 1)
+    lay.setSpacing(8)
+    preview = _GraphsPreview(S, [page.speed_chart, page.soc_chart, page.dist_chart, page.eff_chart])
+    lay.addSpacing(16)
+    lay.addWidget(preview, 1)
+    page.sw7_graphs_preview = preview
+    layout_update = page.update_state
+
+    def update_state(s):
+        layout_update(s)
+        preview.update()
+
+    page.update_state = update_state
+    page.update_support = lambda support: None        # insights keep the latest trip only; the route is on the Map
+
+    def restyle():
+        for card in (page.s_odo, page.s_power, page.s_eff):
+            for box in card.findChildren(QWidget):
+                if hasattr(box, "_draw") and hasattr(box, "_key"):   # the team's icon: off, the caption is enough
+                    box.hide()
+            if card.sw7_caption is not None:
+                _paper_label(card.sw7_caption, S, S.LABEL, "ink_2", QFont.Weight.Bold, caps=True)
+            _paper_label(card.sw7_context, S, S.BODY, "ink_2")
+        _paper_label(title, S, S.LABEL, "ink_2", QFont.Weight.Bold, caps=True)
+        _paper_label(body, S, S.SECONDARY, "ink", QFont.Weight.Bold)
+        _paper_label(hint, S, S.BODY, "signal", QFont.Weight.Bold)
+        _paper_label(page.insight_title, S, S.LABEL, "ink_2", QFont.Weight.Bold, caps=True)
+        _paper_label(page.insight_body, S, S.BODY, "ink")
+        _paper_label(heading, S, S.SECONDARY, "ink", QFont.Weight.Bold)
+        if isinstance(title_label, QLabel):
+            _paper_label(title_label, S, S.LABEL, "ink_2", QFont.Weight.Bold, caps=True)
+        for b, r in ((page.sw7_up, BUTTON_PX // 2), (page.sw7_down, BUTTON_PX // 2), (page.sw7_back, BUTTON_PX // 2),
+                     (page.open_log, 24)):
+            b.setFont(S.font(S.BODY, QFont.Weight.Bold))
+            b.setStyleSheet(S.button_qss("outline", r, S.BODY) +
+                            f" QPushButton:disabled{{background:{S.hx('card_alt')};color:{S.hx('ink_3')};"
+                            f"border:2px solid {S.hx('hairline')};}}")
+        for name in CHART_RANGES:
+            combo = getattr(page, name)._combo
+            combo.setStyleSheet(f"""
+                QComboBox {{ background: {S.hx('card')}; color: {S.hx('signal')}; border: 2px solid {S.hx('signal')};
+                             border-radius: 16px; padding: 2px 10px; font-weight: bold; font-size: {S.LABEL}px; }}
+                QComboBox::drop-down {{ border: none; width: 16px; }}
+                QComboBox QAbstractItemView {{ background: {S.hx('card')}; color: {S.hx('ink')};
+                    selection-background-color: {S.hx('signal_tint')}; selection-color: {S.hx('ink')};
+                    border: 1px solid {S.hx('hairline')}; font-size: {S.BODY}px; }}
+            """)
+            combo.setGeometry(8, 2, 84, 32)
+        page.update()
+
+    THEME.changed.connect(restyle)
+    restyle()
+    page.sw7_paper = True

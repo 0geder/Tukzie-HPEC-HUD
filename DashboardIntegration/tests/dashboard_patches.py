@@ -31,6 +31,9 @@ LAYOUT_MAP_PATCHES: the Navigation page's overlays around the map's control colu
 STYLE_CORE_PATCHES: the paper and depth style, core (sw7_style.py and sw7_weather.py, added to COPIES by STYLE_CORE_COPIES):
 palette, THEME in Paper or Ink, the frame (status bar, floating nav pill, arrows, chip, strip, obstacle pill) and the
 Open-Meteo weather. TUKZIE_SW7_STYLE=team installs nothing (the layout-pass look).
+STYLE_DRIVE_PATCHES: the paper style on Driving (the glance page: speed disc, Next turn, Around and Range tiles) and
+Analytics (five cards, hero values, ink charts). No anchors: the code is in sw7_driving.py and sw7_analytics.py,
+reached through the layout pass's own hooks; TUKZIE_SW7_STYLE=team leaves both pages as the layout pass drew them.
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -746,4 +749,10 @@ STYLE_CORE_PATCHES = (
      "_sw7_style.install(DashboardMain)\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_FRAME_PATCHES + LAYOUT_DRIVE_PATCHES + LAYOUT_PAGES_PATCHES + LAYOUT_MAP_PATCHES + STYLE_CORE_PATCHES
+STYLE_DRIVE_PATCHES = (
+    # Paper and depth style, Driving and Analytics (Planning/paper-depth-theme-prompt.md section 10, agent P1). No
+    # edits to the team's files are needed: sw7_driving.install_layout and sw7_analytics.install_carousel (already
+    # called by LAYOUT_DRIVE_PATCHES and ANALYTICS_CAROUSEL_PATCHES) add the paper pages when sw7_style.enabled().
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_FRAME_PATCHES + LAYOUT_DRIVE_PATCHES + LAYOUT_PAGES_PATCHES + LAYOUT_MAP_PATCHES + STYLE_CORE_PATCHES + STYLE_DRIVE_PATCHES

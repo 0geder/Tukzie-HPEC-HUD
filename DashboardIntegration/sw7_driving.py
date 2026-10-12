@@ -410,4 +410,766 @@ def install_layout(page):
     page.set_state = set_state
     page.interlock.hide()
     page.sw7_layout = True
+    S = _style()
+    if S is not None:                                     # paper and depth style (TUKZIE_SW7_STYLE, default paper)
+        install_paper(page, S)
     return True
+
+
+# ---- paper and depth style (12 Oct 2026, Planning/paper-depth-theme-prompt.md sections 3 to 5 and 10) ------------
+# Drive becomes the glance page. Behind TUKZIE_SW7_STYLE: "team" (or no sw7_style module) leaves the layout pass
+# above exactly as it is. In paper:
+#   - back plane: the word DRIVE (set by sw7_style);
+#   - middle plane: the speed dial as a raised disc (a slab with a thick edge on a cached shadow), the speed at
+#     168 px in ink, the only hero on the page;
+#   - top plane: three glance tiles that overlap the disc's edge and open the page that owns the value
+#     (Planning/data-ownership-and-merge-plan.md, option A): Next turn (Map), Around (Sensors, later Surroundings)
+#     and Range (Charging). Each tile carries one signal-coloured chevron, the only signal on the page apart from
+#     the frame. The battery percent is in the status bar only; the tile shows it as a bar;
+#   - the pedal bars (no pedal sensors on the vehicle) and the route line are gone: the route line's text is in
+#     the Next turn tile, so "Free driving" no longer sits under the nav pill;
+#   - the ASIS strip on a paper card, ink text, the severity as a small status dot.
+# Type: 168 px speed; 22 px only for the advice line, the turn distance and the range; the rest 13 or 16 px.
+import time
+import types
+
+from PySide6.QtCore import QPointF, QTimer
+from PySide6.QtGui import QFontMetricsF, QPainterPath, QPolygonF
+from PySide6.QtWidgets import QAbstractButton
+
+PAPER_SPEED_PX = 168
+SLAB_EDGE = 10              # the disc's visible thickness under it
+TILE_W, TILE_H = 360, 372   # Next turn and Around
+RANGE_W, RANGE_H = 380, 104
+TILE_OVERLAP = 24           # how far the side tiles reach over the disc's edge
+TILE_RADIUS = 24
+CHEVRON_D = 40
+
+
+def _style():
+    """sw7_style when the paper style is on, else None (TUKZIE_SW7_STYLE=team, or a build without the module)."""
+    try:
+        from . import sw7_style as S
+    except ImportError:
+        return None
+    return S if S.enabled() else None
+
+
+def _main_of(widget):
+    """The DashboardMain above a page (it has switch_page_id and page_by_id), or None."""
+    w = widget
+    while w is not None:
+        if hasattr(w, "switch_page_id") and hasattr(w, "page_by_id"):
+            return w
+        w = w.parentWidget()
+    return None
+
+
+def _paper_speedometer_class(base, S):
+    """The layout pass's dial drawn as a raised paper disc: ink arc and ticks, 13 px numbers, the speed at 168 px."""
+
+    class PaperSpeedometer(base):
+        SPEED_PX = PAPER_SPEED_PX
+
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self.setMaximumWidth(16777215)
+            self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+        def disc(self):
+            """(cx, cy, R): the disc in widget coordinates."""
+            R = max(60.0, min(self.width() / 2.0, (self.height() - SLAB_EDGE) / 2.0))
+            return self.width() / 2.0, R, R
+
+        def paintEvent(self, _):
+            p = QPainter(self)
+            p.setRenderHint(QPainter.RenderHint.Antialiasing)
+            cx, cy, R = self.disc()
+            # the slab: its edge, then the face
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(QColor(S.blend(S.hx("paper_deep"), S.hx("shadow"), 0.22 if not S.is_night() else 0.5)))
+            p.drawEllipse(QPointF(cx, cy + SLAB_EDGE), R, R)
+            p.setBrush(S.c("card"))
+            p.drawEllipse(QPointF(cx, cy), R, R)
+            p.setPen(QPen(S.c("hairline"), 1.2))
+            p.setBrush(Qt.BrushStyle.NoBrush)
+            p.drawEllipse(QPointF(cx, cy), R - 12, R - 12)
+            r = R - 30
+            start, span = 135.0, 270.0
+            arc = QRectF(cx - r, cy - r, 2 * r, 2 * r)
+            p.setPen(QPen(S.c("paper_deep"), 12, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+            p.drawArc(arc, int(-start * 16), int(-span * 16))
+            known = getattr(self, "speed_known", True)
+            if known and self.speed > 0.05:
+                p.setPen(QPen(S.c("ink"), 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                p.drawArc(arc, int(-start * 16), int(-span * (self.speed / 50.0) * 16))
+            p.setFont(S.font(S.LABEL, QFont.Weight.Bold))
+            for v in range(51):
+                a = start + span * v / 50.0
+                major = v % 5 == 0
+                p.setPen(QPen(S.c("ink_2") if major else S.c("ink_3"), 2.0 if major else 0.9))
+                p.drawLine(self._point(cx, cy, r * (.87 if major else .92), a), self._point(cx, cy, r * .97, a))
+                if v % 10 == 0:
+                    t = self._point(cx, cy, r * .76, a)
+                    p.setPen(S.c("ink_2"))
+                    p.drawText(QRectF(t.x() - 22, t.y() - 10, 44, 20), Qt.AlignmentFlag.AlignCenter, str(v))
+            cap = float(VEHICLE_SPEC.max_speed_kmh)
+            a = start + span * min(50.0, cap) / 50.0
+            p.setPen(QPen(S.c("warn"), 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+            p.drawLine(self._point(cx, cy, r * .84, a), self._point(cx, cy, r * 1.04, a))
+            if self.recommended is not None:
+                rec = max(0.0, min(50.0, float(self.recommended)))
+                a = start + span * rec / 50.0
+                p.setPen(QPen(S.c("ok"), 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                p.drawLine(self._point(cx, cy, r * .82, a), self._point(cx, cy, r * 1.04, a))
+            speed_px = int(max(S.HERO_MIN, min(self.SPEED_PX, r * 0.9)))
+            shown = f"{self.speed:.0f}" if known else "--"
+            f = S.font(speed_px, QFont.Weight.Bold)
+            fm = QFontMetricsF(f)
+            base_y = cy + fm.capHeight() / 2.0 - 6
+            p.setPen(S.c("ink") if known else S.c("ink_3"))
+            p.setFont(f)
+            p.drawText(QPointF(cx - fm.horizontalAdvance(shown) / 2.0, base_y), shown)
+            p.setPen(S.c("ink_2"))
+            p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
+            p.drawText(QRectF(cx - 80, base_y + 14, 160, 20), Qt.AlignmentFlag.AlignCenter, "KM/H")
+            self.sw7_fonts = {"speed": speed_px, "unit": S.LABEL, "ticks": S.LABEL, "radius": r, "text": shown}
+            p.end()
+
+    return PaperSpeedometer
+
+
+def _paint_chevron(p, S, rect, pressed=False):
+    """The tap mark of a glance tile: a signal-outline circle with a ">" in it (filled while pressed)."""
+    p.save()
+    p.setRenderHint(QPainter.RenderHint.Antialiasing)
+    p.setPen(QPen(S.c("signal"), 2.0))
+    p.setBrush(S.c("signal") if pressed else S.c("card"))
+    p.drawEllipse(rect.adjusted(1, 1, -1, -1))
+    c = rect.center()
+    k = rect.width() * 0.13
+    pen = QPen(S.c("card") if pressed else S.c("signal"), 2.6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap,
+               Qt.PenJoinStyle.RoundJoin)
+    p.setPen(pen)
+    p.setBrush(Qt.BrushStyle.NoBrush)
+    path = QPainterPath(QPointF(c.x() - k * 0.6, c.y() - k * 1.25))
+    path.lineTo(QPointF(c.x() + k * 0.75, c.y()))
+    path.lineTo(QPointF(c.x() - k * 0.6, c.y() + k * 1.25))
+    p.drawPath(path)
+    p.restore()
+
+
+class GlanceTile(QAbstractButton):
+    """A top-plane card that shows one glance value and opens the page that owns it. The page's stage paints its
+    shadow (cached), the tile paints the card, its caps label, the chevron and its own content (draw_content)."""
+
+    def __init__(self, S, label, target, parent=None):
+        super().__init__(parent)
+        self.S, self.label, self.target = S, label, target
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setAccessibleName(label.title())
+        self.clicked.connect(self.open_target)
+        THEME.changed.connect(self.update)
+        self.opened = []                  # page ids this tile opened (tests)
+        # Touch: only a one-finger tap that stays put opens the page. Two- and three-finger page swipes
+        # (sw7_page_swipe) and one-finger drags that start on a tile must never open it.
+        self.setAttribute(Qt.WidgetAttribute.WA_AcceptTouchEvents, True)
+        self._touch = None                # (start positions, most fingers, moved, start time)
+
+    def event(self, e):
+        from PySide6.QtCore import QEvent
+        kind = e.type()
+        if kind in (QEvent.Type.TouchBegin, QEvent.Type.TouchUpdate, QEvent.Type.TouchEnd, QEvent.Type.TouchCancel):
+            pts = e.points()
+            if kind == QEvent.Type.TouchBegin:
+                self._touch = [{p.id(): p.position() for p in pts}, len(pts), False, time.monotonic()]
+                self.setDown(True)
+            elif self._touch is not None:
+                t = self._touch
+                t[1] = max(t[1], len(pts))
+                for p in pts:
+                    s = t[0].get(p.id())
+                    if s is None:
+                        t[0][p.id()] = p.position()
+                    elif abs(p.position().x() - s.x()) > 12 or abs(p.position().y() - s.y()) > 12:
+                        t[2] = True
+                if t[1] > 1 or t[2]:
+                    self.setDown(False)
+                if kind in (QEvent.Type.TouchEnd, QEvent.Type.TouchCancel):
+                    self.setDown(False)
+                    tap = kind == QEvent.Type.TouchEnd and t[1] == 1 and not t[2] and time.monotonic() - t[3] < 1.0
+                    self._touch = None
+                    if tap:
+                        self.click()
+            e.accept()
+            return True
+        return super().event(e)
+
+    def target_id(self):
+        main = _main_of(self)
+        targets = self.target if isinstance(self.target, (tuple, list)) else (self.target,)
+        if main is None:
+            return targets[0]
+        return next((t for t in targets if t in getattr(main, "page_by_id", {})), targets[0])
+
+    def open_target(self):
+        main = _main_of(self)
+        pid = self.target_id()
+        self.opened.append(pid)
+        if main is not None and pid in getattr(main, "page_by_id", {}):
+            main.switch_page_id(pid)
+
+    def chevron_rect(self):
+        return QRectF(self.width() - 20 - CHEVRON_D, 16, CHEVRON_D, CHEVRON_D)
+
+    def paintEvent(self, _):
+        S = self.S
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+        r = QRectF(self.rect())
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(S.c("signal_tint") if self.isDown() else S.c("card"))
+        p.drawRoundedRect(r, TILE_RADIUS, TILE_RADIUS)
+        p.setPen(S.c("ink_2"))
+        p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
+        p.drawText(QRectF(24, 20, self.width() - 100, 32), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                   self.label)
+        _paint_chevron(p, S, self.chevron_rect(), self.isDown())
+        self.draw_content(p)
+        p.end()
+
+    def draw_content(self, p):
+        pass
+
+    def _text(self, p, rect, text, px, colour="ink", weight=QFont.Weight.Normal, align=None, caps=False, elide=True):
+        S = self.S
+        p.setPen(S.c(colour))
+        f = S.font(px, weight, caps=caps)
+        p.setFont(f)
+        if elide:
+            text = QFontMetricsF(f).elidedText(text, Qt.TextElideMode.ElideRight, rect.width())
+        p.drawText(rect, align or (Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter), text)
+
+
+def _to_xy(lat, lon, lat0, lon0):
+    return ((lon - lon0) * 111320.0 * math.cos(math.radians(lat0)), (lat - lat0) * 111320.0)
+
+
+class NextTurnTile(GlanceTile):
+    """Next turn: a mini map of the route around the vehicle (heading up), the turn arrow, its distance and road,
+    and one line with the time, distance and arrival. With no route it says so and opens the Map to plan one."""
+
+    def __init__(self, S, page, parent=None):
+        super().__init__(S, "NEXT TURN", "navigation", parent)
+        self.page = page
+        self.summary = {}                 # what the tile shows (tests)
+
+    def map(self):
+        main = _main_of(self)
+        nav = getattr(main, "navigation", None) if main is not None else None
+        m = getattr(nav, "map", None)
+        return m if m is not None and hasattr(m, "next_maneuvers") else None
+
+    def _state(self):
+        m = self.map()
+        if m is None or not getattr(m, "route", None):
+            status = self.page.route.text().strip() if hasattr(self.page, "route") else ""
+            return {"kind": "none", "status": status or "Free driving · no destination selected"}
+        ahead = m.next_maneuvers(1)
+        if not ahead or (getattr(m, "vehicle", None) is None and not getattr(m, "simulating", False)):
+            return {"kind": "ready", "status": "Waiting for a position on the route"}
+        man, dist = ahead[0]
+        left_m = max(0.0, float(getattr(m, "_route_total_m", 0.0)) - float(getattr(m, "_along_m", 0.0) or 0.0))
+        eta = m._eta_seconds(left_m) if hasattr(m, "_eta_seconds") else None
+        parts = [f"{max(1, round(eta / 60.0))} min" if eta is not None else None, m._distance_text(left_m)
+                 if left_m >= 20 else "0 m",
+                 time.strftime("arrive %H:%M", time.localtime(time.time() + eta)) if eta is not None else None]
+        arrived = bool(getattr(m, "sim_arrived", False)) or (man["kind"] == "arrive" and dist < 15)
+        return {"kind": "arrived" if arrived else "turn", "man": man, "dist": dist,
+                "distance": "" if man["kind"] == "arrive" else m._distance_text(dist),
+                "instruction": "Arrived" if arrived else m._instruction(man),
+                "line": "At the destination" if arrived else " · ".join(x for x in parts if x)}
+
+    def draw_content(self, p):
+        S = self.S
+        st = self._state()
+        self.summary = {k: v for k, v in st.items() if k != "man"}
+        well = QRectF(20, 68, self.width() - 40, 156)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(S.c("paper" if S.is_night() else "paper_deep"))
+        p.drawRoundedRect(well, 16, 16)
+        x0 = 24.0
+        if st["kind"] in ("none", "ready"):
+            self._placeholder_roads(p, well)
+            self._text(p, QRectF(x0, 240, self.width() - 48, 32), "No route" if st["kind"] == "none" else "Route ready",
+                       S.SECONDARY, "ink", QFont.Weight.Bold)
+            p.setPen(S.c("ink_2"))
+            p.setFont(S.font(S.BODY))
+            p.drawText(QRectF(x0, 276, self.width() - 48, 48), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+                       | Qt.TextFlag.TextWordWrap, st["status"])
+            self._text(p, QRectF(x0, self.height() - 44, self.width() - 48, 22),
+                       "Tap to plan a trip" if st["kind"] == "none" else "Tap to open the map", S.LABEL, "ink_2")
+            return
+        self._mini_map(p, well)
+        m = self.map()
+        arrow = QRectF(x0, 238, 48, 48)
+        if hasattr(m, "_turn_arrow"):
+            m._turn_arrow(p, arrow, "arrive" if st["kind"] == "arrived" else st["man"]["kind"], S.c("ink"))
+        tx = x0 + 64
+        if st["distance"]:
+            self._text(p, QRectF(tx, 236, self.width() - tx - 24, 30), st["distance"], S.SECONDARY, "ink", QFont.Weight.Bold)
+            self._text(p, QRectF(tx, 266, self.width() - tx - 24, 24), st["instruction"], S.BODY, "ink")
+        else:
+            self._text(p, QRectF(tx, 248, self.width() - tx - 24, 30), st["instruction"], S.BODY, "ink", QFont.Weight.Bold)
+        p.setPen(QPen(S.c("hairline"), 1))
+        p.drawLine(QPointF(x0, 308), QPointF(self.width() - 24, 308))
+        self._text(p, QRectF(x0, 318, self.width() - 48, 32), st["line"], S.LABEL, "ink_2", QFont.Weight.Bold)
+
+    def _placeholder_roads(self, p, well):
+        S = self.S
+        p.save()
+        p.setClipRect(well)
+        pen = QPen(S.c("hairline" if S.is_night() else "card"), 10, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
+        p.setPen(pen)
+        p.drawLine(QPointF(well.left() + well.width() * 0.3, well.top() - 10),
+                   QPointF(well.left() + well.width() * 0.42, well.bottom() + 10))
+        p.drawLine(QPointF(well.left() - 10, well.top() + well.height() * 0.62),
+                   QPointF(well.right() + 10, well.top() + well.height() * 0.48))
+        p.setPen(QPen(S.c("hairline" if S.is_night() else "card"), 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+        p.drawLine(QPointF(well.left() + well.width() * 0.72, well.top() - 10),
+                   QPointF(well.left() + well.width() * 0.8, well.bottom() + 10))
+        c = QPointF(well.left() + well.width() * 0.37, well.top() + well.height() * 0.56)
+        p.setPen(QPen(S.c("ink_3"), 2))
+        p.setBrush(S.c("card"))
+        p.drawEllipse(c, 8, 8)
+        p.restore()
+
+    def _mini_map(self, p, well):
+        """The route from 120 m behind to 120 m past the next turn, heading up, in ink on the paper well."""
+        S = self.S
+        m = self.map()
+        pts = list(getattr(m, "_route_pts", []) or [])
+        along = float(getattr(m, "_along_m", 0.0) or 0.0)
+        if len(pts) < 2:
+            return
+        ahead = m.next_maneuvers(1)
+        turn_m = ahead[0][0]["at_m"] if ahead else pts[-1][2]
+        lo, hi = along - 120.0, max(along + 160.0, turn_m + 120.0)
+
+        def at(dist):
+            dist = max(pts[0][2], min(pts[-1][2], dist))
+            for a, b in zip(pts, pts[1:]):
+                if dist <= b[2] or b is pts[-1]:
+                    k = 0.0 if b[2] <= a[2] else (dist - a[2]) / (b[2] - a[2])
+                    return a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k
+            return pts[-1][0], pts[-1][1]
+
+        lat0, lon0 = at(along)
+        fx, fy = _to_xy(*at(along + 25.0), lat0, lon0)
+        ang = math.atan2(fx, fy) if (fx or fy) else 0.0          # course, clockwise from north
+        ca, sa = math.cos(ang), math.sin(ang)
+
+        def local(lat, lon):
+            x, y = _to_xy(lat, lon, lat0, lon0)
+            return x * ca - y * sa, x * sa + y * ca              # rotated: travel direction is +y
+
+        seq = [(along, local(lat0, lon0))]
+        for la, lo_, d, _ in pts:
+            if lo < d < hi:
+                seq.append((d, local(la, lo_)))
+        seq.append((lo, local(*at(lo))))
+        seq.append((hi, local(*at(hi))))
+        seq.sort(key=lambda q: q[0])
+        xs = [q[1][0] for q in seq]
+        ys = [q[1][1] for q in seq]
+        span = max(80.0, max(abs(v) for v in xs) * 2.0, (max(ys) - min(0.0, min(ys))))
+        scale = min((well.width() - 48) / max(80.0, max(abs(v) for v in xs) * 2.0 + 1e-6),
+                    (well.height() - 36) / max(80.0, max(ys) - min(ys) + 1e-6))
+        scale = min(scale, (well.height() - 36) / 80.0)
+        _ = span
+        ox = well.center().x()
+        oy = well.bottom() - 18 - (0.0 - min(ys)) * scale
+
+        def screen(xy):
+            return QPointF(ox + xy[0] * scale, oy - xy[1] * scale)
+
+        p.save()
+        p.setClipRect(well.adjusted(2, 2, -2, -2))
+        done = QPainterPath()
+        todo = QPainterPath()
+        first_done = first_todo = True
+        for d, xy in seq:
+            q = screen(xy)
+            if d <= along:
+                if first_done:
+                    done.moveTo(q); first_done = False
+                else:
+                    done.lineTo(q)
+            if d >= along:
+                if first_todo:
+                    todo.moveTo(q); first_todo = False
+                else:
+                    todo.lineTo(q)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.setPen(QPen(S.c("hairline" if S.is_night() else "card"), 14, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+        p.drawPath(done)
+        p.drawPath(todo)
+        p.setPen(QPen(S.c("ink_3"), 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+        p.drawPath(done)
+        p.setPen(QPen(S.c("ink"), 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+        p.drawPath(todo)
+        if ahead:
+            tq = screen(local(*at(turn_m)))
+            p.setPen(QPen(S.c("ink"), 3))
+            p.setBrush(S.c("card"))
+            p.drawEllipse(tq, 7, 7)
+        v = screen((0.0, 0.0))
+        tri = QPolygonF([QPointF(v.x(), v.y() - 12), QPointF(v.x() + 9, v.y() + 9), QPointF(v.x(), v.y() + 4),
+                         QPointF(v.x() - 9, v.y() + 9)])
+        p.setPen(QPen(S.c("card"), 2.5))
+        p.setBrush(S.c("ink"))
+        p.drawPolygon(tri)
+        p.restore()
+
+
+class AroundTile(GlanceTile):
+    """Around: the tuk-tuk from above with the left, ahead and right ToF distances placed at their sensors (like the
+    tyre pressures in inspo_sports_car_tiles.jpg), each with a small status dot, and the nearest hazard."""
+
+    SIDES = ("left", "ahead", "right")
+
+    def __init__(self, S, parent=None):
+        super().__init__(S, "AROUND", ("surroundings", "sensors"), parent)
+        self.metres = {s: None for s in self.SIDES}
+        self.nearest = None
+        self.has_data = False
+
+    def set_telemetry(self, telemetry):
+        try:
+            from ..pages.sensors_page import hazard_text, hazards_of, tof_metres
+        except ImportError:
+            return
+        self.has_data = telemetry is not None
+        self.metres = tof_metres(telemetry)
+        hz = hazards_of(telemetry)
+        self.nearest = " ".join(hazard_text(hz[0])[0].split()) if hz else None
+        self.update()
+
+    def _status(self, metres):
+        if metres is None:
+            return None
+        return "critical" if metres < 0.5 else "warn" if metres < 1.0 else "ok"
+
+    def _tuk(self, p, cx, cy):
+        """Top-down tuk-tuk, nose up: one front wheel, two rear wheels, canopy over the cabin."""
+        S = self.S
+        w, h = 74.0, 138.0
+        top, bot = cy - h / 2, cy + h / 2
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(S.c("ink_2"))
+        p.drawRoundedRect(QRectF(cx - 7, top - 6, 14, 26), 5, 5)                       # front wheel
+        for sx in (-1, 1):                                                              # rear wheels
+            p.drawRoundedRect(QRectF(cx + sx * (w / 2 + 3) - 8, bot - 46, 16, 32), 5, 5)
+        body = QPainterPath(QPointF(cx, top))
+        body.cubicTo(QPointF(cx + 24, top), QPointF(cx + 26, top + 18), QPointF(cx + 28, top + 34))
+        body.lineTo(QPointF(cx + w / 2, top + 56))
+        body.lineTo(QPointF(cx + w / 2, bot - 10))
+        body.quadTo(QPointF(cx + w / 2, bot), QPointF(cx + w / 2 - 10, bot))
+        body.lineTo(QPointF(cx - w / 2 + 10, bot))
+        body.quadTo(QPointF(cx - w / 2, bot), QPointF(cx - w / 2, bot - 10))
+        body.lineTo(QPointF(cx - w / 2, top + 56))
+        body.lineTo(QPointF(cx - 28, top + 34))
+        body.cubicTo(QPointF(cx - 26, top + 18), QPointF(cx - 24, top), QPointF(cx, top))
+        p.setPen(QPen(S.c("ink"), 2.2))
+        p.setBrush(S.c("card"))
+        p.drawPath(body)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(S.c("charcoal"))
+        p.drawRoundedRect(QRectF(cx - w / 2 + 6, top + 50, w - 12, h - 60), 10, 10)  # canopy
+        p.setBrush(S.c("ink_3"))
+        p.drawRoundedRect(QRectF(cx - 18, top + 30, 36, 12), 5, 5)                     # windscreen
+
+    def draw_content(self, p):
+        S = self.S
+        W = float(self.width())
+        cx, cy = W / 2.0, 214.0
+        self._tuk(p, cx, cy)
+        pos = {"ahead": (QRectF(cx - 70, 70, 140, 44), QPointF(cx, cy - 82), QPointF(cx, 116)),
+               "left": (QRectF(20, cy - 34, 100, 44), QPointF(cx - 44, cy - 22), QPointF(112, cy - 12)),
+               "right": (QRectF(W - 120, cy - 34, 100, 44), QPointF(cx + 44, cy - 22), QPointF(W - 112, cy - 12))}
+        for side in self.SIDES:
+            box, at_car, at_text = pos[side]
+            m = self.metres.get(side)
+            status = self._status(m)
+            p.setPen(QPen(S.c("ink_3"), 1.2))
+            p.drawLine(at_text, at_car)
+            if status is not None:                         # a short arc at the sensor: a small status mark
+                p.setPen(QPen(S.c(status), 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                rr = QRectF(cx - 60, cy - 100, 120, 120) if side == "ahead" else QRectF(cx - 70, cy - 70, 140, 140)
+                start = {"ahead": 70, "left": 160, "right": -20}[side]
+                p.drawArc(rr, start * 16, 40 * 16)
+            text = "--" if m is None else f"{m:.2f} m"
+            align = {"ahead": Qt.AlignmentFlag.AlignHCenter, "left": Qt.AlignmentFlag.AlignLeft,
+                     "right": Qt.AlignmentFlag.AlignRight}[side]
+            f = S.font(S.BODY, QFont.Weight.Bold)
+            tw = QFontMetricsF(f).horizontalAdvance(text)
+            self._text(p, QRectF(box.left(), box.top(), box.width(), 22), text, S.BODY,
+                       "ink" if m is not None else "ink_3", QFont.Weight.Bold, align | Qt.AlignmentFlag.AlignVCenter)
+            self._text(p, QRectF(box.left(), box.top() + 22, box.width(), 18), side.upper(), S.LABEL, "ink_2",
+                       QFont.Weight.Bold, align | Qt.AlignmentFlag.AlignVCenter, caps=True)
+            if status is not None:                         # status dot beside the number
+                x = {"ahead": box.center().x() + tw / 2 + 10, "left": box.left() + tw + 10,
+                     "right": box.right() - tw - 10}[side]
+                p.setPen(Qt.PenStyle.NoPen)
+                p.setBrush(S.c(status))
+                p.drawEllipse(QPointF(x, box.top() + 11), 4.5, 4.5)
+        p.setPen(QPen(S.c("hairline"), 1))
+        p.drawLine(QPointF(24, 308), QPointF(W - 24, 308))
+        if not self.has_data:
+            line = "No sensor data"
+        else:
+            line = self.nearest or "Clear around the vehicle"
+        self._text(p, QRectF(24, 318, W - 48, 32), line, S.LABEL, "ink_2", QFont.Weight.Bold)
+
+
+class RangeTile(GlanceTile):
+    """Range and battery: range at 22 px, the state of charge as a bar only (the percent is in the status bar), and
+    the battery power now at 13 px. Opens Charging."""
+
+    def __init__(self, S, parent=None):
+        super().__init__(S, "RANGE", "charging", parent)
+        self.range_km = self.soc = self.power_kw = None
+
+    def chevron_rect(self):
+        return QRectF(self.width() - 20 - CHEVRON_D, (self.height() - CHEVRON_D) / 2.0, CHEVRON_D, CHEVRON_D)
+
+    def set_state(self, s):
+        valid = getattr(s, "signal_validity", None) or {}
+        self.soc = None if valid.get("soc") is False else _num(getattr(s, "soc_pct", None))
+        rng = _num(getattr(s, "range_km", None))
+        self.range_km = None if rng is None else min(float(VEHICLE_SPEC.rated_max_range_km), rng)
+        self.power_kw = _num(getattr(s, "battery_power_kw", None))
+        self.update()
+
+    def value_text(self):
+        return "--" if self.range_km is None else f"{self.range_km:.0f} km"
+
+    def draw_content(self, p):
+        S = self.S
+        self._text(p, QRectF(24, 50, 130, 34), self.value_text(), S.SECONDARY, "ink" if self.range_km is not None
+                   else "ink_3", QFont.Weight.Bold)
+        x = 152.0
+        self._text(p, QRectF(x, 20, 120, 32), "BATTERY", S.LABEL, "ink_2", QFont.Weight.Bold, caps=True)
+        bar = QRectF(x, 58, self.width() - x - 84, 12)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(S.c("paper_deep"))
+        p.drawRoundedRect(bar, 6, 6)
+        if self.soc is not None:
+            k = "critical" if self.soc < 15 else "warn" if self.soc < 30 else "ok"
+            p.setBrush(S.c(k))
+            p.drawRoundedRect(QRectF(bar.left(), bar.top(), max(12.0, bar.width() * max(0.0, min(1.0, self.soc / 100.0))),
+                                     bar.height()), 6, 6)
+        power = "-- kW" if self.power_kw is None else f"{self.power_kw:.1f} kW now"
+        self._text(p, QRectF(x, 74, bar.width(), 20), power, S.LABEL, "ink_2", QFont.Weight.Bold)
+
+
+class DriveStage(QWidget):
+    """The paper Driving page: every part placed by hand on a transparent stage over the back plane, which paints
+    the cached shadows of the disc, the tiles and the advice strip (so nothing animated carries a live effect)."""
+
+    def __init__(self, page, S, parent=None):
+        super().__init__(parent)
+        self.page, self.S = page, S
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.next_turn = NextTurnTile(S, page, self)
+        self.around = AroundTile(S, self)
+        self.range = RangeTile(S, self)
+        self._telemetry_main = None
+        self._timer = QTimer(self)
+        self._timer.setInterval(1000)
+        self._timer.timeout.connect(self.refresh)
+        self._timer.start()
+        THEME.changed.connect(self.update)
+
+    def tiles(self):
+        return (self.next_turn, self.around, self.range)
+
+    def refresh(self):
+        """Once a second: connect the Around tile to the telemetry once the dashboard exists, redraw Next turn."""
+        main = _main_of(self)
+        if main is not None and self._telemetry_main is None and hasattr(main, "telemetry"):
+            try:
+                main.telemetry.telemetry_updated.connect(self.around.set_telemetry)
+                self._telemetry_main = main
+            except (AttributeError, RuntimeError, TypeError):
+                pass
+            m = self.next_turn.map()
+            if m is not None and hasattr(m, "sim_tick"):
+                m.sim_tick.connect(self.next_turn.update)
+        if self.isVisible():
+            self.next_turn.update()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.place()
+
+    def place(self):
+        pg = self.page
+        W, H = self.width(), self.height()
+        pg.asis_panel.setGeometry(32, 12, W - 64, LAYOUT_STRIP_H)
+        gw = pg.gear.width()
+        pg.gear.setGeometry(int((W - gw) / 2), 84, gw, pg.gear.height())
+        fw = max(pg.faults.sizeHint().width(), 300)
+        pg.faults.setGeometry(int((W - fw) / 2), 140, fw, 37)
+        top = 184
+        R = int(max(150, min(232, (H - top - 24 - 40) / 2)))
+        pg.speed.setGeometry(int(W / 2 - R), top, 2 * R, 2 * R + SLAB_EDGE)
+        cy = top + R
+        ty = int(cy - TILE_H / 2 + 2)
+        self.next_turn.setGeometry(int(W / 2 - R - TILE_W + TILE_OVERLAP), ty, TILE_W, TILE_H)
+        self.around.setGeometry(int(W / 2 + R - TILE_OVERLAP), ty, TILE_W, TILE_H)
+        r = R - 30
+        ry = int(min(H - 16 - 8 - RANGE_H, cy + r * 0.707 + 4))
+        self.range.setGeometry(int((W - RANGE_W) / 2), ry, RANGE_W, RANGE_H)
+        pg.interlock.setGeometry(int(W / 2 - 300), ry - 30, 600, 24)
+        for t in self.tiles():
+            t.raise_()
+        self.update()
+
+    def paintEvent(self, _):
+        S = self.S
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        sp = self.page.speed
+        if hasattr(sp, "disc"):
+            cx, cy, R = sp.disc()
+            g = sp.geometry()
+            S.paint_shadow(p, QRectF(g.x() + cx - R, g.y() + cy - R + SLAB_EDGE, 2 * R, 2 * R), R, 3)
+        strip = self.page.asis_panel
+        if strip.isVisible():
+            S.paint_shadow(p, QRectF(strip.geometry()), 20, 1)
+        for t in self.tiles():
+            if t.isVisible():
+                S.paint_shadow(p, QRectF(t.geometry()), TILE_RADIUS, 2)
+        p.end()
+
+
+def _paper_gear_paint(badge, event, S):
+    """GearBadge in paper: the team's turn arrows, then the gear in ink in a card circle (R in warn)."""
+    from ..widgets.indicators import IndicatorCluster
+    IndicatorCluster.paintEvent(badge, event)
+    p = QPainter(badge)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing)
+    col = S.c("warn") if badge.gear == "R" else S.c("ink")
+    c = QPointF(badge.rect().center().x() + 0.5, badge.rect().center().y() + 0.5)
+    p.setPen(QPen(S.c("hairline"), 1.5))
+    p.setBrush(S.c("card"))
+    p.drawEllipse(c, 23, 23)
+    p.setPen(col)
+    p.setFont(S.font(S.BODY, QFont.Weight.Bold))
+    p.drawText(QRectF(c.x() - 23, c.y() - 23, 46, 46), Qt.AlignmentFlag.AlignCenter, badge.gear)
+    p.end()
+
+
+def _paper_strip(panel, S):
+    """The ASIS strip on a paper card: ink text, the severity as a small status dot before the heading."""
+    row = panel.layout().itemAt(0).layout() if panel.layout() and panel.layout().count() else None
+    dot = QLabel(panel)
+    dot.setFixedSize(10, 10)
+    if row is not None:
+        row.insertWidget(0, dot, 0, Qt.AlignmentFlag.AlignVCenter)
+        row.setSpacing(14)
+    panel.layout().setContentsMargins(22, 4, 22, 4)
+    panel.heading.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
+    panel.line1.setFont(S.font(S.SECONDARY, QFont.Weight.Bold))
+    panel.line2.setFont(S.font(S.BODY, QFont.Weight.Bold))
+    panel.count.setFont(S.font(S.LABEL, QFont.Weight.Bold))
+    panel.line1.setWordWrap(False)
+    panel.line2.setWordWrap(False)
+    panel.line2.setMaximumWidth(16777215)
+    panel.sw7_dot = dot
+
+    def apply_theme():
+        sev = panel.property("severity") or "normal"
+        no_data = panel.line1.text().strip().lower().startswith("no live")
+        key = {"critical": "critical", "warning": "warn"}.get(sev, "ink_3" if no_data else "ok")
+        panel.setStyleSheet(f"""
+            QFrame#asisAdvisoryPanel {{ background: {S.hx('card')}; border: none; border-radius: 20px; }}
+            QFrame#asisAdvisoryPanel QLabel {{ background: transparent; color: {S.hx('ink')}; border: none; }}
+        """)
+        panel.heading.setText(panel.heading.text().upper())
+        panel.heading.setStyleSheet(f"color: {S.hx('ink_2')}; background: transparent; border: none;")
+        panel.count.setStyleSheet(f"color: {S.hx('ink_2')}; background: transparent; border: none;")
+        panel.line2.setStyleSheet(f"color: {S.hx('ink_2')}; background: transparent; border: none;")
+        dot.setStyleSheet(f"background: {S.hx(key)}; border-radius: 5px;")
+        panel.setVisible(not (sev == "normal" and panel.line1.text() == NORMAL_TEXT))
+        stage = getattr(panel, "sw7_stage", None)
+        if stage is not None:
+            stage.update()
+
+    panel._apply_theme = apply_theme
+    THEME.changed.connect(apply_theme)
+    apply_theme()
+
+
+def _empty_layout(lay):
+    while lay.count():
+        item = lay.takeAt(0)
+        if item.layout() is not None:
+            _empty_layout(item.layout())
+
+
+def install_paper(page, S):
+    """Rebuild the laid-out Driving page as the paper glance page (see the comment above GlanceTile)."""
+    grid = page.layout()
+    _empty_layout(grid)
+    grid.setContentsMargins(0, 0, 0, 0)
+    stage = DriveStage(page, S)
+    grid.addWidget(stage, 0, 0)
+    old = page.speed
+    page.speed = _paper_speedometer_class(type(old), S)()
+    page.speed.speed, page.speed.recommended = old.speed, old.recommended
+    page.speed.speed_known = getattr(old, "speed_known", True)
+    old.hide()
+    old.deleteLater()
+    for w in (page.asis_panel, page.gear, page.faults, page.speed, page.interlock):
+        w.setParent(stage)
+        w.show()
+    page.interlock.setFont(S.font(S.BODY, QFont.Weight.Bold))
+    page.interlock.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    page.interlock.hide()
+    for w in (page.brake, page.accel, page.pair, page.route, page.range):   # no pedal sensors; the rest moved
+        w.hide()
+    page.gear.paintEvent = types.MethodType(lambda self, e: _paper_gear_paint(self, e, S), page.gear)
+    _paper_strip(page.asis_panel, S)
+    page.asis_panel.sw7_stage = stage
+    page.sw7_stage = stage
+    page.sw7_tiles = {"next_turn": stage.next_turn, "around": stage.around, "range": stage.range}
+
+    layout_set_state = page.set_state
+
+    def set_state(s):
+        layout_set_state(s)
+        stage.range.set_state(s)
+        page.interlock.setVisible(bool(page.interlock.text()))
+        stage.next_turn.update()
+
+    page.set_state = set_state
+    team_support = page.set_support
+
+    def set_support(support):
+        team_support(support)
+        stage.next_turn.update()
+
+    page.set_support = set_support
+    team_route = page.show_route_status
+
+    def show_route_status(message):
+        team_route(message)
+        stage.next_turn.update()
+
+    page.show_route_status = show_route_status
+    stage.place()
+    page.sw7_paper = True
