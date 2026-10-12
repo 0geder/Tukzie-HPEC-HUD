@@ -93,25 +93,37 @@ def _route_summary(orig, page):
 def _nav_theme(page, *_a, **_k):
     S = _S()
     page.setStyleSheet(page.styleSheet() + f"""
-        QLabel#routeStatus {{ background: {S.hx('card')}; color: {S.hx('ink_2')}; border: none; border-radius: 16px;
+        QLabel#routeStatus {{ background: {S.hx('card')}; color: {S.hx('ink_2')}; border: 1px solid {S.hx('hairline')}; border-radius: 8px;
             padding: 8px 16px; font-size: 16px; }}
-        QLabel#altitudeCard {{ background: {S.hx('card')}; color: {S.hx('ink')}; border: none; border-radius: 16px; }}
-        QFrame#navSearch QLineEdit {{ background: {S.hx('card')}; color: {S.hx('ink')}; border: 2px solid {S.hx('signal')};
-            border-radius: 16px; padding: 4px 16px; font-size: 16px; }}
-        QFrame#navSearch QPushButton {{ background: {S.hx('signal')}; color: {S.hx('card')}; border: none; border-radius: 16px;
-            padding: 0px 20px; font-size: 16px; font-weight: 700; }}
+        QLabel#altitudeCard {{ background: {S.hx('card')}; color: {S.hx('ink')}; border: 1px solid {S.hx('hairline')}; border-radius: 8px; }}
+        QFrame#navSearch QLineEdit {{ background: {S.hx('card')}; color: {S.hx('ink')}; border: 1px solid {S.rgba('signal', 0.55)};
+            border-radius: 8px; padding: 4px 16px; font-size: 16px; }}
+        QFrame#navSearch QPushButton {{ background: {S.hx('signal')}; color: {S.hx('card')}; border: none; border-radius: 8px;
+            padding: 0px 20px; font-size: 16px; font-weight: 600; }}
         QFrame#navSearch QPushButton:pressed {{ background: {S.hx('signal_pressed')}; }}
         QFrame#navSearch QPushButton:disabled {{ background: {S.hx('paper_deep')}; color: {S.hx('ink_3')}; }}
-        QPushButton#mapToolButton {{ background: {S.hx('card')}; color: {S.hx('signal')}; border: 2px solid {S.hx('signal')};
-            border-radius: 16px; padding: 0px 16px; font-size: 16px; font-weight: 700; }}
+        QPushButton#mapToolButton {{ background: {S.hx('card')}; color: {S.hx('signal')}; border: 1px solid {S.rgba('signal', 0.55)};
+            border-radius: 8px; padding: 0px 16px; font-size: 16px; font-weight: 600; }}
         QPushButton#mapToolButton:pressed {{ background: {S.hx('signal_tint')}; }}
         QListWidget {{ background: {S.hx('card')}; color: {S.hx('ink')}; border: 1px solid {S.hx('hairline')};
-            border-radius: 16px; }}
+            border-radius: 8px; }}
         """)
     for name in ("plan_btn", "retry_btn"):
         b = getattr(page, name, None)
         if b is not None:
             b.setFont(S.font(16, b.font().weight()))
+    # the search field and Navigate fill the 64 px search bar (64 px touch targets)
+    search = getattr(page, "search", None)
+    if search is not None and search.layout() is not None:
+        m_ = search.layout().contentsMargins()
+        search.layout().setContentsMargins(m_.left(), 0, m_.right(), 0)
+        for name in ("plan_btn", "destination"):
+            w = getattr(page, name, None)
+            if w is not None:
+                w.setMinimumHeight(64)
+    status = getattr(page, "route_status", None)
+    if status is not None:
+        status.setFont(S.font(S.BODY))
     m = getattr(page, "map", None)
     if m is not None:
         m.update()
@@ -122,7 +134,7 @@ def _keyboard_theme(kb, *_a, **_k):
     kb.setStyleSheet(kb.styleSheet() + f"""
         QFrame#touchKeyboard {{ background: {S.hx('paper_deep')}; border-top: 1px solid {S.hx('hairline')}; }}
         QFrame#touchKeyboard QPushButton {{ background: {S.hx('card')}; color: {S.hx('signal')};
-            border: 1.5px solid {S.hx('signal')}; border-radius: 12px; padding: 4px; font-size: 22px; font-weight: 700; }}
+            border: 1px solid {S.hx('hairline')}; border-radius: 6px; padding: 4px; font-size: 22px; font-weight: 500; }}
         QFrame#touchKeyboard QPushButton:pressed {{ background: {S.hx('signal')}; color: {S.hx('card')}; }}
         """)
 
@@ -169,10 +181,10 @@ def _look_swatch_class():
         def _page(self, p, r, pal):
             p.setPen(Qt.PenStyle.NoPen)
             p.setBrush(QColor(pal["paper"]))
-            p.drawRoundedRect(r, 10, 10)
+            p.drawRoundedRect(r, 4, 4)
             card = QRectF(r.left() + 10, r.top() + 10, r.width() * 0.62, r.height() - 20)
             p.setBrush(QColor(pal["card"]))
-            p.drawRoundedRect(card, 6, 6)
+            p.drawRoundedRect(card, 3, 3)
             p.setBrush(QColor(pal["ink"]))
             p.drawRoundedRect(QRectF(card.left() + 8, card.top() + 8, card.width() * 0.55, 6), 3, 3)
             p.setBrush(QColor(pal["ink_3"]))
@@ -187,8 +199,8 @@ def _look_swatch_class():
             on = self.isChecked()
             r = QRectF(self.rect()).adjusted(1.5, 1.5, -1.5, -1.5)
             p.setBrush(S.c("signal_tint") if on or self.isDown() else S.c("card"))
-            p.setPen(QPen(S.c("signal"), 3.0 if on else 2.0))
-            p.drawRoundedRect(r, 18, 18)
+            p.setPen(QPen(S.c("signal") if on else S.c("hairline"), 2.0 if on else 1.0))
+            p.drawRoundedRect(r, 8, 8)
             prev = QRectF(r.left() + 12, r.top() + 12, r.width() - 24, 56)
             if self.mode == "auto":       # half Paper, half Ink
                 p.save()
@@ -200,7 +212,7 @@ def _look_swatch_class():
             else:
                 self._page(p, prev, S.NIGHT if self.mode == "night" else S.DAY)
             p.setPen(QPen(S.c("hairline"), 1)); p.setBrush(Qt.BrushStyle.NoBrush)
-            p.drawRoundedRect(prev, 10, 10)
+            p.drawRoundedRect(prev, 4, 4)
             p.setPen(S.c("signal"))
             p.setFont(S.font(16, QFont.Weight.Bold))
             p.drawText(QRectF(r.left() + 14, prev.bottom() + 6, r.width() - 28, 24),
@@ -224,7 +236,7 @@ def _icons():
     folder = os.path.join(tempfile.gettempdir(), "sw7_style_map")
     os.makedirs(folder, exist_ok=True)
     out = {}
-    for name, colour in (("off", S.hx("signal")), ("on", S.hx("card"))):
+    for name, colour in (("off", S.hx("ink_2")), ("on", S.hx("card"))):
         path = os.path.join(folder, f"knob_{name}_{colour.strip('#')}.png").replace("\\", "/")
         if not os.path.isfile(path):
             img = QImage(60, 32, QImage.Format.Format_ARGB32_Premultiplied); img.fill(Qt.GlobalColor.transparent)
@@ -266,7 +278,8 @@ def _settings_init(page, *_a, **_k):
         else:
             w.setFont(S.font(S.BODY, w.font().weight()))
     for w in content.findChildren(QCheckBox):
-        w.setFont(S.font(S.BODY, QFont.Weight.DemiBold))
+        w.setFont(S.font(S.BODY, QFont.Weight.Medium))
+        S.mark_quiet(w)                   # an off toggle is ink; an on toggle is signal (selected)
     follow = getattr(page, "auto_follow", None)
     if follow is not None:
         follow.setText("Start the map in follow mode")
@@ -298,7 +311,7 @@ def _settings_init(page, *_a, **_k):
                 p = QPainter(obj)
                 for c in _cards(page):
                     if c.isVisible():
-                        S.paint_shadow(p, QRectF(c.geometry()), 24, 2)
+                        S.paint_shadow(p, QRectF(c.geometry()), 8, 1)
                 p.end()
             return False
     if not hasattr(page, "_sw7_shadows"):
@@ -325,20 +338,20 @@ def _settings_theme(page, *_a, **_k):
         QLabel#dim {{ color: {p['ink_2']}; }}
         QLabel#sectionTitle {{ color: {p['ink_2']}; letter-spacing: 1px; }}
         QCheckBox {{ color: {p['ink']}; background: transparent; spacing: 14px; }}
-        QCheckBox::indicator {{ width: 60px; height: 32px; border-radius: 18px; border: 2px solid {p['signal']};
-            background: {p['card']}; image: url({ic['off']}); }}
+        QCheckBox::indicator {{ width: 60px; height: 32px; border-radius: 16px; border: 1px solid {p['ink_3']};
+            background: {p['paper_deep']}; image: url({ic['off']}); }}
         QCheckBox::indicator:checked {{ background: {p['signal']}; border-color: {p['signal']}; image: url({ic['on']}); }}
-        QSlider::groove:horizontal {{ height: 8px; border-radius: 4px; background: {p['paper_deep']}; }}
-        QSlider::sub-page:horizontal {{ background: {p['signal']}; border-radius: 4px; }}
-        QSlider::handle:horizontal {{ width: 44px; height: 44px; margin: -18px 0; border-radius: 22px;
-            background: {p['signal']}; border: 4px solid {p['card']}; }}
-        QComboBox, QLineEdit {{ background: {p['card']}; color: {p['ink']}; border: 2px solid {p['signal']};
-            border-radius: 16px; padding: 4px 16px; }}
+        QSlider::groove:horizontal {{ height: 4px; border-radius: 2px; background: {p['paper_deep']}; }}
+        QSlider::sub-page:horizontal {{ background: {p['signal']}; border-radius: 2px; }}
+        QSlider::handle:horizontal {{ width: 32px; height: 32px; margin: -14px 0; border-radius: 16px;
+            background: {p['signal']}; border: 3px solid {p['card']}; }}
+        QComboBox, QLineEdit {{ background: {p['card']}; color: {p['ink']}; border: 1px solid {S.rgba('signal', 0.55)};
+            border-radius: 8px; padding: 4px 16px; }}
         QComboBox::drop-down {{ border: none; width: 40px; }}
         QComboBox::down-arrow {{ image: url({ic['chevron']}); width: 20px; height: 12px; }}
         QComboBox:disabled {{ border-color: {p['hairline']}; color: {p['ink_3']}; }}
-        QPushButton {{ background: {p['card']}; color: {p['signal']}; border: 2px solid {p['signal']};
-            border-radius: 16px; padding: 4px 20px; font-weight: 700; }}
+        QPushButton {{ background: {p['card']}; color: {p['signal']}; border: 1px solid {S.rgba('signal', 0.55)};
+            border-radius: 8px; padding: 4px 20px; font-weight: 600; }}
         QPushButton:pressed {{ background: {p['signal_tint']}; }}
         QScrollArea, QWidget#settingsContent {{ background: transparent; border: none; }}
         """)
