@@ -390,7 +390,7 @@ m.update_vehicle(state_of(track[8], bridge_replay=True))
 run_for(1.2)
 assert m.replay, "map should know the data is replayed"
 img = m.grab().toImage()
-ucx = m._usable_centre()[0]
+ucx = m._pill_x                      # badge centre (right of the turn banner with the layout pass)
 px = img.pixelColor(int(ucx) - 30, int(m._pill_y))   # below the turn banner when navigating
 amber = THEME.status("warn")
 assert abs(px.red() - amber.red()) < 40 and abs(px.green() - amber.green()) < 40 and px.blue() < 120, px.name()
@@ -644,8 +644,11 @@ assert p200.y() > m12._ground_y, "200 m ahead should be on the drawn ground"
 img = m12.grab().toImage()
 accent = THEME.color("accent")
 checked = 0
+pin = m12.screen_point(plan_pts[-1].lat, plan_pts[-1].lon)   # the destination pin covers the route end
 for q in plan_pts:
     sp = m12.screen_point(q.lat, q.lon)
+    if math.hypot(sp.x() - pin.x(), sp.y() - pin.y()) < 14:
+        continue
     if not (m12._pill_y + 45 < sp.y() < v.y() - 35 and 40 < sp.x() < TW - 140) or sp.y() < m12._ground_y + 80:
         continue
     c = img.pixelColor(int(round(sp.x())), int(round(sp.y())))

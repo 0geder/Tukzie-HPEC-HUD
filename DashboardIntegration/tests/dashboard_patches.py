@@ -22,11 +22,15 @@ ANALYTICS_CAROUSEL_PATCHES: the Analytics page as an infinite vertical carousel 
 DRIVING_PATCHES: large speed, battery and range in place of the dial and pedal bars.
 SEARCH_PATCHES: destination search with Photon type-ahead, recents and a start-position header (sw7_search.py).
 THEME_PATCHES: Night and Day themes, flat surfaces and the Atkinson Hyperlegible font (TUKZIE_SW7_THEME=0 restores the original).
+<<<<<<< HEAD
 LAYOUT_FRAME_PATCHES: the layout pass for the status bar, nav bar, side arrows, Settings and Charging
 (sw7_layout_frame.py; TUKZIE_SW7_LAYOUT=0 restores the team's layout).
 LAYOUT_DRIVE_PATCHES: the layout pass for Driving (TUKZIE_SW7_LAYOUT=0 restores the current look); Analytics' part is in sw7_analytics.py.
 LAYOUT_PAGES_PATCHES: Diagnostics as four cards with the advice list folded away (sw7_layout_pages.py, added to
 COPIES by LAYOUT_PAGES_COPIES); TUKZIE_SW7_LAYOUT=0 keeps the earlier layout.
+=======
+LAYOUT_MAP_PATCHES: the Navigation page's overlays around the map's control column and turn banner (TUKZIE_SW7_LAYOUT=0 restores them).
+>>>>>>> worktree-agent-a92f4a73a985125b7
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -652,6 +656,7 @@ SEARCH_PATCHES = (
      "            if start: return start\n"),
 )
 
+<<<<<<< HEAD
 LAYOUT_FRAME_PATCHES = (
     # Layout pass, agent A (Planning/layout-improvements-prompt.md): status bar 48 px with 16 px text, nav bar 72 px
     # with labels and 64 px targets, side arrows in the nav bar's end margins, Settings in two columns with 64 px rows
@@ -706,3 +711,25 @@ LAYOUT_PAGES_PATCHES = (
 )
 
 PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_FRAME_PATCHES + LAYOUT_DRIVE_PATCHES + LAYOUT_PAGES_PATCHES
+=======
+LAYOUT_MAP_PATCHES = (
+    # navigation_page.py: layout pass on the map (Planning/layout-improvements-prompt.md, agent D). After the team's
+    # overlays are placed, the map places them again around its own: the search field right of the turn banner,
+    # Follow and Overview in the map's 64 x 64 control column (the team's small buttons hidden), the altitude card
+    # replaced by the map's chip, the status line bottom left at 18 px (sw7_tile_map.SW7TileMap.layout_page).
+    # TUKZIE_SW7_LAYOUT=0 (or TUKZIE_TILE_MAP=0, the team's map) leaves everything as it was.
+    ("app/pages/navigation_page.py",
+     "        for widget in (self.search, self.altitude, self.guidance, self.route_status, self.follow_btn, self.overview_btn, self.retry_btn, self.suggestions):\n"
+     "            widget.raise_()\n",
+     "        for widget in (self.search, self.altitude, self.guidance, self.route_status, self.follow_btn, self.overview_btn, self.retry_btn, self.suggestions):\n"
+     "            widget.raise_()\n"
+     "        if hasattr(self.map, \"layout_page\"):   # SW-7 layout pass: one control column, banner top left\n"
+     "            self.map.layout_page(self)\n"),
+    # a new route showed the team's Overview button again; with the layout pass Overview is in the map's column
+    ("app/pages/navigation_page.py",
+     "        self.overview_btn.show()\n",
+     "        self.overview_btn.setVisible(not getattr(self.map, \"sw7_layout\", False))   # SW-7: Overview is in the map's column\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_MAP_PATCHES
+>>>>>>> worktree-agent-a92f4a73a985125b7
