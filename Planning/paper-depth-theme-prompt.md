@@ -149,3 +149,54 @@ and sunset.
    - Driving and Analytics.
    - Diagnostics, Camera, Sensors and Charging.
    - Map (warm tile tint, the slab with edge shadow, controls and banner on top) and Settings.
+
+## 9. Core API (for the page agents)
+
+Done by the core agent (12 Oct): `DashboardIntegration/sw7_style.py` and `sw7_weather.py` (copied to `app/widgets/`,
+groups `STYLE_CORE_COPIES` and `STYLE_CORE_PATCHES`), the paper pill in `sensors_page.HazardBanner.sw7_paper`, and
+`tests/test_style_core.py` (screenshots in `tests/style/core/`). The full API is in the docstring at the top of
+`sw7_style.py`; the short version:
+
+```python
+from ..widgets import sw7_style as S          # in app/pages ("from . import sw7_style" in app/widgets)
+if S.enabled(): ...                           # paper; with TUKZIE_SW7_STYLE=team change nothing at all
+S.hx("signal"), S.c("ink"), S.c("shadow", 60), S.rgba("ink", .5)   # read at paint or restyle time
+S.is_night()                                  # Ink variant; THEME.changed fires on every day/night switch
+S.font(px, weight, caps=False)                # bundled Atkinson Hyperlegible; px only 13, 16, 22 or 120..180
+S.HERO (150), S.SECONDARY 22, S.BODY 16, S.LABEL 13
+S.set_back_word(page, "DRIVE", corner="bl")   # ThemedPageSurface pages; others: S.attach_back_plane(w, "CHARGE")
+S.elevate(widget, level)                      # static widgets only (QGraphicsDropShadowEffect, warm)
+S.paint_card(p, rect, radius, level, fill="card")   # cached shadow + card, for anything that animates
+S.paint_shadow(p, rect, radius, level)        # levels: 1 chip or button, 2 card, 3 slab or sheet
+S.button_qss(kind="outline" or "filled", radius, px, selector);  S.style_button(btn, kind)
+S.mark_tappable(w);  S.mark_exempt(w, "reason")
+S.audit_signal(root, ignore=(map,)) -> [Finding(widget, kind, pixels, note)];  S.ok_audit(findings)
+S.type_audit(root) -> [(widget, px)] outside the scale
+```
+
+- Tokens: paper, paper_deep, card, card_alt, hairline, ink, ink_2, ink_3, charcoal, on_charcoal, on_charcoal_2,
+  signal, signal_pressed, signal_tint, shadow, ok, warn, critical, warn_tint (day values as in section 2).
+- THEME follows in paper mode: bg = paper, card, card_alt, accent = signal, highlight = ink, text = ink,
+  text_dim = ink_2, text_faint = ink_3, border = hairline, track = paper_deep; status normal, warn, crit, inactive =
+  ok, warn, critical, ink_3; info = ink_2; regen = ok. THEME.stylesheet() makes every QPushButton a signal outline
+  button (checked: filled), line edits and combo boxes signal-outlined, toggles and sliders signal. Team code that
+  reads THEME is mostly right already; anything with hard-coded colours (the turn banner green, the speed dial,
+  the touch keyboard keys, the map) still needs its page agent.
+- Audit rule: signal-like = hue within 15 degrees of signal and saturation over 35 %. Critical red is within that
+  rule too, so a non-tappable widget may hold up to `S.MARK_PX` (420) such pixels when they are nearer a status
+  colour than signal (a dot, a bar). Pure signal on a non-tappable widget always fails.
+- Default back-plane words (set by the core, change them freely): Drive DRIVE, Analytics TRIPS, Diagnostics
+  HEALTH, Camera ROAD, Sensors AROUND, Charging CHARGE, Settings SETUP; Map none. Bottom corners show about 60 % of
+  the capitals above the nav pill.
+- Frame geometry at 1280 x 800: status bar y 0..48 (paper, no border), the SIMULATED strip 26 px under it while it
+  shows, page stack y 48..744 (696 px, 16 px more than the layout pass: it runs NAV_OVERLAP = 16 px under the
+  pill). Nav overlay y 712..800, pill x 88..1192, y 728..792; the selected circle (52 px) reaches y 720. Arrows are
+  64 x 64 round signal-outline buttons at (16, 728) and (1200, 728). Keep tap targets out of the page's bottom
+  16 px; Driving's "Free driving" line currently sits under the pill.
+- The obstacle pill is charcoal with a critical (or warn) dot, its text button marked exempt, Hide filled signal.
+  The source chip is 132 x 28, an ink outline with a status dot. The weather chip is `main.status.sw7_weather_chip`,
+  the card `main.sw7_weather_card`, the service `main.sw7_weather`.
+- Tests: copy the build and run pattern of `test_style_core.py`. Always set `TUKZIE_WEATHER_URL` and
+  `TUKZIE_REVERSE_URL` (a fake server, or a dead port such as http://127.0.0.1:9) and `TUKZIE_WEATHER_CACHE` (a temp
+  file); the existing tests now do. The layout tests run with `TUKZIE_SW7_STYLE=team`.
+- Paint time: `QWidget.grab()` of the window, median of 25, compared with `TUKZIE_SW7_STYLE=team`.

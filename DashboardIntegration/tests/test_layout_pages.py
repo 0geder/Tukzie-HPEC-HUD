@@ -31,6 +31,12 @@ import subprocess
 import sys
 import tempfile
 
+# Paper and depth style (sw7_weather): never the real weather API in a test, and no shared weather cache.
+os.environ.setdefault("TUKZIE_WEATHER_URL", "http://127.0.0.1:9/v1/forecast")
+os.environ.setdefault("TUKZIE_REVERSE_URL", "http://127.0.0.1:9/reverse")
+os.environ.setdefault("TUKZIE_WEATHER_CACHE", os.path.join(__import__("tempfile").mkdtemp(prefix="sw7_wx_"), "last.json"))
+# This test checks the layout pass in the team look: the paper style is tested in test_style_core.py.
+os.environ["TUKZIE_SW7_STYLE"] = "team"
 HERE = os.path.dirname(os.path.abspath(__file__))
 INTEG = os.path.dirname(HERE)
 REPO = os.path.dirname(INTEG)

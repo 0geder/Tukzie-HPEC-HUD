@@ -12,6 +12,8 @@ Add-ons for the vehicle dashboard (PySide6, the dashboard team's
 | `sw7_live_only.py` | `app/data/` | Live-only mode: the explicit no-data state, never simulated values |
 | `sw7_tile_map.py` | `app/pages/` | Street-tile map for the Navigation page (OpenStreetMap tiles, heading-up follow mode), no QtWebEngine |
 | `sw7_layout_frame.py` | `app/widgets/` | Layout pass for the status bar (48 px, 16 px text), nav bar (labels, 64 px targets), side arrows, Settings and Charging; `TUKZIE_SW7_LAYOUT=0` keeps the team's layout (tests/test_layout_frame.py) |
+| `sw7_style.py` | `app/widgets/` | Paper and depth style (default; `TUKZIE_SW7_STYLE=team` keeps the layout-pass look): palette, Ink night variant, type scale, shadows, back plane, signal audit, and the restyled frame (tests/test_style_core.py) |
+| `sw7_weather.py` | `app/widgets/` | Open-Meteo weather for the status bar and the charcoal weather card; sunrise and sunset switch the night variant |
 
 They are kept here, outside the dashboard repo, so the dashboard team can
 review them before anything in their code changes. The telemetry contract is
@@ -329,6 +331,28 @@ Layout, sizes and grouping only; the team's colours and fonts stay.
   now also re-places itself when the status bar changes height.
 
 Screenshots (made-up test readings): `tests/layout/pages/before_*.png` and `after_*.png`.
+
+## Paper and depth style, core (12 Oct)
+
+From Planning/paper-depth-theme-prompt.md (the student's thetheme.jpg), behind `TUKZIE_SW7_STYLE` (default `paper`;
+`team` installs nothing, checked widget for widget and pixel for pixel by `tests/test_style_core.py`). One patch line
+in `dashboard_main.py` (`STYLE_CORE_PATCHES`) calls `sw7_style.install` after the layout pass.
+
+- THEME gives the Paper palette (warm off-white, ink text, one terracotta signal colour that only marks things you
+  can tap) and the bundled Atkinson Hyperlegible font, so every page that reads THEME follows. From sunset to
+  sunrise (from the weather service, or `TUKZIE_SW7_NIGHT=1`) it switches to the darker Ink variant.
+- Frame: status bar on paper; the source chip an ink outline with a status dot; the SIMULATED strip ink on a warn
+  tint; the obstacle pill charcoal with a red dot and a signal Hide; the nav bar a floating rounded pill whose
+  selected item is a raised signal circle, the page running 16 px under it; the side arrows round signal-outline
+  buttons on shadows.
+- Weather (`sw7_weather.py`): Open-Meteo (no key) and Photon reverse geocoding for the suburb, from the GPS fix,
+  then the modem's network position, then UCT; every 15 min or after moving 5 km, on a worker thread with a 6 s
+  timeout, cached on disk with its age (`~/.cache/sw7_weather/last.json`). The status bar shows "☀ 24° Rondebosch"
+  in place of the fixed "UCT 17°C"; tapping it opens a charcoal card with the temperature, five 3-hourly columns and
+  "updated N min ago". No network and no cache: "--", never a made-up value.
+- The pages themselves are restyled by the page agents, using the API at the top of `sw7_style.py`.
+
+Screenshots (fake weather server): `tests/style/core/`. Not yet tested on the Pi 5 or against the real API.
 
 ## Tests
 
