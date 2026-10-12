@@ -535,7 +535,10 @@ class SurroundingsView(QWidget):
         # middle plane: the camera slab's shadow (the slab paints itself); top plane: the hazards card (the tuk-tuk
         # card paints itself, over the slab's edge)
         S.paint_shadow(p, frame, self.FRAME_R, 1)
-        S.paint_card(p, hz, self.CARD_R, 1)
+        if S.BACK_WORDS_SHOWN:              # three planes: the hazards list sits on the paper under a hairline
+            p.fillRect(QRectF(hz.left(), hz.top(), hz.width(), 1), S.c("hairline"))
+        else:
+            S.paint_card(p, hz, self.CARD_R, 1)
         if getattr(self, "sub_dot", None) is not None:
             mark(p, self.sub_dot, tok(self.sub_status))
         # the Ride row at the foot of the hazards card, under a hairline
@@ -819,7 +822,13 @@ def _diagnostics(main):
     # the look: four cards on cached shadows, ink and paper, one signal toggle and one signal glance
     cards = list(lay["cards"])
     host = cards[0].parentWidget()
-    page._sw7_bed = _Bed(host, cards, 8, 1)
+    if S.BACK_WORDS_SHOWN:
+        # three planes: the four groups sit on the paper under a hairline (no cards), SYSTEM shows between them
+        for c in cards:
+            c.setProperty("sw7_open", True)
+        page._sw7_bed = None
+    else:
+        page._sw7_bed = _Bed(host, cards, 8, 1)
     page._sw7_bed_details = _Bed(host, [lay["details"]], 8, 1, fill="card")   # the details frame paints no fill
     root = host.layout()
     root.setContentsMargins(24, 16, 24, 40)

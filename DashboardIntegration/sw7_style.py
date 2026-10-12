@@ -931,8 +931,12 @@ def _card_paint(orig, card, event):
     from PySide6.QtWidgets import QFrame
     from PySide6.QtGui import QPen
     p = QPainter(card); p.setRenderHint(QPainter.RenderHint.Antialiasing)
-    p.setPen(QPen(c("hairline"), 1.0)); p.setBrush(c("card"))
-    p.drawRoundedRect(QRectF(card.rect()).adjusted(0.5, 0.5, -0.5, -0.5), RADIUS_MAX, RADIUS_MAX); p.end()
+    if card.property("sw7_open") and BACK_WORDS_SHOWN:
+        p.fillRect(QRectF(0, 0, card.width(), 1), c("hairline"))     # an open group: a hairline, no card
+    else:
+        p.setPen(QPen(c("hairline"), 1.0)); p.setBrush(c("card"))
+        p.drawRoundedRect(QRectF(card.rect()).adjusted(0.5, 0.5, -0.5, -0.5), RADIUS_MAX, RADIUS_MAX)
+    p.end()
     QFrame.paintEvent(card, event)
 
 
@@ -945,15 +949,15 @@ PLANES = {
     # Drive: the word across the open upper area (the tiles and the dial sit low), the vehicle cutting into "VE"; its
     # wheels stand just above the Around tile's readings (the tile's label row passes in front of them)
     "driving": Plane("DRIVE", (0.02, 0.109, 0.96, 0.40), "top", "three_quarter", (0.655, 0.008, 0.345, 0.497), "right"),
-    "analytics": Plane("STATS", (-0.03, 0.0, 1.06, 0.93), "bottom"),
-    "diagnostics": Plane("SYSTEM", (-0.03, 0.0, 1.06, 1.0), "top"),
+    "analytics": Plane("STATS", (0.015, 0.0, 0.97, 0.985), "bottom"),
+    "diagnostics": Plane("SYSTEM", (0.015, 0.0, 0.97, 0.985), "bottom"),      # the band above the nav bar
     "camera": Plane("ROAD", (-0.03, 0.0, 1.06, 0.98), "bottom"),
     "navigation": Plane("MAP", (-0.03, 0.0, 1.06, 0.98), "bottom"),
-    "sensors": Plane("AROUND", (-0.03, 0.42, 1.06, 0.58), "bottom"),     # under the nearest-distance hero
+    "sensors": Plane("AROUND", (0.015, 0.42, 0.97, 0.565), "bottom"),     # under the nearest-distance hero
     # Charging: CHARGE across the band above the nav bar, read through the ring (no disc); the front view stands in the
     # lower right under the compact column, cutting into "GE"
     "charging": Plane("CHARGE", (0.015, 0.0, 0.97, 0.985), "bottom", "front", (0.70, 0.56, 0.28, 0.425)),
-    "settings": Plane("SETUP", (-0.03, 0.0, 1.06, 1.0), "bottom", "side", (0.56, 0.72, 0.36, 0.27)),
+    "settings": Plane("SETUP", (0.015, 0.0, 0.97, 0.985), "bottom", "side", (0.52, 0.745, 0.46, 0.25)),
 }
 
 _installed = False
