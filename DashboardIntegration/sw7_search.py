@@ -285,7 +285,18 @@ def _theme(key, fallback):
         return QColor(fallback)
 
 
+def _paper():
+    """The paper and depth style when it is installed (sizes 13 and 16 only, signal only on what is tapped)."""
+    try:
+        from ..widgets import sw7_style as style
+    except ImportError:
+        return None
+    return style if style.enabled() and getattr(style, "_installed", False) else None
+
+
 def _font(size, weight=QFont.Weight.Normal):
+    if _paper() is not None:              # paper type scale: 11 and 14 px become 13 and 16
+        size = {11: 13, 14: 16}.get(size, size)
     try:
         return THEME.font(size, weight)
     except Exception:
@@ -313,8 +324,8 @@ class SuggestionDelegate(QStyledItemDelegate):
             fill = QColor(accent)
             fill.setAlpha(40)
             p.fillRect(r, fill)
-        if kind == "header":
-            self._paint_header(p, r, index, accent, dim, border)
+        if kind == "header":              # information, not a choice: ink, not signal, in the paper style
+            self._paint_header(p, r, index, text if _paper() is not None else accent, dim, border)
         elif kind == "status":
             p.setPen(dim)
             p.setFont(_font(14))

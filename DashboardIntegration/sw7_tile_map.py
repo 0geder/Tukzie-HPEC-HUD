@@ -72,6 +72,15 @@ The altitude is a small chip left of the compass, only when known. layout_page()
 overlays around these (search field right of the banner, team Follow/Overview hidden, status line bottom left at
 18 px); navigation_page.py calls it at the end of _position_overlays (dashboard_patches.LAYOUT_MAP_PATCHES).
 
+Paper and depth style (Planning/paper-depth-theme-prompt.md, page agent P3; only when sw7_style is installed, so
+TUKZIE_SW7_STYLE=team and the map on its own look exactly as before): the map is the middle plane, a raised slab
+(slab_rect) with rounded corners, a warm edge and a long shadow, all in one cached pixmap with four corner patches
+(no live effect: the map repaints every frame). Tiles are tinted once each and cached (tint_tile: warm by day, a
+dark warm map at night). The route, the vehicle and the destination are ink (information); only the controls are
+signal, and the column, search field, Simulate drive and arrival-time bar overlap the slab's edges by 20 to 24 px on
+cached shadows. The turn banner is the charcoal card with the distance as the page's hero (120 px). The arrival-time
+bar is the page's one remaining-distance and ETA figure, with the plan's arrival battery; there is no ALT chip.
+
 Drop this file into app/pages/ (tests/dashboard_patches.py does, and swaps
 the import in navigation_page.py; TUKZIE_TILE_MAP=0 restores NativeRouteMap).
 QtWidgets, QtGui and QtNetwork only; colours from THEME.
@@ -143,6 +152,78 @@ TURN_GREEN, THEN_GREEN, ETA_GREEN = "#17703E", "#0F4F2B", "#2E9E5B"
 def layout_enabled():
     """TUKZIE_SW7_LAYOUT: the layout pass is on unless it is "0"."""
     return os.environ.get("TUKZIE_SW7_LAYOUT", "1").strip() != "0"
+
+
+def paper_style():
+    """The sw7_style module when the paper and depth style is installed in this dashboard, else None (team look,
+    or the map on its own as in test_tile_map). Planning/paper-depth-theme-prompt.md, page agent P3."""
+    try:
+        from ..widgets import sw7_style as style
+    except ImportError:
+        return None
+    return style if style.enabled() and getattr(style, "_installed", False) else None
+
+
+# Paper and depth style: the map is a raised slab (middle plane) with the controls floating over its edges.
+SLAB_L, SLAB_T = 40, 64              # slab left and top; the cards at EDGE overhang it by 16 and 24 px
+SLAB_OVER = 20                       # the control column and the bottom cards overlap the slab by this much
+SLAB_R = 28                          # corner radius
+SLAB_EDGE = 10                       # the slab's thickness, a warm edge under its face
+PAPER_BOTTOM = 32                    # bottom cards end this far above the page bottom (16 px run under the nav pill)
+PAPER_BANNER_H = 184                 # turn banner: the distance as the page's hero (120 px), the street at 22 px
+TINTS_PER_FRAME = 6                  # tiles tinted per paint at most (the rest next frame)
+DAY_TINT = "#F4E8DC"                 # multiplied into the tiles by day: OSM ground becomes paper_deep, roads paper
+# night: tile luminance -> colour (labels light, land near the card colour, roads lighter than the land)
+NIGHT_LUT = ((0, "#D2C8BF"), (110, "#8F857C"), (170, "#4A433D"), (205, "#38322D"), (232, "#2A2622"),
+             (243, "#26221F"), (250, "#3E3832"), (255, "#6A615A"))
+
+
+def _night_table():
+    from PySide6.QtGui import qRgb
+    out = []
+    for v in range(256):
+        for (a, ca), (b, cb) in zip(NIGHT_LUT, NIGHT_LUT[1:]):
+            if a <= v <= b:
+                k = 0.0 if b == a else (v - a) / (b - a)
+                x, y = QColor(ca), QColor(cb)
+                out.append(qRgb(round(x.red() + (y.red() - x.red()) * k), round(x.green() + (y.green() - x.green()) * k),
+                                round(x.blue() + (y.blue() - x.blue()) * k)))
+                break
+    return out
+
+
+_NIGHT_TABLE = None
+
+
+def tint_tile(pixmap, night):
+    """A street tile tinted to sit on paper: by day a little desaturated and multiplied with a warm paper tone; at
+    night mapped through NIGHT_LUT by luminance (a dark warm map, labels light) and multiplied with the original
+    so water and parks keep a trace of their colour. Done once per tile (cached by the map)."""
+    global _NIGHT_TABLE
+    from PySide6.QtGui import QImage
+    img = pixmap.toImage().convertToFormat(QImage.Format.Format_RGB32)
+    gray = img.convertToFormat(QImage.Format.Format_Grayscale8)
+    if not night:
+        p = QPainter(img)
+        p.setOpacity(0.35)
+        p.drawImage(0, 0, gray)
+        p.setOpacity(1.0)
+        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Multiply)
+        p.fillRect(img.rect(), QColor(DAY_TINT))
+        p.end()
+        return QPixmap.fromImage(img)
+    if _NIGHT_TABLE is None:
+        _NIGHT_TABLE = _night_table()
+    data = bytes(gray.constBits())
+    ind = QImage(data, gray.width(), gray.height(), gray.bytesPerLine(), QImage.Format.Format_Indexed8)
+    ind.setColorTable(_NIGHT_TABLE)
+    base = ind.convertToFormat(QImage.Format.Format_RGB32)
+    p = QPainter(base)
+    p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Multiply)
+    p.setOpacity(0.55)
+    p.drawImage(0, 0, img)
+    p.end()
+    return QPixmap.fromImage(base)
 
 
 def _num(value):
@@ -235,7 +316,9 @@ class _MapButton(QPushButton):
             self.update()
 
     def label_px(self):
-        """Label size: 14 px, or smaller (never under 12) if the word would not fit the button."""
+        """Label size: 14 px, or smaller (never under 12) if the word would not fit the button. Paper: 13 px."""
+        if paper_style() is not None:
+            return 13
         for px in (PX["label"], 13, 12):
             if QFontMetricsF(THEME.font(px, QFont.Weight.DemiBold)).horizontalAdvance(self.label) <= self.width() - 6:
                 return px
@@ -247,14 +330,22 @@ class _MapButton(QPushButton):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         on = self.active or (self.isCheckable() and self.isChecked())
-        accent, text = QColor(THEME.hex("accent")), QColor(THEME.hex("text"))
-        bg = QColor(THEME.hex("card_alt" if self.isDown() else "card"))
-        bg.setAlpha(240)
+        S = paper_style()
         r = QRectF(self.rect()).adjusted(1, 1, -1, -1)
-        p.setBrush(bg)
-        p.setPen(QPen(accent if on else QColor(THEME.hex("border")), 2.0 if on else 1.0))
-        p.drawRoundedRect(r, 12, 12)
-        ink = accent if on else text
+        if S is not None:                 # paper: a signal outline card, filled signal while selected
+            # (its shadow is painted by the map under it, cached: the map repaints every frame)
+            p.setBrush(S.c("signal") if on else S.c("signal_tint" if self.isDown() else "card"))
+            p.setPen(QPen(S.c("signal"), 2.0))
+            p.drawRoundedRect(r.adjusted(1, 1, -1, -1), 20, 20)
+            ink = S.c("card") if on else S.c("signal")
+        else:
+            accent, text = QColor(THEME.hex("accent")), QColor(THEME.hex("text"))
+            bg = QColor(THEME.hex("card_alt" if self.isDown() else "card"))
+            bg.setAlpha(240)
+            p.setBrush(bg)
+            p.setPen(QPen(accent if on else QColor(THEME.hex("border")), 2.0 if on else 1.0))
+            p.drawRoundedRect(r, 12, 12)
+            ink = accent if on else text
         c = r.center()
         icon_c = QPointF(c.x(), c.y() - 9) if self.label else c
         pen = QPen(ink, 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
@@ -352,6 +443,15 @@ class SW7TileMap(QWidget):
         self._explore_tilt = 0.0          # tilt kept while exploring (a drag from the tilted view stays tilted)
         self.paint_ms = None              # duration of the last paintEvent (tests, Diagnostics)
         self._ground_y = 0.0              # screen y where the drawn ground starts (sky band above it when tilted)
+        # paper and depth style (None in the team look): the slab, tinted tiles, cached frame and shadows
+        self._S = paper_style() if self.sw7_layout else None
+        self._tint_mem = OrderedDict()    # (z, x, y, night) -> tinted pixmap
+        self._tints_left = TINTS_PER_FRAME
+        self.tint_ms = []                 # time to tint each tile, ms (tests)
+        self._frame_key = None
+        self._frame = None                # (pixmap of paper, slab shadow, edge and face; [(QPointF, corner pixmap)])
+        self.floating = []                # the page's widgets over the map, given a cached shadow (layout_page)
+        self.arrival_soc = None           # the plan's arrival state of charge, shown in the arrival-time bar
 
         self._mode = "follow"             # follow / explore / overview
         self._zoom_now = self._zoom_target = NO_FIX_ZOOM
@@ -439,6 +539,7 @@ class SW7TileMap(QWidget):
         self.route = list(getattr(plan, "route", []) or []) if plan else []
         self.roads = list(getattr(plan, "nearby_roads", []) or []) if plan else []
         self.destination = getattr(plan, "destination", None) if plan else None
+        self.arrival_soc = _num(getattr(plan, "arrival_soc_pct", None)) if plan else None
         self._route_poly, self._route_cum = QPolygonF(), []
         total = 0.0
         prev = None
@@ -815,7 +916,7 @@ class SW7TileMap(QWidget):
     def _check_overlays(self):
         """Tell the page when the turn banner comes or goes, so it can move the search field (layout pass)."""
         shown = (self.sw7_layout and self.navigating and bool(self.next_maneuvers(1)),
-                 self.sw7_layout and self.altitude_m is not None)
+                 self.altitude_chip_rect() is not None)
         if shown != self._banner_shown:
             self._banner_shown = shown
             self.overlays_changed.emit()
@@ -828,7 +929,17 @@ class SW7TileMap(QWidget):
         return {name: QRect(x, EDGE + i * (CTRL + CTRL_GAP), CTRL, CTRL) for i, name in enumerate(names)}
 
     def sim_button_rect(self):
+        if self._S is not None:           # paper: on the slab's bottom right corner, beside the arrival-time bar
+            return QRect(self.width() - EDGE - SIM_W, self.height() - PAPER_BOTTOM - CTRL, SIM_W, CTRL)
         return QRect(self.width() - EDGE - SIM_W, self.height() - EDGE - 14 - CTRL, SIM_W, CTRL)
+
+    def slab_rect(self):
+        """Paper style: the map's face, a raised slab inside the page. The search field, the turn banner, the
+        control column and the bottom cards overlap its edges (the depth of the three planes)."""
+        w, h = self.width(), self.height()
+        right = w - EDGE - CTRL + SLAB_OVER
+        bottom = h - PAPER_BOTTOM - ETA_H + SLAB_OVER
+        return QRectF(SLAB_L, SLAB_T, max(10, right - SLAB_L), max(10, bottom - SLAB_T))
 
     def turn_banner_rect(self):
         """Where the turn banner is (with its Then strip), or None when no banner shows (layout pass only)."""
@@ -838,14 +949,15 @@ class SW7TileMap(QWidget):
         if not ahead:
             return None
         bw = min(float(BANNER_W), self.width() - 2 * EDGE - CTRL - 2 * CTRL_GAP)
-        return QRectF(EDGE, EDGE, bw, BANNER_H + (THEN_H if len(ahead) > 1 else 0))
+        bh = PAPER_BANNER_H if self._S is not None else BANNER_H
+        return QRectF(EDGE, EDGE, bw, bh + (THEN_H if len(ahead) > 1 else 0))
 
     def _altitude_text(self):
         return f"ALT {self.altitude_m:.0f} m"
 
     def altitude_chip_rect(self):
-        if not self.sw7_layout or self.altitude_m is None:
-            return None
+        if not self.sw7_layout or self.altitude_m is None or self._S is not None:
+            return None                   # paper: no ALT chip (the altitude's home is Diagnostics, merge plan A)
         aw = QFontMetricsF(THEME.font(PX["altitude"], QFont.Weight.DemiBold)).horizontalAdvance(self._altitude_text()) + 24
         slot = self.control_slots()["compass"]
         return QRectF(slot.left() - CTRL_GAP - aw, slot.center().y() - 15, aw, 32)
@@ -853,7 +965,7 @@ class SW7TileMap(QWidget):
     def eta_rect(self):
         w, h = self.width(), self.height()
         cw = min(float(ETA_W), w - 2 * (EDGE + SIM_W + CTRL_GAP))
-        return QRectF((w - cw) / 2, h - EDGE - ETA_H, cw, ETA_H)
+        return QRectF((w - cw) / 2, h - (PAPER_BOTTOM if self._S is not None else EDGE) - ETA_H, cw, ETA_H)
 
     def layout_page(self, page):
         """Place the Navigation page's own overlays around the map's (layout pass). Called by the page at the end
@@ -870,7 +982,8 @@ class SW7TileMap(QWidget):
             self.overview_handler = page.show_overview
             page.plan_btn.setMinimumSize(120, 48)
             page.destination.setMinimumHeight(48)
-            page.route_status.setStyleSheet(f"font-size: {PX['status']}px;")
+            page.route_status.setStyleSheet(f"font-size: {16 if self._S is not None else PX['status']}px;")
+            self.floating = [page.search, page.route_status, page.retry_btn]   # cached shadows (paper)
         off = self.mapTo(stage, QPoint(0, 0))
         w, h = stage.width(), stage.height()
         col_left = off.x() + self.width() - EDGE - CTRL
@@ -896,8 +1009,9 @@ class SW7TileMap(QWidget):
         right = off.x() + int(eta.left()) - CTRL_GAP if eta is not None else off.x() + self.width() - EDGE - SIM_W - CTRL_GAP
         sw = max(200, min(560, right - (off.x() + EDGE)))
         sh = max(48, min(76, page.route_status.heightForWidth(sw) if page.route_status.wordWrap() else 48))
-        page.route_status.setGeometry(off.x() + EDGE, off.y() + self.height() - EDGE - sh, sw, sh)
-        page.retry_btn.setGeometry(off.x() + EDGE, off.y() + self.height() - EDGE - sh - CTRL_GAP - CTRL, 160, CTRL)
+        bottom = off.y() + self.height() - (PAPER_BOTTOM if self._S is not None else EDGE)
+        page.route_status.setGeometry(off.x() + EDGE, bottom - sh, sw, sh)
+        page.retry_btn.setGeometry(off.x() + EDGE, bottom - sh - CTRL_GAP - CTRL, 160, CTRL)
         lst = getattr(page, "suggestions", None)
         if lst is not None and lst.isVisible():
             search = getattr(page, "_sw7_search", None)
@@ -1046,6 +1160,9 @@ class SW7TileMap(QWidget):
         w = self.width()
         guidance = os.environ.get("TUKZIE_ROUTE_GUIDANCE", "0").strip() == "1"
         left = max(26.0, min(390.0, w * .28)) if guidance else 26.0
+        if self._S is not None:           # paper: inside the slab, clear of the cards on its edges
+            return (max(left, SLAB_L + 16.0), float(EDGE + CTRL - SLAB_OVER + 16), float(EDGE + 64 + CTRL_GAP),
+                    float(PAPER_BOTTOM + ETA_H + CTRL_GAP))
         if self.sw7_layout:               # control column on the right, search on top, arrival-time bar at the bottom
             return left, float(EDGE + CTRL + CTRL_GAP + 4), float(EDGE + 64 + CTRL_GAP), float(EDGE + ETA_H + CTRL_GAP)
         return left, 130.0, 90.0, 65.0   # left, right, top, bottom
@@ -1174,7 +1291,28 @@ class SW7TileMap(QWidget):
         return _Cam((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, zoom, 0.0, ucx, ucy)
 
     # ---- tiles -----------------------------------------------------------------------
+    def _tinted(self, key, pm, night):
+        """The tinted copy of tile key (paper style), made at most TINTS_PER_FRAME times a paint; None if over."""
+        k = key + (night,)
+        hit = self._tint_mem.get(k)
+        if hit is not None:
+            self._tint_mem.move_to_end(k)
+            return hit
+        if self._tints_left <= 0:
+            return None
+        self._tints_left -= 1
+        t0 = time.perf_counter()
+        hit = tint_tile(pm, night)
+        self.tint_ms.append((time.perf_counter() - t0) * 1000.0)
+        del self.tint_ms[:-200]
+        self._tint_mem[k] = hit
+        while len(self._tint_mem) > MEM_TILES:
+            self._tint_mem.popitem(last=False)
+        return hit
+
     def _remember(self, key, pixmap):
+        self._tint_mem.pop(key + (False,), None)
+        self._tint_mem.pop(key + (True,), None)
         self._mem[key] = pixmap
         self._mem.move_to_end(key)
         while len(self._mem) > MEM_TILES:
@@ -1203,13 +1341,15 @@ class SW7TileMap(QWidget):
         self._remember(key, pm)
         return pm
 
-    def _ancestor(self, key):
+    def _ancestor(self, key, night=None):
+        """A lower-zoom tile in memory and the part of it that covers key. night (paper style): from the tinted
+        tiles of that variant instead."""
         z, x, y = key
         for up in range(1, 6):
             if z - up < 0:
                 break
             pkey = (z - up, x >> up, y >> up)
-            pm = self._mem.get(pkey)
+            pm = self._mem.get(pkey) if night is None else self._tint_mem.get(pkey + (night,))
             if pm is not None:
                 n = 1 << up
                 size = 256.0 / n
@@ -1222,9 +1362,13 @@ class SW7TileMap(QWidget):
             return []
         w, h = self.width(), self.height()
         top = self._ground_y              # 0 when flat; below the sky band when tilted
+        x0 = 0.0
+        if self._S is not None:           # paper: only the slab shows the map
+            slab = self.slab_rect()
+            x0, w, top, h = slab.left(), slab.right(), max(top, slab.top()), slab.bottom()
         # The visible ground in map coordinates: the screen (below the sky band) through the inverse transform.
         # A homography maps the four corners to a quadrilateral, so the test stays exact when tilted.
-        corners = [inv.map(QPointF(px, py)) for px, py in ((0, top), (w, top), (w, h), (0, h))]
+        corners = [inv.map(QPointF(px, py)) for px, py in ((x0, top), (w, top), (w, h), (x0, h))]
         ground = QPolygonF(corners)
         span = 256.0 * 2 ** (REF_Z - z)
         n = 1 << z
@@ -1385,18 +1529,37 @@ class SW7TileMap(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         r = QRectF(self.rect())
-        p.fillRect(r, QColor(THEME.hex("bg_alt")))
-        if tilted:                        # tiles and route only on the ground, below the sky band
-            p.setClipRect(QRectF(0, self._ground_y, r.width(), r.height() - self._ground_y))
+        S = self._S
+        night = S.is_night() if S is not None else None
+        if S is not None:                 # paper: page, slab shadow, edge and face from one cached pixmap
+            frame, corners = self._paper_frame()
+            p.drawPixmap(0, 0, frame)
+            slab = self.slab_rect()
+            p.setClipRect(slab.intersected(QRectF(0, self._ground_y, r.width(), r.height())) if tilted else slab)
+        else:
+            p.fillRect(r, QColor(THEME.hex("bg_alt")))
+            if tilted:                    # tiles and route only on the ground, below the sky band
+                p.setClipRect(QRectF(0, self._ground_y, r.width(), r.height() - self._ground_y))
 
         self._disk_loads = 0
+        self._tints_left = TINTS_PER_FRAME
         tiles = self._visible_tiles(t, z)
         drawn, wanted, bare = [], [], []
+        deferred = False
         for key, rect in tiles:
             pm = self._tile_pixmap(key)
+            if pm is not None and S is not None:
+                tinted = self._tinted(key, pm, night)
+                if tinted is None:        # over this paint's tint budget: a tinted parent, or the slab face
+                    deferred = True
+                    parent, src = self._ancestor(key, night)
+                    if parent is not None:
+                        drawn.append((rect, parent, src))
+                    continue
+                pm = tinted
             if pm is None:
                 wanted.append(key)
-                parent, src = self._ancestor(key)
+                parent, src = self._ancestor(key, night)
                 if parent is not None:
                     drawn.append((rect, parent, src))
                 else:
@@ -1415,19 +1578,31 @@ class SW7TileMap(QWidget):
             p.drawPixmap(rect.adjusted(-bleed, -bleed, bleed, bleed), pm, src)
         p.resetTransform()
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        if drawn and not THEME.is_light:
+        if drawn and not THEME.is_light and S is None:
             veil = QColor(THEME.hex("bg"))
             veil.setAlpha(50)                                 # soften bright tiles on dark palettes
             p.fillRect(r, veil)
 
         self._draw_route(p, t)
         if tilted:
-            p.setClipping(False)
+            if S is None:
+                p.setClipping(False)
+            else:
+                p.setClipRect(slab)       # the haze stays on the slab
             self._draw_sky(p, r)
-        self._draw_vehicle(p, t, cam, now)
+        if S is not None:
+            p.setClipping(False)
+            self._draw_vehicle(p, t, cam, now)
+            for at, corner in corners:   # round the slab's corners over whatever was drawn there
+                p.drawPixmap(at, corner)
+            self._paint_floating_shadows(p)
+        else:
+            self._draw_vehicle(p, t, cam, now)
         self._draw_overlays(p, cam)
         p.end()
         self.paint_ms = (time.perf_counter() - started) * 1000.0
+        if deferred:
+            QTimer.singleShot(0, self.update)               # more tiles to tint
         if self._disk_loads >= DISK_LOADS_PER_FRAME:
             QTimer.singleShot(0, self.update)               # more tiles waiting on disk
         # Fetch only once the zoom has settled, so a zoom animation does not download
@@ -1435,9 +1610,77 @@ class SW7TileMap(QWidget):
         if abs(cam.zoom - self._zoom_target) < 0.05 and self._tween_from is None:
             self._pump(wanted)
 
+    # ---- paper and depth style -------------------------------------------------------
+    def _ground_colour(self):
+        """The slab's face where no tile is drawn yet (and the haze of the tilted view): the tinted OSM ground."""
+        return QColor("#E2D5C9") if not self._S.is_night() else QColor("#292522")
+
+    def _edge_colour(self):
+        S = self._S
+        return QColor(S.blend(S.hx("paper_deep"), S.hx("shadow"), 0.28)) if not S.is_night() else QColor("#121110")
+
+    def _paper_frame(self):
+        """(pixmap, corners): the page in paper, the slab's long warm shadow, its edge (the thickness, like the
+        side of the diorama in the reference) and its face; and four corner patches with the slab's rounded
+        corner cut out, drawn over the map to round it. Cached by size and day or night: the map repaints every
+        frame, so no live effect is used."""
+        S = self._S
+        key = (self.width(), self.height(), S.is_night())
+        if self._frame_key == key and self._frame is not None:
+            return self._frame
+        from PySide6.QtGui import QImage
+        w, h = max(1, self.width()), max(1, self.height())
+        slab = self.slab_rect()
+        img = QImage(w, h, QImage.Format.Format_ARGB32_Premultiplied)
+        img.fill(S.c("paper"))
+        p = QPainter(img)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        body = slab.adjusted(0, 0, 0, SLAB_EDGE)
+        S.paint_shadow(p, body, SLAB_R, 3)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(self._edge_colour())
+        p.drawRoundedRect(body, SLAB_R, SLAB_R)
+        p.setBrush(self._ground_colour())
+        p.drawRoundedRect(slab, SLAB_R, SLAB_R)
+        p.end()
+        corners = []
+        n = SLAB_R + 2
+        for cx, cy in ((slab.left(), slab.top()), (slab.right() - n, slab.top()),
+                       (slab.left(), slab.bottom() - n), (slab.right() - n, slab.bottom() - n)):
+            at = QPoint(int(math.floor(cx)), int(math.floor(cy)))
+            patch = img.copy(QRect(at.x(), at.y(), n + 1, n + 1))
+            q = QPainter(patch)
+            q.setRenderHint(QPainter.RenderHint.Antialiasing)
+            q.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationOut)
+            q.setPen(Qt.PenStyle.NoPen)
+            q.setBrush(QColor(0, 0, 0, 255))
+            q.drawRoundedRect(slab.translated(-at.x(), -at.y()), SLAB_R, SLAB_R)
+            q.end()
+            corners.append((at, QPixmap.fromImage(patch)))
+        self._frame_key, self._frame = key, (QPixmap.fromImage(img), corners)
+        return self._frame
+
+    def _paint_floating_shadows(self, p):
+        """Cached shadows under the top-plane widgets over the map: the control column, Simulate drive and the
+        page's search field and status line (their own drop-shadow effects would re-blur every map frame)."""
+        S = self._S
+        for b in (self.follow_button, self.overview_button, self.tilt_button, self.zoom_in, self.zoom_out):
+            if b.isVisible():
+                S.paint_shadow(p, QRectF(b.geometry()).adjusted(2, 2, -2, -2), 20, 1)
+        if self.sim_button.isVisible():
+            S.paint_shadow(p, QRectF(self.sim_button.geometry()).adjusted(2, 2, -2, -2), 20, 1)
+        for widget in self.floating:
+            try:
+                if widget is not None and widget.isVisible():
+                    win = self.window()     # a sibling over the map: map through the window
+                    tl = widget.mapTo(win, QPoint(0, 0)) - self.mapTo(win, QPoint(0, 0))
+                    S.paint_shadow(p, QRectF(tl.x(), tl.y(), widget.width(), widget.height()), 24, 1)
+            except RuntimeError:
+                pass
+
     def _draw_sky(self, p, r):
         """Band above the drawn ground in the theme's background colour, fading into the map (tilted view)."""
-        sky = QColor(THEME.hex("bg"))
+        sky = QColor(THEME.hex("bg")) if self._S is None else self._ground_colour()
         y = self._ground_y
         p.fillRect(QRectF(0, 0, r.width(), y + 1), sky)
         fade = QLinearGradient(0, y, 0, y + TILT_FADE_PX)
@@ -1470,21 +1713,38 @@ class SW7TileMap(QWidget):
                 p.setPen(pen)
                 p.drawPolyline(poly)
 
-            casing = QColor(THEME.hex("bg"))
-            casing.setAlpha(200)
-            stroke(self._route_poly, casing, 10.0)
-            dim = QColor(THEME.hex("text_faint"))
-            dim.setAlpha(170)
-            if self.progress > 0:
-                stroke(done, dim, 6.0)                           # travelled part, dimmed
-            stroke(ahead, QColor(THEME.hex("accent")), 6.0)
-            p.resetTransform()
+            S = self._S
+            if S is not None:             # paper: the route is information, so ink on a paper casing (no signal)
+                casing = S.c("paper", 235)
+                stroke(self._route_poly, casing, 12.0)
+                if self.progress > 0:
+                    stroke(done, S.c("ink_3", 220), 6.0)
+                stroke(ahead, S.c("ink"), 7.0)
+                p.resetTransform()
+            else:
+                casing = QColor(THEME.hex("bg"))
+                casing.setAlpha(200)
+                stroke(self._route_poly, casing, 10.0)
+                dim = QColor(THEME.hex("text_faint"))
+                dim.setAlpha(170)
+                if self.progress > 0:
+                    stroke(done, dim, 6.0)                           # travelled part, dimmed
+                stroke(ahead, QColor(THEME.hex("accent")), 6.0)
+                p.resetTransform()
         if self.destination:
             try:
                 q = self._visible(t, QPointF(*to_ref(float(self.destination["lat"]), float(self.destination["lon"]))))
             except (KeyError, TypeError, ValueError):
                 return
             if q is None:                 # beyond the drawn ground in the tilted view
+                return
+            if self._S is not None:       # paper: an ink target on a paper ring
+                p.setBrush(self._S.c("paper"))
+                p.setPen(QPen(self._S.c("ink"), 4))
+                p.drawEllipse(q, 10, 10)
+                p.setPen(Qt.PenStyle.NoPen)
+                p.setBrush(self._S.c("ink"))
+                p.drawEllipse(q, 4, 4)
                 return
             p.setBrush(THEME.status("crit"))
             p.setPen(QPen(QColor(THEME.hex("text")), 2))
@@ -1500,7 +1760,7 @@ class SW7TileMap(QWidget):
         acc_m = _num(acc) or 500.0
         edge = t.map(QPointF(ref[0] + acc_m * _ref_per_m(ref[1]), ref[1]))
         radius = max(14.0, math.hypot(edge.x() - q.x(), edge.y() - q.y()))
-        fill = QColor(THEME.hex("accent"))
+        fill = QColor(THEME.hex("accent")) if self._S is None else self._S.c("ink_2")
         area = QColor(fill)
         area.setAlpha(38)
         rim = QColor(fill)
@@ -1509,7 +1769,7 @@ class SW7TileMap(QWidget):
         p.setPen(QPen(rim, 1.5))
         p.drawEllipse(q, radius, radius)
         p.setBrush(fill)
-        p.setPen(QPen(QColor("#FFFFFF"), 3))
+        p.setPen(QPen(QColor("#FFFFFF") if self._S is None else self._S.c("card"), 3))
         p.drawEllipse(q, 8, 8)
 
     def _draw_vehicle(self, p, t, cam, now):
@@ -1522,6 +1782,8 @@ class SW7TileMap(QWidget):
         live = self.vehicle is not None
         fill = QColor(THEME.hex("accent")) if live else THEME.status("inactive")
         ring = QColor("#FFFFFF")
+        if self._S is not None:           # paper: the tuk-tuk in ink on a card ring (information, not signal)
+            fill, ring = self._S.c("ink" if live else "ink_2"), self._S.c("card")
         halo = QColor(fill)
         halo.setAlpha(55)
         p.setPen(Qt.PenStyle.NoPen)
@@ -1554,8 +1816,15 @@ class SW7TileMap(QWidget):
         w, h = self.width(), self.height()
         # compass: the needle points to north on screen
         c = self.compass_rect()
-        p.setPen(QPen(QColor(THEME.hex("border")), 1.5))
-        p.setBrush(QColor(THEME.hex("card")))
+        S = self._S
+        if S is not None:                 # paper: a floating card; a signal ring while a tap turns it north-up
+            S.paint_shadow(p, c, c.width() / 2, 1)
+            tappable = self._mode == "explore"
+            p.setPen(QPen(S.c("signal"), 2.0) if tappable else QPen(S.c("hairline"), 1.0))
+            p.setBrush(S.c("card"))
+        else:
+            p.setPen(QPen(QColor(THEME.hex("border")), 1.5))
+            p.setBrush(QColor(THEME.hex("card")))
         p.drawEllipse(c)
         k = c.width() / 48.0              # needle scaled with the compass (1 before the layout pass)
         p.save()
@@ -1579,7 +1848,7 @@ class SW7TileMap(QWidget):
         a = math.radians(-cam.bearing)
         n_at = c.center() + QPointF(16 * k * math.sin(a), -16 * k * math.cos(a))
         p.setPen(QColor(THEME.hex("text")))
-        p.setFont(THEME.font(12 if self.sw7_layout else 9, QFont.Weight.Bold))
+        p.setFont(THEME.font(13 if S is not None else 12 if self.sw7_layout else 9, QFont.Weight.Bold))
         nh = 7 * k
         p.drawText(QRectF(n_at.x() - nh, n_at.y() - nh, 2 * nh, 2 * nh), Qt.AlignmentFlag.AlignCenter, "N")
         self.overlay_rects = {"compass": QRectF(c)}
@@ -1603,10 +1872,13 @@ class SW7TileMap(QWidget):
         text = ATTRIBUTION
         if self.vector_fallback_active and self.tile_status == "offline":
             text = ("Tiles offline · " if self.sw7_layout else "Street tiles offline, showing offline roads · ") + ATTRIBUTION
-        p.setFont(THEME.font(12 if self.sw7_layout else 9))
+        p.setFont(THEME.font(13 if S is not None else 12 if self.sw7_layout else 9))
         fm = p.fontMetrics()
         tw = fm.horizontalAdvance(text) + 14
-        if self.sw7_layout:               # bottom right, under the Simulate drive button, clear of the column
+        if S is not None:                 # paper: on the slab, above Simulate drive, clear of the column
+            slab = self.slab_rect()
+            box = QRectF(slab.right() - 12 - tw, self.sim_button_rect().top() - 8 - 22, tw, 22)
+        elif self.sw7_layout:             # bottom right, under the Simulate drive button, clear of the column
             box = QRectF(w - EDGE - tw, h - 30, tw, 20)
         else:
             box = QRectF(w - 72 - tw, h - 24, tw, 18)
@@ -1620,6 +1892,8 @@ class SW7TileMap(QWidget):
         p.drawText(box, Qt.AlignmentFlag.AlignCenter, text)
 
         ucx, ucy = self._usable_centre()
+        if S is not None:                 # paper: badges in the middle of the slab's free width
+            ucx = (SLAB_L + self.width() - EDGE - CTRL) / 2
         pill_y = 126.0
         if self.sw7_layout:
             # badges go under the search field, between the turn banner (if any) and the control column
@@ -1777,6 +2051,8 @@ class SW7TileMap(QWidget):
     def _draw_navigation_layout(self, p, w, h):
         """Layout pass: turn banner anchored top left, arrival-time bar at the bottom centre with the SIMULATED chip
         at its left end. Sizes from PX (Planning/google-stitch-dashboard-prompt.md, Navigation)."""
+        if self._S is not None:
+            return self._draw_navigation_paper(p, w, h)
         green, white = QColor(TURN_GREEN), QColor("#FFFFFF")
         ahead = self.next_maneuvers(2)
         banner = self.turn_banner_rect()
@@ -1868,7 +2144,122 @@ class SW7TileMap(QWidget):
         self.overlay_rects["eta_text_right"] = QRectF(x - gap, bar.top(), 0, bar.height())
         self.overlay_px["eta_time"], self.overlay_px["eta_text"] = PX["eta_time"], PX["eta_text"]
 
+    def _draw_navigation_paper(self, p, w, h):
+        """Paper style: the turn banner is the page's inverse (charcoal) card with the distance to the turn as the
+        page's one hero value (120 px) and the street at 22 px; the arrival-time bar is a paper card with time and
+        distance left at 22 px and the arrival time and the plan's arrival battery at 16 px. This bar is the one
+        remaining-distance and ETA figure on the page: it follows the vehicle along the route, while the status
+        line only names the route source (Planning/data-ownership-and-merge-plan.md, option A)."""
+        S = self._S
+        on, on2 = S.c("on_charcoal"), S.c("on_charcoal_2")
+        ahead = self.next_maneuvers(2)
+        banner = self.turn_banner_rect()
+        if ahead and banner is not None:
+            man, dist = ahead[0]
+            bx, by, bw = banner.left(), banner.top(), banner.width()
+            S.paint_shadow(p, banner, 24, 2)
+            p.setPen(Qt.PenStyle.NoPen)
+            top = QRectF(bx, by, bw, PAPER_BANNER_H)
+            if len(ahead) > 1:            # the Then strip: the bottom of the same card, a shade lighter
+                p.setBrush(QColor(S.blend(S.hx("charcoal"), S.hx("on_charcoal"), 0.07)))
+                p.drawRoundedRect(banner, 24, 24)
+                p.setBrush(S.c("charcoal"))
+                p.drawRoundedRect(top, 24, 24)
+                p.drawRect(QRectF(bx, by + PAPER_BANNER_H - 24, bw, 24))
+                p.setPen(on2)
+                p.setFont(S.font(16, QFont.Weight.DemiBold))
+                then = QRectF(bx + 24, by + PAPER_BANNER_H, bw - 48, THEN_H)
+                nxt = self._instruction(ahead[1][0])
+                p.drawText(then, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                           p.fontMetrics().elidedText("Then: " + nxt[:1].lower() + nxt[1:], Qt.TextElideMode.ElideRight,
+                                                      int(then.width())))
+                self.overlay_rects["then"] = then
+                self.overlay_px["then"] = 16
+            else:
+                p.setBrush(S.c("charcoal"))
+                p.drawRoundedRect(top, 24, 24)
+            self._turn_arrow(p, QRectF(bx + 22, by + 30, 76, 76), man["kind"], on)
+            tx, text_w = bx + 116, bw - 116 - 20
+            if man["kind"] == "arrive":
+                p.setPen(on)
+                p.setFont(S.font(22, QFont.Weight.Bold))
+                p.drawText(QRectF(tx, by + 20, text_w, 96), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                           p.fontMetrics().elidedText(self._instruction(man), Qt.TextElideMode.ElideRight, int(text_w)))
+            else:
+                p.setPen(on)
+                f = S.font(S.HERO_MIN, QFont.Weight.Bold)
+                p.setFont(f)
+                text = self._distance_text(dist)
+                if QFontMetricsF(f).horizontalAdvance(text) > text_w:   # "1.2 km": the unit goes small
+                    number, unit = text.rsplit(" ", 1)
+                    nw = QFontMetricsF(f).horizontalAdvance(number + " ")
+                    p.drawText(QRectF(tx, by - 4, text_w, 140), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, number)
+                    p.setFont(S.font(22, QFont.Weight.Bold))
+                    p.drawText(QRectF(tx + nw - 18, by + 74, text_w - nw + 18, 30),
+                               Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, unit)
+                else:
+                    p.drawText(QRectF(tx, by - 4, text_w, 140), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, text)
+                self.overlay_px["distance"] = S.HERO_MIN
+                p.setPen(on)
+                p.setFont(S.font(22, QFont.Weight.DemiBold))
+                street = QRectF(bx + 24, by + 128, bw - 48, 40)
+                p.drawText(street, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                           p.fontMetrics().elidedText(self._instruction(man), Qt.TextElideMode.ElideRight, int(street.width())))
+            self.overlay_px["street"] = 22
+            self.overlay_rects["banner"] = QRectF(banner)
+        left_m = max(0.0, self._route_total_m - (self._along_m or 0.0))
+        eta_s = self._eta_seconds(left_m)
+        if eta_s is None and not self.simulating:
+            return
+        bar = self.eta_rect()
+        S.paint_card(p, bar, 24, 2)
+        self.overlay_rects["eta"] = QRectF(bar)
+        x = bar.left() + 12
+        if self.simulating:               # data-source mark: ink on a warn tint with a warn dot, never signal
+            p.setFont(S.font(13, QFont.Weight.Bold, caps=True))
+            label = "SIMULATED"
+            chip = QRectF(x, bar.top() + 20, p.fontMetrics().horizontalAdvance(label) + 40, bar.height() - 40)
+            p.setPen(QPen(S.c("warn"), 1))
+            p.setBrush(S.c("warn_tint"))
+            p.drawRoundedRect(chip, chip.height() / 2, chip.height() / 2)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(S.c("warn"))
+            p.drawEllipse(QPointF(chip.left() + 14, chip.center().y()), 4, 4)
+            p.setPen(S.c("ink"))
+            p.drawText(chip.adjusted(22, 0, -6, 0), Qt.AlignmentFlag.AlignCenter, label)
+            self.overlay_rects["sim_chip"] = chip
+            self.overlay_px["chip"] = 13
+            x = chip.right()
+        arrived = self.sim_arrived
+        minutes = max(1, int(round((eta_s or 0) / 60.0)))
+        ink, ink2 = S.c("ink"), S.c("ink_2")
+        parts = [("Arrived" if arrived else f"{minutes} min", 22, ink, QFont.Weight.Bold),
+                 (self._distance_text(left_m) if left_m >= 20 else "0 m", 22, ink, QFont.Weight.Normal)]
+        if eta_s is not None and not arrived:
+            tail = "arrive " + time.strftime("%H:%M", time.localtime(time.time() + eta_s))
+            if self.arrival_soc is not None:
+                tail += f" · {self.arrival_soc:.0f} % battery"
+            parts.append((tail, 16, ink2, QFont.Weight.Normal))
+        fonts = [S.font(px, wt) for _t, px, _c, wt in parts]
+        widths = [QFontMetricsF(f).horizontalAdvance(t) for f, (t, *_r) in zip(fonts, parts)]
+        room = bar.right() - 12 - x
+        if len(parts) == 3 and sum(widths) + 16 * (len(parts) + 1) > room:   # narrow: shorter tail
+            parts[2] = (parts[2][0].replace("arrive ", "").replace(" battery", ""),) + parts[2][1:]
+            widths[2] = QFontMetricsF(fonts[2]).horizontalAdvance(parts[2][0])
+        gap = max(12.0, (room - sum(widths)) / (len(parts) + 1))
+        x += gap
+        for (text, px, colour, weight), f, tw in zip(parts, fonts, widths):
+            p.setPen(colour)
+            p.setFont(f)
+            p.drawText(QRectF(x, bar.top(), tw + 2, bar.height()), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, text)
+            x += tw + gap
+        self.overlay_rects["eta_text_right"] = QRectF(x - gap, bar.top(), 0, bar.height())
+        self.overlay_px["eta_time"], self.overlay_px["eta_text"] = 22, 16
+        self.eta_texts = [t for t, *_r in parts]
+
     def _pill(self, p, centre, title, sub, colour, filled=False):
+        if self._S is not None:           # paper: a floating card with a status dot; ink text
+            return self._pill_paper(p, centre, title, sub, colour)
         self.drawn_pills.append(title)
         p.setFont(THEME.font(17, QFont.Weight.Bold))
         tw = p.fontMetrics().horizontalAdvance(title)
@@ -1888,6 +2279,26 @@ class SW7TileMap(QWidget):
         p.setPen(fg)
         p.setFont(THEME.font(10))
         p.drawText(QRectF(box.left(), box.top() + 32, bw, 18), Qt.AlignmentFlag.AlignCenter, sub)
+
+    def _pill_paper(self, p, centre, title, sub, colour):
+        S = self._S
+        self.drawn_pills.append(title)
+        tf, sf = S.font(16, QFont.Weight.Bold), S.font(13)
+        tw = QFontMetricsF(tf).horizontalAdvance(title) + 22
+        sw = QFontMetricsF(sf).horizontalAdvance(sub)
+        bw, bh = max(tw, sw) + 48, 64
+        box = QRectF(centre.x() - bw / 2, centre.y() - bh / 2, bw, bh)
+        S.paint_card(p, box, 20, 2)
+        title_r = QRectF(box.left(), box.top() + 9, bw, 24)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor(colour))
+        p.drawEllipse(QPointF(box.center().x() - tw / 2 + 5, title_r.center().y()), 5, 5)
+        p.setPen(S.c("ink"))
+        p.setFont(tf)
+        p.drawText(title_r.adjusted(22, 0, 0, 0), Qt.AlignmentFlag.AlignCenter, title)
+        p.setPen(S.c("ink_2"))
+        p.setFont(sf)
+        p.drawText(QRectF(box.left(), box.top() + 35, bw, 20), Qt.AlignmentFlag.AlignCenter, sub)
 
     # ---- interaction -----------------------------------------------------------------
     def resizeEvent(self, event):
@@ -1909,6 +2320,17 @@ class SW7TileMap(QWidget):
         super().resizeEvent(event)
 
     def _apply_theme(self, *_):
+        S = self._S
+        if S is not None:                 # paper: Simulate drive a signal outline button; caches follow the variant
+            self.sim_button.setStyleSheet(S.button_qss("outline", 20, 16))
+            for b in (self.follow_button, self.overview_button, self.tilt_button, self.zoom_in, self.zoom_out):
+                b.setFont(S.font(13, QFont.Weight.Bold))   # the labels are painted at 13 px
+            self._frame_key = None
+            night = S.is_night()
+            for k in [k for k in self._tint_mem if k[3] != night]:
+                del self._tint_mem[k]
+            self.update()
+            return
         if self.sw7_layout:               # the column buttons paint themselves from THEME
             self.sim_button.setStyleSheet(
                 f"font-size:{PX['status']}px;font-weight:700;padding:0px 12px;background:{THEME.hex('card')};"

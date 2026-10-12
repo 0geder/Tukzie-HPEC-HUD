@@ -37,6 +37,8 @@ reached through the layout pass's own hooks; TUKZIE_SW7_STYLE=team leaves both p
 STYLE_PAGES_PATCHES: the paper and depth style, page agent P2 (sw7_style_pages.py, added to COPIES by
 STYLE_PAGES_COPIES): Front camera and Sensors merged into Surroundings (7 nav items, page id "sensors", aliases
 "camera" and "surroundings"), Diagnostics and Charging with one home per value. TUKZIE_SW7_STYLE=team: nothing.
+STYLE_MAP_PATCHES: the paper style on the Map page's overlays and Settings (sw7_style_map.py, added to COPIES by
+STYLE_MAP_COPIES); the map's own paper look is in sw7_tile_map.py. TUKZIE_SW7_STYLE=team installs nothing.
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -781,3 +783,22 @@ STYLE_PAGES_PATCHES = (
      "Dashboard = DashboardMain\n"),
 )
 PATCHES = PATCHES + STYLE_PAGES_PATCHES
+STYLE_MAP_COPIES = (
+    ("sw7_style_map.py", "app/pages/sw7_style_map.py"),
+)
+COPIES = COPIES + STYLE_MAP_COPIES
+
+STYLE_MAP_PATCHES = (
+    # dashboard_main.py: the paper and depth style, page agent P3 (Planning/paper-depth-theme-prompt.md): the Map
+    # page's search field, status line (one remaining-distance and ETA figure, in the map's arrival-time bar) and
+    # touch keyboard, and Settings (paper cards, signal controls, the LOOK swatches in place of the colour theme
+    # picker). The map's slab, tinted tiles, ink route and charcoal turn banner are in sw7_tile_map.py. Nothing with
+    # TUKZIE_SW7_STYLE=team. Anchored on the file's last line (after sw7_style.install), so it also applies without
+    # the core group (test_style_core's base build), where it installs nothing.
+    ("app/pages/dashboard_main.py",
+     "Dashboard = DashboardMain\n",
+     "from .sw7_style_map import install as _sw7_style_map   # SW-7 paper style: Map and Settings\n"
+     "_sw7_style_map(DashboardMain)\n"
+     "Dashboard = DashboardMain\n"),
+)
+PATCHES = PATCHES + STYLE_MAP_PATCHES
