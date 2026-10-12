@@ -1053,8 +1053,14 @@ class DriveStage(QWidget):
             cy = ty + TILE_H / 2 - 2
             R = int(max(165, min(232, cy - ty + 2)))
             top = int(cy - R)
-            pg.faults.setGeometry(int((W - fw) / 2), top - 8 - 37, fw, 37)
-            pg.gear.setGeometry(int((W - gw) / 2), top - 8 - 37 - 56, gw, pg.gear.height())
+            # the gear, turn indicators and lamps in one row at the right of the advice row, so the band between the
+            # status row and the tiles is free for the whole word
+            mid = 12 + LAYOUT_STRIP_H // 2
+            fx = W - 32 - 16 - fw
+            pg.faults.setGeometry(fx, mid - 18, fw, 37)
+            gx = fx - 8 - gw
+            pg.gear.setGeometry(gx, mid - pg.gear.height() // 2, gw, pg.gear.height())
+            pg.asis_panel.setGeometry(32, 12, max(240, gx - 16 - 16 - 32), LAYOUT_STRIP_H)
         else:
             pg.gear.setGeometry(int((W - gw) / 2), 84, gw, pg.gear.height())
             pg.faults.setGeometry(int((W - fw) / 2), 140, fw, 37)
@@ -1081,7 +1087,8 @@ class DriveStage(QWidget):
             return None
         g, f = pg.gear.geometry(), pg.faults.geometry()
         left, right = min(g.left(), f.left()) - 16, max(g.right(), f.right()) + 16
-        return QRectF(left, g.top() - 6, right - left, f.bottom() - g.top() + 12)
+        top, bottom = min(g.top(), f.top()) - 6, max(g.bottom(), f.bottom()) + 6
+        return QRectF(left, top, right - left, bottom - top)
 
     def paintEvent(self, _):
         S = self.S

@@ -427,15 +427,15 @@ def checks(d, S):
             pix = QImage(page.size(), QImage.Format.Format_RGB32); p = QPainter(pix)
             S.paint_back_plane(p, QRectF(page.rect()), plane=plane); p.end()
             wr = geo["word"].intersected(QRectF(page.rect()))
-            hero = QColor(S.hx("hero_word"))
+            tone = S.hx("hero_word") if plane.strength >= 1.0 else S.blend(S.hx("paper"), S.hx("hero_word"), plane.strength)
             hits = sum(1 for x in range(int(wr.left()), int(wr.right()), 6) for y in range(int(wr.top()), int(wr.bottom()), 6)
-                       if near(pix.pixelColor(x, y), S.hx("hero_word"), 6))
-            check(hits > 40, f"{tag}: the word is painted in hero_word {S.hx('hero_word')} ({hits} samples)")
+                       if near(pix.pixelColor(x, y), tone, 6))
+            check(hits > 40, f"{tag}: the word is painted in hero_word {tone} (strength {plane.strength}) ({hits} samples)")
             vis_hits = 0
             shot = w.grab().toImage(); o = page.mapTo(w, QPoint(0, 0))
             for x in range(int(wr.left()), int(wr.right()), 8):
                 for y in range(int(wr.top()), int(wr.bottom()), 8):
-                    if near(shot.pixelColor(x + o.x(), y + o.y()), S.hx("hero_word"), 4):
+                    if near(shot.pixelColor(x + o.x(), y + o.y()), tone, 4):
                         vis_hits += 1
             check(vis_hits > 20 or pid == "navigation", f"{tag}: the word shows on screen round the widgets ({vis_hits} samples)")
             sub = geo["subject"]
@@ -448,7 +448,7 @@ def checks(d, S):
                     for y in range(int(inter.top()), int(inter.bottom()), 5):
                         u = int((x - sub.x()) / sub.width() * img.width()); v = int((y - sub.y()) / sub.height() * img.height())
                         if 0 <= u < img.width() and 0 <= v < img.height() and img.pixelColor(u, v).alpha() == 255 \
-                                and not near(pix.pixelColor(x, y), S.hx("hero_word"), 6):
+                                and not near(pix.pixelColor(x, y), tone, 6):
                             front += 1
                 check(front > 20, f"{tag}: the subject is drawn in front of the word ({front} samples)")
             # nothing the driver needs is covered: the subject misses every value, and the word never shows through one
@@ -457,6 +457,17 @@ def checks(d, S):
                 subw = win_rect(page, sub) if sub is not None else None
                 hit = [n for n, r in vals if subw is not None and r.intersects(subw)]
                 check(not hit, f"{tag}: the vehicle covers no driving value: {hit}")
+                # the whole word reads: no card, tile or the dial over it (only the vehicle cuts into its end)
+                st = d.driving.sw7_stage
+                ww = win_rect(page, geo["word"])
+                cards = [("tiles", rect_in(t)) for t in st.tiles()] + [("dial", rect_in(d.driving.speed))]
+                cr = st.cluster_rect()
+                if cr is not None:
+                    cards.append(("gear and lamps card", win_rect(st, cr)))
+                over = [n for n, r in cards if r.intersects(ww)]
+                check(not over, f"{tag}: the whole word DRIVE is in the open band: {over}")
+                cut = ww.intersected(subw).width() / max(1, ww.width()) if subw is not None else 0
+                check(0 < cut < 0.15, f"{tag}: the vehicle overlaps the word's end ({cut:.0%} of its width), not the word")
                 with_word = grab_rects([r for _, r in vals])
                 planes_off(S, False)
                 without = grab_rects([r for _, r in vals])

@@ -1321,15 +1321,18 @@ def _graph_paint(orig, graph, _e):
     p = QPainter(graph)
     p.setRenderHint(QPainter.RenderHint.Antialiasing)
     w, h = graph.width(), graph.height()
+    hist = list(graph.history)
+    if not hist or max(hist) <= 0.0:
+        # no grid without data: the words sit in their own row, on the baseline hairline (never struck through)
+        p.setPen(QPen(S.c("hairline"), 1))
+        p.drawLine(0, h - 1, w, h - 1)
+        p.setPen(S.c("ink_2")); p.setFont(S.font(S.BODY))
+        p.drawText(QRectF(0, 0, w, h - 2), Qt.AlignmentFlag.AlignCenter, "No charging data")
+        p.end()
+        return
     p.setPen(QPen(S.c("hairline"), 1))
     for i in range(1, 4):
         p.drawLine(0, int(h * i / 4), w, int(h * i / 4))
-    hist = list(graph.history)
-    if not hist or max(hist) <= 0.0:
-        p.setPen(S.c("ink_2")); p.setFont(S.font(S.BODY))
-        p.drawText(graph.rect(), Qt.AlignmentFlag.AlignCenter, "No charging data")
-        p.end()
-        return
     top = max(max(hist), 7.0)
     path = QPainterPath()
     for i, v in enumerate(hist):

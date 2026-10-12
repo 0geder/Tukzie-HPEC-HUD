@@ -469,12 +469,13 @@ class Plane:
     the box (aspect kept) and standing on the box bottom (align centre, left or right)."""
 
     def __init__(self, word, word_box=(-0.02, 0.0, 1.04, 1.0), anchor="top", subject=None, subject_box=None,
-                 align="center"):
+                 align="center", strength=1.0):
         self.word, self.word_box, self.anchor = word, word_box, anchor
         self.subject, self.subject_box, self.align = subject, subject_box, align
+        self.strength = strength              # 1.0: the hero_word tone; less: fainter (a page whose controls sit on it)
 
     def key(self):
-        return (self.word, self.word_box, self.anchor, self.subject, self.subject_box, self.align)
+        return (self.word, self.word_box, self.anchor, self.subject, self.subject_box, self.align, self.strength)
 
 
 def _box(rect, frac):
@@ -520,7 +521,7 @@ def paint_back_plane(p, rect, word: str = "", corner: str = "bl", px: int = 260,
     plane: a Plane (set with set_plane); without one, word is shown with a default placement. ground: optional
     QPainterPath(s) filled with paper_deep. Returns the geometry (plane_geometry) of what was drawn."""
     from PySide6.QtCore import QPointF, QRectF, Qt
-    from PySide6.QtGui import QPainter, QPixmap
+    from PySide6.QtGui import QColor, QPainter, QPixmap
     rect = QRectF(rect)
     if plane is None and word:
         plane = Plane(word, (-0.02, 0.62, 1.04, 0.38), "bottom") if corner in ("bl", "br") else Plane(word)
@@ -543,7 +544,8 @@ def paint_back_plane(p, rect, word: str = "", corner: str = "bl", px: int = 260,
             geo = plane_geometry(plane, rect.width(), rect.height())
             if plane.word:
                 x, base = geo["_word_origin"]
-                q.setFont(hero_font(geo["font_px"])); q.setPen(c("hero_word"))
+                tone = hx("hero_word") if plane.strength >= 1.0 else blend(hx("paper"), hx("hero_word"), plane.strength)
+                q.setFont(hero_font(geo["font_px"])); q.setPen(QColor(tone))
                 q.drawText(QPointF(x, base), plane.word)
             sub = geo.get("subject")
             if sub is not None and not sub.isEmpty():
@@ -946,9 +948,10 @@ BACK_WORDS = {"driving": "DRIVE", "analytics": "STATS", "diagnostics": "SYSTEM",
 # Each page's word and subject (fractions of the 1280 x 680 page). Values and tiles are top-plane widgets drawn over
 # this; the subjects sit where no value is (tests/test_style_planes.py checks the boxes against every driving value).
 PLANES = {
-    # Drive: the word across the open upper area (the tiles and the dial sit low), the vehicle cutting into "VE"; its
-    # wheels stand just above the Around tile's readings (the tile's label row passes in front of them)
-    "driving": Plane("DRIVE", (0.02, 0.109, 0.96, 0.40), "top", "three_quarter", (0.655, 0.008, 0.345, 0.497), "right"),
+    # Drive: the whole word in the open band between the advice row (with the gear and lamps) and the tiles, which sit
+    # low; the vehicle cuts into the end of the "E"; its wheels stand just above the Around tile's readings (the tile's
+    # label row passes in front of them)
+    "driving": Plane("DRIVE", (0.03, 0.12, 0.76, 0.30), "top", "three_quarter", (0.735, 0.12, 0.265, 0.395), "right"),
     "analytics": Plane("STATS", (0.015, 0.0, 0.97, 0.985), "bottom"),
     "diagnostics": Plane("SYSTEM", (0.015, 0.0, 0.97, 0.985), "bottom"),      # the band above the nav bar
     "camera": Plane("ROAD", (-0.03, 0.0, 1.06, 0.98), "bottom"),
@@ -957,7 +960,8 @@ PLANES = {
     # Charging: CHARGE across the band above the nav bar, read through the ring (no disc); the front view stands in the
     # lower right under the compact column, cutting into "GE"
     "charging": Plane("CHARGE", (0.015, 0.0, 0.97, 0.985), "bottom", "front", (0.70, 0.56, 0.28, 0.425)),
-    "settings": Plane("SETUP", (0.015, 0.0, 0.97, 0.985), "bottom", "side", (0.52, 0.745, 0.46, 0.25)),
+    # Settings: fainter (its buttons and sliders sit on the letters), the side view standing in it
+    "settings": Plane("SETUP", (0.015, 0.0, 0.97, 0.985), "bottom", "side", (0.52, 0.745, 0.46, 0.25), strength=0.45),
 }
 
 _installed = False
