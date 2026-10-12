@@ -22,6 +22,8 @@ ANALYTICS_CAROUSEL_PATCHES: the Analytics page as an infinite vertical carousel 
 DRIVING_PATCHES: large speed, battery and range in place of the dial and pedal bars.
 SEARCH_PATCHES: destination search with Photon type-ahead, recents and a start-position header (sw7_search.py).
 THEME_PATCHES: Night and Day themes, flat surfaces and the Atkinson Hyperlegible font (TUKZIE_SW7_THEME=0 restores the original).
+LAYOUT_PAGES_PATCHES: Diagnostics as four cards with the advice list folded away (sw7_layout_pages.py, added to
+COPIES by LAYOUT_PAGES_COPIES); TUKZIE_SW7_LAYOUT=0 keeps the earlier layout.
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -646,4 +648,22 @@ SEARCH_PATCHES = (
      "            if start: return start\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES
+LAYOUT_PAGES_COPIES = (
+    ("sw7_layout_pages.py", "app/pages/sw7_layout_pages.py"),
+)
+COPIES = COPIES + LAYOUT_PAGES_COPIES
+
+LAYOUT_PAGES_PATCHES = (
+    # diagnostics_page.py: four cards (Drive, Energy, Position, Link) in place of the one dense list, the ASIS,
+    # route and voice list folded behind a 64 px "Show advice and details" row, the ride card hidden (ToF and
+    # vibration are on Sensors; its link health is in the Link card). sw7_layout_pages.py; Planning/
+    # layout-improvements-prompt.md (agent C). The Front camera and Sensors pages change in their own files.
+    # TUKZIE_SW7_LAYOUT=0 keeps the earlier layout exactly.
+    ("app/pages/diagnostics_page.py",
+     "        root.addWidget(support);root.addStretch(1);THEME.changed.connect(self._theme);self._theme()\n",
+     "        root.addWidget(support);root.addStretch(1);THEME.changed.connect(self._theme);self._theme()\n"
+     "        from .sw7_layout_pages import enabled as _sw7_layout_on, install_diagnostics\n"
+     "        if _sw7_layout_on(): install_diagnostics(self,root,card,separator,support_title,support)   # SW-7 layout\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_PAGES_PATCHES
