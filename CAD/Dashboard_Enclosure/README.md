@@ -1,36 +1,51 @@
 # Dashboard display enclosure and clip-on mount
 
-Status (12 Oct 2026): first model, not printed. Built in SolidWorks 2025 through its API by the scripts in `build/`;
-every key size is a global variable (Tools > Equations), so a new measurement is one number to change.
+Status (12 Oct 2026): second model, not printed. Built in SolidWorks 2025 through its API by the scripts in `build/`.
+Every key size is a global variable (Tools > Equations), so a new measurement is one number to change.
+
+The display is a Waveshare 10.1" HDMI LCD (B) in its stock case (named in the vac Dashboard Team's README; see
+`../reference_dimensions.md`). The parts are sized for the Prusa Mini, whose bed is 180 x 180 x 180 mm.
 
 ## Parts
 
-| Part | Outside size (mm) | What it does |
-|---|---|---|
-| SW7_Dash_Back_Shell.SLDPRT | 278.2 x 193.2 x 27, plus a 6 mm rail | Tray that covers the back of the display. The 272 x 187 mm stack presses in from the front past 1.2 mm snap lips on the long walls. 24 mm deep inside (20 mm stack + 4 mm for plugs). Cable exit 60 x 12 mm in one long wall (the bottom when fitted), eight vent slots over the Pi 5, and a dovetail rail (30 to 38 mm wide, 6 mm high, 90 mm long) on the back. |
-| SW7_Dash_Bracket.SLDPRT | 56 x 80 x 18 | Stays on the tuk-tuk. The shell's rail slides down into its dovetail channel, which is closed at the bottom so the shell cannot fall through. An M4 thumb screw from the side locks it. A saddle sits on the tube and two 9 x 3.5 mm slots take hose clamps or cable ties. |
+| Part | Size (mm) | Print | What it does |
+|---|---|---|---|
+| SW7_Dash_Back_Shell.SLDPRT | 280.4 x 193.2 x 27 | Do not print. This is the master that the quarters are cut from. | Tray covering the back of the display. The display presses in from the front past 1.2 mm snap lips on the long walls. 24 mm deep inside. |
+| print_parts/SW7_Dash_Shell_Q_Left_Top, Left_Bottom, Right_Top, Right_Bottom | 140.2 x 96.6 x 27 each | 1 of each | The four quarters of the shell |
+| print_parts/SW7_Dash_Rail_Plate.SLDPRT | 120 x 120 x 4, rail 6 mm high | 1 | Bolts across the centre with eight M3 (two into each quarter), so it holds the quarters together. Carries the dovetail rail (30 to 38 mm wide, 90 mm long). |
+| print_parts/SW7_Dash_Joiner_Plate.SLDPRT | 44 x 20 x 3 | 4 | Bolt across the outer ends of the two split lines, two M3 each |
+| SW7_Dash_Bracket.SLDPRT | 56 x 80 x 18 | 1 | Stays on the tuk-tuk. The rail slides down into its dovetail channel, which is closed at the bottom. An M4 thumb screw from the side locks it. A saddle sits on the tube and two slots take hose clamps or 9 mm cable ties. |
 
-To fit: strap the bracket at the meter, slide the display down onto it, tighten the thumb screw. To remove it, loosen the screw and lift the display off. The bracket stays on the vehicle.
+Hardware: 16 x M3 x 8 bolts with nuts (the shell's back is 3 mm thick and the plates 3 to 4 mm), and 1 x M4 thumb screw.
+Also glue the quarter walls where they butt together (epoxy or CA for PETG).
+
+Layout, seen from the driver (+X is the driver's right):
+- Cable exit, 70 x 16 mm, in the right-hand short wall. This is the side where the display's and the Pi's connectors are.
+- Vent slots in two rows near the right-hand side, over the Pi 5.
+- The rail runs vertically on the back, so the display slides down onto the bracket and lifts off upwards.
 
 ## Numbers used
 
 | Value | Source |
 |---|---|
-| Display outer 272 x 187 mm | Measured by the student (whiteboard photo, `Photos/Reference/Enclosures/`) |
-| Stack thickness 20 mm | Student's estimate. Measure the deepest point, including the Pi 5 and any plugs. |
-| Meter area about 30.5 cm across | Tape photo, 2 Sep 2026. The 278 mm shell fits with about 1.5 cm to spare. |
-| Tube diameter 32 mm (`TubeD`) | Placeholder. Measure what the bracket will strap to at the meter. |
+| Display outer 274.2 x 187 mm | Waveshare drawing gives 274.12 x 187.00. The student measured 272 x 187; the larger value is used so it cannot be too tight. |
+| Stack depth 20 mm (`DispT`) | Student's estimate. Waveshare gives 18 mm for the case without the Pi, so with a Pi 5 on the back it is probably deeper. Measure the deepest point, including the Pi and plugs, before printing. |
+| Meter area about 30.5 cm across | Tape photo, 2 Sep 2026. The 280 mm shell fits with about 1 cm to spare each side. |
+| Tube diameter 32 mm (`TubeD`, bracket) | Placeholder. Measure what the bracket will strap to. |
 | Raspberry Pi 5: 85 x 56 mm, M2.5 holes 58 x 49 mm | Official mechanical drawing |
 
 ## Before printing
 
-1. Measure the stack depth and the tube or plate at the meter. Set `DispT` in the shell and `TubeD` in the bracket.
-2. Check where the Pi 5 sits behind the display and move the vent slots over it. Their position is set in `1_back_shell.py`.
-3. Print size: the shell (278 x 193 mm) does not fit a 256 x 256 mm bed, even placed diagonally. Print it on a 300 mm
-   class printer, or split it into two halves joined with screw plates. The bracket prints on anything.
-4. Use PETG or ASA. PLA softens in the sun.
-5. Print the bracket first and test the rail fit. Its sliding clearance is `Slide` = 0.3 mm a side.
+1. Measure the stack depth and set `DispT` in `build/1_back_shell.py`.
+2. Measure the tube at the meter and set `TubeD` in `build/2_bracket.py`.
+3. Check that the connectors really come out on the right-hand short side, and that the cable exit's height
+   (it starts 2 mm above the floor) lines up with them.
+4. Print the bracket and the rail plate first and test the slide. The clearance is `Slide` = 0.3 mm a side.
+5. Use PETG or ASA. PLA softens in the sun. Print the quarters open side up; they need no supports.
 
 ## Rebuilding
 
-With SolidWorks open, run `python build/1_back_shell.py`, then `python build/2_bracket.py`. Each creates a new part and saves it here.
+With SolidWorks open, run these in order:
+1. `python build/1_back_shell.py` makes the master shell.
+2. `python build/2_bracket.py` makes the bracket.
+3. `python build/3_split_and_plates.py` makes the quarters and the plates. The bolt-hole layout is read from the shell script, so the two stay matched.

@@ -1,6 +1,8 @@
-"""Dashboard display back shell: a tray the 272 x 187 mm display stack presses into from the front, with snap lips
-on the long walls, a cable exit, vent slots over the Pi 5 and a dovetail rail on the back that slides into the
-vehicle bracket (2_bracket.py). Modelled lying face down: back plate at Y = 0, opening facing +Y.
+"""Dashboard display back shell (master): a tray the 272 x 187 mm display stack presses into from the front, with
+snap lips on the long walls, a cable exit on the +X short side, vent slots and M3 bolt holes. 3_split_and_plates.py
+cuts it into four quarters that fit a Prusa Mini (180 x 180 mm bed) and makes the rail plate, which bolts across the
+centre, joins the quarters and carries the dovetail for the bracket. Modelled face down: back plate at Y = 0,
+opening facing +Y, +X is the driver's right.
 All key sizes are global variables (Tools > Equations)."""
 import os
 import pythoncom
@@ -11,7 +13,7 @@ NONE = VARIANT(pythoncom.VT_DISPATCH, None)
 mm = 0.001
 OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 P = {
-    "DispL": 272.0,     # measured: display outer length (whiteboard)
+    "DispL": 274.2,     # Waveshare 10.1" HDMI LCD (B) drawing 274.12 (student measured 272); the larger value is safe
     "DispW": 187.0,     # measured: display outer width
     "DispT": 20.0,      # student's estimate: whole stack thickness incl. the Pi 5 behind it
     "Clr": 0.6,         # clearance each side
@@ -20,13 +22,13 @@ P = {
     "CableRoom": 4.0,   # extra depth behind the stack for plugs and cables
     "LipW": 1.2,        # snap lip overhang on the long walls
     "LipT": 1.5,        # snap lip thickness
-    "RailW": 30.0,      # dovetail rail width at the back face
-    "RailW2": 38.0,     # dovetail rail width at its outer face
-    "RailH": 6.0,
-    "RailL": 90.0,
-    "CableW": 60.0,
-    "CableH": 12.0,
+    "CableW": 70.0,     # cable exit along the short wall
+    "CableH": 16.0,
+    "BoltD": 3.4,       # M3 clearance
 }
+# Bolt hole centres (x, z) in mm, shared with 3_split_and_plates.py.
+RAIL_HOLES = [(sx * 40, sz * 45) for sx in (-1, 1) for sz in (-1, 1)] +              [(sx * 52, sz * 15) for sx in (-1, 1) for sz in (-1, 1)]
+JOINER_HOLES = [(sx * 12, sz * 82) for sx in (-1, 1) for sz in (-1, 1)] +                [(sx * 124, sz * 12) for sx in (-1, 1) for sz in (-1, 1)]
 L = P["DispL"] + 2 * P["Clr"] + 2 * P["Wall"]
 W = P["DispW"] + 2 * P["Clr"] + 2 * P["Wall"]
 IL, IW = P["DispL"] + 2 * P["Clr"], P["DispW"] + 2 * P["Clr"]
@@ -142,39 +144,40 @@ eq.Add2(-1, f'"{d2}" = "DispW" + 2 * "Clr"', True)
 eq.Add2(-1, '"D1@Display Pocket" = "ShellH" - "LipT" - "BackT"', True)
 print("pocket", vol())
 
-# 4. Vent slots in the back plate, right of the rail, over where the Pi 5 sits.
+# 4. Vent slots in the back plate, two rows near the +X short side (where the Pi 5 and its ports are),
+#    kept clear of the bolt holes.
 plane_at(P["BackT"], "Back Inner", '"BackT"')
 s = sketch("Back Inner")
+sm.AddToDB = True
 for i in range(8):
-    x0 = 40 + i * 9
-    sm.CreateCornerRectangle(x0 * mm, -25 * mm, 0, (x0 + 3) * mm, 25 * mm, 0)
+    x0 = 66 + i * 8
+    for z0, z1 in ((28, 84), (-84, -28)):
+        sm.CreateCornerRectangle(x0 * mm, z0 * mm, 0, (x0 + 3) * mm, z1 * mm, 0)
+sm.AddToDB = False
 f = cut_either_way(s, P["BackT"] + 1)
 f.Name = "Vent Slots"
 print("vents", vol())
 
-# 5. Cable exit through one long wall (the bottom edge when mounted), above the back plate.
-s = sketch("Front Plane")
-y0 = P["BackT"] + 3
+# 5. Cable exit through the +X short wall (right-hand side seen from the driver), above the back plate.
+s = sketch("Right Plane")
+y0 = P["BackT"] + 2
+sm.AddToDB = True
 sm.CreateCornerRectangle(-P["CableW"] / 2 * mm, y0 * mm, 0, P["CableW"] / 2 * mm, (y0 + P["CableH"]) * mm, 0)
-f = cut_either_way(s, W / 2 + 1)
-f.Name = "Cable Exit"
+sm.AddToDB = False
+f = cut_either_way(s, L / 2 + 1)
+f.Name = "Cable Exit (+X short side)"
 print("cable exit", vol())
 
-# 6. Dovetail rail on the back face, running along the shell's short direction (vertical when mounted).
-s = sketch("Front Plane")
-rw, rw2, rh = P["RailW"] / 2, P["RailW2"] / 2, P["RailH"]
-pts = [(-rw, 0.5), (rw, 0.5), (rw2, -rh), (-rw2, -rh)]   # 0.5 mm overlap into the back plate so it merges
-sm.AddToDB = True                                          # no grid snapping: it moved these corners by 1 mm
-for (x1, y1), (x2, y2) in zip(pts, pts[1:] + pts[:1]):
-    sm.CreateLine(x1 * mm, y1 * mm, 0, x2 * mm, y2 * mm, 0)
+# 6. M3 bolt holes through the back plate: eight for the rail plate across the centre (two per quarter) and
+#    eight for the four joiner plates across the outer ends of the split lines.
+s = sketch("Back Inner")
+sm.AddToDB = True
+for x, z in RAIL_HOLES + JOINER_HOLES:
+    sm.CreateCircleByRadius(x * mm, z * mm, 0, P["BoltD"] / 2 * mm)
 sm.AddToDB = False
-close_and_select(s)
-before = vol()
-rail = fm.FeatureExtrusion2(True, False, False, 6, 0, P["RailL"] * mm, 0, False, False, False, False,
-                            0, 0, False, False, False, False, True, True, True, 0, 0, False)   # 6 = mid plane
-rail.Name = "Dovetail Rail"
-eq.Add2(-1, '"D1@Dovetail Rail" = "RailL"', True)
-print("rail", vol(), "added", round(vol() - before, 1))
+f = cut_either_way(s, P["BackT"] + 1)
+f.Name = "Bolt Holes"
+print("bolt holes", vol())
 
 m.EditRebuild3
 os.makedirs(OUT, exist_ok=True)
