@@ -24,7 +24,8 @@ The pod is two pieces bolted into one rigid unit, so each part fits the Prusa Mi
 
 `SW7_Sensor_Pod_Assembly.SLDASM` puts everything together on a dummy 22.2 mm bar, with reference bodies for the board,
 camera, Pi 4 with fan, ESP32 with LiPo and GNSS patch, and the view cones. SolidWorks' interference check finds no
-overlaps, including between the cones and the walls. Pictures are in `previews/`.
+overlaps, including between the cones and the walls. Pictures are in `previews/`. The engineering review, with the defect register and the checks performed, is
+`ENGINEERING_REVIEW.md`.
 
 ## Printed parts
 
@@ -64,18 +65,24 @@ because it would block the GNSS signal.
 
 ## Assembly
 
-1. Fit the inserts with a soldering iron.
-2. Screw the sensor board into the tray. Plug the Dupont jumpers into J2 from below, run them through the channel
-   and tie them to the anchor.
-3. Put the camera case in its cradle in the upper shell with the foam ring, and fit the retainer. Lead the ribbon
-   down over the board (5 mm minimum bend) and through the cable window into the box.
-4. Close the head: seat the upper shell's skirt inside the tray and fit the 2 seam screws.
-5. Fit the Pi 4, the ESP32 and the buck converter in the box. Connect the ribbon, the jumpers, power and the antenna
-   pigtail.
-6. Bolt the head to the box with the 4 flange screws from inside the box. Fit the lid, the sunshade and the hatch
-   cover.
-7. Bolt the rail plate under the box. Clamp the bracket on the tube with its closed end forward, turn it to set the
-   pod's tilt, slide the pod on and tighten the thumb screw.
+The order matters. The two lower flange bolts sit under the Pi 4, so the head goes on before the Pi goes in.
+
+1. Fit all the heat-set inserts with a soldering iron.
+2. Screw the sensor board into the tray (M2 x 8). Plug the Dupont jumpers into J2 from below, run them through the
+   channel and tie them to the anchor.
+3. Put the camera case in its cradle in the upper shell with the foam ring, and fit the retainer (M2 x 6). Lead the
+   ribbon down over the board (5 mm minimum bend) and out through the cable window.
+4. Close the head: seat the upper shell's skirt inside the tray and fit the 2 seam screws (M3 x 8).
+5. With the box empty, bolt the head to the box: 4 flange screws (M3 x 8 with washers) from inside the box, using a
+   stubby screwdriver.
+6. Fit the Pi 4 (M2.5 x 8), the ESP32 (M2 x 8) and the 5 V converter. Connect the ribbon, the jumpers, power and the
+   antenna pigtail.
+7. Fit the lid (M3 x 8), the sunshade (M3 x 8 self-tapping from under the lid, before the lid goes on) and the hatch
+   cover (M3 x 8).
+8. Bolt the rail plate under the box (M3 x 8). Clamp the bracket on the tube with its closed end forward, turn it to
+   set the pod's tilt, slide the pod on, tighten the thumb screw and add a safety tie.
+
+To take the head off later, remove the lid and the Pi (4 screws) first.
 
 ## Measure before printing
 
