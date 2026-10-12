@@ -25,6 +25,9 @@ What it does:
   7. Tile server down, empty cache: vector roads on a plain background.
      Saves tests/tile_map_offline.png.
   8. Drag leaves follow mode, zoom keeps it, Overview fits the route north-up.
+  9-11. Simulated drive, navigation view (turn banner, ETA), touch and mobile-network position.
+  12. Tilted 3D view (TUKZIE_MAP_TILT=1): perspective, alignment, inverse mapping, 3D button, paint time.
+      Saves tests/tile_map_tilt_drive.png and tile_map_flat_drive.png (copied to Presentation/mockups/).
 
 Run: python DashboardIntegration/tests/test_tile_map.py
 """
@@ -149,7 +152,7 @@ os.environ["TUKZIE_TILE_URL"] = TILE_URL
 os.environ["TUKZIE_TILE_CACHE"] = str(cache)
 os.environ.pop("TUKZIE_TILE_MAP", None)
 
-from PySide6.QtCore import QEventLoop, QPoint, Qt  # noqa: E402
+from PySide6.QtCore import QEventLoop, QPoint, QPointF, Qt  # noqa: E402
 from PySide6.QtTest import QTest  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
@@ -587,6 +590,127 @@ m11.update_vehicle(real)
 assert m11.approx is None and m11.vehicle is not None, "a real fix replaces the estimate"
 m11.close()
 assert not errors, errors
+
+# ---- 12. tilted 3D view (Planning/map-tilt-prompt.md), off unless TUKZIE_MAP_TILT=1 ------------------
+TW, TH = 1024, 600
+flat = SW7TileMap()                      # no flag: nothing changes
+flat.resize(TW, TH)
+flat.show()
+flat.set_tilt(True)
+run_for(0.5)
+assert not flat.tilt_available and not flat.tilt_enabled and flat.tilt == 0.0 and flat.tilt_button.isHidden()
+assert flat._transform(flat.camera()).isAffine(), "without TUKZIE_MAP_TILT=1 the map must stay flat"
+flat.close()
+os.environ["TUKZIE_MAP_TILT"] = "1"
+m12 = SW7TileMap()
+m12.resize(TW, TH)
+m12.set_plan(plan, reset_view=False)
+m12.show()
+m12.update_vehicle(nofix)
+assert m12.tilt_button.isVisible() and m12.tilt_button.isChecked() and m12.tilt_enabled
+assert m12.start_simulation()
+for _ in range(8):
+    m12._sim_step()
+    run_for(0.15)
+wait_until(lambda: m12.tilt > 0.999 and not m12._in_flight, 15, "tilted view settled, tiles loaded")
+run_for(1.2)
+cam = m12.camera()
+t12 = m12._transform(cam)
+assert not t12.isAffine(), "tilted view must use a perspective transform"
+v = m12.vehicle_screen_point()
+assert abs(v.y() - 0.72 * TH) < 2, v
+lat, lon, course = m12._sim_point(m12._sim_m)
+assert abs(wrap(m12.bearing - course)) < 25, (m12.bearing, course)
+
+
+def ahead_of(metres, right_m=0.0):
+    b = math.radians(m12.bearing)
+    north = metres * math.cos(b) - right_m * math.sin(b)
+    east = metres * math.sin(b) + right_m * math.cos(b)
+    return m12.screen_point(lat + north / 111320.0, lon + east / (111320.0 * math.cos(math.radians(lat))))
+
+
+p0, p100, p200 = ahead_of(0), ahead_of(100), ahead_of(200)
+assert p100.y() < p0.y() - 40 and p200.y() < p100.y() and abs(p100.x() - p0.x()) < 4, (p0, p100, p200)
+assert (p100.y() - p200.y()) < 0.85 * (p0.y() - p100.y()), "the second 100 m should look shorter (foreshortening)"
+side_near, side_far = ahead_of(0, 30).x() - p0.x(), ahead_of(200, 30).x() - p200.x()
+assert 0 < side_far < 0.8 * side_near, ("30 m to the side should look narrower further ahead", side_near, side_far)
+assert p200.y() > m12._ground_y, "200 m ahead should be on the drawn ground"
+# the painted route lines up with the same matrix: route vertices ahead, in the clear part of the view, are accent
+img = m12.grab().toImage()
+accent = THEME.color("accent")
+checked = 0
+for q in plan_pts:
+    sp = m12.screen_point(q.lat, q.lon)
+    if not (m12._pill_y + 45 < sp.y() < v.y() - 35 and 40 < sp.x() < TW - 140) or sp.y() < m12._ground_y + 80:
+        continue
+    c = img.pixelColor(int(round(sp.x())), int(round(sp.y())))
+    diff = abs(c.red() - accent.red()) + abs(c.green() - accent.green()) + abs(c.blue() - accent.blue())
+    assert diff < 90, f"route vertex at {sp} is drawn {c.name()}, accent {accent.name()}"
+    checked += 1
+assert checked >= 2, f"only {checked} route vertices in the clear part of the tilted view"
+# screen -> map -> screen round trip through the inverse transform, including a point in the sky band
+for sx, sy in ((100, 560), (512, 300), (900, 420), (300, m12._ground_y + 10)):
+    lat_s, lon_s = m12.map_point(QPointF(sx, sy))
+    back = m12.screen_point(lat_s, lon_s)
+    assert abs(back.x() - sx) < 0.5 and abs(back.y() - sy) < 0.5, ((sx, sy), back)
+sky_pt = m12.map_point(QPoint(512, 10))
+assert sky_pt is not None and m12.screen_point(*sky_pt).y() >= m12._ground_y, "a tap in the sky lands on the ground"
+m12.grab().save(str(HERE / "tile_map_tilt_drive.png"))
+# paint time, tiles in memory: target under 15 ms at 1024x600 on the laptop (the Pi 5 is slower)
+for _ in range(10):
+    m12.repaint()
+times = []
+for _ in range(40):
+    m12.repaint()
+    times.append(m12.paint_ms)
+times.sort()
+tilt_ms, tilt_p90 = times[len(times) // 2], times[int(len(times) * 0.9)]
+assert tilt_ms < 30.0, f"tilted paint too slow: {tilt_ms:.1f} ms"
+# the 3D button switches to the flat view and back
+m12.tilt_button.click()
+wait_until(lambda: m12.tilt == 0.0, 5, "3D button: easing to the flat view")
+run_for(0.3)
+assert not m12.tilt_enabled and m12._transform(m12.camera()).isAffine()
+assert abs(m12.vehicle_screen_point().y() - 0.70 * TH) < 2
+m12.grab().save(str(HERE / "tile_map_flat_drive.png"))
+times = []
+for _ in range(40):
+    m12.repaint()
+    times.append(m12.paint_ms)
+times.sort()
+flat_ms = times[len(times) // 2]
+m12.tilt_button.click()
+wait_until(lambda: m12.tilt == 1.0, 5, "3D button: easing back to the tilted view")
+assert m12.tilt_enabled and m12.tilt_button.isChecked()
+# a drag pans through the inverse transform: the map point under the finger stays under it; the tilt is kept
+grab_at, drop_at = QPoint(520, 470), QPoint(600, 400)
+under = m12.map_point(grab_at)
+QTest.mousePress(m12, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, grab_at)
+for i in range(1, 9):
+    QTest.mouseMove(m12, QPoint(grab_at.x() + i * 10, grab_at.y() - round(i * 70 / 8)))
+QTest.mouseRelease(m12, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, drop_at)
+assert not m12.auto_follow and m12._mode == "explore"
+now_at = m12.screen_point(*under)
+assert math.hypot(now_at.x() - drop_at.x(), now_at.y() - drop_at.y()) < 3, (now_at, drop_at)
+run_for(0.6)
+assert m12.tilt > 0.99, "a drag from the tilted view stays tilted"
+m12.show_overview()
+wait_until(lambda: m12.tilt == 0.0, 5, "overview is flat")
+m12.set_follow_mode(True)
+wait_until(lambda: m12.tilt == 1.0, 5, "back in follow mode, tilted again")
+m12.close()
+del os.environ["TUKZIE_MAP_TILT"]
+mock = REPO / "Presentation" / "mockups"
+mock.mkdir(parents=True, exist_ok=True)
+for name in ("tile_map_tilt_drive.png", "tile_map_flat_drive.png"):
+    shutil.copy2(HERE / name, mock / name)
+assert not errors, errors
+print(f"12 tilted view: off without TUKZIE_MAP_TILT=1; with it a perspective transform, vehicle at 72 % height, "
+      f"foreshortening, route drawn where the matrix puts it ({checked} vertices checked), screen-map round trip "
+      f"under 0.5 px, drag through the inverse, 3D button and overview flat; paint at {TW}x{TH}: tilted median "
+      f"{tilt_ms:.1f} ms (p90 {tilt_p90:.1f}), flat {flat_ms:.1f} ms; saved tile_map_tilt_drive.png, "
+      "tile_map_flat_drive.png")
 server.shutdown()
 print("11 touch and network position: a finger tap starts and ends Simulate drive; a network estimate is drawn "
       "as an approximate circle, centred, never as a fix, and a real fix replaces it; saved tile_map_network_position.png")

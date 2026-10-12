@@ -54,6 +54,14 @@ so manoeuvres are placed where the road name changes and typed from the change i
 either side (under 20 deg continue, 20 to 45 slight, 45 to 135 turn, over 135 U-turn). The map zooms in
 within 120 m of a turn and back out after it.
 
+Tilted 3D view (Planning/map-tilt-prompt.md), off unless TUKZIE_MAP_TILT=1: in follow mode the map is seen by
+a camera pitched TILT_DEG from straight down, as Google Maps does on CarPlay, so the road ahead recedes toward the
+horizon and the arrow sits at 72 % of the height. The flat transform is followed by the pinhole homography of that
+camera (a projective QTransform), so tiles, route and markers share one matrix and line up; drags map back through
+its inverse. Ground beyond TILT_FAR_PX ahead is not drawn: a band in the theme's background colour fades in where the
+horizon would be. With the flag, a "3D" button above the zoom buttons switches between tilted and flat. Overview is
+always flat.
+
 Drop this file into app/pages/ (tests/dashboard_patches.py does, and swaps
 the import in navigation_page.py; TUKZIE_TILE_MAP=0 restores NativeRouteMap).
 QtWidgets, QtGui and QtNetwork only; colours from THEME.
@@ -67,7 +75,8 @@ from collections import OrderedDict
 from types import SimpleNamespace
 
 from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QColor, QEventPoint, QFont, QPainter, QPainterPath, QPen, QPixmap, QPolygonF, QTransform
+from PySide6.QtGui import (QColor, QEventPoint, QFont, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap,
+                           QPolygonF, QTransform)
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 from PySide6.QtWidgets import QAbstractButton, QPushButton, QWidget
 
@@ -102,6 +111,13 @@ UCT = (-33.9570, 18.4610)
 SIM_KMH = 25.0                       # simulated drive speed (a tuk-tuk in town)
 SIM_TICK_MS = 1000                   # one simulated position a second, like the GNSS
 SIM_REAL_FIX_S = 10.0                # the simulation is offered only without a real fix this recent
+TILT_DEG = 50.0                      # camera pitch in the 3D view (0 = straight down)
+TILT_SCALE = 1.2                     # zoom at the vehicle when tilted, so the near road keeps its size
+TILT_FOLLOW_Y = 0.72                 # vehicle low in the view when tilted, clear of the ETA card
+TILT_HORIZON_Y = 0.08                # where the horizon would sit at full tilt (fraction of the height)
+TILT_FAR_PX = 1400.0                 # ground drawn this far ahead (flat screen pixels); beyond it, the sky band
+TILT_FADE_PX = 60.0                  # height of the fade from the sky band into the map
+TILT_EASE_S = 0.18                   # time constant of the tilt animation (about 0.5 s to settle)
 
 
 def _num(value):
@@ -214,6 +230,13 @@ class SW7TileMap(QWidget):
         self._along_m = None              # vehicle's distance along the route (m), None without a position
         self._plan_duration_s = 0.0
         self._auto_zoom_near = None       # last auto-zoom state, so a manual zoom is not fought every fix
+        # 3D tilt (off unless TUKZIE_MAP_TILT=1)
+        self.tilt_available = os.environ.get("TUKZIE_MAP_TILT", "0").strip() == "1"
+        self.tilt_enabled = self.tilt_available
+        self._tilt_now = 0.0              # 0 flat .. 1 fully tilted, eased toward _tilt_target()
+        self._explore_tilt = 0.0          # tilt kept while exploring (a drag from the tilted view stays tilted)
+        self.paint_ms = None              # duration of the last paintEvent (tests, Diagnostics)
+        self._ground_y = 0.0              # screen y where the drawn ground starts (sky band above it when tilted)
 
         self._mode = "follow"             # follow / explore / overview
         self._zoom_now = self._zoom_target = NO_FIX_ZOOM
@@ -273,6 +296,12 @@ class SW7TileMap(QWidget):
         self.sim_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.sim_button.clicked.connect(self.toggle_simulation)
         self.sim_button.hide()
+        self.tilt_button = QPushButton("3D", self)
+        self.tilt_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.tilt_button.setCheckable(True)
+        self.tilt_button.setChecked(self.tilt_enabled)
+        self.tilt_button.toggled.connect(self.set_tilt)
+        self.tilt_button.setVisible(self.tilt_available)
         self._sim_timer = QTimer(self)
         self._sim_timer.setInterval(SIM_TICK_MS)
         self._sim_timer.timeout.connect(self._sim_step)
@@ -616,6 +645,31 @@ class SW7TileMap(QWidget):
         self._zoom_target = max(MIN_ZOOM, min(MAX_ZOOM, self._zoom_target - math.log2(max(1e-3, factor))))
         self._kick()
 
+    def set_tilt(self, enabled):
+        """3D button: tilted (CarPlay-style) or flat view. Only does anything with TUKZIE_MAP_TILT=1."""
+        enabled = bool(enabled) and self.tilt_available
+        if enabled != self.tilt_enabled:
+            self.tilt_enabled = enabled
+            if self._mode == "explore":
+                self._explore_tilt = 1.0 if enabled else 0.0
+        if self.tilt_button.isChecked() != enabled:
+            self.tilt_button.setChecked(enabled)
+        self._kick()
+
+    @property
+    def tilt(self):
+        """Current tilt, 0 flat to 1 fully tilted (eases after a change)."""
+        return self._tilt_now
+
+    def _tilt_target(self):
+        if not self.tilt_enabled:
+            return 0.0
+        if self._mode == "follow":
+            return 1.0
+        if self._mode == "explore":
+            return self._explore_tilt
+        return 0.0                        # overview: flat, north-up
+
     # ---- public helpers (tests, Diagnostics) ---------------------------------------
     @property
     def waiting_for_fix(self):
@@ -631,6 +685,16 @@ class SW7TileMap(QWidget):
     def screen_point(self, lat, lon):
         """Where (lat, lon) is drawn with the current camera."""
         return self._transform(self._camera(time.monotonic())).map(QPointF(*to_ref(lat, lon)))
+
+    def map_point(self, pos):
+        """(lat, lon) under the screen point pos, through the inverse of the current (possibly tilted) transform.
+        Points above the visible ground (the sky band) are taken at its top edge."""
+        cam = self._camera(time.monotonic())
+        inv, ok = self._transform(cam).inverted()
+        if not ok:
+            return None
+        q = inv.map(self._on_ground(QPointF(pos)))
+        return from_ref(q.x(), q.y())
 
     def vehicle_screen_point(self):
         pos = self._vehicle_ref(time.monotonic())
@@ -693,6 +757,12 @@ class SW7TileMap(QWidget):
             busy = True
         else:
             self._bearing_now = desired
+        dt_tilt = self._tilt_target() - self._tilt_now
+        if abs(dt_tilt) > 0.002:
+            self._tilt_now += dt_tilt * (1 - math.exp(-dt / TILT_EASE_S))
+            busy = True
+        else:
+            self._tilt_now = self._tilt_target()
         self.heading_up = self._mode == "follow" and self._heading_valid(now)
         if self._good_heading is not None:
             if self._marker_heading is None:
@@ -755,7 +825,8 @@ class SW7TileMap(QWidget):
             centre = (self.approx[0], self.approx[1]) if self.approx else self.context_centre
             pos = to_ref(*centre)
             return _Cam(pos[0], pos[1], self._zoom_now, self._bearing_now, ucx, ucy)
-        return _Cam(pos[0], pos[1], self._zoom_now, self._bearing_now, ucx, max(1, self.height()) * FOLLOW_Y)
+        follow_y = FOLLOW_Y + (TILT_FOLLOW_Y - FOLLOW_Y) * self._tilt_now
+        return _Cam(pos[0], pos[1], self._zoom_now, self._bearing_now, ucx, max(1, self.height()) * follow_y)
 
     def _camera(self, now):
         cam = self._target_camera(now)
@@ -777,6 +848,7 @@ class SW7TileMap(QWidget):
         self._tween_from = None
         self._zoom_now = self._zoom_target = cam.zoom
         self._bearing_now = cam.bearing
+        self._explore_tilt = self._tilt_now
         self._mode = "explore"
         self._set_auto_follow(False)
 
@@ -787,7 +859,52 @@ class SW7TileMap(QWidget):
         t.rotate(-cam.bearing)
         t.scale(s, s)
         t.translate(-cam.x, -cam.y)
-        return t
+        persp = self._perspective(cam)
+        return t if persp is None else t * persp
+
+    def _perspective(self, cam, tilt=None):
+        """Screen-space homography of a camera pitched TILT_DEG * tilt from straight down, looking at the anchor
+        (cam.ax, cam.ay), or None when flat. A flat point d = (dx, dy) from the anchor (dy < 0 ahead) goes to
+        anchor + s * (dx, dy cos(a)) / (1 - dy sin(a) / D): the anchor stays put, the road ahead shrinks toward
+        the horizon at ay - s D / tan(a). D (the camera distance) is fixed so that at full tilt the horizon is at
+        TILT_HORIZON_Y; it does not change with the tilt, so easing the tilt from 0 moves the horizon down from
+        far above the screen. Same matrix as QTransform.quadToQuad for the matching trapezoid."""
+        tilt = self._tilt_now if tilt is None else tilt
+        if tilt < 1e-3:
+            return None
+        h = max(1, self.height())
+        a = math.radians(TILT_DEG * tilt)
+        s = 1.0 + (TILT_SCALE - 1.0) * tilt
+        d = (TILT_FOLLOW_Y - TILT_HORIZON_Y) * h * math.tan(math.radians(TILT_DEG)) / TILT_SCALE
+        k = math.sin(a) / d
+        q = QTransform(s, 0.0, 0.0,
+                       -cam.ax * k, s * math.cos(a) - cam.ay * k, -k,
+                       cam.ax, cam.ay, 1.0)
+        return QTransform.fromTranslate(-cam.ax, -cam.ay) * q
+
+    def _ground_top(self, cam):
+        """Screen y of the far edge of the drawn ground (TILT_FAR_PX ahead of the anchor); 0 when flat."""
+        persp = self._perspective(cam)
+        if persp is None:
+            return 0.0
+        far = persp.map(QPointF(cam.ax, cam.ay - TILT_FAR_PX))
+        return max(0.0, min(self.height() * 0.6, far.y()))
+
+    def _on_ground(self, pos):
+        """pos with y clamped below the sky band, so the inverse transform stays on the ground plane."""
+        top = self._ground_top(self._last_cam or self._camera(time.monotonic()))
+        return QPointF(pos.x(), max(pos.y(), top + 4.0)) if top > 0 else QPointF(pos)
+
+    def _visible(self, t, ref_point):
+        """Screen point of ref_point, or None if it is beyond the drawn ground or behind the camera."""
+        if t.isAffine():
+            return t.map(ref_point)
+        x, y = ref_point.x(), ref_point.y()
+        w = t.m13() * x + t.m23() * y + t.m33()
+        if w <= 1e-6:
+            return None
+        q = t.map(ref_point)
+        return q if q.y() >= self._ground_y - 1.0 else None
 
     def _fit_camera(self):
         pts = [(self._route_poly[i].x(), self._route_poly[i].y()) for i in range(self._route_poly.size())]
@@ -861,13 +978,16 @@ class SW7TileMap(QWidget):
         if not ok:
             return []
         w, h = self.width(), self.height()
-        corners = [inv.map(QPointF(px, py)) for px, py in ((0, 0), (w, 0), (0, h), (w, h))]
+        top = self._ground_y              # 0 when flat; below the sky band when tilted
+        # The visible ground in map coordinates: the screen (below the sky band) through the inverse transform.
+        # A homography maps the four corners to a quadrilateral, so the test stays exact when tilted.
+        corners = [inv.map(QPointF(px, py)) for px, py in ((0, top), (w, top), (w, h), (0, h))]
+        ground = QPolygonF(corners)
         span = 256.0 * 2 ** (REF_Z - z)
         n = 1 << z
         xs, ys = [c.x() for c in corners], [c.y() for c in corners]
         tx0, tx1 = max(0, int(min(xs) // span)), min(n - 1, int(max(xs) // span))
         ty0, ty1 = max(0, int(min(ys) // span)), min(n - 1, int(max(ys) // span))
-        screen = QPolygonF(QRectF(self.rect()))
         cam = self._last_cam
         out = []
         if (tx1 - tx0 + 1) * (ty1 - ty0 + 1) > 400:
@@ -875,8 +995,7 @@ class SW7TileMap(QWidget):
         for tx in range(tx0, tx1 + 1):
             for ty in range(ty0, ty1 + 1):
                 rect = QRectF(tx * span, ty * span, span, span)
-                poly = t.map(QPolygonF(rect))
-                if not poly.intersects(screen):
+                if not QPolygonF(rect).intersects(ground):
                     continue
                 c = t.map(rect.center())
                 d = math.hypot(c.x() - cam.ax, c.y() - cam.ay) if cam else 0.0
@@ -989,7 +1108,9 @@ class SW7TileMap(QWidget):
         p.setPen(QColor(THEME.hex("text_dim")))
         occupied = []
         for name, point in labels[:120]:
-            q = t.map(point)
+            q = self._visible(t, point)
+            if q is None:
+                continue
             rect = QRectF(q.x() - 58, q.y() - 9, 116, 18)
             if not rect.intersects(QRectF(self.rect())) or any(rect.intersects(o) for o in occupied):
                 continue
@@ -998,10 +1119,10 @@ class SW7TileMap(QWidget):
         dot = QColor(THEME.hex("highlight"))
         for place in self.places[:120]:
             try:
-                q = t.map(QPointF(*to_ref(float(place["lat"]), float(place["lon"]))))
+                q = self._visible(t, QPointF(*to_ref(float(place["lat"]), float(place["lon"]))))
             except (KeyError, TypeError, ValueError):
                 continue
-            if not (8 <= q.x() <= self.width() - 8 and 8 <= q.y() <= self.height() - 8):
+            if q is None or not (8 <= q.x() <= self.width() - 8 and 8 <= q.y() <= self.height() - 8):
                 continue
             p.setPen(Qt.PenStyle.NoPen)
             p.setBrush(dot)
@@ -1009,16 +1130,21 @@ class SW7TileMap(QWidget):
 
     # ---- painting --------------------------------------------------------------------
     def paintEvent(self, _event):
+        started = time.perf_counter()
         now = time.monotonic()
         cam = self._camera(now)
         self._last_cam = cam
         t = self._transform(cam)
+        self._ground_y = self._ground_top(cam)
+        tilted = self._ground_y > 0.0
         z = int(max(0, min(MAX_TILE_ZOOM, round(cam.zoom))))
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         r = QRectF(self.rect())
         p.fillRect(r, QColor(THEME.hex("bg_alt")))
+        if tilted:                        # tiles and route only on the ground, below the sky band
+            p.setClipRect(QRectF(0, self._ground_y, r.width(), r.height() - self._ground_y))
 
         self._disk_loads = 0
         tiles = self._visible_tiles(t, z)
@@ -1052,15 +1178,31 @@ class SW7TileMap(QWidget):
             p.fillRect(r, veil)
 
         self._draw_route(p, t)
+        if tilted:
+            p.setClipping(False)
+            self._draw_sky(p, r)
         self._draw_vehicle(p, t, cam, now)
         self._draw_overlays(p, cam)
         p.end()
+        self.paint_ms = (time.perf_counter() - started) * 1000.0
         if self._disk_loads >= DISK_LOADS_PER_FRAME:
             QTimer.singleShot(0, self.update)               # more tiles waiting on disk
         # Fetch only once the zoom has settled, so a zoom animation does not download
         # tiles for the levels it passes through (parents are scaled up meanwhile).
         if abs(cam.zoom - self._zoom_target) < 0.05 and self._tween_from is None:
             self._pump(wanted)
+
+    def _draw_sky(self, p, r):
+        """Band above the drawn ground in the theme's background colour, fading into the map (tilted view)."""
+        sky = QColor(THEME.hex("bg"))
+        y = self._ground_y
+        p.fillRect(QRectF(0, 0, r.width(), y + 1), sky)
+        fade = QLinearGradient(0, y, 0, y + TILT_FADE_PX)
+        clear = QColor(sky)
+        clear.setAlpha(0)
+        fade.setColorAt(0.0, sky)
+        fade.setColorAt(1.0, clear)
+        p.fillRect(QRectF(0, y, r.width(), TILT_FADE_PX), fade)
 
     def _draw_route(self, p, t):
         n = self._route_poly.size()
@@ -1096,8 +1238,10 @@ class SW7TileMap(QWidget):
             p.resetTransform()
         if self.destination:
             try:
-                q = t.map(QPointF(*to_ref(float(self.destination["lat"]), float(self.destination["lon"]))))
+                q = self._visible(t, QPointF(*to_ref(float(self.destination["lat"]), float(self.destination["lon"]))))
             except (KeyError, TypeError, ValueError):
+                return
+            if q is None:                 # beyond the drawn ground in the tilted view
                 return
             p.setBrush(THEME.status("crit"))
             p.setPen(QPen(QColor(THEME.hex("text")), 2))
@@ -1107,7 +1251,9 @@ class SW7TileMap(QWidget):
         """Cell-tower position: a dot inside a translucent circle of the reported accuracy."""
         lat, lon, acc = self.approx
         ref = to_ref(lat, lon)
-        q = t.map(QPointF(*ref))
+        q = self._visible(t, QPointF(*ref))
+        if q is None:
+            return
         acc_m = _num(acc) or 500.0
         edge = t.map(QPointF(ref[0] + acc_m * _ref_per_m(ref[1]), ref[1]))
         radius = max(14.0, math.hypot(edge.x() - q.x(), edge.y() - q.y()))
@@ -1369,6 +1515,7 @@ class SW7TileMap(QWidget):
     def resizeEvent(self, event):
         self.zoom_in.setGeometry(max(0, self.width() - 62), max(0, self.height() - 94), 44, 38)
         self.zoom_out.setGeometry(max(0, self.width() - 62), max(0, self.height() - 52), 44, 38)
+        self.tilt_button.setGeometry(max(0, self.width() - 62), max(0, self.height() - 136), 44, 38)
         self.sim_button.setGeometry(max(0, self.width() - 290), max(0, self.height() - 100), 210, 44)
         if self._mode == "overview":
             self._overview = self._fit_camera()
@@ -1380,6 +1527,10 @@ class SW7TileMap(QWidget):
                  f"border:1px solid {THEME.hex('border')};border-radius:6px;")
         for button in (self.zoom_in, self.zoom_out):
             button.setStyleSheet(style)
+        self.tilt_button.setStyleSheet(
+            f"QPushButton{{font-size:15px;font-weight:700;padding:0px;background:{THEME.hex('card')};color:{THEME.hex('text')};"
+            f"border:1px solid {THEME.hex('border')};border-radius:6px;}}"
+            f"QPushButton:checked{{border:2px solid {THEME.hex('accent')};color:{THEME.hex('accent')};}}")
         self.sim_button.setStyleSheet(
             f"font-size:16px;font-weight:700;background:{THEME.hex('card')};color:{THEME.hex('text')};"
             f"border:2px solid {THEME.status('warn').name()};border-radius:8px;")
@@ -1401,8 +1552,8 @@ class SW7TileMap(QWidget):
             self._drag_last = self._press
         cam = self._explore
         inv, ok = self._transform(cam).inverted()
-        if ok:
-            a, b = inv.map(self._drag_last), inv.map(pos)
+        if ok:                            # tilted: points in the sky band are taken on the ground's far edge
+            a, b = inv.map(self._on_ground(self._drag_last)), inv.map(self._on_ground(pos))
             cam.x -= b.x() - a.x()
             cam.y -= b.y() - a.y()
         self._drag_last = pos
