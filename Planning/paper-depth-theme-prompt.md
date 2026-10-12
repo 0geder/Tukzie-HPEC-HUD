@@ -149,3 +149,32 @@ and sunset.
    - Driving and Analytics.
    - Diagnostics, Camera, Sensors and Charging.
    - Map (warm tile tint, the slab with edge shadow, controls and banner on top) and Settings.
+
+## 10. Page merge decision (student, 12 Oct): option A plus Surroundings
+
+See `data-ownership-and-merge-plan.md`, which has the table of where each value appears and the one home page for each.
+
+- Remove every duplicate. Each value has one home page with the full detail. Anywhere else it appears only as a small
+  glance value that opens its home page when tapped (in signal colour, since it is tappable).
+- Drive is the glance page. Following the inspiration images in `inspo/`, it gets tiles beside the speed hero:
+  - Next turn: a mini map with the turn, opening Map.
+  - Around: the tuk-tuk from above with the left, ahead and right ToF distances placed around it, like the tyre
+    pressures in `inspo_sports_car_tiles.jpg`, opening Surroundings.
+  - Range and battery, opening Charging.
+  The pedal bars have no sensor behind them, so remove them.
+- Front camera and Sensors merge into one page, Surroundings: the camera frame, the tuk-tuk with its ToF distances,
+  and one combined hazards list (not two). That gives 7 pages: Drive, Analytics, Diagnostics, Map, Surroundings,
+  Charging, Settings. The nav bar and the swipe order follow. The obstacle pill opens Surroundings.
+- Fix these along the way:
+  - The Map shows two different remaining-distance and ETA figures. Keep one.
+  - Two outside temperatures: label the vehicle's as "Ambient (vehicle)" and the weather service's as "Outside (weather)".
+  - During a simulated drive, the Sensors battery stays live while every other battery figure is simulated. It must
+    follow the simulation like the rest.
+- The team's pages keep their structure; trim their duplicates with patches. Everything sits behind TUKZIE_SW7_STYLE,
+  and `team` gives back the 8-page layout-pass build exactly.
+
+Page agents, after the core:
+- P1: Drive (glance tiles) and Analytics.
+- P2: Surroundings (the camera and Sensors merge, the nav and swipe order change, and the pill target), plus
+  Diagnostics and Charging de-duplication.
+- P3: Map (slab, warm tiles, a single ETA) and Settings.
