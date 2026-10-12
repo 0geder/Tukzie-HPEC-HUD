@@ -76,3 +76,4 @@ DashboardIntegration/tests/tile_map_navigation.png
 
 # SolidWorks lock files
 ~$*
+CAD/**/*.bmp
