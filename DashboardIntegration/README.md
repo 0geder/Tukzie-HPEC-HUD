@@ -175,6 +175,18 @@ It draws OpenStreetMap raster tiles with QPainter, so no QtWebEngine.
 - No position: the map stays at the last known position, or the UCT area,
   with a "Waiting for GPS fix" banner. Replayed data: amber REPLAY badge.
 - Compass and "© OpenStreetMap contributors" always shown.
+- Layout pass (on unless `TUKZIE_SW7_LAYOUT=0`, which gives back the earlier
+  look pixel for pixel): one column of 64 x 64 controls on the right edge
+  (compass, Follow, Overview, 3D with `TUKZIE_MAP_TILT=1`, +, -), Simulate
+  drive / End simulation 200 x 64 at the bottom right above the attribution;
+  the turn banner anchored top left (520 x 128, distance 48 px, street 24 px,
+  "Then:" strip 40 px at 18 px); the SIMULATED label as a yellow chip at the
+  left end of the arrival-time bar (bottom centre, 560 x 72); the altitude as
+  a small chip by the compass, only when known. `layout_page()` moves the
+  page's own overlays to fit (search field right of the banner, the team's
+  Follow, Overview and altitude card hidden, status line at 18 px), called
+  from `_position_overlays` (`LAYOUT_MAP_PATCHES`). Screenshots before and
+  after in `tests/layout/map/`.
 
 Screenshots (fake test tiles): `tests/tile_map_follow.png`,
 `tests/tile_map_no_fix.png`, `tests/tile_map_replay.png`,
@@ -350,6 +362,14 @@ the ride card, and `sw7_replay` from the provider; vector roads with the
 tile server down and no endless retries; drag, zoom and Overview; and that
 `TUKZIE_TILE_MAP=0` restores the team's map. Both tests also pass against
 the v1.1 copy (`TUKZIE_DASHBOARD_DIR`).
+
+`tests/test_layout_map.py` runs the patched dashboard at 1280 x 800 with
+`TUKZIE_SW7_LAYOUT=0` and `=1`, flat and tilted, through a simulated drive, a
+live drive with a turn banner and follow mode. It checks the 64 px column, the
+banner, text and bar sizes, that no overlays overlap or cover the road ahead
+of the arrow, and with the layout off the earlier geometry, and saves the
+screenshots in `tests/layout/map/` (`TUKZIE_LAYOUT_TILE_CACHE` may point at a
+folder of cached OSM tiles for readable screenshots; nothing is downloaded).
 
 `tests/test_front_camera_page.py` and `tests/test_front_camera_page_live.py`
 are the earlier camera page tests (run from a scratch copy of the app).

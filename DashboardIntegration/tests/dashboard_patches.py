@@ -22,6 +22,7 @@ ANALYTICS_CAROUSEL_PATCHES: the Analytics page as an infinite vertical carousel 
 DRIVING_PATCHES: large speed, battery and range in place of the dial and pedal bars.
 SEARCH_PATCHES: destination search with Photon type-ahead, recents and a start-position header (sw7_search.py).
 THEME_PATCHES: Night and Day themes, flat surfaces and the Atkinson Hyperlegible font (TUKZIE_SW7_THEME=0 restores the original).
+LAYOUT_MAP_PATCHES: the Navigation page's overlays around the map's control column and turn banner (TUKZIE_SW7_LAYOUT=0 restores them).
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -646,4 +647,23 @@ SEARCH_PATCHES = (
      "            if start: return start\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES
+LAYOUT_MAP_PATCHES = (
+    # navigation_page.py: layout pass on the map (Planning/layout-improvements-prompt.md, agent D). After the team's
+    # overlays are placed, the map places them again around its own: the search field right of the turn banner,
+    # Follow and Overview in the map's 64 x 64 control column (the team's small buttons hidden), the altitude card
+    # replaced by the map's chip, the status line bottom left at 18 px (sw7_tile_map.SW7TileMap.layout_page).
+    # TUKZIE_SW7_LAYOUT=0 (or TUKZIE_TILE_MAP=0, the team's map) leaves everything as it was.
+    ("app/pages/navigation_page.py",
+     "        for widget in (self.search, self.altitude, self.guidance, self.route_status, self.follow_btn, self.overview_btn, self.retry_btn, self.suggestions):\n"
+     "            widget.raise_()\n",
+     "        for widget in (self.search, self.altitude, self.guidance, self.route_status, self.follow_btn, self.overview_btn, self.retry_btn, self.suggestions):\n"
+     "            widget.raise_()\n"
+     "        if hasattr(self.map, \"layout_page\"):   # SW-7 layout pass: one control column, banner top left\n"
+     "            self.map.layout_page(self)\n"),
+    # a new route showed the team's Overview button again; with the layout pass Overview is in the map's column
+    ("app/pages/navigation_page.py",
+     "        self.overview_btn.show()\n",
+     "        self.overview_btn.setVisible(not getattr(self.map, \"sw7_layout\", False))   # SW-7: Overview is in the map's column\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_MAP_PATCHES

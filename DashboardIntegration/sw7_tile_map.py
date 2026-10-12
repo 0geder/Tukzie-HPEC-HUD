@@ -62,6 +62,16 @@ its inverse. Ground beyond TILT_FAR_PX ahead is not drawn: a band in the theme's
 horizon would be. With the flag, a "3D" button above the zoom buttons switches between tilted and flat. Overview is
 always flat.
 
+Layout pass (Planning/layout-improvements-prompt.md, agent D; on unless TUKZIE_SW7_LAYOUT=0, which gives back the
+earlier look exactly): every map control sits in one column of 64 x 64 buttons on the right edge, 24 px in, 12 px
+apart: compass, Follow, Overview, 3D (with TUKZIE_MAP_TILT=1), +, -. Simulate drive / End simulation is a 200 x 64
+button at the bottom right, above the attribution. The turn banner is anchored top left (520 x 128, distance 48 px,
+street 24 px, a 40 px "Then:" strip at 18 px). The SIMULATED DRIVE label no longer floats over the road: it is a
+yellow chip at the left end of the arrival-time bar (bottom centre, 560 x 72: time 36 px, distance and arrival 24 px).
+The altitude is a small chip left of the compass, only when known. layout_page() places the Navigation page's own
+overlays around these (search field right of the banner, team Follow/Overview hidden, status line bottom left at
+18 px); navigation_page.py calls it at the end of _position_overlays (dashboard_patches.LAYOUT_MAP_PATCHES).
+
 Drop this file into app/pages/ (tests/dashboard_patches.py does, and swaps
 the import in navigation_page.py; TUKZIE_TILE_MAP=0 restores NativeRouteMap).
 QtWidgets, QtGui and QtNetwork only; colours from THEME.
@@ -74,9 +84,9 @@ import time
 from collections import OrderedDict
 from types import SimpleNamespace
 
-from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import (QColor, QEventPoint, QFont, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap,
-                           QPolygonF, QTransform)
+from PySide6.QtCore import QEvent, QPoint, QPointF, QRect, QRectF, Qt, QTimer, QUrl, Signal
+from PySide6.QtGui import (QColor, QEventPoint, QFont, QFontMetricsF, QLinearGradient, QPainter, QPainterPath, QPen,
+                           QPixmap, QPolygonF, QTransform)
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 from PySide6.QtWidgets import QAbstractButton, QPushButton, QWidget
 
@@ -118,6 +128,21 @@ TILT_HORIZON_Y = 0.08                # where the horizon would sit at full tilt 
 TILT_FAR_PX = 1400.0                 # ground drawn this far ahead (flat screen pixels); beyond it, the sky band
 TILT_FADE_PX = 60.0                  # height of the fade from the sky band into the map
 TILT_EASE_S = 0.18                   # time constant of the tilt animation (about 0.5 s to settle)
+# layout pass (TUKZIE_SW7_LAYOUT, default on)
+EDGE = 24                            # outer margin of every overlay
+CTRL = 64                            # map control buttons, square
+CTRL_GAP = 12
+SIM_W = 200                          # Simulate drive / End simulation button, 200 x 64
+BANNER_W, BANNER_H, THEN_H = 520, 128, 40
+ETA_W, ETA_H = 560, 72
+PX = {"distance": 48, "street": 24, "then": 18, "eta_time": 36, "eta_text": 24, "chip": 16, "altitude": 16,
+      "label": 14, "status": 18}
+TURN_GREEN, THEN_GREEN, ETA_GREEN = "#17703E", "#0F4F2B", "#2E9E5B"
+
+
+def layout_enabled():
+    """TUKZIE_SW7_LAYOUT: the layout pass is on unless it is "0"."""
+    return os.environ.get("TUKZIE_SW7_LAYOUT", "1").strip() != "0"
 
 
 def _num(value):
@@ -188,14 +213,104 @@ class _Cam:
                     l(self.ax, other.ax), l(self.ay, other.ay))
 
 
+class _MapButton(QPushButton):
+    """A map control. Without a glyph it is a plain QPushButton (the look before the layout pass); with one it
+    paints itself as a 64 x 64 card button with an icon and, for Follow and Overview, a label under it."""
+
+    def __init__(self, text, parent=None):
+        super().__init__(text, parent)
+        self.glyph = None                 # None, or "plus" / "minus" / "follow" / "overview" / "3d"
+        self.label = ""
+        self.active = False               # selected look (Follow while following, Overview in the overview)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
+    def set_glyph(self, glyph, label=""):
+        self.glyph, self.label = glyph, label
+        self.setStyleSheet("")
+        self.update()
+
+    def set_active(self, value):
+        if self.active != bool(value):
+            self.active = bool(value)
+            self.update()
+
+    def label_px(self):
+        """Label size: 14 px, or smaller (never under 12) if the word would not fit the button."""
+        for px in (PX["label"], 13, 12):
+            if QFontMetricsF(THEME.font(px, QFont.Weight.DemiBold)).horizontalAdvance(self.label) <= self.width() - 6:
+                return px
+        return 12
+
+    def paintEvent(self, event):
+        if self.glyph is None:
+            return super().paintEvent(event)
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        on = self.active or (self.isCheckable() and self.isChecked())
+        accent, text = QColor(THEME.hex("accent")), QColor(THEME.hex("text"))
+        bg = QColor(THEME.hex("card_alt" if self.isDown() else "card"))
+        bg.setAlpha(240)
+        r = QRectF(self.rect()).adjusted(1, 1, -1, -1)
+        p.setBrush(bg)
+        p.setPen(QPen(accent if on else QColor(THEME.hex("border")), 2.0 if on else 1.0))
+        p.drawRoundedRect(r, 12, 12)
+        ink = accent if on else text
+        c = r.center()
+        icon_c = QPointF(c.x(), c.y() - 9) if self.label else c
+        pen = QPen(ink, 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+        if self.glyph in ("plus", "minus"):
+            p.setPen(pen)
+            p.drawLine(QPointF(c.x() - 13, c.y()), QPointF(c.x() + 13, c.y()))
+            if self.glyph == "plus":
+                p.drawLine(QPointF(c.x(), c.y() - 13), QPointF(c.x(), c.y() + 13))
+        elif self.glyph == "3d":
+            p.setPen(ink)
+            p.setFont(THEME.font(22, QFont.Weight.Bold))
+            p.drawText(r, Qt.AlignmentFlag.AlignCenter, "3D")
+        elif self.glyph == "follow":            # the navigation arrow, as on the map
+            arrow = QPainterPath(QPointF(icon_c.x(), icon_c.y() - 13))
+            arrow.lineTo(icon_c.x() + 10, icon_c.y() + 11)
+            arrow.lineTo(icon_c.x(), icon_c.y() + 5)
+            arrow.lineTo(icon_c.x() - 10, icon_c.y() + 11)
+            arrow.closeSubpath()
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(ink)
+            p.drawPath(arrow)
+        elif self.glyph == "overview":          # a route between two corners of a frame
+            p.setPen(QPen(ink, 2.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+            p.setBrush(Qt.BrushStyle.NoBrush)
+            x0, y0, s = icon_c.x() - 13, icon_c.y() - 12, 26.0
+            for (ax, ay), (dx, dy) in (((x0, y0), (1, 1)), ((x0 + s, y0), (-1, 1)),
+                                       ((x0, y0 + s - 2), (1, -1)), ((x0 + s, y0 + s - 2), (-1, -1))):
+                p.drawLine(QPointF(ax, ay), QPointF(ax + 7 * dx, ay))
+                p.drawLine(QPointF(ax, ay), QPointF(ax, ay + 7 * dy))
+            route = QPainterPath(QPointF(x0 + 6, y0 + s - 7))
+            route.cubicTo(QPointF(x0 + 14, y0 + s - 6), QPointF(x0 + 10, y0 + 6), QPointF(x0 + s - 6, y0 + 6))
+            p.drawPath(route)
+        if self.label:
+            p.setPen(ink)
+            p.setFont(THEME.font(self.label_px(), QFont.Weight.DemiBold))
+            p.drawText(QRectF(r.left(), r.bottom() - 24, r.width(), 20), Qt.AlignmentFlag.AlignCenter, self.label)
+        p.end()
+
+
 class SW7TileMap(QWidget):
     """Street-tile map, drop-in for NativeRouteMap (see the module docstring)."""
 
     follow_changed = Signal(bool)     # auto_follow changed (drag, Follow, Overview)
     sim_tick = Signal()               # each simulated-drive step, and when it ends (sw7_sim_link.py)
+    overlays_changed = Signal()       # the turn banner appeared or went (layout_page moves the search field)
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.sw7_layout = layout_enabled()   # read once: the layout pass (TUKZIE_SW7_LAYOUT=0 is the earlier look)
+        self.overlay_rects = {}           # where the last paint put the banner, ETA bar, chips (tests, layout_page)
+        self.overlay_px = {}              # text sizes used in the last paint, in px (tests)
+        self.drawn_pills = []             # titles of the pills drawn in the last paint (tests)
+        self.altitude_m = None            # from the live state, for the altitude chip (layout pass)
+        self.follow_handler = None        # set by layout_page: the page's own set_follow_mode / show_overview
+        self.overview_handler = None
+        self._banner_shown = (False, False)   # (turn banner, altitude chip) last told to the page
         # NativeRouteMap's public attributes
         self.route = []
         self.roads = []
@@ -286,22 +401,33 @@ class SW7TileMap(QWidget):
 
         self.setAttribute(Qt.WidgetAttribute.WA_AcceptTouchEvents, True)
         self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
-        self.zoom_in = QPushButton("+", self)
-        self.zoom_out = QPushButton("−", self)
-        for button in (self.zoom_in, self.zoom_out):
-            button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.zoom_in = _MapButton("+", self)
+        self.zoom_out = _MapButton("−", self)
         self.zoom_in.clicked.connect(lambda: self._zoom(.7))
         self.zoom_out.clicked.connect(lambda: self._zoom(1.4))
         self.sim_button = QPushButton("Simulate drive", self)
         self.sim_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.sim_button.clicked.connect(self.toggle_simulation)
         self.sim_button.hide()
-        self.tilt_button = QPushButton("3D", self)
-        self.tilt_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.tilt_button = _MapButton("3D", self)
         self.tilt_button.setCheckable(True)
         self.tilt_button.setChecked(self.tilt_enabled)
         self.tilt_button.toggled.connect(self.set_tilt)
         self.tilt_button.setVisible(self.tilt_available)
+        # Follow and Overview in the map's own control column (layout pass); the page's buttons are hidden then
+        self.follow_button = _MapButton("Follow", self)
+        self.follow_button.clicked.connect(self._follow_clicked)
+        self.overview_button = _MapButton("Overview", self)
+        self.overview_button.clicked.connect(self._overview_clicked)
+        if self.sw7_layout:
+            self.zoom_in.set_glyph("plus")
+            self.zoom_out.set_glyph("minus")
+            self.tilt_button.set_glyph("3d")
+            self.follow_button.set_glyph("follow", "Follow")
+            self.overview_button.set_glyph("overview", "Overview")
+        else:
+            self.follow_button.hide()
+            self.overview_button.hide()
         self._sim_timer = QTimer(self)
         self._sim_timer.setInterval(SIM_TICK_MS)
         self._sim_timer.timeout.connect(self._sim_step)
@@ -335,6 +461,7 @@ class SW7TileMap(QWidget):
         self._update_sim_button()
         if plan and reset_view and not self.simulating:
             self.show_overview()
+        self._check_overlays()
         self._kick()
 
     def set_context(self, payload):
@@ -385,8 +512,11 @@ class SW7TileMap(QWidget):
         cell = None if simulated else getattr(state, "sw7_cell_position", None)
         self.approx = (cell if cell and _num(cell[0]) is not None and _num(cell[1]) is not None
                        and (lat is None or lon is None) else None)
+        if not simulated:
+            self.altitude_m = _num(getattr(state, "altitude_m", None)) if lat is not None and lon is not None else None
         if lat is None or lon is None:
             self.vehicle = None
+            self._check_overlays()
             self._kick()
             return
         self.vehicle = (lat, lon)
@@ -439,6 +569,7 @@ class SW7TileMap(QWidget):
                 self._marker_heading = self._good_heading
         self._update_navigation(lat, lon)
         self._update_sim_button()
+        self._check_overlays()
         self._kick()
 
     # ---- navigation (turn banner, ETA, auto-zoom) --------------------------------------
@@ -571,6 +702,7 @@ class SW7TileMap(QWidget):
         self.progress = 0.0
         self._zoom_target = NO_FIX_ZOOM
         self._update_sim_button()
+        self._check_overlays()
         self._kick()
         self.sim_tick.emit()
 
@@ -670,6 +802,114 @@ class SW7TileMap(QWidget):
             return self._explore_tilt
         return 0.0                        # overview: flat, north-up
 
+    def _follow_clicked(self):
+        (self.follow_handler or (lambda: self.set_follow_mode(True)))()
+
+    def _overview_clicked(self):
+        (self.overview_handler or self.show_overview)()
+
+    def _sync_buttons(self):
+        self.follow_button.set_active(self._mode == "follow")
+        self.overview_button.set_active(self._mode == "overview")
+
+    def _check_overlays(self):
+        """Tell the page when the turn banner comes or goes, so it can move the search field (layout pass)."""
+        shown = (self.sw7_layout and self.navigating and bool(self.next_maneuvers(1)),
+                 self.sw7_layout and self.altitude_m is not None)
+        if shown != self._banner_shown:
+            self._banner_shown = shown
+            self.overlays_changed.emit()
+
+    # ---- layout pass: where things go ---------------------------------------------------
+    def control_slots(self):
+        """The right-hand column, top to bottom: {name: QRect} in widget coordinates (layout pass only)."""
+        x = self.width() - EDGE - CTRL
+        names = ["compass", "follow", "overview"] + (["tilt"] if self.tilt_available else []) + ["zoom_in", "zoom_out"]
+        return {name: QRect(x, EDGE + i * (CTRL + CTRL_GAP), CTRL, CTRL) for i, name in enumerate(names)}
+
+    def sim_button_rect(self):
+        return QRect(self.width() - EDGE - SIM_W, self.height() - EDGE - 14 - CTRL, SIM_W, CTRL)
+
+    def turn_banner_rect(self):
+        """Where the turn banner is (with its Then strip), or None when no banner shows (layout pass only)."""
+        if not self.sw7_layout or not self.navigating:
+            return None
+        ahead = self.next_maneuvers(2)
+        if not ahead:
+            return None
+        bw = min(float(BANNER_W), self.width() - 2 * EDGE - CTRL - 2 * CTRL_GAP)
+        return QRectF(EDGE, EDGE, bw, BANNER_H + (THEN_H if len(ahead) > 1 else 0))
+
+    def _altitude_text(self):
+        return f"ALT {self.altitude_m:.0f} m"
+
+    def altitude_chip_rect(self):
+        if not self.sw7_layout or self.altitude_m is None:
+            return None
+        aw = QFontMetricsF(THEME.font(PX["altitude"], QFont.Weight.DemiBold)).horizontalAdvance(self._altitude_text()) + 24
+        slot = self.control_slots()["compass"]
+        return QRectF(slot.left() - CTRL_GAP - aw, slot.center().y() - 15, aw, 32)
+
+    def eta_rect(self):
+        w, h = self.width(), self.height()
+        cw = min(float(ETA_W), w - 2 * (EDGE + SIM_W + CTRL_GAP))
+        return QRectF((w - cw) / 2, h - EDGE - ETA_H, cw, ETA_H)
+
+    def layout_page(self, page):
+        """Place the Navigation page's own overlays around the map's (layout pass). Called by the page at the end
+        of _position_overlays (dashboard_patches.LAYOUT_MAP_PATCHES); does nothing with TUKZIE_SW7_LAYOUT=0."""
+        if not self.sw7_layout:
+            return
+        stage = getattr(page, "stage", None)
+        if stage is None or not hasattr(page, "search"):
+            return
+        if not getattr(page, "_sw7_layout_hooked", False):
+            page._sw7_layout_hooked = True
+            self.overlays_changed.connect(page._position_overlays)
+            self.follow_handler = lambda: page.set_follow_mode(True)
+            self.overview_handler = page.show_overview
+            page.plan_btn.setMinimumSize(120, 48)
+            page.destination.setMinimumHeight(48)
+            page.route_status.setStyleSheet(f"font-size: {PX['status']}px;")
+        off = self.mapTo(stage, QPoint(0, 0))
+        w, h = stage.width(), stage.height()
+        col_left = off.x() + self.width() - EDGE - CTRL
+        # Follow and Overview live in the map's column; the page's small buttons and the altitude card go
+        for widget in (page.follow_btn, page.overview_btn, page.altitude):
+            widget.hide()
+        # search field: top centre, or right of the turn banner while one shows; never over the column
+        banner = self.turn_banner_rect()
+        top = off.y() + EDGE
+        limit = col_left - 2 * CTRL_GAP                  # right end of the search field
+        chip = self.altitude_chip_rect()
+        if chip is not None:
+            limit = min(limit, off.x() + int(chip.left()) - CTRL_GAP)
+        if banner is not None:
+            left = off.x() + int(banner.right()) + 2 * CTRL_GAP
+            width = limit - left
+        else:
+            width = min(760, limit - (off.x() + EDGE))
+            left = max(off.x() + EDGE, min(off.x() + (self.width() - width) // 2, limit - width))
+        page.search.setGeometry(left, top, max(240, width), 64)
+        # status line bottom left, beside the arrival-time bar when one shows
+        eta = self.eta_rect() if self.navigating else None
+        right = off.x() + int(eta.left()) - CTRL_GAP if eta is not None else off.x() + self.width() - EDGE - SIM_W - CTRL_GAP
+        sw = max(200, min(560, right - (off.x() + EDGE)))
+        sh = max(48, min(76, page.route_status.heightForWidth(sw) if page.route_status.wordWrap() else 48))
+        page.route_status.setGeometry(off.x() + EDGE, off.y() + self.height() - EDGE - sh, sw, sh)
+        page.retry_btn.setGeometry(off.x() + EDGE, off.y() + self.height() - EDGE - sh - CTRL_GAP - CTRL, 160, CTRL)
+        lst = getattr(page, "suggestions", None)
+        if lst is not None and lst.isVisible():
+            search = getattr(page, "_sw7_search", None)
+            if search is not None:
+                lst.setGeometry(search.list_geometry())
+            else:
+                p = page.destination.mapTo(stage, page.destination.rect().bottomLeft())
+                lst.setGeometry(p.x(), p.y() + 4, page.destination.width(), min(160, 32 * max(1, lst.count())))
+        for widget in (page.search, page.route_status, page.retry_btn, lst):
+            if widget is not None:
+                widget.raise_()
+
     # ---- public helpers (tests, Diagnostics) ---------------------------------------
     @property
     def waiting_for_fix(self):
@@ -705,6 +945,7 @@ class SW7TileMap(QWidget):
 
     # ---- animation -------------------------------------------------------------------
     def _set_auto_follow(self, value):
+        self._sync_buttons()
         if self.auto_follow != value:
             self.auto_follow = value
             self.follow_changed.emit(value)
@@ -805,6 +1046,8 @@ class SW7TileMap(QWidget):
         w = self.width()
         guidance = os.environ.get("TUKZIE_ROUTE_GUIDANCE", "0").strip() == "1"
         left = max(26.0, min(390.0, w * .28)) if guidance else 26.0
+        if self.sw7_layout:               # control column on the right, search on top, arrival-time bar at the bottom
+            return left, float(EDGE + CTRL + CTRL_GAP + 4), float(EDGE + 64 + CTRL_GAP), float(EDGE + ETA_H + CTRL_GAP)
         return left, 130.0, 90.0, 65.0   # left, right, top, bottom
 
     def _usable_centre(self):
@@ -1303,6 +1546,8 @@ class SW7TileMap(QWidget):
         p.restore()
 
     def compass_rect(self):
+        if self.sw7_layout:               # a 56 px compass in the top slot of the control column
+            return QRectF(self.control_slots()["compass"]).adjusted(4, 4, -4, -4)
         return QRectF(self.width() - 84, 104, 48, 48)
 
     def _draw_overlays(self, p, cam):
@@ -1312,16 +1557,17 @@ class SW7TileMap(QWidget):
         p.setPen(QPen(QColor(THEME.hex("border")), 1.5))
         p.setBrush(QColor(THEME.hex("card")))
         p.drawEllipse(c)
+        k = c.width() / 48.0              # needle scaled with the compass (1 before the layout pass)
         p.save()
         p.translate(c.center())
         p.rotate(-cam.bearing)
-        north = QPainterPath(QPointF(0, -12))
-        north.lineTo(5, 0)
-        north.lineTo(-5, 0)
+        north = QPainterPath(QPointF(0, -12 * k))
+        north.lineTo(5 * k, 0)
+        north.lineTo(-5 * k, 0)
         north.closeSubpath()
-        south = QPainterPath(QPointF(0, 12))
-        south.lineTo(5, 0)
-        south.lineTo(-5, 0)
+        south = QPainterPath(QPointF(0, 12 * k))
+        south.lineTo(5 * k, 0)
+        south.lineTo(-5 * k, 0)
         south.closeSubpath()
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(THEME.status("crit"))
@@ -1331,19 +1577,40 @@ class SW7TileMap(QWidget):
         p.restore()
         # "N" upright, just outside the north tip
         a = math.radians(-cam.bearing)
-        n_at = c.center() + QPointF(16 * math.sin(a), -16 * math.cos(a))
+        n_at = c.center() + QPointF(16 * k * math.sin(a), -16 * k * math.cos(a))
         p.setPen(QColor(THEME.hex("text")))
-        p.setFont(THEME.font(9, QFont.Weight.Bold))
-        p.drawText(QRectF(n_at.x() - 7, n_at.y() - 7, 14, 14), Qt.AlignmentFlag.AlignCenter, "N")
+        p.setFont(THEME.font(12 if self.sw7_layout else 9, QFont.Weight.Bold))
+        nh = 7 * k
+        p.drawText(QRectF(n_at.x() - nh, n_at.y() - nh, 2 * nh, 2 * nh), Qt.AlignmentFlag.AlignCenter, "N")
+        self.overlay_rects = {"compass": QRectF(c)}
+        self.overlay_px = {}
+        self.drawn_pills = []
+        chip = self.altitude_chip_rect()
+        if chip is not None:              # altitude chip left of the compass, only when known (layout pass)
+            p.setFont(THEME.font(PX["altitude"], QFont.Weight.DemiBold))
+            text = self._altitude_text()
+            bg = QColor(THEME.hex("card"))
+            bg.setAlpha(235)
+            p.setPen(QPen(QColor(THEME.hex("border")), 1))
+            p.setBrush(bg)
+            p.drawRoundedRect(chip, 12, 12)
+            p.setPen(QColor(THEME.hex("text")))
+            p.drawText(chip, Qt.AlignmentFlag.AlignCenter, text)
+            self.overlay_rects["altitude"] = chip
+            self.overlay_px["altitude"] = PX["altitude"]
 
         # attribution (required by the OSM licence), left of the zoom buttons
         text = ATTRIBUTION
         if self.vector_fallback_active and self.tile_status == "offline":
-            text = "Street tiles offline, showing offline roads · " + ATTRIBUTION
-        p.setFont(THEME.font(9))
+            text = ("Tiles offline · " if self.sw7_layout else "Street tiles offline, showing offline roads · ") + ATTRIBUTION
+        p.setFont(THEME.font(12 if self.sw7_layout else 9))
         fm = p.fontMetrics()
         tw = fm.horizontalAdvance(text) + 14
-        box = QRectF(w - 72 - tw, h - 24, tw, 18)
+        if self.sw7_layout:               # bottom right, under the Simulate drive button, clear of the column
+            box = QRectF(w - EDGE - tw, h - 30, tw, 20)
+        else:
+            box = QRectF(w - 72 - tw, h - 24, tw, 18)
+        self.overlay_rects["attribution"] = box
         bg = QColor(THEME.hex("card"))
         bg.setAlpha(200)
         p.setPen(Qt.PenStyle.NoPen)
@@ -1354,12 +1621,21 @@ class SW7TileMap(QWidget):
 
         ucx, ucy = self._usable_centre()
         pill_y = 126.0
-        if self.navigating:
+        if self.sw7_layout:
+            # badges go under the search field, between the turn banner (if any) and the control column
+            banner = self.turn_banner_rect() if self.navigating else None
+            if self.navigating:
+                self._draw_navigation_layout(p, w, h)
+            pill_y = float(EDGE + 64 + CTRL_GAP + 29)
+            if banner is not None:
+                ucx = (banner.right() + w - EDGE - CTRL) / 2
+        elif self.navigating:
             pill_y = self._draw_navigation(p, w, h) + 36.0
         self._pill_y = pill_y               # where the REPLAY / SIMULATED badge goes (tests read it)
+        self._pill_x = ucx
         if self.replay:
             self._pill(p, QPointF(ucx, pill_y), "REPLAY", "Replayed data, not live", THEME.status("warn"), filled=True)
-        if self.simulating:
+        if self.simulating and not self.sw7_layout:   # layout pass: a SIMULATED chip in the arrival-time bar instead
             left_m, left_min = self.sim_remaining()
             if self.sim_arrived:
                 title, sub = "ARRIVED (SIMULATED)", "Not live data. Tap End simulation to finish"
@@ -1491,7 +1767,109 @@ class SW7TileMap(QWidget):
                        f"{self._distance_text(left_m) if left_m >= 20 else '0 m'}  \u00b7  {arrive}")
         return end
 
+    def _eta_seconds(self, left_m):
+        if self.simulating:
+            return left_m / (SIM_KMH / 3.6)
+        if self._plan_duration_s > 0 and self._route_total_m > 0:
+            return self._plan_duration_s * left_m / self._route_total_m
+        return None
+
+    def _draw_navigation_layout(self, p, w, h):
+        """Layout pass: turn banner anchored top left, arrival-time bar at the bottom centre with the SIMULATED chip
+        at its left end. Sizes from PX (Planning/google-stitch-dashboard-prompt.md, Navigation)."""
+        green, white = QColor(TURN_GREEN), QColor("#FFFFFF")
+        ahead = self.next_maneuvers(2)
+        banner = self.turn_banner_rect()
+        if ahead and banner is not None:
+            man, dist = ahead[0]
+            bx, by, bw = banner.left(), banner.top(), banner.width()
+            text_w = bw - 112 - 16
+            p.setPen(Qt.PenStyle.NoPen)
+            if len(ahead) > 1:            # the Then strip under the banner, one card with it
+                p.setBrush(QColor(THEN_GREEN))
+                p.drawRoundedRect(banner, 16, 16)
+                p.setBrush(green)
+                p.drawRoundedRect(QRectF(bx, by, bw, BANNER_H), 16, 16)
+                p.drawRect(QRectF(bx, by + BANNER_H - 16, bw, 16))
+                p.setPen(white)
+                p.setFont(THEME.font(PX["then"], QFont.Weight.DemiBold))
+                then = QRectF(bx + 20, by + BANNER_H, bw - 40, THEN_H)
+                nxt = self._instruction(ahead[1][0])
+                p.drawText(then, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                           p.fontMetrics().elidedText("Then: " + nxt[:1].lower() + nxt[1:], Qt.TextElideMode.ElideRight,
+                                                      int(then.width())))
+                self.overlay_rects["then"] = then
+                self.overlay_px["then"] = PX["then"]
+            else:
+                p.setBrush(green)
+                p.drawRoundedRect(QRectF(bx, by, bw, BANNER_H), 16, 16)
+            self._turn_arrow(p, QRectF(bx + 20, by + (BANNER_H - 72) / 2, 72, 72), man["kind"], white)
+            tx = bx + 112
+            p.setPen(white)
+            if man["kind"] == "arrive":
+                p.setFont(THEME.font(PX["street"] + 4, QFont.Weight.Bold))
+                p.drawText(QRectF(tx, by, text_w, BANNER_H), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                           p.fontMetrics().elidedText(self._instruction(man), Qt.TextElideMode.ElideRight, int(text_w)))
+            else:
+                p.setFont(THEME.font(PX["distance"], QFont.Weight.Bold))
+                p.drawText(QRectF(tx, by + 8, text_w, 64), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                           self._distance_text(dist))
+                p.setFont(THEME.font(PX["street"], QFont.Weight.DemiBold))
+                p.drawText(QRectF(tx, by + 72, text_w, 44), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                           p.fontMetrics().elidedText(self._instruction(man), Qt.TextElideMode.ElideRight, int(text_w)))
+                self.overlay_px["distance"] = PX["distance"]
+            self.overlay_px["street"] = PX["street"]
+            self.overlay_rects["banner"] = QRectF(banner)
+        # arrival-time bar: [SIMULATED]  2 min   630 m   arrive 14:28
+        left_m = max(0.0, self._route_total_m - (self._along_m or 0.0))
+        eta_s = self._eta_seconds(left_m)
+        if eta_s is None and not self.simulating:
+            return
+        bar = self.eta_rect()
+        bg = QColor(THEME.hex("card"))
+        bg.setAlpha(240)
+        p.setPen(QPen(QColor(THEME.hex("border")), 1))
+        p.setBrush(bg)
+        p.drawRoundedRect(bar, 16, 16)
+        self.overlay_rects["eta"] = QRectF(bar)
+        x = bar.left() + 10
+        if self.simulating:
+            p.setFont(THEME.font(PX["chip"], QFont.Weight.Bold))
+            label = "SIMULATED"
+            chip = QRectF(x, bar.top() + 10, p.fontMetrics().horizontalAdvance(label) + 28, bar.height() - 20)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(THEME.status("warn"))
+            p.drawRoundedRect(chip, 12, 12)
+            p.setPen(QColor("#0B0D10"))
+            p.drawText(chip, Qt.AlignmentFlag.AlignCenter, label)
+            self.overlay_rects["sim_chip"] = chip
+            self.overlay_px["chip"] = PX["chip"]
+            x = chip.right()
+        arrived = self.sim_arrived
+        minutes = max(1, int(round((eta_s or 0) / 60.0)))
+        parts = [("Arrived" if arrived else f"{minutes} min", PX["eta_time"], QColor(ETA_GREEN), QFont.Weight.Bold),
+                 (self._distance_text(left_m) if left_m >= 20 else "0 m", PX["eta_text"], QColor(THEME.hex("text")),
+                  QFont.Weight.DemiBold)]
+        if eta_s is not None and not arrived:
+            parts.append(("arrive " + time.strftime("%H:%M", time.localtime(time.time() + eta_s)), PX["eta_text"],
+                          QColor(THEME.hex("text_dim")), QFont.Weight.DemiBold))
+        widths = [QFontMetricsF(THEME.font(px, wt)).horizontalAdvance(t) for t, px, _c, wt in parts]
+        room = bar.right() - 10 - x
+        if len(parts) == 3 and sum(widths) + 16 * (len(parts) + 1) > room:   # narrow: drop the word "arrive"
+            parts[2] = (parts[2][0].replace("arrive ", ""),) + parts[2][1:]
+            widths[2] = QFontMetricsF(THEME.font(parts[2][1], parts[2][3])).horizontalAdvance(parts[2][0])
+        gap = max(12.0, (room - sum(widths)) / (len(parts) + 1))
+        x += gap
+        for (text, px, colour, weight), tw in zip(parts, widths):
+            p.setPen(colour)
+            p.setFont(THEME.font(px, weight))
+            p.drawText(QRectF(x, bar.top(), tw + 2, bar.height()), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, text)
+            x += tw + gap
+        self.overlay_rects["eta_text_right"] = QRectF(x - gap, bar.top(), 0, bar.height())
+        self.overlay_px["eta_time"], self.overlay_px["eta_text"] = PX["eta_time"], PX["eta_text"]
+
     def _pill(self, p, centre, title, sub, colour, filled=False):
+        self.drawn_pills.append(title)
         p.setFont(THEME.font(17, QFont.Weight.Bold))
         tw = p.fontMetrics().horizontalAdvance(title)
         p.setFont(THEME.font(10))
@@ -1513,16 +1891,30 @@ class SW7TileMap(QWidget):
 
     # ---- interaction -----------------------------------------------------------------
     def resizeEvent(self, event):
-        self.zoom_in.setGeometry(max(0, self.width() - 62), max(0, self.height() - 94), 44, 38)
-        self.zoom_out.setGeometry(max(0, self.width() - 62), max(0, self.height() - 52), 44, 38)
-        self.tilt_button.setGeometry(max(0, self.width() - 62), max(0, self.height() - 136), 44, 38)
-        self.sim_button.setGeometry(max(0, self.width() - 290), max(0, self.height() - 100), 210, 44)
+        if self.sw7_layout:
+            slots = self.control_slots()
+            for name, button in (("follow", self.follow_button), ("overview", self.overview_button),
+                                 ("tilt", self.tilt_button), ("zoom_in", self.zoom_in), ("zoom_out", self.zoom_out)):
+                if name in slots:
+                    button.setGeometry(slots[name])
+            self.sim_button.setGeometry(self.sim_button_rect())
+        else:
+            self.zoom_in.setGeometry(max(0, self.width() - 62), max(0, self.height() - 94), 44, 38)
+            self.zoom_out.setGeometry(max(0, self.width() - 62), max(0, self.height() - 52), 44, 38)
+            self.tilt_button.setGeometry(max(0, self.width() - 62), max(0, self.height() - 136), 44, 38)
+            self.sim_button.setGeometry(max(0, self.width() - 290), max(0, self.height() - 100), 210, 44)
         if self._mode == "overview":
             self._overview = self._fit_camera()
             self._zoom_target = self._zoom_now = self._overview.zoom
         super().resizeEvent(event)
 
     def _apply_theme(self, *_):
+        if self.sw7_layout:               # the column buttons paint themselves from THEME
+            self.sim_button.setStyleSheet(
+                f"font-size:{PX['status']}px;font-weight:700;padding:0px 12px;background:{THEME.hex('card')};"
+                f"color:{THEME.hex('text')};border:2px solid {THEME.status('warn').name()};border-radius:12px;")
+            self.update()
+            return
         style = (f"font-size:24px;background:{THEME.hex('card')};color:{THEME.hex('text')};"
                  f"border:1px solid {THEME.hex('border')};border-radius:6px;")
         for button in (self.zoom_in, self.zoom_out):
