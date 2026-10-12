@@ -398,7 +398,11 @@ From Planning/three-planes-hero-prompt.md, on top of the refinement; nothing cha
   tiles, Settings the side view under the Save card. Map has none; Diagnostics and Surroundings have no free space
   for one. Word and render are painted once into a cached pixmap per page size and variant (`S.Plane`, `S.PLANES`,
   `S.set_plane`, `S.page_plane_geometry`).
-- Top plane: the widgets, unchanged.
+- Top plane: the widgets. After the student's review (AURA pass) Drive's tiles and dial sit low so DRIVE and the
+  vehicle fill the open upper area (the render is about 1.7 times larger), the advice strip, the Charging column,
+  the Settings and Diagnostics groups and the hazards list have no cards (groups under a hairline), and the Charging
+  ring has no disc. Cards stay where they group data or keep text legible (the Drive tiles, the gear row, the
+  Range tile, the camera frame, the tuk-tuk card).
 - Charging: the team's composition (Planning/reference_team_charging_page.jpg) in paper and ink: a card disc with the
   ring arc (its length the state of charge, turning slowly, ink), the tuk-tuk outline from above filled with rising
   bubbles to the state of charge (ok-green while charging or above 30 %, ink below), the percentage above it, and
