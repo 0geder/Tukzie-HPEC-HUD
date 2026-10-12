@@ -48,7 +48,7 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 | 3.6 | USB speaker for the Pi 5 (Bluetooth earphones work for testing) | Student | | Open |
 | 3.7 | Fusion calibration test C9 | Claude + Student | BenchTest/TEST_PROCEDURES.md | Open |
 | 3.8 | Stale-BMS marking on the dashboard | Claude | | Open |
-| 3.9 | Dashboard redesign: layout pass, data ownership (7 pages), paper theme, refinement, three planes | Agents + Claude | Planning/three-planes-hero-prompt.md, Report Appendix G | Refinement deployed 12 Oct (5baa5f2); three planes approved for deploy 13 Oct |
+| 3.9 | Dashboard redesign: layout pass, data ownership (7 pages), paper theme, refinement, three planes | Agents + Claude | Planning/three-planes-hero-prompt.md, Report Appendix G | Refinement deployed 12 Oct (5baa5f2); three planes deployed 13 Oct (864ce27) |
 | 3.10 | Right ToF returns no range (answers on I2C, signal 0 to 13) | Student | Results R6 to R8 row | Open: peel the lens film, check nothing covers it, else swap the board |
 | 3.11 | 9.3 % unusable DASH lines at the Pi 4 bridge over 4.7 h | Claude | Results R10 | Open: log the bad lines and find the cause |
 | 3.12 | Side ToF direction: 90 degrees as built or 35 degrees as fusion_config.json assumes | Student | Appendix F | Open: decide before the pod is fitted |

@@ -1,7 +1,7 @@
 \chapter{Dashboard Interface Design}
 \label{app:interface}
 
-This appendix records how the driver's dashboard on the Raspberry Pi~5 was redesigned between 11 and 12 October: the steps, the rules the design follows, and how each step was checked. The data path behind the pages is described in Section~\ref{sec:dashboard-page}. The redesign was deployed to the Pi~5 on 12 October (commit \texttt{5baa5f2}). \emph{It has not yet been used on the vehicle, and glance times have not been measured.}
+This appendix records how the driver's dashboard on the Raspberry Pi~5 was redesigned between 11 and 12 October: the steps, the rules the design follows, and how each step was checked. The data path behind the pages is described in Section~\ref{sec:dashboard-page}. The refinement was deployed to the Pi~5 on 12 October (commit \texttt{5baa5f2}) and the three-planes version on 13 October (commit \texttt{864ce27}). \emph{It has not yet been used on the vehicle, and glance times have not been measured.}
 
 \section{Starting point and constraints}
 
@@ -90,7 +90,7 @@ Night variant & Charcoal surfaces, the same layout and tap colour, from sunset t
 
 \section{The pages}
 
-Figures~\ref{fig:ui-drive} to~\ref{fig:ui-pages-b} show the deployed pages. The screenshots are from the test suite at the display's native 1280 by 800, with test data.
+Figures~\ref{fig:ui-drive} to~\ref{fig:ui-pages-b} show the deployed pages, and Figure~\ref{fig:ui-pi5-live} the Pi~5's own screen. The screenshots are from the test suite at the display's native 1280 by 800, with test data.
 
 \begin{figure}[htbp]
 \centering
@@ -119,9 +119,16 @@ Figures~\ref{fig:ui-drive} to~\ref{fig:ui-pages-b} show the deployed pages. The 
 \label{fig:ui-pages-b}
 \end{figure}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/ui/ui_pi5_live_drive.png}
+\caption{Screen grab from the Raspberry Pi~5 after the deployment on 13 October, at night, with live time-of-flight readings from the bench (ahead 0.33\,m, left 0.67\,m, right not reading) and no vehicle data.}
+\label{fig:ui-pi5-live}
+\end{figure}
+
 \section{Verification}
 
-The dashboard's test suite runs the patched application off screen against a copy of the team's source. It covers 14 test files:
+The dashboard's test suite runs the patched application off screen against a copy of the team's source. It covers 15 test files:
 \begin{itemize}
 \item live data;
 \item the map;
@@ -129,10 +136,10 @@ The dashboard's test suite runs the patched application off screen against a cop
 \item search;
 \item the analytics carousel;
 \item the four layout tests;
-\item the five style tests.
+\item the six style tests, including one that checks the back word stays readable and no render covers a driving value.
 \end{itemize}
 
-All passed on the final merged build on 12 October. The style tests check:
+All passed on the final merged build on 13 October. The style tests check:
 \begin{itemize}
 \item the tap-colour and type-scale rules;
 \item that the bundled fonts load;
