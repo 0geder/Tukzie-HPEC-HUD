@@ -741,8 +741,6 @@ def audit_signal(root, ignore=(), mark_px: int = MARK_PX, step: int = 2, image=N
             d = abs(hh - sh) % 360
             if min(d, 360 - d) > 15:
                 continue
-            if photos and any(q.contains(x, y) for q in photos):
-                continue
             cell = (x // 4, y // 4)
             owner = cache.get(cell)
             if owner is None:
@@ -751,6 +749,8 @@ def audit_signal(root, ignore=(), mark_px: int = MARK_PX, step: int = 2, image=N
             if under_ignored(owner):
                 continue
             tap = _tap_owner(owner, root)
+            if tap is None and photos and any(q.contains(x, y) for q in photos):
+                continue                     # the render itself (a control over it still counts)
             if tap is not None:
                 tap_hits[id(tap)] = (tap, tap_hits.get(id(tap), (tap, 0))[1] + step * step)
             else:
