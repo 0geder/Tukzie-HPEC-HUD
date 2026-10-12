@@ -13,8 +13,8 @@ PARAMS = [                      # name, value (mm), meaning
     ("PodL", 44.0, "pod length along the vehicle (X)"),
     ("PodW", 30.0, "pod width (Z)"),
     ("PodH", 12.0, "pod height (Y)"),
-    ("BoardL", 21.5, "MEASURE: GY-521 board length"),
-    ("BoardW", 16.5, "MEASURE: GY-521 board width"),
+    ("BoardL", 20.0, "measured 12 Oct: GY-521 board length"),
+    ("BoardW", 17.0, "measured 12 Oct: GY-521 board width"),
     ("Clear", 0.6, "clearance around the board"),
     ("PocketD", 5.0, "pocket depth from the top"),
 ]
