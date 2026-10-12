@@ -172,7 +172,7 @@ check(THEME.hex("bg") == S.DAY["paper"] and THEME.hex("card") == S.DAY["card"] a
       and THEME.hex("text") == S.DAY["ink"] and THEME.hex("text_dim") == S.DAY["ink_2"], "THEME gives the paper palette")
 check(THEME.status("crit").name().upper() == S.DAY["critical"] and THEME.status("info").name().upper() == S.DAY["ink_2"].upper(),
       "THEME status: critical, and info is ink (not signal)")
-check(THEME.font(16).family() == "Atkinson Hyperlegible", f"THEME font: {THEME.font(16).family()}")
+check(THEME.font(16).family() == "IBM Plex Sans", f"THEME font: {THEME.font(16).family()}")   # refinement: IBM Plex Sans
 check(not THEME.is_light is False and "#B9562F" in THEME.stylesheet(), "paper stylesheet: buttons in signal")
 # the signal rule
 sig = QColor(S.DAY["signal"])
@@ -189,7 +189,7 @@ S.set_night(True); S.set_night(False)
 check(seen == ["#1C1A18", S.DAY["paper"]], f"set_night emits THEME.changed with the new palette: {seen}")
 # shadow cache
 p1 = S.shadow_pixmap(200, 80, 24, 2); p2 = S.shadow_pixmap(200, 80, 24, 2)
-check(p1 is p2 and p1[0].width() == 200 + 2 * 32, "shadow pixmaps are cached")
+check(p1 is p2 and p1[0].width() == 200 + 2 * S.LEVELS[2][0], "shadow pixmaps are cached")
 
 # ---- weather service against the fake server
 cache = os.environ["TUKZIE_WEATHER_CACHE"]
@@ -341,9 +341,9 @@ def run():
     gap_x = (rect_in(nav.buttons["driving"]).center().x() + rect_in(nav.buttons["analytics"]).center().x()) // 2
     check(near(img.pixelColor(gap_x, navg.top() + S.PILL_TOP + S.PILL_H // 2 + 20), S.DAY["card"], 12), "nav pill in card colour")
     sel = nav.buttons["driving"]; c = rect_in(sel).center()
-    cy = navg.top() + S.PILL_TOP - 8 + S.CIRCLE_D // 2
-    check(near(img.pixelColor(c.x() - 18, cy), S.DAY["signal"], 12), "selected item: a raised signal circle")
-    check(navg.top() + S.PILL_TOP - 8 < stack.bottom(), "the circle overlaps the page (depth)")
+    cy = rect_in(sel).top() + 1   # refinement (12 Oct): a short signal bar on the selected item, not a raised circle
+    check(near(img.pixelColor(c.x(), cy), S.DAY["signal"], 12), "selected item: a signal bar on its top edge")
+    check(stack.bottom() < navg.top(), "the flat nav bar covers no page content")
     for pid, b in nav.buttons.items():
         check(b.width() >= 96 and b.height() >= 64, f"nav {pid} target {b.width()} x {b.height()}")
     lab = sel.sw7_label
@@ -351,9 +351,9 @@ def run():
     for arrow in (d.left, d.right):
         g = rect_in(arrow)
         check(g.width() == 64 and g.height() == 64 and g.left() >= 16 and g.right() <= w.width() - 17, f"arrow 64 x 64 {g.getRect()}")
-        check(arrow.graphicsEffect() is not None, "arrow floats on a shadow")
-    check(near(img.pixelColor(rect_in(d.left).center().x(), rect_in(d.left).top() + 1), S.DAY["signal"], 60),
-          "arrow: signal outline")
+        check(arrow.graphicsEffect() is None, "arrow is flat on the bar (no shadow)")
+    check(any(S.signal_like(*img.pixelColor(x, y).getRgb()[:3]) for x in range(rect_in(d.left).left() + 16, rect_in(d.left).right() - 16) for y in range(rect_in(d.left).top() + 16, rect_in(d.left).bottom() - 16)),
+          "arrow: a signal chevron")
     # source chip
     marks = d._sw7_marks
     cg = rect_in(marks.chip)
@@ -425,7 +425,7 @@ def run():
     S.set_night(True); a.processEvents(); spin(200)
     img = w.grab().toImage()
     check(near(img.pixelColor(640, 6), S.NIGHT["paper"]) and THEME.hex("bg") == S.NIGHT["paper"], "night: Ink paper")
-    check(near(img.pixelColor(c.x() - 18, cy), S.NIGHT["signal"], 14), "night: the selected circle in night signal")
+    check(near(img.pixelColor(c.x(), cy), S.NIGHT["signal"], 14), "night: the selected bar in night signal")
     check(nav.height() == S.NAV_FLOAT_H and rect_in(nav).bottom() == w.height() - 1, "night: the nav keeps its place")
     times["paper_driving_night"] = paint_ms()
     frame_audit(d, "night")

@@ -324,9 +324,9 @@ def run_():
     img = w.grab().toImage()
     slab = m.slab_rect(); so = m.mapTo(w, QPoint(0, 0))
     check(near(img.pixelColor(so.x() + 8, so.y() + int(slab.center().y())), S.DAY["paper"], 6), "paper beside the slab")
-    edge_y = so.y() + int(slab.bottom()) + 4
-    check(near(img.pixelColor(so.x() + int(slab.center().x()) + 200, edge_y), m._edge_colour().name(), 30),
-          f"the slab's warm edge under it {img.pixelColor(so.x() + int(slab.center().x()) + 200, edge_y).name()}")
+    edge_y = so.y() + int(slab.bottom()) + 4   # refinement (12 Oct): a flat map, no warm slab edge under it
+    check(near(img.pixelColor(so.x() + int(slab.center().x()) + 200, edge_y), S.DAY["paper"], 30),
+          f"paper right under the flat map {img.pixelColor(so.x() + int(slab.center().x()) + 200, edge_y).name()}")
     corner = img.pixelColor(so.x() + int(slab.left()) + 2, so.y() + int(slab.top()) + 2)
     check(not near(corner, m._ground_colour().name(), 12) or True, "corner rounded (patch drawn)")
     f1 = m._paper_frame(); m.repaint(); check(m._paper_frame() is f1, "slab frame cached between paints")

@@ -438,12 +438,12 @@ from PySide6.QtGui import QFontMetricsF, QPainterPath, QPolygonF
 from PySide6.QtWidgets import QAbstractButton
 
 PAPER_SPEED_PX = 168
-SLAB_EDGE = 10              # the disc's visible thickness under it
+SLAB_EDGE = 0               # the disc is flat now (a hairline edge, no slab)
 TILE_W, TILE_H = 360, 372   # Next turn and Around
 RANGE_W, RANGE_H = 380, 104
-TILE_OVERLAP = 24           # how far the side tiles reach over the disc's edge
-TILE_RADIUS = 24
-CHEVRON_D = 40
+TILE_OVERLAP = 12           # how far the side tiles reach over the disc's edge (kept small: little stacking)
+TILE_RADIUS = 8
+CHEVRON_D = 36
 
 
 def _style():
@@ -485,54 +485,63 @@ def _paper_speedometer_class(base, S):
             p = QPainter(self)
             p.setRenderHint(QPainter.RenderHint.Antialiasing)
             cx, cy, R = self.disc()
-            # the slab: its edge, then the face
-            p.setPen(Qt.PenStyle.NoPen)
-            p.setBrush(QColor(S.blend(S.hx("paper_deep"), S.hx("shadow"), 0.22 if not S.is_night() else 0.5)))
-            p.drawEllipse(QPointF(cx, cy + SLAB_EDGE), R, R)
+            # the face: card with a hairline edge (its very light shadow is painted by the stage)
+            p.setPen(QPen(S.c("hairline"), 1.0))
             p.setBrush(S.c("card"))
-            p.drawEllipse(QPointF(cx, cy), R, R)
-            p.setPen(QPen(S.c("hairline"), 1.2))
-            p.setBrush(Qt.BrushStyle.NoBrush)
-            p.drawEllipse(QPointF(cx, cy), R - 12, R - 12)
+            p.drawEllipse(QPointF(cx, cy), R - 0.5, R - 0.5)
             r = R - 30
             start, span = 135.0, 270.0
             arc = QRectF(cx - r, cy - r, 2 * r, 2 * r)
-            p.setPen(QPen(S.c("paper_deep"), 12, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+            p.setPen(QPen(S.c("paper_deep"), 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
             p.drawArc(arc, int(-start * 16), int(-span * 16))
             known = getattr(self, "speed_known", True)
             if known and self.speed > 0.05:
-                p.setPen(QPen(S.c("ink"), 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-                p.drawArc(arc, int(-start * 16), int(-span * (self.speed / 50.0) * 16))
-            p.setFont(S.font(S.LABEL, QFont.Weight.Bold))
+                p.setPen(QPen(S.c("ink"), 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
+                p.drawArc(arc, int(-start * 16), int(-span * (min(50.0, self.speed) / 50.0) * 16))
+            # ticks: every 1 km/h a hairline, every 5 a short tick, every 10 a long tick with its number (Plex Mono)
+            p.setFont(S.mono(S.LABEL, QFont.Weight.Normal))
             for v in range(51):
                 a = start + span * v / 50.0
-                major = v % 5 == 0
-                p.setPen(QPen(S.c("ink_2") if major else S.c("ink_3"), 2.0 if major else 0.9))
-                p.drawLine(self._point(cx, cy, r * (.87 if major else .92), a), self._point(cx, cy, r * .97, a))
                 if v % 10 == 0:
-                    t = self._point(cx, cy, r * .76, a)
+                    p.setPen(QPen(S.c("ink_2"), 1.6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
+                    p.drawLine(self._point(cx, cy, r * .86, a), self._point(cx, cy, r * .955, a))
+                    t = self._point(cx, cy, r * .75, a)
                     p.setPen(S.c("ink_2"))
                     p.drawText(QRectF(t.x() - 22, t.y() - 10, 44, 20), Qt.AlignmentFlag.AlignCenter, str(v))
+                elif v % 5 == 0:
+                    p.setPen(QPen(S.c("ink_3"), 1.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
+                    p.drawLine(self._point(cx, cy, r * .895, a), self._point(cx, cy, r * .955, a))
+                else:
+                    p.setPen(QPen(S.c("hairline"), 1.0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
+                    p.drawLine(self._point(cx, cy, r * .925, a), self._point(cx, cy, r * .955, a))
             cap = float(VEHICLE_SPEC.max_speed_kmh)
             a = start + span * min(50.0, cap) / 50.0
-            p.setPen(QPen(S.c("warn"), 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-            p.drawLine(self._point(cx, cy, r * .84, a), self._point(cx, cy, r * 1.04, a))
+            p.setPen(QPen(S.c("warn"), 3, Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
+            p.drawLine(self._point(cx, cy, r * .86, a), self._point(cx, cy, r * 1.06, a))
             if self.recommended is not None:
                 rec = max(0.0, min(50.0, float(self.recommended)))
                 a = start + span * rec / 50.0
-                p.setPen(QPen(S.c("ok"), 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-                p.drawLine(self._point(cx, cy, r * .82, a), self._point(cx, cy, r * 1.04, a))
+                p.setPen(QPen(S.c("ok"), 3, Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
+                p.drawLine(self._point(cx, cy, r * .86, a), self._point(cx, cy, r * 1.06, a))
+            if known:
+                # the needle: a slim ink pointer across the track at the speed, with a small hub dot on the track
+                a = start + span * max(0.0, min(50.0, self.speed)) / 50.0
+                p.setPen(QPen(S.c("ink"), 2.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+                p.drawLine(self._point(cx, cy, r * .80, a), self._point(cx, cy, r * 1.07, a))
+                p.setPen(QPen(S.c("card"), 2.0)); p.setBrush(S.c("ink"))
+                p.drawEllipse(self._point(cx, cy, r, a), 5.0, 5.0)
             speed_px = int(max(S.HERO_MIN, min(self.SPEED_PX, r * 0.9)))
             shown = f"{self.speed:.0f}" if known else "--"
-            f = S.font(speed_px, QFont.Weight.Bold)
+            f = S.font(speed_px, QFont.Weight.DemiBold)
             fm = QFontMetricsF(f)
             base_y = cy + fm.capHeight() / 2.0 - 6
             p.setPen(S.c("ink") if known else S.c("ink_3"))
             p.setFont(f)
             p.drawText(QPointF(cx - fm.horizontalAdvance(shown) / 2.0, base_y), shown)
             p.setPen(S.c("ink_2"))
-            p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
-            p.drawText(QRectF(cx - 80, base_y + 14, 160, 20), Qt.AlignmentFlag.AlignCenter, "KM/H")
+            p.setFont(S.font(S.LABEL, QFont.Weight.Medium))
+            p.drawText(QRectF(cx - 80, base_y + 14, 160, 20), Qt.AlignmentFlag.AlignCenter,
+                       "km/h" if known else "km/h · no speed reading")
             self.sw7_fonts = {"speed": speed_px, "unit": S.LABEL, "ticks": S.LABEL, "radius": r, "text": shown}
             p.end()
 
@@ -543,12 +552,12 @@ def _paint_chevron(p, S, rect, pressed=False):
     """The tap mark of a glance tile: a signal-outline circle with a ">" in it (filled while pressed)."""
     p.save()
     p.setRenderHint(QPainter.RenderHint.Antialiasing)
-    p.setPen(QPen(S.c("signal"), 2.0))
+    p.setPen(QPen(S.c("signal", 140), 1.0))
     p.setBrush(S.c("signal") if pressed else S.c("card"))
     p.drawEllipse(rect.adjusted(1, 1, -1, -1))
     c = rect.center()
-    k = rect.width() * 0.13
-    pen = QPen(S.c("card") if pressed else S.c("signal"), 2.6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap,
+    k = rect.width() * 0.12
+    pen = QPen(S.c("card") if pressed else S.c("signal"), 2.0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap,
                Qt.PenJoinStyle.RoundJoin)
     p.setPen(pen)
     p.setBrush(Qt.BrushStyle.NoBrush)
@@ -629,11 +638,11 @@ class GlanceTile(QAbstractButton):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
         r = QRectF(self.rect())
-        p.setPen(Qt.PenStyle.NoPen)
+        p.setPen(QPen(S.c("hairline"), 1.0))
         p.setBrush(S.c("signal_tint") if self.isDown() else S.c("card"))
-        p.drawRoundedRect(r, TILE_RADIUS, TILE_RADIUS)
+        p.drawRoundedRect(r.adjusted(0.5, 0.5, -0.5, -0.5), TILE_RADIUS, TILE_RADIUS)
         p.setPen(S.c("ink_2"))
-        p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
+        p.setFont(S.font(S.LABEL, QFont.Weight.DemiBold, caps=True))
         p.drawText(QRectF(24, 20, self.width() - 100, 32), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                    self.label)
         _paint_chevron(p, S, self.chevron_rect(), self.isDown())
@@ -699,7 +708,7 @@ class NextTurnTile(GlanceTile):
         well = QRectF(20, 68, self.width() - 40, 156)
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(S.c("paper" if S.is_night() else "paper_deep"))
-        p.drawRoundedRect(well, 16, 16)
+        p.drawRoundedRect(well, 6, 6)
         x0 = 24.0
         if st["kind"] in ("none", "ready"):
             self._placeholder_roads(p, well)
@@ -725,7 +734,8 @@ class NextTurnTile(GlanceTile):
             self._text(p, QRectF(tx, 248, self.width() - tx - 24, 30), st["instruction"], S.BODY, "ink", QFont.Weight.Bold)
         p.setPen(QPen(S.c("hairline"), 1))
         p.drawLine(QPointF(x0, 308), QPointF(self.width() - 24, 308))
-        self._text(p, QRectF(x0, 318, self.width() - 48, 32), st["line"], S.LABEL, "ink_2", QFont.Weight.Bold)
+        p.setPen(S.c("ink_2")); p.setFont(S.mono(S.LABEL, QFont.Weight.Normal))   # times and distances: Plex Mono
+        p.drawText(QRectF(x0, 318, self.width() - 48, 32), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, st["line"])
 
     def _placeholder_roads(self, p, well):
         S = self.S
@@ -897,14 +907,15 @@ class AroundTile(GlanceTile):
         cx, cy = W / 2.0, 214.0
         self._tuk(p, cx, cy)
         pos = {"ahead": (QRectF(cx - 70, 70, 140, 44), QPointF(cx, cy - 82), QPointF(cx, 116)),
-               "left": (QRectF(20, cy - 34, 100, 44), QPointF(cx - 44, cy - 22), QPointF(112, cy - 12)),
-               "right": (QRectF(W - 120, cy - 34, 100, 44), QPointF(cx + 44, cy - 22), QPointF(W - 112, cy - 12))}
+               "left": (QRectF(20, cy - 34, 118, 44), QPointF(cx - 44, cy - 22), QPointF(112, cy - 12)),
+               "right": (QRectF(W - 138, cy - 34, 118, 44), QPointF(cx + 44, cy - 22), QPointF(W - 112, cy - 12))}
         for side in self.SIDES:
             box, at_car, at_text = pos[side]
             m = self.metres.get(side)
             status = self._status(m)
-            p.setPen(QPen(S.c("ink_3"), 1.2))
-            p.drawLine(at_text, at_car)
+            if side == "ahead":                            # (the side readings sit level with their sensors)
+                p.setPen(QPen(S.c("hairline"), 1.0))
+                p.drawLine(at_text, at_car)
             if status is not None:                         # a short arc at the sensor: a small status mark
                 p.setPen(QPen(S.c(status), 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
                 rr = QRectF(cx - 60, cy - 100, 120, 120) if side == "ahead" else QRectF(cx - 70, cy - 70, 140, 140)
@@ -913,12 +924,16 @@ class AroundTile(GlanceTile):
             text = "--" if m is None else f"{m:.2f} m"
             align = {"ahead": Qt.AlignmentFlag.AlignHCenter, "left": Qt.AlignmentFlag.AlignLeft,
                      "right": Qt.AlignmentFlag.AlignRight}[side]
-            f = S.font(S.BODY, QFont.Weight.Bold)
+            f = S.mono(S.BODY, QFont.Weight.Medium)
             tw = QFontMetricsF(f).horizontalAdvance(text)
-            self._text(p, QRectF(box.left(), box.top(), box.width(), 22), text, S.BODY,
-                       "ink" if m is not None else "ink_3", QFont.Weight.Bold, align | Qt.AlignmentFlag.AlignVCenter)
-            self._text(p, QRectF(box.left(), box.top() + 22, box.width(), 18), side.upper(), S.LABEL, "ink_2",
-                       QFont.Weight.Bold, align | Qt.AlignmentFlag.AlignVCenter, caps=True)
+            p.setPen(S.c("ink" if m is not None else "ink_3")); p.setFont(f)
+            p.drawText(QRectF(box.left(), box.top(), box.width(), 22), align | Qt.AlignmentFlag.AlignVCenter, text)
+            # the side and, with a reading, its band in words (never by colour alone)
+            word = {None: "no reading", "critical": "very close", "warn": "close", "ok": "clear"}[status]
+            self._text(p, QRectF(box.left() - (20 if side == "ahead" else 0), box.top() + 22,
+                                 box.width() + (40 if side == "ahead" else 0), 18),
+                       f"{side.capitalize()} · {word}", S.LABEL, "ink_2", QFont.Weight.Medium,
+                       align | Qt.AlignmentFlag.AlignVCenter)
             if status is not None:                         # status dot beside the number
                 x = {"ahead": box.center().x() + tw / 2 + 10, "left": box.left() + tw + 10,
                      "right": box.right() - tw - 10}[side]
@@ -931,7 +946,7 @@ class AroundTile(GlanceTile):
             line = "No sensor data"
         else:
             line = self.nearest or "Clear around the vehicle"
-        self._text(p, QRectF(24, 318, W - 48, 32), line, S.LABEL, "ink_2", QFont.Weight.Bold)
+        self._text(p, QRectF(24, 318, W - 48, 32), line, S.LABEL, "ink_2", QFont.Weight.Medium)
 
 
 class RangeTile(GlanceTile):
@@ -959,20 +974,24 @@ class RangeTile(GlanceTile):
     def draw_content(self, p):
         S = self.S
         self._text(p, QRectF(24, 50, 130, 34), self.value_text(), S.SECONDARY, "ink" if self.range_km is not None
-                   else "ink_3", QFont.Weight.Bold)
+                   else "ink_3", QFont.Weight.DemiBold)
         x = 152.0
-        self._text(p, QRectF(x, 20, 120, 32), "BATTERY", S.LABEL, "ink_2", QFont.Weight.Bold, caps=True)
-        bar = QRectF(x, 58, self.width() - x - 84, 12)
+        # the battery: a bar, and its band in words too (never by colour alone)
+        band = None if self.soc is None else "very low" if self.soc < 15 else "low" if self.soc < 30 else None
+        title = "BATTERY" + ("" if self.soc is not None and band is None else f" · {band or 'NO READING'}".upper())
+        self._text(p, QRectF(x, 20, self.width() - x - 70, 32), title, S.LABEL, "ink_2", QFont.Weight.DemiBold, caps=True)
+        bar = QRectF(x, 60, self.width() - x - 84, 6)
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(S.c("paper_deep"))
-        p.drawRoundedRect(bar, 6, 6)
+        p.drawRoundedRect(bar, 3, 3)
         if self.soc is not None:
             k = "critical" if self.soc < 15 else "warn" if self.soc < 30 else "ok"
             p.setBrush(S.c(k))
-            p.drawRoundedRect(QRectF(bar.left(), bar.top(), max(12.0, bar.width() * max(0.0, min(1.0, self.soc / 100.0))),
-                                     bar.height()), 6, 6)
+            p.drawRoundedRect(QRectF(bar.left(), bar.top(), max(6.0, bar.width() * max(0.0, min(1.0, self.soc / 100.0))),
+                                     bar.height()), 3, 3)
         power = "-- kW" if self.power_kw is None else f"{self.power_kw:.1f} kW now"
-        self._text(p, QRectF(x, 74, bar.width(), 20), power, S.LABEL, "ink_2", QFont.Weight.Bold)
+        p.setPen(S.c("ink_2")); p.setFont(S.mono(S.LABEL, QFont.Weight.Normal))
+        p.drawText(QRectF(x, 74, bar.width(), 20), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, power)
 
 
 class DriveStage(QWidget):
@@ -1046,13 +1065,10 @@ class DriveStage(QWidget):
         if hasattr(sp, "disc"):
             cx, cy, R = sp.disc()
             g = sp.geometry()
-            S.paint_shadow(p, QRectF(g.x() + cx - R, g.y() + cy - R + SLAB_EDGE, 2 * R, 2 * R), R, 3)
-        strip = self.page.asis_panel
-        if strip.isVisible():
-            S.paint_shadow(p, QRectF(strip.geometry()), 20, 1)
+            S.paint_shadow(p, QRectF(g.x() + cx - R, g.y() + cy - R + SLAB_EDGE, 2 * R, 2 * R), R, 1)
         for t in self.tiles():
             if t.isVisible():
-                S.paint_shadow(p, QRectF(t.geometry()), TILE_RADIUS, 2)
+                S.paint_shadow(p, QRectF(t.geometry()), TILE_RADIUS, 1)
         p.end()
 
 
@@ -1096,7 +1112,7 @@ def _paper_strip(panel, S):
         no_data = panel.line1.text().strip().lower().startswith("no live")
         key = {"critical": "critical", "warning": "warn"}.get(sev, "ink_3" if no_data else "ok")
         panel.setStyleSheet(f"""
-            QFrame#asisAdvisoryPanel {{ background: {S.hx('card')}; border: none; border-radius: 20px; }}
+            QFrame#asisAdvisoryPanel {{ background: {S.hx('card')}; border: 1px solid {S.hx('hairline')}; border-radius: {S.RADIUS_MAX}px; }}
             QFrame#asisAdvisoryPanel QLabel {{ background: transparent; color: {S.hx('ink')}; border: none; }}
         """)
         panel.heading.setText(panel.heading.text().upper())

@@ -55,7 +55,7 @@ AXIS_PX = 12
 CHART_VALUE_PX = 24
 CHART_TITLE_PX = 14
 CHART_RANGES = {"speed_chart": (0.0, 50.0), "soc_chart": (0.0, 100.0), "dist_chart": None, "eff_chart": (0.0, 120.0)}
-PAPER_RADIUS = 24
+PAPER_RADIUS = 8
 
 
 def layout_enabled():
@@ -367,7 +367,7 @@ class _BigValue(QWidget):
         """Paper: the card's one huge value (S.HERO) in ink, its unit at 22 px in ink_2."""
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        fn, fu = S.font(S.HERO, QFont.Weight.Bold), S.font(S.SECONDARY, QFont.Weight.Bold)
+        fn, fu = S.font(S.HERO, QFont.Weight.DemiBold), S.font(S.SECONDARY, QFont.Weight.Medium)
         mn, mu = QFontMetricsF(fn), QFontMetricsF(fu)
         gap = 14.0 if unit else 0.0
         total = mn.horizontalAdvance(num) + gap + (mu.horizontalAdvance(unit) if unit else 0.0)
@@ -823,7 +823,7 @@ class _ShadowHost(QWidget):
         p = QPainter(self)
         for w in self.shadowed:
             if w.isVisible():
-                self.S.paint_shadow(p, QRectF(w.geometry()), PAPER_RADIUS, 2)
+                self.S.paint_shadow(p, QRectF(w.geometry()), PAPER_RADIUS, 1)
         p.end()
 
 
@@ -866,9 +866,9 @@ class _GraphsPreview(QWidget):
 def _paper_card_paint(card, S):
     p = QPainter(card)
     p.setRenderHint(QPainter.RenderHint.Antialiasing)
-    p.setPen(Qt.PenStyle.NoPen)
+    p.setPen(QPen(S.c("hairline"), 1.0))
     p.setBrush(S.c("card"))
-    p.drawRoundedRect(QRectF(card.rect()), PAPER_RADIUS, PAPER_RADIUS)
+    p.drawRoundedRect(QRectF(card.rect()).adjusted(0.5, 0.5, -0.5, -0.5), PAPER_RADIUS, PAPER_RADIUS)
     p.end()
 
 
@@ -892,19 +892,19 @@ def _paint_spark_paper(spark, S, data):
         lo, hi = lo - 1.0, hi + 1.0
     p.setPen(S.c("ink_2"))
     p.drawText(QRectF(0, 0, spark.width(), 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop,
-               f"{lo:.1f} TO {hi:.1f}" if hi - lo < 10 else f"{lo:.0f} TO {hi:.0f}")
+               f"{lo:.1f} to {hi:.1f}" if hi - lo < 10 else f"{lo:.0f} to {hi:.0f}")
     _paper_line(p, S, plot, data, lo, hi)
     p.end()
 
 
 def _paper_line(p, S, plot, data, lo, hi):
-    """One status-colour (ok) line over a faint ink wash."""
+    """One ink line over a faint ink wash (a chart line is data, not a status)."""
     n = len(data)
     rng = (hi - lo) or 1.0
     pts = [QPointF(plot.left() + plot.width() * i / (n - 1), plot.bottom() - (v - lo) / rng * plot.height())
            for i, v in enumerate(data)]
     grad = QLinearGradient(QPointF(0, plot.top()), QPointF(0, plot.bottom()))
-    grad.setColorAt(0.0, S.c("ink", 18))
+    grad.setColorAt(0.0, S.c("ink", 12))
     grad.setColorAt(1.0, S.c("ink", 0))
     area = QPainterPath()
     area.moveTo(pts[0].x(), plot.bottom())
@@ -914,7 +914,7 @@ def _paper_line(p, S, plot, data, lo, hi):
     area.closeSubpath()
     p.setPen(Qt.PenStyle.NoPen)
     p.fillPath(area, grad)
-    pen = QPen(S.c("ok"), 3.0)
+    pen = QPen(S.c("ink"), 2.0)
     pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
     pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     p.setPen(pen)
@@ -936,7 +936,7 @@ def _paint_chart_paper(chart, name, S):
     p.drawText(QRectF(112, 2, w - 112 - 150, 34), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                chart._title.upper())
     p.setPen(S.c("ink"))
-    p.setFont(S.font(S.BODY, QFont.Weight.Bold))
+    p.setFont(S.mono(S.BODY, QFont.Weight.Medium))
     digits = 2 if name == "dist_chart" and data and abs(data[-1]) < 10 else 1
     current = f"{data[-1]:.{digits}f} {chart._unit}" if data else f"-- {chart._unit}"
     p.drawText(QRectF(8, 2, w - 22, 34), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, current)
@@ -957,7 +957,7 @@ def _paint_chart_paper(chart, name, S):
         lo, hi = 0.0, 1.0
     rng = (hi - lo) or 1.0
     fmt = "{:.0f}" if rng >= 10 else "{:.1f}" if rng >= 1 else "{:.2f}"
-    fm = QFontMetricsF(S.font(S.LABEL))
+    fm = QFontMetricsF(S.mono(S.LABEL, QFont.Weight.Normal))
     left = max(60.0, 34.0 + max(fm.horizontalAdvance(fmt.format(lo + rng * k)) for k in (0.0, 0.5, 1.0)))
     plot = QRectF(left, 48, w - left - 18, h - 48 - 46)
     p.setPen(QPen(S.c("hairline"), 1))
@@ -968,7 +968,7 @@ def _paint_chart_paper(chart, name, S):
     p.drawLine(QPointF(plot.left(), plot.top()), QPointF(plot.left(), plot.bottom()))
     p.drawLine(QPointF(plot.left(), plot.bottom()), QPointF(plot.right(), plot.bottom()))
     p.setPen(S.c("ink_2"))
-    p.setFont(S.font(S.LABEL))
+    p.setFont(S.mono(S.LABEL, QFont.Weight.Normal))
     for frac in (0.0, 0.5, 1.0):
         val, y = lo + rng * frac, plot.bottom() - plot.height() * frac
         p.drawText(QRectF(22, y - 9, left - 30, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
@@ -1005,7 +1005,7 @@ def _paper_label(label, S, px, colour="ink", weight=QFont.Weight.Normal, caps=Fa
 def _install_paper(page, S, carousel, dots, graphs_card, graphs_texts, heading, title_label, chart_cards):
     import types
     page.paintEvent = types.MethodType(lambda self, e: None, page)   # the back plane (sw7_style) shows through
-    page.layout().setContentsMargins(24, 8, 24, 32)   # tap targets clear of the floating nav pill (sw7_style)
+    page.layout().setContentsMargins(24, 8, 24, 16)   # the nav bar no longer covers the page (sw7_style)
     carousel.sw7_paper = dots.sw7_paper = S
     cards = [page.s_odo, page.s_power, page.s_eff, graphs_card, page.insights] + list(chart_cards)
     for card in cards:
@@ -1062,12 +1062,12 @@ def _install_paper(page, S, carousel, dots, graphs_card, graphs_texts, heading, 
             b.setFont(S.font(S.BODY, QFont.Weight.Bold))
             b.setStyleSheet(S.button_qss("outline", r, S.BODY) +
                             f" QPushButton:disabled{{background:{S.hx('card_alt')};color:{S.hx('ink_3')};"
-                            f"border:2px solid {S.hx('hairline')};}}")
+                            f"border:1px solid {S.hx('hairline')};}}")
         for name in CHART_RANGES:
             combo = getattr(page, name)._combo
             combo.setStyleSheet(f"""
-                QComboBox {{ background: {S.hx('card')}; color: {S.hx('signal')}; border: 2px solid {S.hx('signal')};
-                             border-radius: 16px; padding: 2px 10px; font-weight: bold; font-size: {S.LABEL}px; }}
+                QComboBox {{ background: {S.hx('card')}; color: {S.hx('signal')}; border: 1px solid {S.rgba('signal', 0.55)};
+                             border-radius: 6px; padding: 2px 10px; font-weight: 600; font-size: {S.LABEL}px; }}
                 QComboBox::drop-down {{ border: none; width: 16px; }}
                 QComboBox QAbstractItemView {{ background: {S.hx('card')}; color: {S.hx('ink')};
                     selection-background-color: {S.hx('signal_tint')}; selection-color: {S.hx('ink')};

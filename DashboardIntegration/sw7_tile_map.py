@@ -167,9 +167,9 @@ def paper_style():
 # Paper and depth style: the map is a raised slab (middle plane) with the controls floating over its edges.
 SLAB_L, SLAB_T = 40, 64              # slab left and top; the cards at EDGE overhang it by 16 and 24 px
 SLAB_OVER = 20                       # the control column and the bottom cards overlap the slab by this much
-SLAB_R = 28                          # corner radius
-SLAB_EDGE = 10                       # the slab's thickness, a warm edge under its face
-PAPER_BOTTOM = 32                    # bottom cards end this far above the page bottom (16 px run under the nav pill)
+SLAB_R = 8                           # corner radius (small radii: the refinement of 12 Oct)
+SLAB_EDGE = 0                        # no slab thickness: a flat map with a hairline edge
+PAPER_BOTTOM = 16                    # bottom cards end this far above the page bottom (the nav bar no longer covers it)
 PAPER_BANNER_H = 184                 # turn banner: the distance as the page's hero (120 px), the street at 22 px
 TINTS_PER_FRAME = 6                  # tiles tinted per paint at most (the rest next frame)
 DAY_TINT = "#F4E8DC"                 # multiplied into the tiles by day: OSM ground becomes paper_deep, roads paper
@@ -335,8 +335,8 @@ class _MapButton(QPushButton):
         if S is not None:                 # paper: a signal outline card, filled signal while selected
             # (its shadow is painted by the map under it, cached: the map repaints every frame)
             p.setBrush(S.c("signal") if on else S.c("signal_tint" if self.isDown() else "card"))
-            p.setPen(QPen(S.c("signal"), 2.0))
-            p.drawRoundedRect(r.adjusted(1, 1, -1, -1), 20, 20)
+            p.setPen(QPen(S.c("signal") if on else S.c("hairline"), 1.0))
+            p.drawRoundedRect(r.adjusted(0.5, 0.5, -0.5, -0.5), 8, 8)
             ink = S.c("card") if on else S.c("signal")
         else:
             accent, text = QColor(THEME.hex("accent")), QColor(THEME.hex("text"))
@@ -980,7 +980,7 @@ class SW7TileMap(QWidget):
             self.overlays_changed.connect(page._position_overlays)
             self.follow_handler = lambda: page.set_follow_mode(True)
             self.overview_handler = page.show_overview
-            page.plan_btn.setMinimumSize(120, 48)
+            page.plan_btn.setMinimumSize(120, 64 if self._S is not None else 48)   # paper: a 64 px target
             page.destination.setMinimumHeight(48)
             page.route_status.setStyleSheet(f"font-size: {16 if self._S is not None else PX['status']}px;")
             self.floating = [page.search, page.route_status, page.retry_btn]   # cached shadows (paper)
@@ -1636,7 +1636,7 @@ class SW7TileMap(QWidget):
         p = QPainter(img)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         body = slab.adjusted(0, 0, 0, SLAB_EDGE)
-        S.paint_shadow(p, body, SLAB_R, 3)
+        S.paint_shadow(p, body, SLAB_R, 1)
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(self._edge_colour())
         p.drawRoundedRect(body, SLAB_R, SLAB_R)
@@ -2157,14 +2157,14 @@ class SW7TileMap(QWidget):
         if ahead and banner is not None:
             man, dist = ahead[0]
             bx, by, bw = banner.left(), banner.top(), banner.width()
-            S.paint_shadow(p, banner, 24, 2)
+            S.paint_shadow(p, banner, 8, 1)
             p.setPen(Qt.PenStyle.NoPen)
             top = QRectF(bx, by, bw, PAPER_BANNER_H)
             if len(ahead) > 1:            # the Then strip: the bottom of the same card, a shade lighter
                 p.setBrush(QColor(S.blend(S.hx("charcoal"), S.hx("on_charcoal"), 0.07)))
-                p.drawRoundedRect(banner, 24, 24)
+                p.drawRoundedRect(banner, 8, 8)
                 p.setBrush(S.c("charcoal"))
-                p.drawRoundedRect(top, 24, 24)
+                p.drawRoundedRect(top, 8, 8)
                 p.drawRect(QRectF(bx, by + PAPER_BANNER_H - 24, bw, 24))
                 p.setPen(on2)
                 p.setFont(S.font(16, QFont.Weight.DemiBold))
@@ -2177,7 +2177,7 @@ class SW7TileMap(QWidget):
                 self.overlay_px["then"] = 16
             else:
                 p.setBrush(S.c("charcoal"))
-                p.drawRoundedRect(top, 24, 24)
+                p.drawRoundedRect(top, 8, 8)
             self._turn_arrow(p, QRectF(bx + 22, by + 30, 76, 76), man["kind"], on)
             tx, text_w = bx + 116, bw - 116 - 20
             if man["kind"] == "arrive":
@@ -2212,7 +2212,7 @@ class SW7TileMap(QWidget):
         if eta_s is None and not self.simulating:
             return
         bar = self.eta_rect()
-        S.paint_card(p, bar, 24, 2)
+        S.paint_card(p, bar, 8, 1)
         self.overlay_rects["eta"] = QRectF(bar)
         x = bar.left() + 12
         if self.simulating:               # data-source mark: ink on a warn tint with a warn dot, never signal
@@ -2221,7 +2221,7 @@ class SW7TileMap(QWidget):
             chip = QRectF(x, bar.top() + 20, p.fontMetrics().horizontalAdvance(label) + 40, bar.height() - 40)
             p.setPen(QPen(S.c("warn"), 1))
             p.setBrush(S.c("warn_tint"))
-            p.drawRoundedRect(chip, chip.height() / 2, chip.height() / 2)
+            p.drawRoundedRect(chip, 4, 4)
             p.setPen(Qt.PenStyle.NoPen)
             p.setBrush(S.c("warn"))
             p.drawEllipse(QPointF(chip.left() + 14, chip.center().y()), 4, 4)
@@ -2288,7 +2288,7 @@ class SW7TileMap(QWidget):
         sw = QFontMetricsF(sf).horizontalAdvance(sub)
         bw, bh = max(tw, sw) + 48, 64
         box = QRectF(centre.x() - bw / 2, centre.y() - bh / 2, bw, bh)
-        S.paint_card(p, box, 20, 2)
+        S.paint_card(p, box, 8, 1)
         title_r = QRectF(box.left(), box.top() + 9, bw, 24)
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(QColor(colour))

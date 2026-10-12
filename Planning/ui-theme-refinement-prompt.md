@@ -40,3 +40,39 @@ The student's master prompt, pasted on 12 Oct, is summarised here; the reference
    - A new test covering the pages, the fonts loading, the unboxed weather, both themes and no clipping.
    - Before and after screenshots of every page in light and dark.
    - `TUKZIE_SW7_STYLE=team` must stay exactly as it is.
+
+## Inventory (12 Oct, before the refinement)
+
+Taken from the paper build (all 15 tests passing, screenshots `DashboardIntegration/tests/style/refine/before_*.png`,
+day and night, and `before_team_*.png` for `TUKZIE_SW7_STYLE=team`).
+
+Pages (nav order, ids in brackets):
+1. Drive (`driving`): ASIS advice strip, gear and turn indicators, warning lamps, the speed dial (ticks, arc, the
+   speed-limit and recommended-speed marks), the Next turn tile (mini map, opens Map), the Around tile (ToF left,
+   ahead and right, opens Surroundings), the Range and battery tile (opens Charging), the interlock line.
+2. Analytics (`analytics`): the infinite vertical carousel (odometer and the other value cards, Graphs card, insights),
+   the graphs view with its four charts and Back, the dots and the up and down buttons.
+3. Diagnostics (`diagnostics`): Controls, Health (with the "Outside (weather)" glance that opens the weather card),
+   Position and Link cards, "Show advice and details" with the folded advice, route, voice and raw values list.
+4. Map (`navigation`): the street-tile map (follow, overview, compass, zoom, optional 3D tilt), the turn banner,
+   destination search with type-ahead and the touch keyboard, Navigate, the arrival bar (one ETA), Simulate drive and
+   End simulation, the offline and "Waiting for GPS fix" states, the attribution.
+5. Surroundings (`sensors`, aliases `camera` and `surroundings`): the camera frame and its status chip, the tuk-tuk
+   with ToF distances, one combined hazards list nearest first, the nearest hazard as the hero, the sensors link chip,
+   the Ride row.
+6. Charging (`charging`): the battery ring (state of charge, stored energy, power, voltage, current, time to full,
+   cell health), the team's battery animation (bubbles in the fluid and the spinning arc, stopped by the paper pass),
+   the charge source line, the power-input chart, the Range, Range added and Energy delivered tiles, pack temperature.
+7. Settings (`settings`): brightness, voice, voice speed, volume, Test voice, voice alerts, Repeat last warning,
+   start-in-follow-mode, the LOOK swatches (Auto, Day, Night), Save, "Show advanced settings" and every advanced
+   control, each persisted in the saved settings.
+
+Shared components: the status bar (weather item, source chip LIVE / REPLAY / NO DATA / SIMULATED, battery percent and
+icon, clock), the SIMULATED strip, the obstacle pill (opens Surroundings, Hide), the weather card, the nav bar
+(7 items, labels), the side arrows, the two- and three-finger page swipe, touch scrolling, the back plane.
+
+Features that must survive the refinement: live versus simulated versus no data on every page; simulated-drive sync;
+voice guidance and voice alerts; destination search and recents; follow, overview and tilt on the map; the camera
+streaming only while Surroundings is shown; the weather service, its cache, its unavailable state and the day and
+night switch at sunrise and sunset; every setting and its persistence; `TUKZIE_SW7_STYLE=team` exactly as it is
+(recorded in `tests/style/refine/team_reference.json`).

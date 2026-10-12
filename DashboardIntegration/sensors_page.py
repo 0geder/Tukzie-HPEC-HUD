@@ -616,11 +616,11 @@ class HazardBanner(QFrame):
             S = self._paper
             status, text = self._message
             h = 40
-            self.setStyleSheet(f"HazardBanner {{ background: {S.hx('charcoal')}; border-radius: {h // 2}px; }}"
+            self.setStyleSheet(f"HazardBanner {{ background: {S.hx('charcoal')}; border-radius: {S.RADIUS_MAX}px; }}"
                                f" QPushButton {{ color: {S.hx('on_charcoal')}; background: transparent; border: none;"
                                f" text-align: left; padding: 0px; }}"
                                f" QPushButton#hide {{ background: {S.hx('signal')}; color: {S.hx('card')};"
-                               f" border-radius: 14px; padding: 0px 14px; }}"
+                               f" border-radius: {S.RADIUS_SM}px; padding: 0px 14px; }}"
                                f" QPushButton#hide:pressed {{ background: {S.hx('signal_pressed')}; }}")
             self.dot.setStyleSheet(f"background: {S.hx('critical' if status == 'crit' else 'warn')}; border-radius: 6px;")
             self.hide_btn.setObjectName("hide")

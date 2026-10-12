@@ -22,30 +22,38 @@ API for the page agents (everything else in this file is the frame and can be ig
     connect it and restyle.
     Rule: signal only on things you can tap. Status colours only as small marks (dot, bar, ring segment, word).
 
-  Type (bundled Atkinson Hyperlegible; sizes in px)
+  Type (bundled IBM Plex Sans and IBM Plex Mono, SIL OFL; Atkinson Hyperlegible stays as the fallback; sizes in px)
     S.HERO (150), S.HERO_MIN 120, S.HERO_MAX 180: the page's one hero value
     S.SECONDARY 22 (at most 3 per page), S.BODY 16, S.LABEL 13 (labels, units, caps section labels in ink_2)
-    S.font(px, weight=QFont.Weight.Normal, caps=False)  -> QFont; caps=True adds letter spacing for caps labels
+    S.font(px, weight=QFont.Weight.Normal, caps=False)  -> QFont in Plex Sans (the interface). Bold and Black map to
+                           SemiBold (the heaviest weight bundled, never a synthetic bold); caps=True adds a little
+                           letter spacing for the few caps section labels.
+    S.mono(px, weight=QFont.Weight.Medium)  -> QFont in Plex Mono: only telemetry values, diagnostics, coordinates and
+                           timestamps. Both fonts have tabular figures, so digits never shift when a value changes.
+    S.value_font(label, px, weight)  sets Mono on a value label when its text is a figure ("12.3 V", "--") and Sans
+                           when it is a word ("Unavailable", "Yes"), so an unavailable value never looks like a number.
     S.type_audit(root) -> [(widget, px)] for visible text widgets outside {13, 16, 22, 120..180}
 
-  Depth (three planes)
-    Back plane:   S.set_back_word(page, "DRIVE", corner="bl")  giant faint word behind a ThemedPageSurface page
-                  S.attach_back_plane(widget, "CHARGE")         same for any other QWidget page (paints under it)
-                  S.paint_back_plane(p, rect, word, corner="bl", px=260)  if you paint the page yourself
-    Middle/top:   S.elevate(widget, level=2)   QGraphicsDropShadowEffect, warm. Only for widgets that do not
-                  repaint every frame (not the map, not the live speed): for those paint a cached shadow:
-                  S.paint_card(p, rect, radius=24, level=2, fill="card")   shadow pixmap (cached) + card
-                  S.paint_shadow(p, rect, radius=24, level=2)              shadow only
-                  levels: 1 = chips and small buttons (blur 24, y 8), 2 = cards (blur 32, y 12),
-                          3 = floating slabs and sheets (blur 40, y 16)
-    The nav bar is a floating pill. The page stack runs NAV_OVERLAP (16) px under it, so keep tap targets out
-    of the bottom 16 px of a page, and the selected item's circle reaches 24 px into the page in the middle.
+  Surfaces (the refinement of 12 Oct: restrained, Planning/ui-theme-refinement-prompt.md)
+    Back plane:   S.set_back_word(page, "DRIVE", corner="bl") / S.attach_back_plane(widget, "CHARGE") /
+                  S.paint_back_plane(p, rect, word, ...) keep their API; the plane is plain paper now (BACK_WORDS_SHOWN
+                  is False), so nothing decorative competes with the data.
+    Cards:        S.elevate(widget, level=2)   a very light warm shadow (QGraphicsDropShadowEffect). Only for widgets
+                  that do not repaint every frame; for those paint a cached shadow:
+                  S.paint_card(p, rect, radius=8, level=2, fill="card")   cached shadow + card + hairline border
+                  S.paint_shadow(p, rect, radius=8, level=2)              shadow only
+                  levels: 1 = chips and small buttons (blur 8, y 1), 2 = cards (blur 12, y 2),
+                          3 = sheets (blur 18, y 4). Radii are clamped to RADIUS_MAX (8 px) unless the shape is a circle.
+    The nav bar is a flat bar with a hairline on top, NAV_FLOAT_H (72) px, directly under the page stack: it never
+    covers content (NAV_OVERLAP is 0). Unselected items are ink; the selected one is signal with a short signal bar.
 
   Buttons
     S.style_button(btn, kind="outline"|"filled", radius=None, px=16)   signal outline (card fill, signal ink)
                    or filled (signal fill, card ink); THEME.stylesheet() already does "outline" for every
                    QPushButton, ":checked" is filled.
     S.mark_exempt(widget, "reason")    a tappable widget that deliberately has no signal (e.g. the obstacle text)
+    S.mark_quiet(widget)               a tappable that is neither selected nor a key control (an unselected nav item,
+                                       the status-bar weather item): ink, no signal, and the audit accepts that
     S.mark_tappable(widget)            a custom widget that reacts to taps (not a QAbstractButton)
 
   Tests
@@ -85,21 +93,29 @@ NIGHT = {
     "shadow": "#070504",
     "ok": "#86B08C", "warn": "#E0A63A", "critical": "#E25A4E", "warn_tint": "#4A3B1C",
 }
-SHADOW_ALPHA = {False: (0.18, 0.22, 0.28), True: (0.45, 0.55, 0.65)}     # day, night; by level 1..3
-LEVELS = {1: (24, 8), 2: (32, 12), 3: (40, 16)}                         # blur radius, y offset
+SHADOW_ALPHA = {False: (0.07, 0.09, 0.12), True: (0.30, 0.36, 0.44)}     # day, night; by level 1..3 (very light)
+LEVELS = {1: (8, 1), 2: (12, 2), 3: (18, 4)}                             # blur radius, y offset
+RADIUS_MAX = 8              # surfaces: small radii (4 to 8 px); circles stay circles
+RADIUS_SM = 4               # chips, bars, small controls
+BACK_WORDS_SHOWN = False    # the giant back-plane words of the depth pass: off (nothing decorative competes)
+SPACE = (4, 8, 12, 16, 24, 32)   # the spacing scale
 
 # ---- type scale ---------------------------------------------------------------------------------------------------
 HERO_MIN, HERO, HERO_MAX = 120, 150, 180
 SECONDARY, BODY, LABEL = 22, 16, 13
 TEXT_SIZES = (LABEL, BODY, SECONDARY)
+SANS, MONO = "IBM Plex Sans", "IBM Plex Mono"
+FALLBACK = "Atkinson Hyperlegible"
 
 # ---- frame sizes (1280 x 800, on top of the layout pass) --------------------------------------------------------
-NAV_H = 72                  # the layout pass's nav row: the pill and its 64 px targets
-NAV_FLOAT_H = 88            # the floating nav overlay: 16 px more for the raised circle
-NAV_OVERLAP = 16            # the page stack runs this far under the pill
-PILL_TOP, PILL_H = 16, 64   # the pill inside the overlay
-CIRCLE_D = 52               # the selected item's raised circle
-NAV_BTN_H = 80              # nav targets: 80 px tall (the circle and the label), at least 96 px wide
+NAV_H = 72                  # the nav row: a flat bar, its 64 px targets inside
+NAV_FLOAT_H = 72            # the nav widget's height (the same: nothing reaches above the bar)
+NAV_OVERLAP = 0             # the page stack ends where the bar starts: the bar never covers content
+NAV_BAR_TOP = 0             # the bar inside the nav widget
+PILL_TOP, PILL_H = NAV_BAR_TOP, NAV_FLOAT_H    # (names kept for the tests and pages that read them)
+INDICATOR_W, INDICATOR_H = 40, 3               # the selected item's signal bar, on the bar's top edge
+CIRCLE_D = 0                # the raised circle of the depth pass is gone
+NAV_BTN_H = 68              # nav targets: 68 px tall, at least 96 px wide
 CHIP_W, CHIP_H = 132, 28
 MARK_PX = 420               # audit: signal-like pixels allowed in one non-tappable widget (a status dot, a bar)
 
@@ -175,32 +191,84 @@ def _theme_changed():
 
 # ---- fonts --------------------------------------------------------------------------------------------------------
 _family = None
+_mono = None
+
+
+def _register_fonts():
+    """Register every bundled TTF once (app/fonts in the dashboard, fonts/ beside this file in DashboardIntegration)."""
+    from PySide6.QtGui import QFontDatabase
+    import glob
+    here = os.path.dirname(os.path.abspath(__file__))
+    for folder in (os.path.join(here, "..", "fonts"), os.path.join(here, "fonts")):
+        for path in sorted(glob.glob(os.path.join(folder, "*.ttf"))):
+            QFontDatabase.addApplicationFont(path)
+    return set(QFontDatabase.families())
 
 
 def family() -> str:
-    global _family
+    """The interface font: IBM Plex Sans, else the earlier Atkinson Hyperlegible, else a system sans."""
+    global _family, _mono
     if _family is None:
-        from PySide6.QtGui import QFontDatabase
-        import glob
-        here = os.path.dirname(os.path.abspath(__file__))
-        for folder in (os.path.join(here, "..", "fonts"), os.path.join(here, "fonts")):
-            for path in glob.glob(os.path.join(folder, "*.ttf")):
-                QFontDatabase.addApplicationFont(path)
-        fams = set(QFontDatabase.families())
-        _family = next((f for f in ("Atkinson Hyperlegible", "B612", "Inter", "DejaVu Sans") if f in fams), "Sans Serif")
+        fams = _register_fonts()
+        _family = next((f for f in (SANS, FALLBACK, "B612", "Inter", "DejaVu Sans") if f in fams), "Sans Serif")
+        _mono = next((f for f in (MONO, "DejaVu Sans Mono", "Consolas") if f in fams), _family)
     return _family
+
+
+def mono_family() -> str:
+    family()
+    return _mono
+
+
+def _weight(weight):
+    """Bold and Black map to SemiBold, the heaviest bundled weight (no synthetic bold), DemiBold stays."""
+    from PySide6.QtGui import QFont
+    W = QFont.Weight
+    if weight is None:
+        return W.Normal
+    v = int(weight.value) if hasattr(weight, "value") else int(weight)
+    if v >= 600:
+        return W.DemiBold
+    if v >= 500:
+        return W.Medium
+    return W.Normal
 
 
 def font(px: int, weight=None, caps: bool = False):
     from PySide6.QtGui import QFont
     f = QFont(family())
     f.setPixelSize(int(px))
-    f.setWeight(QFont.Weight.Normal if weight is None else weight)
+    f.setWeight(_weight(weight))
+    f.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
     if caps:
-        f.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 108)
+        f.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 104)
     if px >= HERO_MIN:
-        f.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 96)
+        f.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 97)
     return f
+
+
+def mono(px: int, weight=None):
+    """Plex Mono for telemetry values, diagnostics, coordinates and timestamps (Regular or Medium)."""
+    from PySide6.QtGui import QFont
+    f = QFont(mono_family())
+    f.setPixelSize(int(px))
+    f.setWeight(QFont.Weight.Medium if weight is None or _weight(weight) != QFont.Weight.Normal else QFont.Weight.Normal)
+    f.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+    return f
+
+
+def is_figure(text) -> bool:
+    """A value that is a number (or its placeholder "--"), as opposed to a word such as "Unavailable" or "Yes"."""
+    t = str(text or "").strip()
+    return any(ch.isdigit() for ch in t) or t.startswith("--")
+
+
+def value_font(label, px: int = None, weight=None):
+    """Mono for a figure, Sans for a word: call after setText on a telemetry value label."""
+    px = px or text_px(label) or BODY
+    f = mono(px, weight) if is_figure(label.text()) else font(px, weight)
+    if label.font().family() != f.family() or label.font().pixelSize() != f.pixelSize():
+        label.setFont(f)
 
 
 def text_px(widget) -> int:
@@ -260,6 +328,14 @@ def _re_elevate(widget):
         pass
 
 
+def radius_for(rect, radius: float) -> float:
+    """Small radii: a circle stays a circle, everything else is clamped to RADIUS_MAX."""
+    w, h = float(rect.width()), float(rect.height())
+    if abs(w - h) < 1.0 and radius >= min(w, h) / 2.0 - 0.5:
+        return radius
+    return min(float(radius), float(RADIUS_MAX))
+
+
 def shadow_pixmap(w: int, h: int, radius: float, level: int = 2):
     """(pixmap, margin): the blurred shadow of a w x h rounded rect, cached. Draw it at (x - margin, y - margin + dy)."""
     from PySide6.QtCore import QRectF, Qt
@@ -291,21 +367,30 @@ def shadow_pixmap(w: int, h: int, radius: float, level: int = 2):
     return res
 
 
-def paint_shadow(p, rect, radius: float = 24, level: int = 2):
+def paint_shadow(p, rect, radius: float = RADIUS_MAX, level: int = 2):
     from PySide6.QtCore import QPointF
+    radius = radius_for(rect, radius)
     pix, m = shadow_pixmap(int(rect.width()), int(rect.height()), radius, level)
     p.drawPixmap(QPointF(rect.x() - m, rect.y() - m + LEVELS[max(1, min(3, level))][1]), pix)
 
 
-def paint_card(p, rect, radius: float = 24, level: int = 2, fill: str = "card", outline: str | None = None):
+def paint_card(p, rect, radius: float = RADIUS_MAX, level: int = 2, fill: str = "card", outline: str | None = "hairline"):
+    """A card: a very light cached shadow, the fill and a hairline border (outline=None for none)."""
     from PySide6.QtCore import QRectF, Qt
     from PySide6.QtGui import QPen
     rect = QRectF(rect)
+    radius = radius_for(rect, radius)
     if level:
         paint_shadow(p, rect, radius, level)
     p.save(); p.setRenderHint(p.RenderHint.Antialiasing)
-    p.setPen(QPen(c(outline), 1.5) if outline else Qt.PenStyle.NoPen); p.setBrush(c(fill))
-    p.drawRoundedRect(rect, radius, radius); p.restore()
+    p.setBrush(c(fill))
+    if outline:
+        p.setPen(QPen(c(outline), 1.0))
+        p.drawRoundedRect(rect.adjusted(0.5, 0.5, -0.5, -0.5), radius, radius)
+    else:
+        p.setPen(Qt.PenStyle.NoPen)
+        p.drawRoundedRect(rect, radius, radius)
+    p.restore()
 
 
 # ---- back plane ---------------------------------------------------------------------------------------------------
@@ -328,7 +413,7 @@ def paint_back_plane(p, rect, word: str = "", corner: str = "bl", px: int = 260,
             q.setPen(Qt.PenStyle.NoPen); q.setBrush(c("paper_deep"))
             for path in (ground if isinstance(ground, (list, tuple)) else [ground]):
                 q.drawPath(path)
-        if word:
+        if word and BACK_WORDS_SHOWN:
             f = font(px, QFont.Weight.Bold); f.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 92)
             q.setFont(f); q.setPen(c("paper_deep"))
             fm = QFontMetrics(f)
@@ -369,24 +454,35 @@ def attach_back_plane(widget, word: str = "", corner: str = "bl", px: int = 260)
 
 
 # ---- buttons ------------------------------------------------------------------------------------------------------
-def button_qss(kind: str = "outline", radius: int = 16, px: int = BODY, selector: str = "QPushButton") -> str:
+def button_qss(kind: str = "outline", radius: int = RADIUS_MAX, px: int = BODY, selector: str = "QPushButton") -> str:
+    """filled: a key control (signal fill, card ink). outline: a secondary control (card, a fine signal border at
+    reduced strength, signal ink). Radii are small (at most RADIUS_MAX); weight SemiBold."""
+    radius = min(int(radius), RADIUS_MAX)
+    fam = family()
     if kind == "filled":
         return (f"{selector}{{background:{hx('signal')};color:{hx('card')};border:none;border-radius:{radius}px;"
-                f"font-size:{px}px;font-weight:700;padding:0px 16px;}}"
-                f" {selector}:pressed{{background:{hx('signal_pressed')};}}")
-    return (f"{selector}{{background:{hx('card')};color:{hx('signal')};border:2px solid {hx('signal')};"
-            f"border-radius:{radius}px;font-size:{px}px;font-weight:700;padding:0px 16px;}}"
+                f"font-family:'{fam}';font-size:{px}px;font-weight:600;padding:0px 16px;}}"
+                f" {selector}:pressed{{background:{hx('signal_pressed')};}}"
+                f" {selector}:disabled{{background:{hx('paper_deep')};color:{hx('ink_3')};}}")
+    return (f"{selector}{{background:{hx('card')};color:{hx('signal')};border:1px solid {rgba('signal', 0.55)};"
+            f"border-radius:{radius}px;font-family:'{fam}';font-size:{px}px;font-weight:600;padding:0px 16px;}}"
             f" {selector}:pressed{{background:{hx('signal_tint')};}}"
-            f" {selector}:checked{{background:{hx('signal')};color:{hx('card')};}}")
+            f" {selector}:checked{{background:{hx('signal')};color:{hx('card')};border:1px solid {hx('signal')};}}"
+            f" {selector}:disabled{{color:{hx('ink_3')};border-color:{hx('hairline')};}}")
 
 
 def style_button(btn, kind: str = "outline", radius: int | None = None, px: int = BODY):
-    r = radius if radius is not None else min(32, max(12, btn.height() // 2 if btn.height() > 0 else 16))
+    r = radius if radius is not None else RADIUS_MAX
     btn.setStyleSheet(button_qss(kind, r, px))
 
 
 def mark_exempt(widget, reason: str):
     widget.setProperty("sw7_signal_exempt", reason)
+
+
+def mark_quiet(widget, on: bool = True):
+    """A tappable that is neither selected nor a key control: drawn in ink, and the audit does not ask for signal."""
+    widget.setProperty("sw7_quiet", bool(on))
 
 
 def mark_tappable(widget, on: bool = True):
@@ -508,7 +604,8 @@ def audit_signal(root, ignore=(), mark_px: int = MARK_PX, step: int = 2, image=N
         if n > mark_px:
             out.append(Finding(wd, "info_in_signal", n, f"status colour near the signal hue over {mark_px} px"))
     for wd in [root] + root.findChildren(QWidget):
-        if not wd.isVisible() or not is_tappable(wd) or under_ignored(wd) or wd.property("sw7_signal_exempt"):
+        if not wd.isVisible() or not is_tappable(wd) or under_ignored(wd) or wd.property("sw7_signal_exempt") \
+                or wd.property("sw7_quiet"):
             continue
         g = wd.geometry()
         if wd.width() < 8 or wd.height() < 8:
@@ -573,26 +670,27 @@ def paper_stylesheet() -> str:
     return f"""
         QWidget {{ color: {p['ink']}; selection-background-color: {p['signal_tint']}; selection-color: {p['ink']}; }}
         QLabel, QAbstractButton#iconButton, QWidget#transparentContainer {{ background: transparent; }}
-        QFrame#card {{ background-color: {p['card']}; border: none; border-radius: 24px; }}
-        QFrame#cardAlt {{ background-color: {p['card_alt']}; border: none; border-radius: 20px; }}
+        QFrame#card {{ background-color: {p['card']}; border: 1px solid {p['hairline']}; border-radius: {RADIUS_MAX}px; }}
+        QFrame#cardAlt {{ background-color: {p['card_alt']}; border: 1px solid {p['hairline']}; border-radius: {RADIUS_MAX}px; }}
         QLabel#dim {{ color: {p['ink_2']}; background: transparent; }}
         QLabel#faint {{ color: {p['ink_3']}; background: transparent; }}
-        QPushButton {{ background-color: {p['card']}; color: {p['signal']}; border: 2px solid {p['signal']};
-            border-radius: 16px; padding: 8px 16px; font-weight: 700; }}
+        QPushButton {{ background-color: {p['card']}; color: {p['signal']}; border: 1px solid {rgba('signal', 0.55)};
+            border-radius: {RADIUS_MAX}px; padding: 8px 16px; font-weight: 600; }}
         QPushButton:pressed {{ background-color: {p['signal_tint']}; }}
-        QPushButton:checked {{ background-color: {p['signal']}; color: {p['card']}; border: 2px solid {p['signal']}; }}
+        QPushButton:checked {{ background-color: {p['signal']}; color: {p['card']}; border: 1px solid {p['signal']}; }}
         QPushButton:disabled {{ color: {p['ink_3']}; border-color: {p['hairline']}; background-color: {p['card_alt']}; }}
         QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {{ background-color: {p['card']}; color: {p['ink']};
-            border: 2px solid {p['signal']}; border-radius: 14px; padding: 7px 12px; }}
+            border: 1px solid {rgba('signal', 0.55)}; border-radius: {RADIUS_MAX - 2}px; padding: 7px 12px; }}
+        QLineEdit:focus, QComboBox:focus {{ border: 1px solid {p['signal']}; }}
         QComboBox QAbstractItemView, QMenu {{ background-color: {p['card']}; color: {p['ink']};
             border: 1px solid {p['hairline']}; selection-background-color: {p['signal_tint']}; selection-color: {p['ink']}; }}
         QCheckBox {{ background: transparent; spacing: 12px; }}
         QCheckBox::indicator {{ width: 44px; height: 24px; border-radius: 12px; background: {p['paper_deep']};
-            border: 2px solid {p['signal']}; }}
+            border: 1px solid {p['ink_3']}; }}
         QCheckBox::indicator:checked {{ background: {p['signal']}; border-color: {p['signal']}; }}
-        QSlider::groove:horizontal {{ height: 8px; border-radius: 4px; background: {p['paper_deep']}; }}
-        QSlider::handle:horizontal {{ width: 28px; margin: -10px 0; border-radius: 14px; background: {p['signal']}; }}
-        QSlider::sub-page:horizontal {{ background: {p['signal']}; border-radius: 4px; }}
+        QSlider::groove:horizontal {{ height: 4px; border-radius: 2px; background: {p['paper_deep']}; }}
+        QSlider::handle:horizontal {{ width: 24px; margin: -10px 0; border-radius: 12px; background: {p['signal']}; }}
+        QSlider::sub-page:horizontal {{ background: {p['signal']}; border-radius: 2px; }}
         QScrollArea, QScrollArea > QWidget, QScrollArea > QWidget > QWidget {{ background: transparent; border: none; }}
         QScrollBar:vertical {{ background: transparent; width: 8px; margin: 2px; }}
         QScrollBar::handle:vertical {{ background: {p['hairline']}; min-height: 28px; border-radius: 4px; }}
@@ -654,9 +752,10 @@ def _card_paint(orig, card, event):
     from PySide6.QtCore import QRectF, Qt
     from PySide6.QtGui import QPainter
     from PySide6.QtWidgets import QFrame
+    from PySide6.QtGui import QPen
     p = QPainter(card); p.setRenderHint(QPainter.RenderHint.Antialiasing)
-    p.setPen(Qt.PenStyle.NoPen); p.setBrush(c("card"))
-    p.drawRoundedRect(QRectF(card.rect()), 20, 20); p.end()
+    p.setPen(QPen(c("hairline"), 1.0)); p.setBrush(c("card"))
+    p.drawRoundedRect(QRectF(card.rect()).adjusted(0.5, 0.5, -0.5, -0.5), RADIUS_MAX, RADIUS_MAX); p.end()
     QFrame.paintEvent(card, event)
 
 
@@ -695,8 +794,8 @@ def _icon_refresh(button, *_a, **_k):
     if button.objectName() == "sideArrow":
         col = c("signal")
     elif getattr(button, "sw7_nav", False):
-        col = c("card") if button.isChecked() else c("signal")
-        size = 26 if button.isChecked() else 28
+        col = c("signal") if button.isChecked() else c("ink_2")      # only the selected item is in signal
+        size = 26
         button.setIcon(icon(button.name, size, col)); button.setIconSize(QSize(size, size))
         return
     else:
@@ -709,9 +808,10 @@ def _install_status_bar(cls, battery_cls):
     def theme_after(bar, *_a, **_k):
         from PySide6.QtGui import QFont
         bar.setStyleSheet(f"QFrame#dashboardStatusBar{{background:{hx('paper')};border:none;"
-                          f"min-height:48px;max-height:48px;}} QLabel{{color:{hx('ink')};background:transparent;}}")
-        bar.clock.setFont(font(BODY, QFont.Weight.Bold))
-        bar.soc.setFont(font(BODY, QFont.Weight.Bold))
+                          f"border-bottom:1px solid {hx('hairline')};min-height:47px;max-height:47px;}}"
+                          f" QLabel{{color:{hx('ink')};background:transparent;}}")
+        bar.clock.setFont(mono(BODY, QFont.Weight.Medium))          # a timestamp: Plex Mono
+        bar.soc.setFont(mono(BODY, QFont.Weight.Medium))            # a telemetry value: Plex Mono
         if getattr(bar, "_state", None) is not None:
             bar.update_state(bar._state)
         if hasattr(bar, "sw7_weather_chip"):
@@ -721,33 +821,35 @@ def _install_status_bar(cls, battery_cls):
     _swrap(cls, "__init__", after=theme_after)      # after the layout pass's own __init__ sizes
 
 
-# nav pill ------------------------------------------------------------------------------------------------------------
+# nav bar -------------------------------------------------------------------------------------------------------------
 def _install_nav(cls):
     def init_after(nav, *_a, **_k):
         from PySide6.QtCore import Qt
         nav.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, False)
         for b in nav.buttons.values():
             b.sw7_nav = True
+            mark_quiet(b)                      # unselected items are ink; the selected one is signal
             b.setFixedHeight(NAV_BTN_H)
             lab = getattr(b, "sw7_label", None)
             if lab is not None and b.layout() is not None:
-                b.layout().setContentsMargins(2, 0, 2, 5)
+                b.layout().setContentsMargins(2, 0, 2, 8)
+            b.toggled.connect(lambda on, btn=b, n=nav: _nav_label_weight(btn, on, n))
             b.refresh()
         _nav_theme(nav)
 
     def paint(orig, nav, event):
-        from PySide6.QtCore import QRectF
+        """A flat bar: card fill, a hairline on top, and a short signal bar over the selected item."""
+        from PySide6.QtCore import QRectF, Qt
         from PySide6.QtGui import QPainter
-        p = QPainter(nav); p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        pill = _pill_rect(nav)
-        paint_card(p, pill, PILL_H / 2, 2)
+        p = QPainter(nav)
+        bar = _pill_rect(nav)
+        p.fillRect(bar, c("card"))
+        p.fillRect(QRectF(bar.left(), bar.top(), bar.width(), 1), c("hairline"))
         sel = next((b for b in nav.buttons.values() if b.isChecked() and b.isVisible()), None)
-        if sel is not None:
-            cx = sel.geometry().center().x() + 0.5
-            circle = QRectF(cx - CIRCLE_D / 2, PILL_TOP - 8, CIRCLE_D, CIRCLE_D)
-            paint_shadow(p, circle, CIRCLE_D / 2, 1)
-            from PySide6.QtCore import Qt
-            p.setPen(Qt.PenStyle.NoPen); p.setBrush(c("signal")); p.drawEllipse(circle)
+        if sel is not None:                    # on the selected item's own top edge (it is part of the target)
+            g = sel.geometry()
+            p.setPen(Qt.PenStyle.NoPen); p.setBrush(c("signal"))
+            p.drawRect(QRectF(g.center().x() - INDICATOR_W / 2 + 1, g.top(), INDICATOR_W, INDICATOR_H))
         p.end()
 
     _swrap(cls, "__init__", after=init_after)
@@ -756,28 +858,36 @@ def _install_nav(cls):
     _swrap(cls, "select", after=lambda nav, *a, **k: nav.update())
 
 
+def _nav_label_weight(button, on, nav):
+    from PySide6.QtGui import QFont
+    lab = getattr(button, "sw7_label", None)
+    if lab is not None:
+        lab.setFont(font(LABEL, QFont.Weight.DemiBold if on else QFont.Weight.Medium))
+    nav.update()
+
+
 def _pill_rect(nav):
+    """The bar: the nav widget's full width, NAV_BAR_TOP down to the bottom."""
     from PySide6.QtCore import QRectF
-    left = getattr(nav, "sw7_pill_x", (88, nav.width() - 88))
-    return QRectF(left[0], PILL_TOP, left[1] - left[0], PILL_H)
+    return QRectF(0, NAV_BAR_TOP, nav.width(), nav.height() - NAV_BAR_TOP)
 
 
 def _nav_theme(nav):
-    """Transparent buttons over the painted pill; the icon sits higher in the selected item (its circle).
-    Label colours come from the layout pass (accent = signal when checked, text_dim = ink_2)."""
+    """Transparent buttons on the painted bar, icon above a 13 px label. Label colours come from the layout pass
+    (accent = signal when checked, text_dim = ink_2); the selected label is SemiBold, the others Medium."""
     if not any(hasattr(b, "sw7_label") for b in nav.buttons.values()):
         return
     from PySide6.QtGui import QFont
     nav.setStyleSheet(
         f"QFrame#bottomNavigation{{background:transparent;border:none;min-height:{NAV_FLOAT_H}px;max-height:{NAV_FLOAT_H}px;}}"
         " QFrame#bottomNavigation QPushButton{background:transparent;border:none;border-radius:0px;"
-        "padding:12px 0px 10px 0px;}"
-        " QFrame#bottomNavigation QPushButton:checked{background:transparent;border:none;padding:0px 0px 16px 0px;}"
-        " QFrame#bottomNavigation QPushButton:pressed{background:transparent;}")
+        "padding:0px 0px 22px 0px;}"
+        " QFrame#bottomNavigation QPushButton:checked{background:transparent;border:none;padding:0px 0px 22px 0px;}"
+        f" QFrame#bottomNavigation QPushButton:pressed{{background:{hx('signal_tint')};}}")
     for b in nav.buttons.values():
         lab = getattr(b, "sw7_label", None)
         if lab is not None:
-            lab.setFont(font(LABEL, QFont.Weight.Bold))
+            lab.setFont(font(LABEL, QFont.Weight.DemiBold if b.isChecked() else QFont.Weight.Medium))
     nav.update()
 
 
@@ -799,10 +909,10 @@ def _main_init(main, *_a, **_k):
     main.nav.setFixedHeight(NAV_FLOAT_H)
     lay = main.nav.layout()
     m = lay.contentsMargins()
-    lay.setContentsMargins(m.left(), 2, m.right(), NAV_FLOAT_H - 2 - NAV_BTN_H)
+    top = NAV_BAR_TOP + (NAV_FLOAT_H - NAV_BAR_TOP - NAV_BTN_H) // 2
+    lay.setContentsMargins(m.left(), top, m.right(), NAV_FLOAT_H - top - NAV_BTN_H)
     for b in (main.left, main.right):
-        b.setFixedSize(64, 64)
-        elevate(b, 1)
+        b.setFixedSize(64, 64)            # flat: a hairline circle on the bar, no shadow
         b.refresh()
     for pid, word in BACK_WORDS.items():
         page = main.page_by_id.get(pid) if hasattr(main, "page_by_id") else None
@@ -826,7 +936,7 @@ def _main_theme(main, *_a, **_k):
     if not hasattr(main, "nav"):
         return
     main.setStyleSheet(main.styleSheet() + f"""
-        QPushButton#sideArrow {{ background: {hx('card')}; border: 2px solid {hx('signal')}; border-radius: 32px; padding: 0px; }}
+        QPushButton#sideArrow {{ background: transparent; border: 1px solid {hx('hairline')}; border-radius: 32px; padding: 0px; }}
         QPushButton#sideArrow:pressed {{ background: {hx('signal_tint')}; }}
         """)
     for b in (getattr(main, "left", None), getattr(main, "right", None)):
@@ -844,11 +954,10 @@ def _position_frame(orig, main):
     W, H = host.width(), host.height()
     nav.setGeometry(0, H - NAV_FLOAT_H, W, NAV_FLOAT_H)
     edge = 16
-    nav.sw7_pill_x = (edge + 64 + 8, W - edge - 64 - 8)
-    pill = _pill_rect(nav).toRect()
-    nav.setMask(QRegion(QRect(pill.x() - 28, 4, pill.width() + 56, NAV_FLOAT_H - 4)))
+    nav.sw7_pill_x = (0, W)
+    nav.clearMask()
     nav.raise_()
-    y = H - NAV_FLOAT_H + PILL_TOP + (PILL_H - 64) // 2
+    y = H - NAV_FLOAT_H + NAV_BAR_TOP + (NAV_FLOAT_H - NAV_BAR_TOP - 64) // 2
     from PySide6.QtCore import QSize
     for b in (left, right):
         if b.icon_size != 28:
@@ -880,15 +989,15 @@ def _install_chip(sim_link):
         dot.setStyleSheet(f"background:{dot_col};border-radius:4px;")
         dot.move(14, (CHIP_H - 8) // 2)
         chip.setFixedSize(CHIP_W, CHIP_H)
-        chip.setFont(font(LABEL, QFont.Weight.Bold, caps=True))
+        chip.setFont(font(LABEL, QFont.Weight.DemiBold, caps=True))
         chip.setStyleSheet(f"QLabel#sw7SourceChip {{ background: transparent; color: {hx('ink')};"
-                           f" border: 1.5px solid {hx('ink_3')}; border-radius: {CHIP_H // 2}px;"
-                           f" padding: 0px 0px 0px 14px; font-size: {LABEL}px; font-weight: 700; }}")
+                           f" border: 1px solid {hx('ink_3')}; border-radius: {RADIUS_SM}px;"
+                           f" padding: 0px 0px 0px 14px; font-size: {LABEL}px; font-weight: 600; }}")
         strip = marks.strip
-        strip.setFont(font(LABEL, QFont.Weight.Bold, caps=True))
+        strip.setFont(font(LABEL, QFont.Weight.DemiBold, caps=True))
         strip.setStyleSheet(f"QLabel#sw7SimStrip {{ background: {hx('warn_tint')}; color: {hx('ink')};"
                             f" border-top: 1px solid {hx('warn')}; border-bottom: 1px solid {hx('warn')};"
-                            f" font-weight: 700; font-size: {LABEL}px; padding: 3px 10px; }}")
+                            f" font-weight: 600; font-size: {LABEL}px; padding: 3px 10px; }}")
         marks.place()
 
     def init_after(marks, *_a, **_k):

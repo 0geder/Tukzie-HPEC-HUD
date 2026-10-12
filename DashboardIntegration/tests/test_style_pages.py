@@ -336,11 +336,13 @@ def run():
     check(t["voltage"] == "74.2 V" and t["current"] == "-6.8 A", f"not charging: pack voltage and current from the BMS: {t['voltage']} {t['current']}")
     check(t["soh"] == "--", f"cell health only when reported: {t['soh']!r}")
     states = [l.text() for l in labels(ch) if l is not ch.sw7_title and (l.text().startswith(("Not charging", "Charging")) or "STANDBY" in l.text())]
-    check(states == ["Not charging"], f"one charging state: {states}")
+    want_state = "Charging state unknown · no live data" if str(getattr(d.current_state, "data_source", "")) == "no_data" else "Not charging"
+    check(states == [want_state], f"one charging state (unknown with no live data, refinement): {states}")
     power = [l.text() for l in labels(ch) if l.text().endswith(" kW")]
     check(not power, f"one power figure (on the ring): {power}")
     check(ch.sw7_card_range_now.value_label.text() not in ("",), f"Range tile {ch.sw7_card_range_now.value_label.text()!r}")
-    check(not ch.tuk.anim_timer.isActive(), "the ring does not animate every frame")
+    check(ch.tuk.anim_timer.isActive() == (not ch.tuk.sw7_no_data) and ch.tuk.anim_timer.interval() >= 33,
+          "the battery animation (restored by the refinement) runs at 30 fps on Charging, and not with no live data")
     audits(d, ch, "day charging")
     shoot("day_charging")
     times["paper_charging"] = paint_ms()
