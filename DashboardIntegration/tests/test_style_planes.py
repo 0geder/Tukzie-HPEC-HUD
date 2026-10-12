@@ -3,7 +3,7 @@
 Builds a patched copy of the team's v1.1 dashboard (TUKZIE_DASHBOARD_DIR) with every patch group, the same way as
 test_style_refine.py (a local fake Open-Meteo and Photon; made-up telemetry fed directly; OSM tiles only from a local
 cache). Checks, day and night, on the 7 pages at 1280 x 800:
-  - the hero word face (Anton, SIL OFL) is registered; every page has its hero word in the back plane, in the
+  - the hero word face (Archivo Black, SIL OFL) is registered; every page has its hero word in the back plane, in the
     hero_word colour, and where a page has a subject the subject is drawn in front of the word (behind every widget);
   - the three cut-out renders load, with alpha (transparent corners, an opaque body);
   - no driving value is covered: the subject's box misses every value on Drive (speed disc, the three tiles, gear,
@@ -340,8 +340,10 @@ def drive_values(d):
     dr = d.driving; st = dr.sw7_stage; sp = dr.speed
     cx, cy, R = sp.disc(); g = rect_in(sp); k = R * 0.70
     out = [("speed", QRect(int(g.x() + cx - k), int(g.y() + cy - k), int(2 * k), int(2 * k)))]
-    # (the tiles inset by their corner radius: a value is inside the card, the rounded corners are not)
-    out += [(t.label, rect_in(t).adjusted(10, 10, -10, -10)) for t in (st.next_turn, st.around, st.range)]
+    # the tiles' values: the card below its label row (the label and the tap mark pass in front of the vehicle's
+    # wheels, controls over the subject), inset by the corner radius; the Range tile whole
+    out += [(t.label, rect_in(t).adjusted(10, 60, -10, -10)) for t in (st.next_turn, st.around)]
+    out += [(st.range.label, rect_in(st.range).adjusted(10, 10, -10, -10))]
     out += [("gear and turn indicators", rect_in(dr.gear)), ("warning lamps", rect_in(dr.faults))]
     for name, x in (("advice strip", dr.asis_panel), ("interlock", dr.interlock)):
         if x.isVisible():
@@ -383,8 +385,8 @@ def checks(d, S):
     d_ref[0] = d
     # ---- the hero face and the renders ---------------------------------------------------------------------------
     fams = set(QFontDatabase.families())
-    check("Anton" in fams and S.hero_family() == "Anton", f"hero word face Anton registered: {S.hero_family()}")
-    check(S.hero_font(200).family() == "Anton", "the hero font is Anton")
+    check("Archivo Black" in fams and S.hero_family() == "Archivo Black", f"hero word face Archivo Black registered: {S.hero_family()}")
+    check(S.hero_font(200).family() == "Archivo Black", "the hero font is Archivo Black")
     for view in ("three_quarter", "front", "side"):
         img = S.subject_image(view)
         okimg = img is not None and img.hasAlphaChannel()

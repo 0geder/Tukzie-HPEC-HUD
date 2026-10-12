@@ -36,7 +36,7 @@ API for the page agents (everything else in this file is the frame and can be ig
 
   Surfaces (the refinement of 12 Oct: restrained, Planning/ui-theme-refinement-prompt.md)
     Back plane:   three planes (Planning/three-planes-hero-prompt.md). S.set_plane(page, S.Plane(word, word_box,
-                  anchor, subject, subject_box)) gives a page its hero word (Anton, hero_word colour) and its subject
+                  anchor, subject, subject_box)) gives a page its hero word (Archivo Black, hero_word colour) and its subject
                   (a cut-out TUKZIE render, assets/tukzie_*.png); both are painted once into a cached pixmap behind
                   every widget. S.PLANES holds each page's placement, S.page_plane_geometry(page) the word and subject
                   rects. S.set_back_word / S.attach_back_plane / S.paint_back_plane keep their API.
@@ -86,7 +86,7 @@ DAY = {
     "signal": "#B9562F", "signal_pressed": "#96421F", "signal_tint": "#F1DDD2",
     "shadow": "#6E4A32",
     "ok": "#4F7A55", "warn": "#C98A16", "critical": "#B3261E", "warn_tint": "#F2E0B8",
-    "hero_word": "#E7DCD3",
+    "hero_word": "#D5CFC9",          # ink at 14 % over paper: reads at a glance, never over a value
 }
 NIGHT = {
     "paper": "#1C1A18", "paper_deep": "#24211F", "card": "#26231F", "card_alt": "#2C2925", "hairline": "#3A3531",
@@ -95,7 +95,7 @@ NIGHT = {
     "signal": "#D9744A", "signal_pressed": "#B85C35", "signal_tint": "#4A2C20",
     "shadow": "#070504",
     "ok": "#86B08C", "warn": "#E0A63A", "critical": "#E25A4E", "warn_tint": "#4A3B1C",
-    "hero_word": "#272421",
+    "hero_word": "#363331",          # a lifted charcoal: ink at 12 % over the night paper
 }
 SHADOW_ALPHA = {False: (0.07, 0.09, 0.12), True: (0.30, 0.36, 0.44)}     # day, night; by level 1..3 (very light)
 LEVELS = {1: (8, 1), 2: (12, 2), 3: (18, 4)}                             # blur radius, y offset
@@ -110,7 +110,8 @@ SECONDARY, BODY, LABEL = 22, 16, 13
 TEXT_SIZES = (LABEL, BODY, SECONDARY)
 SANS, MONO = "IBM Plex Sans", "IBM Plex Mono"
 FALLBACK = "Atkinson Hyperlegible"
-HERO_FACE = "Anton"         # the back-plane word only: heavy and condensed, bundled (SIL OFL, fonts/OFL-Anton.txt)
+HERO_FACE = "Archivo Black"  # the back-plane word only: heavy and wide (a full-width word stays short enough to sit
+                             # in the open space), bundled (SIL OFL, fonts/OFL-ArchivoBlack.txt)
 
 # ---- frame sizes (1280 x 800, on top of the layout pass) --------------------------------------------------------
 NAV_H = 72                  # the nav row: a flat bar, its 64 px targets inside
@@ -399,8 +400,8 @@ def paint_card(p, rect, radius: float = RADIUS_MAX, level: int = 2, fill: str = 
 
 
 # ---- back plane: the three planes ----------------------------------------------------------------------------------
-# Planning/three-planes-hero-prompt.md. Back: one huge, heavy word per page (Anton, hero_word colour: paper_deep by day,
-# a lifted charcoal at night). Middle: the subject, one of the student's TUKZIE renders (assets/tukzie_*.png, cut out by
+# Planning/three-planes-hero-prompt.md. Back: one huge, heavy word per page (Archivo Black, hero_word colour: ink at
+# 14 % over paper by day, a lifted charcoal at night). Middle: the subject, one of the student's TUKZIE renders (assets/tukzie_*.png, cut out by
 # tools/cut_tukzie_renders.py), drawn in front of the word so the word reads through behind it. Top: the page's own
 # widgets. Word and subject are painted once into one cached pixmap per page size and variant (never per frame).
 _PLANE_CACHE = {}
@@ -420,7 +421,7 @@ def hero_font(px: int):
     f.setPixelSize(max(8, int(px)))
     if hero_family() != HERO_FACE:
         f.setWeight(QFont.Weight.Bold)
-    f.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 99)
+    f.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 97)       # set tight, like a poster
     f.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
     return f
 
@@ -717,6 +718,7 @@ def audit_signal(root, ignore=(), mark_px: int = MARK_PX, step: int = 2, image=N
             x = x.parentWidget()
         return False
 
+    photos = _photo_rects(root)
     buf = bytes(img.constBits())
     bpl = img.bytesPerLine()
     tap_hits, info_hits, info_status = {}, {}, {}
@@ -738,6 +740,8 @@ def audit_signal(root, ignore=(), mark_px: int = MARK_PX, step: int = 2, image=N
             hh, _s = _hue_sat(r, g, b)
             d = abs(hh - sh) % 360
             if min(d, 360 - d) > 15:
+                continue
+            if photos and any(q.contains(x, y) for q in photos):
                 continue
             cell = (x // 4, y // 4)
             owner = cache.get(cell)
@@ -774,6 +778,23 @@ def audit_signal(root, ignore=(), mark_px: int = MARK_PX, step: int = 2, image=N
             continue
         if tap_hits.get(id(wd), (wd, 0))[1] < 12:
             out.append(Finding(wd, "tap_without_signal", 0, "tappable but no signal colour"))
+    return out
+
+
+def _photo_rects(root):
+    """Where a TUKZIE render (a photograph in the middle plane) shows, in root coordinates: its red light bar is the
+    vehicle's, not interface colour, so the audit skips it (as it skips the map and the camera frame)."""
+    from PySide6.QtCore import QPoint, QRect
+    from PySide6.QtWidgets import QWidget
+    out = []
+    for wd in [root] + root.findChildren(QWidget):
+        plane = getattr(wd, "sw7_plane", None)
+        if plane is None or not plane.subject or not wd.isVisible():
+            continue
+        r = page_plane_geometry(wd).get("subject")
+        if r is not None:
+            o = wd.mapTo(root, QPoint(0, 0))
+            out.append(QRect(int(r.x()) + o.x(), int(r.y()) + o.y(), int(r.width()) + 1, int(r.height()) + 1))
     return out
 
 
@@ -921,7 +942,9 @@ BACK_WORDS = {"driving": "DRIVE", "analytics": "STATS", "diagnostics": "SYSTEM",
 # Each page's word and subject (fractions of the 1280 x 680 page). Values and tiles are top-plane widgets drawn over
 # this; the subjects sit where no value is (tests/test_style_planes.py checks the boxes against every driving value).
 PLANES = {
-    "driving": Plane("DRIVE", (-0.03, 0.01, 1.06, 1.0), "top", "three_quarter", (0.705, 0.015, 0.215, 0.29)),
+    # Drive: the word across the open upper area (the tiles and the dial sit low), the vehicle cutting into "VE"; its
+    # wheels stand just above the Around tile's readings (the tile's label row passes in front of them)
+    "driving": Plane("DRIVE", (0.02, 0.109, 0.96, 0.40), "top", "three_quarter", (0.655, 0.008, 0.345, 0.497), "right"),
     "analytics": Plane("STATS", (-0.03, 0.0, 1.06, 0.93), "bottom"),
     "diagnostics": Plane("SYSTEM", (-0.03, 0.0, 1.06, 1.0), "top"),
     "camera": Plane("ROAD", (-0.03, 0.0, 1.06, 0.98), "bottom"),

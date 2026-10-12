@@ -386,9 +386,10 @@ Test: `tests/test_style_refine.py` (screenshots `tests/style/refine/before_*.png
 
 From Planning/three-planes-hero-prompt.md, on top of the refinement; nothing changes with `TUKZIE_SW7_STYLE=team`.
 
-- Back plane: one huge word per page in Anton (Vernon Adams, google/fonts, SIL Open Font Licence 1.1,
-  `fonts/OFL-Anton.txt`): DRIVE, STATS, SYSTEM, MAP, AROUND, CHARGE, SETUP. It is paper_deep by day and a lifted
-  charcoal (#272421) at night, clipped by the page edges, and never over a value: the gear row and warning lamps on
+- Back plane: one huge word per page in Archivo Black (Omnibus-Type, google/fonts, SIL Open Font Licence 1.1,
+  `fonts/OFL-ArchivoBlack.txt`), heavy and wide so a word across the page stays short enough to sit in the open
+  space: DRIVE, STATS, SYSTEM, MAP, AROUND, CHARGE, SETUP. It is ink at 14 % over paper by day (#D5CFC9) and a
+  lifted charcoal (#363331) at night, clipped by the page edges, and never over a value: the gear row and warning lamps on
   Drive sit on a paper card, and the Surroundings word stays under the nearest-distance hero.
 - Middle plane: the student's TUKZIE renders, cut out of their white backgrounds by `tools/cut_tukzie_renders.py`
   (Pillow, numpy, scipy; development only) into `assets/tukzie_three_quarter.png`, `tukzie_front.png` and

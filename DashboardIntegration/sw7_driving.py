@@ -1044,14 +1044,26 @@ class DriveStage(QWidget):
             right = int(sub.left()) - 16
         pg.asis_panel.setGeometry(32, 12, right - 32, LAYOUT_STRIP_H)
         gw = pg.gear.width()
-        pg.gear.setGeometry(int((W - gw) / 2), 84, gw, pg.gear.height())
         fw = max(pg.faults.sizeHint().width(), 300)
-        pg.faults.setGeometry(int((W - fw) / 2), 140, fw, 37)
-        top = 184
-        R = int(max(150, min(232, (H - top - 24 - 40) / 2)))
+        planes = getattr(self.S, "BACK_WORDS_SHOWN", False)
+        if planes:
+            # Three planes: the tiles and the dial sit low (16 px over the nav bar), so the upper area stays open for
+            # the hero word and the vehicle; the gear row and lamps stand on the dial's top edge.
+            ty = H - 16 - TILE_H
+            cy = ty + TILE_H / 2 - 2
+            R = int(max(165, min(232, cy - ty + 2)))
+            top = int(cy - R)
+            pg.faults.setGeometry(int((W - fw) / 2), top - 8 - 37, fw, 37)
+            pg.gear.setGeometry(int((W - gw) / 2), top - 8 - 37 - 56, gw, pg.gear.height())
+        else:
+            pg.gear.setGeometry(int((W - gw) / 2), 84, gw, pg.gear.height())
+            pg.faults.setGeometry(int((W - fw) / 2), 140, fw, 37)
+            top = 184
+            R = int(max(150, min(232, (H - top - 24 - 40) / 2)))
+            cy = top + R
+            ty = int(cy - TILE_H / 2 + 2)
         pg.speed.setGeometry(int(W / 2 - R), top, 2 * R, 2 * R + SLAB_EDGE)
-        cy = top + R
-        ty = int(cy - TILE_H / 2 + 2)
+        ty = int(ty)
         self.next_turn.setGeometry(int(W / 2 - R - TILE_W + TILE_OVERLAP), ty, TILE_W, TILE_H)
         self.around.setGeometry(int(W / 2 + R - TILE_OVERLAP), ty, TILE_W, TILE_H)
         r = R - 30
@@ -1129,8 +1141,12 @@ def _paper_strip(panel, S):
         sev = panel.property("severity") or "normal"
         no_data = panel.line1.text().strip().lower().startswith("no live")
         key = {"critical": "critical", "warning": "warn"}.get(sev, "ink_3" if no_data else "ok")
+        # three planes: no card, the advice sits on the paper over a hairline (the hero word starts below it)
+        strip_box = (f"background: transparent; border: none; border-bottom: 1px solid {S.hx('hairline')}; border-radius: 0px;"
+                     if getattr(S, "BACK_WORDS_SHOWN", False) else
+                     f"background: {S.hx('card')}; border: 1px solid {S.hx('hairline')}; border-radius: {S.RADIUS_MAX}px;")
         panel.setStyleSheet(f"""
-            QFrame#asisAdvisoryPanel {{ background: {S.hx('card')}; border: 1px solid {S.hx('hairline')}; border-radius: {S.RADIUS_MAX}px; }}
+            QFrame#asisAdvisoryPanel {{ {strip_box} }}
             QFrame#asisAdvisoryPanel QLabel {{ background: transparent; color: {S.hx('ink')}; border: none; }}
         """)
         panel.heading.setText(panel.heading.text().upper())

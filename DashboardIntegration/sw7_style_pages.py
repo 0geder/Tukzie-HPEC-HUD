@@ -991,7 +991,7 @@ def ring_values(vis):
         volt = "--" if unknown.get("v") else f"{vis.current_v:.1f} V"
         amp = "--" if unknown.get("a") else f"{vis.current_a:.1f} A"
     else:                                   # not charging: the pack's own voltage and current from the BMS
-        bms = None if getattr(vis, "sw7_sim", False) or no_data else getattr(vis, "sw7_bms", None)
+        bms = None if getattr(vis, "sw7_sim", False) else getattr(vis, "sw7_bms", None)   # (live telemetry)
         volt = f"{bms[0]:.1f} V" if bms and bms[0] is not None else "--"
         amp = f"{bms[1]:.1f} A" if bms and bms[1] is not None else "--"
     soh = None if no_data else getattr(vis, "sw7_soh", None)
