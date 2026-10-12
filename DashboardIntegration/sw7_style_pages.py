@@ -1098,10 +1098,10 @@ def _ring_front(vis, vals):
     if known:
         p.setFont(pct); p.setPen(S.c("ink_2")); p.drawText(QPointF(x + tw + 6, base - fm.capHeight() + pfm.capHeight()), "%")
     p.setFont(S.font(S.LABEL, QFont.Weight.Medium)); p.setPen(S.c("ink_2"))
-    p.drawText(QRectF(cx - 140, base - fm.capHeight() - 30, 280, 18), AL.AlignCenter,
+    p.drawText(QRectF(cx - 140, base - fm.capHeight() - 40, 280, 18), AL.AlignCenter,
                "Battery" if known else "Battery · no reading")
     p.setFont(S.mono(S.LABEL, QFont.Weight.Normal)); p.setPen(S.c("ink_2"))
-    p.drawText(QRectF(cx - 150, base + 6, 300, 20), AL.AlignCenter, vals["energy"])
+    p.drawText(QRectF(cx - 150, base + 8, 300, 20), AL.AlignCenter, vals["energy"])
     slots = _reading_slots(vis)
     drawn = []
     for i, ((label, key), r) in enumerate(zip(READINGS, slots)):

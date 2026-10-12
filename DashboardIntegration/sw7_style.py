@@ -492,11 +492,13 @@ def plane_geometry(plane, w: float, h: float):
         fm = QFontMetricsF(hero_font(200))
         adv = fm.tightBoundingRect(plane.word).width() or fm.horizontalAdvance(plane.word)
         px = max(40, int(200 * box.width() / max(1.0, adv)))
+        cap_k = QFontMetricsF(hero_font(200)).capHeight() / 200.0
+        px = min(px, max(40, int(box.height() / cap_k)))          # the capitals stay inside the box's height
         fm = QFontMetricsF(hero_font(px))
         tight = fm.tightBoundingRect(plane.word)
         cap = fm.capHeight()
         base = box.top() + cap if plane.anchor == "top" else box.bottom()
-        x = box.left() - tight.left()
+        x = box.left() - tight.left() + max(0.0, (box.width() - tight.width()) / 2)
         out["word"] = QRectF(x + tight.left(), base - cap, tight.width(), cap)
         out["font_px"] = px
         out["_word_origin"] = (x, base)
@@ -919,12 +921,12 @@ BACK_WORDS = {"driving": "DRIVE", "analytics": "STATS", "diagnostics": "SYSTEM",
 # Each page's word and subject (fractions of the 1280 x 680 page). Values and tiles are top-plane widgets drawn over
 # this; the subjects sit where no value is (tests/test_style_planes.py checks the boxes against every driving value).
 PLANES = {
-    "driving": Plane("DRIVE", (-0.03, 0.01, 1.06, 1.0), "top", "three_quarter", (0.705, 0.02, 0.215, 0.305)),
+    "driving": Plane("DRIVE", (-0.03, 0.01, 1.06, 1.0), "top", "three_quarter", (0.705, 0.015, 0.215, 0.29)),
     "analytics": Plane("STATS", (-0.03, 0.0, 1.06, 0.93), "bottom"),
     "diagnostics": Plane("SYSTEM", (-0.03, 0.0, 1.06, 1.0), "top"),
     "camera": Plane("ROAD", (-0.03, 0.0, 1.06, 0.98), "bottom"),
     "navigation": Plane("MAP", (-0.03, 0.0, 1.06, 0.98), "bottom"),
-    "sensors": Plane("AROUND", (-0.03, 0.0, 1.06, 1.0), "top"),
+    "sensors": Plane("AROUND", (-0.03, 0.42, 1.06, 0.58), "bottom"),     # under the nearest-distance hero
     "charging": Plane("CHARGE", (-0.03, 0.0, 1.06, 1.0), "bottom", "front", (0.60, 0.745, 0.30, 0.245)),
     "settings": Plane("SETUP", (-0.03, 0.0, 1.06, 1.0), "bottom", "side", (0.56, 0.72, 0.36, 0.27)),
 }

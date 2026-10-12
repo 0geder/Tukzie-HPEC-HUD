@@ -286,7 +286,31 @@ def frame_points(chip):
     pts = [(x, y) for x in range(0, W, 3) for y in (1, 2, H - 2, H - 3)] + [(x, y) for y in range(0, H, 3) for x in (1, 2, W - 2, W - 3)]
     return img, pts
 
+def live(d):
+    feed_state(d)
+    feed_tel(d, NEAR)
+    cam = d.front_camera
+    cam._streaming_wanted = False; cam._apply_alerts(ALERTS); cam._streaming_wanted = True
+    cam._feed(jpeg()); cam._stale_timer.stop(); a.processEvents()
+    m = d.navigation.map
+    d.switch_page_id("navigation"); spin(300)
+    m.set_plan(PLAN, reset_view=False); spin(200)
+    for r in recs[200:232:2]:
+        s = copy.copy(d._sw7_live_state); s.data_source = "sw7_telemetry"
+        s.latitude, s.longitude, s.heading = r["lat"], r["lon"], r.get("crs")
+        s.soc_pct = 79.6; s.speed_kmh = 23.0; s.range_km = 56.2
+        s.signal_validity = dict(s.signal_validity or {}, gps=True, heading=True, soc=True, speed=True)
+        d._on_vehicle_state(s); QTest.qWait(120)
+    spin(800)
+
 def run():
+    try:
+        run_inner()
+    except Exception:
+        import traceback; traceback.print_exc()
+        print("RESULT FAIL exception"); a.quit()
+
+def run_inner():
     d = w.dashboard
     setup(d)
     if MODE != "paper":
@@ -316,11 +340,12 @@ def drive_values(d):
     dr = d.driving; st = dr.sw7_stage; sp = dr.speed
     cx, cy, R = sp.disc(); g = rect_in(sp); k = R * 0.70
     out = [("speed", QRect(int(g.x() + cx - k), int(g.y() + cy - k), int(2 * k), int(2 * k)))]
-    out += [(t.label, rect_in(t)) for t in (st.next_turn, st.around, st.range)]
+    # (the tiles inset by their corner radius: a value is inside the card, the rounded corners are not)
+    out += [(t.label, rect_in(t).adjusted(10, 10, -10, -10)) for t in (st.next_turn, st.around, st.range)]
     out += [("gear and turn indicators", rect_in(dr.gear)), ("warning lamps", rect_in(dr.faults))]
     for name, x in (("advice strip", dr.asis_panel), ("interlock", dr.interlock)):
         if x.isVisible():
-            out.append((name, rect_in(x)))
+            out.append((name, rect_in(x).adjusted(10, 4, -10, -4)))
     return out
 
 def other_values(d):
@@ -338,9 +363,17 @@ def same_image(x, y):
     return x.size() == y.size() and bytes(x.convertToFormat(QImage.Format.Format_RGB32).constBits()) == \
         bytes(y.convertToFormat(QImage.Format.Format_RGB32).constBits())
 
+_saved = {}
+
 def planes_off(S, on):
-    S.BACK_WORDS_SHOWN = on; S._PLANE_CACHE.clear()
-    for pg in d_ref[0].page_by_id.values():
+    """Hide (on=False) or restore every page's word and subject, leaving everything else as it is."""
+    pages = {id(pg): pg for pg in d_ref[0].page_by_id.values()}       # (aliases share a page)
+    for key, pg in pages.items():
+        if not on:
+            _saved[key] = (getattr(pg, "sw7_plane", None), pg.property("sw7_word"))
+            pg.sw7_plane = None; pg.setProperty("sw7_word", "")
+        elif key in _saved:
+            pg.sw7_plane, word = _saved.pop(key); pg.setProperty("sw7_word", word)
         pg.update()
     a.processEvents(); spin(120)
 
@@ -427,13 +460,20 @@ def checks(d, S):
             for _ in range(15):
                 t0 = time.perf_counter(); w.grab(); ms.append((time.perf_counter() - t0) * 1000)
             times[f"{theme}_{name}_window"] = sorted(ms)[7]
+            planes_off(S, False); w.grab(); ms = []
+            for _ in range(15):
+                t0 = time.perf_counter(); w.grab(); ms.append((time.perf_counter() - t0) * 1000)
+            times[f"{theme}_{name}_window_without_planes"] = sorted(ms)[7]
+            planes_off(S, True)
             ms = []
             for _ in range(15):
                 t0 = time.perf_counter(); page.repaint(); ms.append((time.perf_counter() - t0) * 1000)
             times[f"{theme}_{name}_page"] = sorted(ms)[7]
             check(times[f"{theme}_{name}_page"] < 15.0, f"{tag}: page repaint {times[f'{theme}_{name}_page']:.2f} ms (< 15)")
-            check(times[f"{theme}_{name}_window"] < 15.0 or pid == "navigation",
-                  f"{tag}: window grab {times[f'{theme}_{name}_window']:.2f} ms (< 15)")
+            # the Map's grab is dominated by the street tiles (the same without the planes); the planes add < 3 ms
+            limit = 15.0 if pid != "navigation" else times[f"{theme}_{name}_window_without_planes"] + 3.0
+            check(times[f"{theme}_{name}_window"] < limit, f"{tag}: window grab {times[f'{theme}_{name}_window']:.2f} ms "
+                  f"(< {limit:.1f}; {times[f'{theme}_{name}_window_without_planes']:.2f} ms without the planes)")
             if pid == "charging":
                 charging_checks(d, S, tag)
         d.switch_page_id("analytics"); a.processEvents(); spin(200)
