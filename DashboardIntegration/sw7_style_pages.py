@@ -130,8 +130,8 @@ def chip_style(label, text, dot_key):
     f = S.font(S.LABEL, QFont.Weight.Bold, caps=True)
     f.setCapitalization(QFont.Capitalization.AllUppercase)
     label.setFont(f)
-    label.setStyleSheet(f"background: {S.hx('card')}; color: {S.hx('ink')}; border: 1.5px solid {S.hx('ink_3')};"
-                        f" border-radius: 14px; padding: 0px 14px 0px 28px;")
+    label.setStyleSheet(f"background: {S.hx('card')}; color: {S.hx('ink')}; border: 1px solid {S.hx('ink_3')};"
+                        f" border-radius: {S.RADIUS_SM}px; padding: 0px 14px 0px 28px;")
     dot.setStyleSheet(f"background: {S.hx(dot_key)}; border-radius: 4px; border: none;")
     QLabel.setText(label, text)
     label.setFixedHeight(28)
@@ -269,7 +269,7 @@ class TukFigure(QWidget):
     the band shows only as a small dot at each sensor, the three distances are the page's 22 px values."""
     SIDES = ("left", "ahead", "right")
     PAD = (40, 24, 40, 48)          # room round the card for its own shadow (it overlaps the camera slab)
-    RADIUS = 24
+    RADIUS = 8
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -303,7 +303,7 @@ class TukFigure(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing); p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
         card = self.card_rect()
-        S.paint_card(p, card, self.RADIUS, 2)            # top plane: its shadow falls on the camera slab
+        S.paint_card(p, card, self.RADIUS, 1)            # a card with a hairline, a very light shadow
         p.translate(card.topLeft())
         w = card.width()
         AL = Qt.AlignmentFlag
@@ -365,7 +365,8 @@ class TukFigure(QWidget):
             p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True)); p.setPen(S.c("ink_2"))
             p.drawText(QRectF(b.left(), b.top() - 20, b.width(), 18), align[side] | AL.AlignVCenter,
                        f"{side.upper()} · {word.upper()}")
-            p.setFont(S.font(S.SECONDARY, QFont.Weight.Bold)); p.setPen(S.c("ink"))
+            p.setFont(S.mono(S.SECONDARY, QFont.Weight.Medium) if value[:1].isdigit() else S.font(S.SECONDARY, QFont.Weight.Medium))
+            p.setPen(S.c("ink_3" if value.startswith("--") else "ink"))
             p.drawText(b, align[side] | AL.AlignVCenter, value)
         p.end()
 
@@ -374,7 +375,7 @@ class FrameSlab(QWidget):
     """The middle plane: the camera frame as a raised charcoal slab (its shadow is painted by the view). It shows
     the newest camera image, cropped to fill, or the camera's status when there is none. The signal audit treats it
     like the map (a photo, not ink and paper)."""
-    RADIUS = 28
+    RADIUS = 8
 
     def __init__(self, view):
         super().__init__(view)
@@ -419,8 +420,8 @@ class SurroundingsView(QWidget):
     """The merged page, laid over SensorsPage (which keeps its id, its data methods and its hidden widgets)."""
     M = 24
     COL_W = 488
-    FRAME_R, CARD_R = 28, 24
-    OVERLAP = 24
+    FRAME_R, CARD_R = 8, 8
+    OVERLAP = 16
 
     def __init__(self, page, camera, main):
         super().__init__(page)
@@ -482,7 +483,7 @@ class SurroundingsView(QWidget):
         col_x = W - M - self.COL_W
         fw = col_x - 2 * M
         frame = QRectF(M, M, fw, round(fw * 9 / 16))
-        bottom = H - 48                                         # the floating nav pill and its circle sit below
+        bottom = H - 24                                         # the flat nav bar sits below the page
         tuk = QRectF(M + self.OVERLAP, frame.bottom() - self.OVERLAP, fw - 2 * self.OVERLAP,
                      bottom - (frame.bottom() - self.OVERLAP))
         hz = QRectF(col_x, 280, self.COL_W, bottom - 280)
@@ -527,8 +528,8 @@ class SurroundingsView(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing); p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
         # middle plane: the camera slab's shadow (the slab paints itself); top plane: the hazards card (the tuk-tuk
         # card paints itself, over the slab's edge)
-        S.paint_shadow(p, frame, self.FRAME_R, 3)
-        S.paint_card(p, hz, self.CARD_R, 2)
+        S.paint_shadow(p, frame, self.FRAME_R, 1)
+        S.paint_card(p, hz, self.CARD_R, 1)
         if getattr(self, "sub_dot", None) is not None:
             mark(p, self.sub_dot, tok(self.sub_status))
         # the Ride row at the foot of the hazards card, under a hairline
@@ -765,6 +766,21 @@ def _diagnostics(main):
     visible = {drive: CONTROLS, energy: HEALTH, position: POSITION}
     lay_update = page.update_state
 
+    def value_fonts():
+        """Figures in Plex Mono, words ("Unavailable", "Yes", "Live") in Plex Sans; unavailable values in ink_3, so an
+        unavailable value never reads like a zero."""
+        for card in lay["cards"]:
+            for lab in card.values.values():
+                if not isinstance(lab, QLabel):
+                    continue
+                S.value_font(lab, S.BODY, QFont.Weight.Medium)
+                if lab.text() in UNKNOWN:
+                    lab.setStyleSheet(f"background: transparent; color: {S.hx('ink_3')};")
+                    lab.setProperty("sw7_unknown", True)
+                elif lab.property("sw7_unknown"):
+                    lab.setStyleSheet(f"background: transparent; color: {S.hx('ink')};")
+                    lab.setProperty("sw7_unknown", False)
+
     def update_state(s):
         lay_update(s)
         for name, lab in extra.items():
@@ -772,7 +788,9 @@ def _diagnostics(main):
         for card, names in visible.items():
             known = any(card.values[n].text() not in UNKNOWN for n in names)
             card.set_dot("normal" if known else "inactive")
+        value_fonts()
     page.update_state = update_state
+    lay["value_fonts"] = value_fonts
 
     last = {"t": None}
 
@@ -785,6 +803,8 @@ def _diagnostics(main):
             lab.setText(text)
             col = S.hx("ink_3") if text in UNKNOWN else S.hx(tok(status)) if status else S.hx("ink")
             lab.setStyleSheet(f"background: transparent; color: {col};")
+        if "value_fonts" in lay:
+            lay["value_fonts"]()
     tel = getattr(main, "telemetry", None)
     if tel is not None:
         tel.telemetry_updated.connect(on_telemetry)
@@ -793,8 +813,8 @@ def _diagnostics(main):
     # the look: four cards on cached shadows, ink and paper, one signal toggle and one signal glance
     cards = list(lay["cards"])
     host = cards[0].parentWidget()
-    page._sw7_bed = _Bed(host, cards, 20, 2)
-    page._sw7_bed_details = _Bed(host, [lay["details"]], 20, 2, fill="card")   # the details frame paints no fill
+    page._sw7_bed = _Bed(host, cards, 8, 1)
+    page._sw7_bed_details = _Bed(host, [lay["details"]], 8, 1, fill="card")   # the details frame paints no fill
     root = host.layout()
     root.setContentsMargins(24, 16, 24, 40)
     # the details toggle moves up beside the title, so the four cards fit above the nav pill (with the SIMULATED
@@ -839,9 +859,9 @@ def _diagnostics(main):
         QLabel#sw7DiagCaption {{ color: {S.hx('ink_2')}; }}
         QLabel#supportCaption {{ color: {S.hx('ink_2')}; }}
         QLabel#supportTitle {{ color: {S.hx('ink_2')}; }}
-        QFrame#sw7DetailsCard {{ background: {S.hx('card')}; border: none; border-radius: 20px; }}
-        {S.button_qss('outline', 32, S.BODY, 'QPushButton#sw7DetailsToggle')}
-        {S.button_qss('outline', 32, S.BODY, 'QPushButton#sw7WeatherGlance')}
+        QFrame#sw7DetailsCard {{ background: {S.hx('card')}; border: 1px solid {S.hx('hairline')}; border-radius: {S.RADIUS_MAX}px; }}
+        {S.button_qss('outline', 8, S.BODY, 'QPushButton#sw7DetailsToggle')}
+        {S.button_qss('outline', 8, S.BODY, 'QPushButton#sw7WeatherGlance')}
         """)
         on_telemetry(last["t"])
     THEME.changed.connect(theme)
@@ -889,7 +909,7 @@ def _charging(main):
     page.sw7_card_range_now.findChild(QLabel).setObjectName("dim")
     from . import charging_page as cp
     cards = [w for w in container.findChildren(cp._GradientCard) if w.parentWidget() is container]
-    page._sw7_bed = _Bed(container, cards, 20, 2, fill="card")
+    page._sw7_bed = _Bed(container, cards, 8, 1, fill="card")
     for card in cards:
         if card.layout() is not None:
             m = card.layout().contentsMargins()
