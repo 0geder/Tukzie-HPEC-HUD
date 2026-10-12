@@ -144,3 +144,36 @@ Removal is the reverse of 7. Tool access above was worked out from the measured 
 (arithmetic, not a tool model in SolidWorks). The one access problem found is the M4 lock, which needs the D5
 change: as modelled, its head collides with the rail plate. The new D4 holes at Z +/-12 are clear of the bracket
 (which starts at Z +19), so their nuts do not sit under it.
+
+
+## 8. Revision 2: corrections applied and re-checked (12 Oct 2026)
+
+These corrections were made in the build scripts and the parts were rebuilt in SolidWorks. Every audit was then run again
+on the saved files.
+
+| ID | What was changed | Evidence after the rebuild |
+|---|---|---|
+| D1 | Cap thickness 17 mm (`CapT`) | Cap box Y -29.0 to -12.75, so 4.9 mm of material is left under the 24.2 mm bore. Audit 3: 1 body, 0 Check3 faults |
+| D2 | `ClampZ` 26, `BoltZ` 18.5. The insert holes are now blind 10 mm from the split face, not cut through to the channel | Audit 4: bracket 0 walls under 2 mm, cap 0 walls under 2 mm. Insert cut removed 724 mm3 = 2 x pi x 3.2^2 x 11.25 |
+| D3 | `1_back_shell.py` step 6 draws holes at (x, -z) | Audit 2: all 8 rail-plate holes, both joiner plates, the cross joiner and the cradle match the shell. Audit 3: quarters against the master, none missing |
+| D4 | Rail plate moved to Z 22 to 96 (74 mm tall, centre Z 59, symmetric). The cross joiner stays at Z -20 to 20, which keeps a bolt into every quarter | Audit 1: 0 hard interferences (was 1146 mm3). Probe still detected (1563.7 mm3) |
+| D5 | Side lock replaced: a vertical M4 heat-set insert under the channel at bracket Z -30, a 4.5 mm clearance hole into the channel, and two 4.5 x 2 mm detents in the rail face at plate centre +/-28. The rail is 72 mm (was 80), so each detent has 5.75 mm of wall to the rail end | Lock insert cut 69.8 mm3 (expected 69.8); detents 63.6 mm3 (expected 63.6). Lock axis at assembly Z 31 = plate centre 59 - 28 |
+| D6 | 0.75 mm taken off each split face: a 1.5 mm squeeze gap | Bracket boss bottom Y -11.25, cap top Y -12.75. Audit 1 now shows the cap not touching the bracket, as intended: it is held by the 2 M5 bolts (holes coaxial, audit 2) and grips the bar through the liner |
+| D7 | Hardware changed: ISO 7380 M3 button heads from inside with nyloc nuts outside. M3 x 12 for the rail plate, M3 x 10 for the joiners and cradle | README updated |
+| D8 | Rail drawn from the plate face (no slope change at the 0.5 mm embed). Channel = rail offset 0.35 mm normal to the flanks, floor 0.35 below | Audit 2: normal gap 0.350 mm on both flanks; flank normals parallel (was 0.10 and 0.26) |
+| D9 | Pi reference placed at (0, -10, -10) on the standoffs. Every component fixed (`FixComponent()` needs the call parentheses under late binding, which is why the first attempt fixed nothing) | Audit 1: 11 of 11 fixed, 0 interferences, the Pi reference touches the cradle |
+| D10 | The cable exit is an open notch to the front edge | No roof left to print over the plugs |
+| D13 | Vent slots cut through the cradle base, keeping 3 mm from the standoffs, edges and the USB-end notch | Audit 4: the cradle's only walls under 2 mm are the standoff walls of 1.9 mm (D14, minor). My first slot layout left 1.0 mm walls; audit 4 caught that, and the slots were moved |
+| D15 | Docstring corrected | |
+| D11, D12, D16, D14 | Not geometry. Foam pad, scripts as the source of truth, splice tabs, hand-tight M2.5 x 6 | Documented, not changed |
+
+The bracket now sits at Z 21 to 101, so it reaches 4.4 mm below the shell's bottom edge. That is behind the display
+and clear of the bar. The bar is at Z 61.
+
+Acceptance after revision 2: PROTOTYPE-READY for a first print of the bracket, cap and rail plate, together with the
+dovetail coupon. Before the full shell is printed, still needed:
+- the long side of the display measured;
+- the clamp slip test;
+- the shake test.
+
+Not done: slicing, FEA and any physical test.

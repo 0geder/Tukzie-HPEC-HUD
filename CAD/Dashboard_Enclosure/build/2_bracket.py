@@ -1,17 +1,22 @@
 """Handlebar clamp bracket. It stays bolted to the handlebar; the display shell's dovetail rail slides down into it
-and an M4 thumb screw from the side locks it, so the display clips on and off without tools.
+and an M4 thumb screw from underneath drops into a detent in the rail, so the display clips on and off without tools.
 
 Two parts:
   SW7_Dash_Bracket.SLDPRT     dovetail channel on top (closed at the bottom end), upper half of the bar clamp below,
                               two M5 heat-set insert holes.
-  SW7_Dash_Clamp_Cap.SLDPRT   lower half of the clamp, two M5 counterbored holes.
+  SW7_Dash_Clamp_Cap.SLDPRT   lower half of the clamp, two plain M5 clearance holes (bolt heads with washers).
 Wrap the bar with a 1 mm rubber strip (a piece of bicycle inner tube) under the clamp: it grips, stops the chrome
 from being scratched and takes up small differences in bar size.
 
 Frame: the bar runs along X (left to right), the channel along Z (vertical when fitted), the display side faces
 +Y. The clamp's split plane, and the bar's centre, is at Y = ClampY. The script prints which Z end is closed; that
 end goes down. Three things stop the display falling: the closed end of the channel carries its weight, the thumb
-screw stops it lifting out over bumps, and the two M5 bolts clamp the bar."""
+screw in the rail's detent stops it lifting out over bumps, and the two M5 bolts clamp the bar.
+
+Revision 2 (12 Oct, engineering review D1, D2, D5, D6, D8, D15): cap 17 mm thick so the bore no longer cuts through
+it; clamp 52 mm across the bar with the M5 inserts at +/-18.5 (3.2 mm wall to the bore, 4.3 mm to the outside);
+blind 10 mm insert holes; a 1.5 mm squeeze gap at the split; a parallel dovetail (rail offset 0.35 mm); the lock
+moved from the side (its head hit the rail plate) to a vertical M4 insert under the channel at Z -30."""
 import os
 import pythoncom
 import win32com.client
@@ -30,13 +35,16 @@ P = {
     "TubeD": 22.2,      # MEASURE: handlebar diameter (22.2 mm = 7/8 in is standard; 25.4 mm = 1 in on some bars)
     "Liner": 1.0,       # rubber strip under the clamp
     "ClampW": 40.0,     # clamp length along the bar (needs this much straight bar)
-    "ClampZ": 20.0,     # clamp half-size across the bar
+    "ClampZ": 26.0,     # clamp half-size across the bar (review D2)
     "ClampY": -12.0,    # split plane, below the channel block
-    "CapT": 12.0,       # cap thickness below the split plane
-    "BoltZ": 16.6,      # M5 bolt positions either side of the bar
+    "CapT": 17.0,       # cap thickness below the split plane (review D1)
+    "Gap": 0.75,        # taken off each split face: 1.5 mm squeeze gap (review D6)
+    "BoltZ": 18.5,      # M5 bolt positions either side of the bar (review D2)
     "InsertD": 6.4, "InsertL": 10.0,   # M5 heat-set insert hole
     "BoltD": 5.5,                      # M5 x 30 socket head with a washer, from below
-    "LockY": 15.0, "LockD": 3.3,       # M4 thumb screw (tapping hole)
+    "LockZ": -30.0,     # M4 lock: vertical, from underneath, 4 mm in from the rail's upper end
+    "LockInsD": 5.6, "LockInsL": 8.0, "LockClear": 4.5,   # M4 heat-set insert, then clearance into the channel
+    "DovOff": 0.35,     # dovetail: channel = rail offset this much normal to the flanks (review D8)
 }
 G = P
 R = (G["TubeD"] + 2 * G["Liner"]) / 2
@@ -113,6 +121,59 @@ class Part:
         print("box mm:", self.box())
 
 
+def channel_profile():
+    """Rail (from rail_plate geometry): half width RailW/2 at the plate face, RailW2/2 at RailH from it. The channel is
+    that profile offset DovOff normal to the flanks, the floor DovOff below the rail's outer face. Bracket frame: the
+    plate face is at Y = BrH."""
+    import math
+    a, b, hgt = G["RailW"] / 2, G["RailW2"] / 2, G["RailH"]
+    k = (b - a) / hgt                                   # flank: half width grows k per mm from the plate face
+    off = G["DovOff"] * math.sqrt(1 + k * k)            # horizontal shift for a normal offset
+    h = G["BrH"]
+    y_floor = h - hgt - G["DovOff"]
+    half = lambda y: a + k * (h - y) + off
+    return [(-half(h + 0.5), h + 0.5), (half(h + 0.5), h + 0.5), (half(y_floor), y_floor), (-half(y_floor), y_floor)]
+
+
+def cut_dir(p, sketch_name, depth, want_y_up, label):
+    """Single-direction blind cut from the Top plane (Y = 0); keeps the direction that removes material on the wanted
+    side (checked by the centre of mass moving away from it)."""
+    for rev in (False, True):
+        y0 = p.m.Extension.CreateMassProperty.CenterOfMass[1]
+        v0 = p.vol()
+        p.close(sketch_name)
+        f = p.fm.FeatureCut4(True, False, rev, 0, 0, depth * mm, 0, False, False, False, False, 0, 0,
+                             False, False, False, False, False, True, True, True, True, False, 0, 0, False, False)
+        if f is not None and p.vol() < v0 - 0.001:
+            moved_down = p.m.Extension.CreateMassProperty.CenterOfMass[1] < y0
+            if moved_down == want_y_up:                  # removing material above lowers the centre of mass
+                f.Name = label
+                print(f"{label}: volume {p.vol()}")
+                return f
+            p.m.EditUndo2(1)
+    raise SystemExit(label + " failed")
+
+
+def blind_hole(p, sketch_name, r, depth, label, existing_r=0.0):
+    """Blind hole from the Top plane in whichever direction removes the expected volume (pi r^2 depth less any hole
+    already there); refuses a cut that removes a different amount, so a flipped or inverted cut cannot slip through."""
+    import math
+    want = math.pi * (r * r - existing_r * existing_r) * depth
+    for rev in (False, True):
+        v0 = p.vol()
+        p.close(sketch_name)
+        f = p.fm.FeatureCut4(True, False, rev, 0, 0, depth * mm, 0, False, False, False, False, 0, 0,
+                             False, False, False, False, False, True, True, True, True, False, 0, 0, False, False)
+        removed = v0 - p.vol()
+        if f is not None and abs(removed - want) <= 0.1 * want:
+            f.Name = label
+            print(f"{label}: removed {round(removed, 1)} mm3 (expected {round(want, 1)})")
+            return f
+        if f is not None:
+            p.m.EditUndo2(1)
+    raise SystemExit(f"{label}: no direction removed the expected {round(want, 1)} mm3")
+
+
 def bolt_circles(p, d):
     for sz in (-1, 1):
         p.sm.CreateCircleByRadius(0, sz * G["BoltZ"] * mm, 0, d / 2 * mm)   # Top-plane-parallel sketch: y is -Z
@@ -129,29 +190,30 @@ blk.Name = "Channel Block"
 # 2. Clamp boss under it, across the bar (profile in the YZ plane, extruded along X).
 s = b.sketch("Right Plane")
 cz, cy = G["ClampZ"], G["ClampY"]
-b.poly([(-cz, cy), (cz, cy), (cz, 0.5), (-cz, 0.5)])
+b.poly([(-cz, cy + G["Gap"]), (cz, cy + G["Gap"]), (cz, 0.5), (-cz, 0.5)])
 boss = b.boss_mid(s, G["ClampW"])
 boss.Name = "Clamp Upper Half"
 print("bracket solid", b.vol(), b.box())
 # 3. Dovetail channel: open through one end, stops StopT short of the other.
 s = b.sketch("Front Plane")
-a = G["RailW"] / 2 + G["Slide"]
-a2 = G["RailW2"] / 2 + G["Slide"]
-y_bot = h - G["RailH"] - G["Slide"]
-b.poly([(-a, h + 0.5), (a, h + 0.5), (a2, y_bot), (-a2, y_bot)])
+b.poly(channel_profile())
 b.cut(s, 0, 0, G["BrL"] / 2 + 1, G["BrL"] / 2 - G["StopT"], label="Dovetail Channel")
 # 4. Bar bore, centred on the split plane.
 s = b.sketch("Right Plane")
 b.sm.CreateCircleByRadius(0, cy * mm, 0, R * mm)
 b.cut(s, 1, 1, 0, 0, label="Handlebar Bore")
-# 5. M5 heat-set insert holes, through from the split plane into the channel floor (the insert sits at the bottom).
+# 5. M5 heat-set insert holes: blind from the split face, InsertL deep (the Top plane is at Y 0, above the boss;
+#    cutting down from it by |split face| reaches the split face, so cut the whole boss height where the insert goes).
 s = b.sketch("Top Plane")
 bolt_circles(b, G["InsertD"])
-b.cut(s, 1, 1, 0, 0, label="M5 Insert Holes")
-# 6. Lock screw through the +X wall into the channel.
-s = b.sketch("Right Plane")
-b.sm.CreateCircleByRadius(0, G["LockY"] * mm, 0, G["LockD"] / 2 * mm)
-b.cut(s, 1, 0, 0, 0, single=True, label="Lock Screw Hole")
+cut_dir(b, s, abs(cy + G["Gap"]), False, "M5 Insert Holes")
+# 6. Lock: M4 insert from underneath at LockZ, clearance hole on into the channel.
+s = b.sketch("Top Plane")
+b.sm.CreateCircleByRadius(0, -G["LockZ"] * mm, 0, G["LockClear"] / 2 * mm)
+b.cut(s, 1, 1, 0, 0, label="Lock Clearance Hole")
+s = b.sketch("Top Plane")
+b.sm.CreateCircleByRadius(0, -G["LockZ"] * mm, 0, G["LockInsD"] / 2 * mm)
+blind_hole(b, s, G["LockInsD"] / 2, G["LockInsL"] - 0.0, "Lock Insert Hole", existing_r=G["LockClear"] / 2)
 print("closed end side (sign of COM z):", round(b.m.Extension.CreateMassProperty.CenterOfMass[2] * 1000, 3))
 b.save("SW7_Dash_Bracket.SLDPRT", "dash_bracket_iso.bmp")
 sw.CloseDoc(b.m.GetTitle)
@@ -159,7 +221,7 @@ sw.CloseDoc(b.m.GetTitle)
 # ---------- Clamp cap (lower half) ----------
 c = Part()
 s = c.sketch("Right Plane")
-c.poly([(-cz, cy - G["CapT"]), (cz, cy - G["CapT"]), (cz, cy), (-cz, cy)])
+c.poly([(-cz, cy - G["CapT"]), (cz, cy - G["CapT"]), (cz, cy - G["Gap"]), (-cz, cy - G["Gap"])])
 cap = c.boss_mid(s, G["ClampW"])
 cap.Name = "Clamp Lower Half"
 s = c.sketch("Right Plane")

@@ -9,6 +9,7 @@ in the assembly they are flipped onto the shell's back face; the hole pattern is
   cross joiner 40 x 40 x 3 mm, at the centre, one M3 into each quarter.
 """
 import importlib.util
+import math
 import os
 import time
 import pythoncom
@@ -27,7 +28,8 @@ src = open(os.path.join(HERE, "1_back_shell.py"), encoding="utf-8").read()
 ns = {}
 exec(src[src.index("RAIL_CZ ="):src.index("L = P[")], ns)
 RAIL_HOLES, RAIL_CZ = ns["RAIL_HOLES"], ns["RAIL_CZ"]
-R = {"PlateW": 120.0, "PlateH": 86.0, "PlateT": 4.0, "RailW": 30.0, "RailW2": 38.0, "RailH": 6.0, "RailL": 80.0,
+R = {"PlateW": 120.0, "PlateH": 74.0, "PlateT": 4.0, "RailW": 30.0, "RailW2": 38.0, "RailH": 6.0, "RailL": 72.0,
+     "DetentD": 4.5, "DetentDepth": 2.0, "DetentZ": 28.0,   # 5.75 mm wall to the rail end (audit 4)
      "JoinL": 44.0, "JoinW": 20.0, "JoinT": 3.0, "JoinPitch": 24.0, "BoltD": 3.4}
 
 sw = win32com.client.GetActiveObject("SldWorks.Application")
@@ -126,9 +128,32 @@ f = p.extrude(s, R["PlateT"])                       # plate Y 0..PlateT; Y = 0 i
 f.Name = "Rail Plate"
 s = p.sketch("Front Plane")
 a, b2, t, rh = R["RailW"] / 2, R["RailW2"] / 2, R["PlateT"], R["RailH"]
-p.poly([(-a, t - 0.5), (a, t - 0.5), (b2, t + rh), (-b2, t + rh)])
+k = (b2 - a) / rh                                   # flank slope from the plate face (review D8): parallel to the
+p.poly([(-(a - 0.5 * k), t - 0.5), (a - 0.5 * k, t - 0.5), (b2, t + rh), (-b2, t + rh)])   # channel offset
 rail = p.extrude(s, R["RailL"], mid=True)
 rail.Name = "Dovetail Rail"
+# Detents for the bracket's M4 lock screw, one near each end of the rail (symmetric, so the plate can go either way).
+m.ClearSelection2(True)
+m.Extension.SelectByID2("Top Plane", "PLANE", 0, 0, 0, False, 0, NONE, 0)
+pl = p.fm.InsertRefPlane(8, (t + rh) * mm, 0, 0, 0, 0)
+pl.Name = "Rail Face"
+s = p.sketch("Rail Face")
+for sz in (-1, 1):
+    p.sm.CreateCircleByRadius(0, sz * R["DetentZ"] * mm, 0, R["DetentD"] / 2 * mm)
+want = 2 * math.pi * (R["DetentD"] / 2) ** 2 * R["DetentDepth"]
+for rev in (False, True):
+    v0 = p.vol()
+    p.close(s)
+    f = p.fm.FeatureCut4(True, False, rev, 0, 0, R["DetentDepth"] * mm, 0, False, False, False, False, 0, 0, False,
+                         False, False, False, False, True, True, True, True, False, 0, 0, False, False)
+    if f is not None and abs((v0 - p.vol()) - want) < 0.1 * want:
+        f.Name = "Lock Detents"
+        print("detents removed", round(v0 - p.vol(), 1), "expected", round(want, 1))
+        break
+    if f is not None:
+        m.EditUndo2(1)
+else:
+    raise SystemExit("detents failed")
 s = p.sketch("Top Plane")
 for x, z in RAIL_HOLES:
     p.sm.CreateCircleByRadius(x * mm, (z - RAIL_CZ) * mm, 0, R["BoltD"] / 2 * mm)   # pattern is symmetric

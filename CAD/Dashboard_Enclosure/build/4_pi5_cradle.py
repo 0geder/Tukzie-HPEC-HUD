@@ -108,6 +108,29 @@ if f is None or vol() >= before:
 f.Name = "Pilot and Bolt Holes"
 print("holes", vol())
 
+# Vent slots through the base, matching the shell's vent slots behind it (review D13), skipping any slot that would
+# cut into a standoff or a bolt.
+slots = []
+for i in range(8):
+    x0 = -(66 + i * 8) - 3
+    if any(x0 - 4 < sx < x0 + 3 + 4 for sx, _ in STAND) or x0 < X0 + 3 or x0 + 3 > X1 - 3:
+        continue                                  # 3 mm minimum to standoffs and base edges (audit 4)
+    for z0, z1 in ((28, 84), (-84, -28)):
+        a, b = max(z0, Z0 + 3), min(z1, Z1 - 7)   # stays 3 mm clear of the USB-end notch
+        if b - a > 4:
+            slots.append((x0, a, x0 + 3, b))
+s_v = sketch("Top Plane")
+for x0, a, x1, b in slots:
+    sm.CreateCornerRectangle(x0 * mm, zs(a) * mm, 0, x1 * mm, zs(b) * mm, 0)
+before = vol()
+close(s_v)
+f = fm.FeatureCut4(False, False, False, 1, 1, 0, 0, False, False, False, False, 0, 0,
+                   False, False, False, False, False, True, True, True, True, False, 0, 0, False, False)
+if f is None or vol() >= before:
+    raise SystemExit("vent slots failed")
+f.Name = "Vent Slots"
+print("vent slots", len(slots), "removed", round(before - vol(), 1))
+
 # Orientation mark: a notch in the bottom (+Z, USB end) edge.
 s = sketch("Top Plane")
 sm.CreateCornerRectangle((P["PiCX"] - 4) * mm, zs(Z1 - 3) * mm, 0, (P["PiCX"] + 4) * mm, zs(Z1 + 1) * mm, 0)

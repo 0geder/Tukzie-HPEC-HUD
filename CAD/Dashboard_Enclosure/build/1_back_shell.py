@@ -27,8 +27,10 @@ P = {
     "BoltD": 3.4,       # M3 clearance
 }
 # Bolt hole centres (x, z) in mm, shared with 3_split_and_plates.py.
-RAIL_CZ = 53.0      # rail plate centre: low on the back, so the display stands above the handlebar
-RAIL_HOLES = [(sx * 40, RAIL_CZ + sz * 35) for sx in (-1, 1) for sz in (-1, 1)] +              [(sx * 52, RAIL_CZ + sz * 13) for sx in (-1, 1) for sz in (-1, 1)]
+RAIL_CZ = 59.0      # rail plate centre (Z down): low on the back, so the display stands above the handlebar.
+#   Revision 2 (review D4): the plate now spans Z 22 to 96, clear of the cross joiner (Z -20 to 20), and is
+#   symmetric about its centre; its 68 mm rail runs Z 25 to 93.
+RAIL_HOLES = [(sx * 40, RAIL_CZ + sz * 30) for sx in (-1, 1) for sz in (-1, 1)] +              [(sx * 52, RAIL_CZ + sz * 12) for sx in (-1, 1) for sz in (-1, 1)]
 # Joiners: one straight across the top of the X split, one straight across the right of the Z split, one cross
 # plate at the centre (one bolt per quarter). The rail plate bridges the bottom of the X split and the Pi 5 cradle
 # the left of the Z split.
@@ -170,7 +172,8 @@ print("vents", vol())
 s = sketch("Right Plane")
 y0 = P["BackT"] + 2
 sm.AddToDB = True
-sm.CreateCornerRectangle(-P["CableW"] / 2 * mm, y0 * mm, 0, P["CableW"] / 2 * mm, (y0 + P["CableH"]) * mm, 0)
+# Revision 2 (review D10): an open notch up to the front edge, so there is no roof to print over the plugs.
+sm.CreateCornerRectangle(-P["CableW"] / 2 * mm, y0 * mm, 0, P["CableW"] / 2 * mm, (H + 1) * mm, 0)
 sm.AddToDB = False
 cx0 = m.Extension.CreateMassProperty.CenterOfMass[0]
 close_and_select(s)
@@ -192,7 +195,7 @@ print("cable exit", vol())
 s = sketch("Back Inner")
 sm.AddToDB = True
 for x, z in RAIL_HOLES + JOINER_HOLES + PI_HOLES:
-    sm.CreateCircleByRadius(x * mm, z * mm, 0, P["BoltD"] / 2 * mm)
+    sm.CreateCircleByRadius(x * mm, -z * mm, 0, P["BoltD"] / 2 * mm)   # Top-plane sketch y is -Z (review D3)
 sm.AddToDB = False
 f = cut_either_way(s, P["BackT"] + 1)
 f.Name = "Bolt Holes"

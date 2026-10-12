@@ -54,8 +54,8 @@ Key assumptions: the sizes marked estimated in `build/params.py`. The most impor
 | 1 | Sensor head tray | Board pilots at (X ±11.3, Y 11.8 and 34.9) | The board's mounting-hole positions are estimated from a photo | If they are wrong, the board cannot be screwed down | Measure the holes with calipers, set `BOARD_HOLES`, rebuild | Critical (unverified) | Open, needs the student's measurement |
 | 2 | Sensor head, both shells | Side ToF windows | The side sensors face 90 degrees in the model and the photos, but the fusion software assumes 35 degrees | Hazard positions would be wrong on the dashboard | Do the finger test. Either aim the carriers at 35 degrees (set `TOF_SIDE_BEARING = 35` and rebuild) or change `fusion_config.json` to 90 | Major | Open, needs the student's decision |
 | 3 | README assembly order | Flange bolts at Z -20 | The two lower flange bolts sit under the Pi 4's PCB (Pi spans X -40 to 45, Z -18 to -0.4). A driver along Y cannot reach them once the Pi is in. The README fits the Pi first | The pod cannot be assembled in the documented order, and removing the head means removing the Pi | Order: head, then flange bolts, then Pi, ESP32 and wiring. Note that servicing the head means removing the Pi (4 screws). The bolts cannot move clear of the Pi, because the head's rear wall spans only X ±48.4 | Major | Fixed in this revision (README) |
-| 4 | Assembly | All components except the box base | 15 of 16 components are floating, with no mates and not fixed | They can be dragged out of position, and a reader cannot trust the assembly | Every part is modelled in the pod frame, so fix each pod part in place. The dashboard bracket, cap and bar stay positioned by their transforms and are fixed too | Moderate | Planned (needs SolidWorks, after the dashboard audit) |
-| 5 | Assembly | View cones | The cones show by default and look like parts | Confusing; the student asked about them | Hide the reference bodies in the default display state; show them only when checking clearance | Moderate | Planned (needs SolidWorks, after the dashboard audit) |
+| 4 | Assembly | All components except the box base | 15 of 16 components are floating, with no mates and not fixed | They can be dragged out of position, and a reader cannot trust the assembly | Every part is modelled in the pod frame, so fix each pod part in place. The dashboard bracket, cap and bar stay positioned by their transforms and are fixed too | Moderate | Fixed: audit 1 shows 16 of 16 fixed |
+| 5 | Assembly | View cones | The cones show by default and look like parts | Confusing; the student asked about them | Hide the reference bodies in the default display state; show them only when checking clearance | Moderate | Fixed: REF_View_Cones hidden in the default display (right-click > Show to check clearance) |
 | 6 | All parts | Sketches | The sketches are drawn by script with no dimensions or relations. The parameters live in `build/params.py`, not in SolidWorks equations | Editing a dimension in SolidWorks does not drive the model. Changes must go through `params.py` and a rebuild | Documented as the editing workflow. Fully dimensioned sketches would mean rebuilding every feature, so this is deferred until the measurements are final | Moderate | Open (documented) |
 | 7 | Box base | Flange clearance holes are only 2.4 mm long (the wall) | An M3 screw clamps the head onto a 2.4 mm wall | PETG creep under vibration could loosen the joint | Use M3 x 8 with a washer; check the torque after the first ride. A boss under the screw head would add stiffness if it loosens | Minor | Open (hardware note added) |
 | 8 | Whole pod | Mount | The pod hangs on one dovetail and an M4 thumb screw | Vibration loads on a tuk-tuk are unknown | Physical test: shake on the vehicle; check the thumb screw torque and rail wear. Add a safety tie as on the dashboard | Major (unverified) | Open, needs a physical test |
@@ -148,8 +148,21 @@ All are in this folder of the repo:
 
 ## H. Acceptance
 
-REQUIRES REVISION. The model passes interference and fastener checks. Defect 3 is fixed in this revision; 4 and 5 are planned.
+REQUIRES REVISION. The model passes interference and fastener checks. Defects 3, 4 and 5 are fixed.
 It cannot be PROTOTYPE-READY until:
 - the board hole positions are measured (defect 1);
 - the side ToF direction is decided (defect 2);
 - a slicer check is done.
+
+
+## Revision 2 (12 Oct 2026): changes shared with the dashboard mount
+
+The pod uses the dashboard's bracket and cap, so the dashboard review's fixes D1, D2, D5, D6 and D8 apply here too. The
+pod's rail plate changed to match:
+- the rail is now 72 mm long;
+- it is drawn from the plate face, so the bracket's channel is parallel to it at 0.35 mm;
+- it has two 4.5 x 2 mm lock detents at MOUNT_Y +/-28. The bracket's lock lands on the rear one, at pod Y -98.
+
+Rerun after the change:
+- audit 1: 16 of 16 fixed, 0 hard interferences, probe detected;
+- audit 2: all fastener holes match.

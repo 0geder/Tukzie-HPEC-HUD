@@ -80,3 +80,14 @@ and compare the high-frequency content.
    over the board to the +X exit. Two M2.5 x 5 self-tapping screws, hand tight.
 3. Foam pad on the board's free edge (I4), lid on with the arrow pointing forward, four M2.5 x 6 (I1).
 4. On the vehicle: VHB tape under the base, cable ties through both tunnels, arrow pointing forward.
+
+
+## Revision 2: corrections applied and re-checked (12 Oct 2026)
+
+| ID | What was changed | Evidence |
+|---|---|---|
+| I1 | Lid pilot holes shortened from 8 to 6 mm (`build/5_review_fixes.py`); lid screws M2.5 x 6 | Depth parameter read back as 6.0 mm. Audit 4: the thinnest wall from the pilot to a tunnel is 1.35 mm, diagonal from the pilot's bottom corner (was 0.90). The M2.5 x 6 thread stops at Y 8, at least 3 mm above the tunnel |
+| I4 | Lid rib 12 x 2 x 2.4 mm at Z +7 (X -6 to 6, clear of the MPU-6050), pressing on the board's free edge through 1 mm of foam | Rib volume 57.6 mm3 (expected 57.6). Lid box Y -2.4 to 2.0. Temporary assembly: 0 hard interferences; probe detected |
+| I2, I3, I5 to I10 | Not geometry, or need a measurement. Hole spacing 15.2 must be measured. No header: wires solder straight to the pads. M2.5 x 5 board screws, VHB tape, gasket. The scripts are the source of truth | Documented |
+
+Acceptance after revision 2: PROTOTYPE-READY, once the board's hole spacing is measured.

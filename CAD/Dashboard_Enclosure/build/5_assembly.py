@@ -98,17 +98,19 @@ asm_title = asm.GetTitle
 FLIP_X = [1, 0, 0, 0, -1, 0, 0, 0, -1]                 # 180 deg about X: y -> -y, z -> -z
 FLIP_X_TURN_Y = [0, 0, -1, 0, -1, 0, -1, 0, 0]         # also turned 90 deg about Y (long axis along Z)
 IDENT = [1, 0, 0, 0, 1, 0, 0, 0, 1]
-BR_T = (0.0, -22.0, 59.0)   # bracket: open face against the rail plate (Y -4), closed end on the rail's bottom end
+BR_T = (0.0, -22.0, 61.0)   # bracket: open face against the rail plate (Y -4); stop inner face (bracket Z +34) on
+#   the rail's lower end (Z 95); the 72 mm rail runs Z 23 to 95, and the lock (bracket Z -30) lands on the
+#   detent at Z 31 (plate centre 59 - 28)
 
 placements = [
     (os.path.join(OUT, "SW7_Dash_Back_Shell.SLDPRT"), IDENT, (0, 0, 0)),
     (DISP, IDENT, (0, 5.5, 0)),                          # front face under the 1.5 mm lips at Y 25.5
-    (os.path.join(PP, "SW7_Dash_Rail_Plate.SLDPRT"), FLIP_X, (0, 0, 53)),
+    (os.path.join(PP, "SW7_Dash_Rail_Plate.SLDPRT"), FLIP_X, (0, 0, 59)),
     (os.path.join(PP, "SW7_Dash_Cross_Joiner.SLDPRT"), FLIP_X, (0, 0, 0)),
     (os.path.join(PP, "SW7_Dash_Joiner_Plate.SLDPRT"), FLIP_X, (0, 0, -82)),
     (os.path.join(PP, "SW7_Dash_Joiner_Plate.SLDPRT"), FLIP_X_TURN_Y, (124, 0, 0)),
     (os.path.join(PP, "SW7_Dash_Pi5_Cradle.SLDPRT"), IDENT, (0, 0, 0)),
-    (PI, FLIP_X, (0, -10, 0)),
+    (PI, FLIP_X, (0, -10, -10)),   # on the cradle standoffs (review D9)
     (os.path.join(OUT, "SW7_Dash_Bracket.SLDPRT"), IDENT, BR_T),
     (os.path.join(OUT, "SW7_Dash_Clamp_Cap.SLDPRT"), IDENT, BR_T),
     (BAR, IDENT, (0, BR_T[1] - 12.0, BR_T[2])),
@@ -132,6 +134,13 @@ for path, rot, t in placements:
 
 sw.ActivateDoc(asm_title)
 asm.EditRebuild3
+# Every part is modelled in its final position, so fix all of them in place (review D9: they were floating).
+asm.ClearSelection2(True)
+for comp in asm.GetComponents(True):
+    comp.Select4(True, NONE, False)
+asm.FixComponent()   # needs the call parentheses under late binding
+asm.ClearSelection2(True)
+print("fixed:", sum(1 for comp in asm.GetComponents(True) if comp.IsFixed), "of", len(asm.GetComponents(True)))
 path = os.path.join(OUT, "SW7_Dash_Assembly.SLDASM")
 print("save asm:", asm.SaveAs3(path, 0, 1), path)
 for view, shot in (("*Isometric", "asm_iso.bmp"), ("*Back", "asm_back.bmp"), ("*Right", "asm_side.bmp")):

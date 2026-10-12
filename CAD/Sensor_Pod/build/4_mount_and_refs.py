@@ -17,9 +17,10 @@ from params import *          # noqa: F401,F403
 from swlib import Part, PRINT, REF
 
 ZB = BOX_BOT_Z
-PLATE_Y = 84.0                 # long enough for the 80 mm rail
+PLATE_Y = 84.0                 # long enough for the 72 mm rail
 PLATE_T = RAIL_PLATE[2]
-RAIL_L = 80.0
+RAIL_L = 72.0                  # revision 2: matches the dashboard rail (detents 5.75 mm from the ends)
+DETENT_D, DETENT_DEPTH, DETENT_OFF = 4.5, 2.0, 28.0
 
 # ---------- Rail plate ----------
 print("rail plate")
@@ -30,10 +31,13 @@ hx, y0, y1 = RAIL_PLATE[0] / 2, MOUNT_Y - PLATE_Y / 2, MOUNT_Y + PLATE_Y / 2
 zt, zb = ZB, ZB - PLATE_T
 p.prism("Z", [("rect", -hx, y0, hx, y1)], zb, zt, "Rail Plate")
 a, b = RAIL_W / 2, RAIL_W2 / 2
-p.prism("Y", [("poly", [(-a, zb + 0.5), (a, zb + 0.5), (b, zb - RAIL_H), (-b, zb - RAIL_H)])],
+k = (b - a) / RAIL_H           # flank slope from the plate face, so the bracket channel (rail + 0.35 mm) is parallel
+p.prism("Y", [("poly", [(-(a - 0.5 * k), zb + 0.5), (a - 0.5 * k, zb + 0.5), (b, zb - RAIL_H), (-b, zb - RAIL_H)])],
         MOUNT_Y - RAIL_L / 2, MOUNT_Y + RAIL_L / 2, "Dovetail Rail")
 p.cut("Z", [("circle", x, y, M3_CLEAR / 2) for x, y in RAIL_BOLTS], zb - 0.5, zt + 0.5, "M3 Holes")
 p.cut("Z", [("circle", x, y, 3.0) for x, y in RAIL_BOLTS], zb - 0.5, zb + 3.5, "Counterbores")
+p.cut("Z", [("circle", 0.0, MOUNT_Y + sy * DETENT_OFF, DETENT_D / 2) for sy in (-1, 1)],
+      zb - RAIL_H - 0.5, zb - RAIL_H + DETENT_DEPTH, "Lock Detents")   # for the bracket's M4 lock screw
 p.save(os.path.join(PRINT, "SW7_Pod_Rail_Plate.SLDPRT"), "rail_plate_iso.png")
 p.close_doc()
 

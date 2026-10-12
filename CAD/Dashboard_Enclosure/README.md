@@ -13,7 +13,7 @@ with a dummy display and a dummy Pi 5 (`reference_parts/`, not printed). Picture
 1. The bar clamp (bracket and cap) is bolted to the middle of the handlebar with two M5 bolts, over a 1 mm rubber
    strip. It stays on the vehicle. Before tightening, turn it around the bar to tilt the screen towards the driver.
 2. The display slides down onto the clamp: the dovetail rail on its back goes into the bracket's channel.
-3. Tighten the M4 thumb screw on the side of the bracket.
+3. Turn the M4 thumb screw up from under the bracket until it drops into the rail's detent.
 4. To take the display off, loosen the thumb screw and lift the display upwards.
 
 The rail is low on the back of the display, so the screen stands above the handlebar the way a phone mount does.
@@ -21,8 +21,8 @@ The bar sits about 37 mm above the display's bottom edge, and about 150 mm of sc
 
 Why it cannot fall off:
 - The channel is closed at its bottom end, so the display's weight sits on a solid stop.
-- The thumb screw stops it lifting out over bumps.
-- The clamp grips the bar with two M5 bolts and a rubber strip, so it neither slides along the bar nor swings round it.
+- The thumb screw sits in a detent in the rail, so the display cannot lift out over bumps (a positive lock, not friction).
+- The clamp grips the bar with two M5 bolts and a rubber strip. The two halves keep a 1.5 mm squeeze gap, so the bolt load goes into the bar, not into the clamp faces, and it neither slides along the bar nor swings round it.
 - The dovetail only lets the display move straight up, against both of these.
 - As a backup on the road test, loop a cable tie through the bracket's channel end and round the bar.
 
@@ -31,20 +31,23 @@ Why it cannot fall off:
 | Part | Size (mm) | Print | What it does |
 |---|---|---|---|
 | print_parts/SW7_Dash_Shell_Q_Left_Top, Left_Bottom, Right_Top, Right_Bottom | 139.1 x 96.6 x 27 each | 1 of each | The four quarters of the back shell. The display presses in from the front past 1.2 mm snap lips on the long walls. 24 mm deep inside. |
-| print_parts/SW7_Dash_Rail_Plate.SLDPRT | 120 x 86 x 4, rail 6 high | 1 | Low on the back (centre 53 mm below the middle), eight M3. Carries the dovetail rail (30 to 38 mm wide, 80 mm long) and joins the two bottom quarters. |
+| print_parts/SW7_Dash_Rail_Plate.SLDPRT | 120 x 74 x 4, rail 6 high | 1 | Low on the back (Z 22 to 96, clear of the cross joiner), eight M3. Carries the dovetail rail (30 to 38 mm wide, 72 mm long, two lock detents) and joins the two bottom quarters. |
 | print_parts/SW7_Dash_Cross_Joiner.SLDPRT | 40 x 40 x 3 | 1 | At the centre, one M3 into each quarter |
 | print_parts/SW7_Dash_Joiner_Plate.SLDPRT | 44 x 20 x 3 | 2 | Across the top of the vertical joint and the right of the horizontal joint, two M3 each |
 | print_parts/SW7_Dash_Pi5_Cradle.SLDPRT | 66 x 95 x 10 | 1 | Holds the Raspberry Pi 5 on the back, on the left (the display's connector side). Four M3 through the shell, two either side of the joint, so it also joins the two left quarters. The Pi screws to four 7 mm standoffs (M2.5 x 6), components out, USB and Ethernet end down. A notch marks the USB end. |
-| SW7_Dash_Bracket.SLDPRT | 56 x 80 x 30 | 1 | Dovetail channel on top (closed at the bottom end, M4 thumb screw on the side) and the upper half of the bar clamp, with two M5 heat-set insert holes |
-| SW7_Dash_Clamp_Cap.SLDPRT | 40 x 40 x 12 | 1 | Lower half of the bar clamp, two M5 holes |
+| SW7_Dash_Bracket.SLDPRT | 56 x 80 x 29 | 1 | Dovetail channel on top (closed at the bottom end, 0.35 mm parallel clearance), M4 lock insert underneath, and the upper half of the bar clamp (52 mm across the bar) with two M5 heat-set inserts, 10 mm blind |
+| SW7_Dash_Clamp_Cap.SLDPRT | 40 x 52 x 16 | 1 | Lower half of the bar clamp, 4.9 mm under the bore, two M5 clearance holes |
 | SW7_Dash_Back_Shell.SLDPRT | 278.2 x 193.2 x 27 | Do not print | Master the quarters are cut from |
 
-Hardware:
-- 20 M3 x 8 bolts with nuts.
-- 4 M2.5 x 6 screws for the Pi.
-- 2 M5 x 30 socket head bolts with washers and 2 M5 heat-set inserts.
-- 1 M4 thumb screw.
+Hardware (revision 2, from the engineering review):
+- 20 M3 ISO 7380 button-head bolts with nyloc nuts. Put the heads inside the shell, which leaves 2.5 mm behind the
+  display, and the nuts outside. M3 x 12 for the 8 rail plate bolts; M3 x 10 for the joiners, the cross joiner and the
+  cradle. Fit them before the display goes in.
+- 4 M2.5 x 6 screws for the Pi, hand tight.
+- 2 M5 x 30 socket head bolts with washers, and 2 M5 heat-set inserts.
+- 1 M4 heat-set insert and 1 M4 thumb screw for the lock.
 - A strip of bicycle inner tube for the bar.
+- 2 to 3 mm closed-cell foam on the back plate, to take up the display's depth and damp vibration.
 - Epoxy or CA glue for the quarter walls where they butt together.
 
 Layout, seen from the driver (+X is the driver's right, so the connector side is -X):
@@ -75,6 +78,12 @@ Layout, seen from the driver (+X is the driver's right, so the connector side is
 4. Print the bracket and rail plate first and test the slide. The clearance is `Slide` = 0.3 mm a side.
 5. Use PETG or ASA. PLA softens in the sun. Print the quarters open side up, the bracket with the clamp face on the bed,
    and the cap flat.
+
+## Reviews
+
+`ENGINEERING_REVIEW.md` has the full audit: the defect register, the checks run with their evidence, and the
+revision 2 corrections. Audit scripts are in `build/audit_*.py`. The build scripts are the source of truth: most sketches
+are not dimensioned in SolidWorks.
 
 ## Rebuilding
 
