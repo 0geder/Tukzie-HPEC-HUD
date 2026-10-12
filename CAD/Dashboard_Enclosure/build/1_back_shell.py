@@ -29,6 +29,8 @@ P = {
 # Bolt hole centres (x, z) in mm, shared with 3_split_and_plates.py.
 RAIL_HOLES = [(sx * 40, sz * 45) for sx in (-1, 1) for sz in (-1, 1)] +              [(sx * 52, sz * 15) for sx in (-1, 1) for sz in (-1, 1)]
 JOINER_HOLES = [(sx * 12, sz * 82) for sx in (-1, 1) for sz in (-1, 1)] +                [(sx * 124, sz * 12) for sx in (-1, 1) for sz in (-1, 1)]
+# Pi 5 cradle (4_pi5_cradle.py) bolts on the left of the back with the two left joiner holes plus these two.
+PI_HOLES = [(-72, 12), (-72, -12)]
 L = P["DispL"] + 2 * P["Clr"] + 2 * P["Wall"]
 W = P["DispW"] + 2 * P["Clr"] + 2 * P["Wall"]
 IL, IW = P["DispL"] + 2 * P["Clr"], P["DispW"] + 2 * P["Clr"]
@@ -181,10 +183,11 @@ f.Name = "Cable Exit (-X short side)"
 print("cable exit", vol())
 
 # 6. M3 bolt holes through the back plate: eight for the rail plate across the centre (two per quarter) and
-#    eight for the four joiner plates across the outer ends of the split lines.
+#    eight for the joiner plates across the outer ends of the split lines (the Pi 5 cradle takes the left
+#    pair) and two more for the cradle.
 s = sketch("Back Inner")
 sm.AddToDB = True
-for x, z in RAIL_HOLES + JOINER_HOLES:
+for x, z in RAIL_HOLES + JOINER_HOLES + PI_HOLES:
     sm.CreateCircleByRadius(x * mm, z * mm, 0, P["BoltD"] / 2 * mm)
 sm.AddToDB = False
 f = cut_either_way(s, P["BackT"] + 1)

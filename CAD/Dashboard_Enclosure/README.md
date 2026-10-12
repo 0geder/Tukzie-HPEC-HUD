@@ -13,10 +13,12 @@ The display is a Waveshare 10.1" HDMI LCD (B) in its stock case (named in the va
 | SW7_Dash_Back_Shell.SLDPRT | 278.2 x 193.2 x 27 | Do not print. This is the master that the quarters are cut from. | Tray covering the back of the display. The display presses in from the front past 1.2 mm snap lips on the long walls. 24 mm deep inside. |
 | print_parts/SW7_Dash_Shell_Q_Left_Top, Left_Bottom, Right_Top, Right_Bottom | 139.1 x 96.6 x 27 each | 1 of each | The four quarters of the shell |
 | print_parts/SW7_Dash_Rail_Plate.SLDPRT | 120 x 120 x 4, rail 6 mm high | 1 | Bolts across the centre with eight M3 (two into each quarter), so it holds the quarters together. Carries the dovetail rail (30 to 38 mm wide, 90 mm long). |
-| print_parts/SW7_Dash_Joiner_Plate.SLDPRT | 44 x 20 x 3 | 4 | Bolt across the outer ends of the two split lines, two M3 each |
+| print_parts/SW7_Dash_Joiner_Plate.SLDPRT | 44 x 20 x 3 | 3 | Bolt across the outer ends of the split lines (top, bottom and right), two M3 each |
+| print_parts/SW7_Dash_Pi5_Cradle.SLDPRT | 66 x 95 x 10 | 1 | Holds the Raspberry Pi 5 on the back, on the left (connector) side. Four M3 bolts through the shell; two of them cross the left split line, so it replaces the left joiner plate. The Pi screws to four 7 mm standoffs (M2.5 x 6, pilot 2.2 mm), component side out, USB and Ethernet end down. A notch marks the USB end. |
 | SW7_Dash_Bracket.SLDPRT | 56 x 80 x 18 | 1 | Stays on the tuk-tuk. The rail slides down into its dovetail channel, which is closed at the bottom. An M4 thumb screw from the side locks it. A saddle sits on the tube and two slots take hose clamps or 9 mm cable ties. |
 
-Hardware: 16 x M3 x 8 bolts with nuts (the shell's back is 3 mm thick and the plates 3 to 4 mm), and 1 x M4 thumb screw.
+Hardware: 18 x M3 x 8 bolts with nuts (the shell's back is 3 mm thick and the plates 3 to 4 mm), 4 x M2.5 x 6 screws for the Pi, and 1 x M4 thumb screw.
+Fit the cradle's bolts before the Pi: two of them sit under the board.
 Also glue the quarter walls where they butt together (epoxy or CA for PETG).
 
 Layout, seen from the driver (+X is the driver's right, so the connector side is -X):
@@ -24,6 +26,9 @@ Layout, seen from the driver (+X is the driver's right, so the connector side is
   (photo `Photos/Reference/Enclosures/2026-10-12_display_on_desk_cables_left.jpg`). The opening is centred on the side
   and covers about 64 to 122 mm from the top edge, where the plugs sit in the photo.
 - Vent slots in two rows near the left-hand side, behind the display's driver board.
+- The Pi 5 sits on the back on the left, outside the shell, so the shell stays 27 mm deep and the Pi gets open air.
+  Why screws and not clips for the Pi: the vehicle shakes, and clips on a 1.6 mm board work loose. The cradle partly
+  covers the upper and lower vent rows.
 - The rail runs vertically on the back, so the display slides down onto the bracket and lifts off upwards.
 
 ## Numbers used
@@ -52,3 +57,4 @@ With SolidWorks open, run these in order:
 1. `python build/1_back_shell.py` makes the master shell.
 2. `python build/2_bracket.py` makes the bracket.
 3. `python build/3_split_and_plates.py` makes the quarters and the plates. The bolt-hole layout is read from the shell script, so the two stay matched.
+4. `python build/4_pi5_cradle.py` makes the Pi 5 cradle, with the same bolt layout.
