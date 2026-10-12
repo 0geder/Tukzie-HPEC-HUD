@@ -11,6 +11,7 @@ Add-ons for the vehicle dashboard (PySide6, the dashboard team's
 | `sw7_endpoints.py` | `app/data/` | Finds the Pi 4 (localhost, override, wired, beacon, mDNS, last good) |
 | `sw7_live_only.py` | `app/data/` | Live-only mode: the explicit no-data state, never simulated values |
 | `sw7_tile_map.py` | `app/pages/` | Street-tile map for the Navigation page (OpenStreetMap tiles, heading-up follow mode), no QtWebEngine |
+| `sw7_layout_frame.py` | `app/widgets/` | Layout pass for the status bar (48 px, 16 px text), nav bar (labels, 64 px targets), side arrows, Settings and Charging; `TUKZIE_SW7_LAYOUT=0` keeps the team's layout (tests/test_layout_frame.py) |
 
 They are kept here, outside the dashboard repo, so the dashboard team can
 review them before anything in their code changes. The telemetry contract is

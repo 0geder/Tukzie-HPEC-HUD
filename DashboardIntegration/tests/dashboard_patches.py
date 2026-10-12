@@ -22,6 +22,8 @@ ANALYTICS_CAROUSEL_PATCHES: the Analytics page as an infinite vertical carousel 
 DRIVING_PATCHES: large speed, battery and range in place of the dial and pedal bars.
 SEARCH_PATCHES: destination search with Photon type-ahead, recents and a start-position header (sw7_search.py).
 THEME_PATCHES: Night and Day themes, flat surfaces and the Atkinson Hyperlegible font (TUKZIE_SW7_THEME=0 restores the original).
+LAYOUT_FRAME_PATCHES: the layout pass for the status bar, nav bar, side arrows, Settings and Charging
+(sw7_layout_frame.py; TUKZIE_SW7_LAYOUT=0 restores the team's layout).
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -42,6 +44,7 @@ COPIES = (
     ("sw7_touch.py", "app/pages/sw7_touch.py"),
     ("sw7_page_swipe.py", "app/pages/sw7_page_swipe.py"),
     ("sw7_search.py", "app/pages/sw7_search.py"),
+    ("sw7_layout_frame.py", "app/widgets/sw7_layout_frame.py"),
     ("fonts/AtkinsonHyperlegible-Regular.ttf", "app/fonts/AtkinsonHyperlegible-Regular.ttf"),
     ("fonts/AtkinsonHyperlegible-Bold.ttf", "app/fonts/AtkinsonHyperlegible-Bold.ttf"),
     ("fonts/OFL.txt", "app/fonts/OFL.txt"),
@@ -646,4 +649,27 @@ SEARCH_PATCHES = (
      "            if start: return start\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES
+LAYOUT_FRAME_PATCHES = (
+    # Layout pass, agent A (Planning/layout-improvements-prompt.md): status bar 48 px with 16 px text, nav bar 72 px
+    # with labels and 64 px targets, side arrows in the nav bar's end margins, Settings in two columns with 64 px rows
+    # and 64 x 36 toggles, Charging with one SOC figure (the status bar's rounding) and "5.8 of 7.2 kWh". The code is
+    # in sw7_layout_frame.py, which wraps the team's classes once, before any page is built. TUKZIE_SW7_LAYOUT=0
+    # installs nothing, so the team's layout is unchanged.
+    ("app/pages/dashboard_main.py",
+     "Dashboard = DashboardMain\n",
+     "from ..widgets import sw7_layout_frame as _sw7_layout_frame   # SW-7 layout pass (TUKZIE_SW7_LAYOUT=0: off)\n"
+     "_sw7_layout_frame.install_classes(DashboardMain)\n"
+     "Dashboard = DashboardMain\n"),
+    # charging_page.py: the ring's SOC rounded like the status bar (int() truncated: 79.6 % showed 79 % beside 80 %),
+    # with the stored energy under it.
+    ("app/pages/charging_page.py",
+     "from ..widgets.nav_bar import Card\n",
+     "from ..widgets.nav_bar import Card\n"
+     "from ..widgets import sw7_layout_frame as _sw7_layout_frame\n"),
+    ("app/pages/charging_page.py",
+     "        p.drawText(QRectF(cx - 100, cy - 210, 200, 45),\n",
+     "        if _sw7_layout_frame.enabled(): _sw7_layout_frame.paint_ring_soc(self, p, cx, cy)\n"
+     "        else: p.drawText(QRectF(cx - 100, cy - 210, 200, 45),\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_FRAME_PATCHES
