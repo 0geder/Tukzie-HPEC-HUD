@@ -24,11 +24,12 @@ INTEG = os.path.dirname(HERE)
 OUT = os.path.join(INTEG, "assets")
 VIEWS = {"three_quarter": "new_tukzie_three_quarter_front.png", "front": "new_tukzie_front.png",
          "side": "new_tukzie_side.png"}
+FLOOR_Y = {"three_quarter": 770, "front": 855, "side": 790}   # source px: below the sills and the body's underside
 MAX_W = 900
 SHADOW_RGB = (40, 32, 26)
 
 
-def cut(path):
+def cut(path, floor_y=None):
     rgb = np.asarray(Image.open(path).convert("RGB")).astype(np.float32)
     L = rgb.mean(axis=2)
     chroma = rgb.max(axis=2) - rgb.min(axis=2)
@@ -72,14 +73,39 @@ def cut(path):
         near_bg = ndimage.binary_dilation(~vehicle, iterations=3)       # touching the background (door panels do not)
         touch = set(np.unique(lab_g[near_bg & ground])) - {0}
         vehicle = vehicle & ~np.isin(lab_g, [i + 1 for i, s in enumerate(sizes) if s > 150 and (i + 1) in touch])
-    vehicle = ndimage.binary_opening(vehicle, iterations=1)
+    # what is left of the floor under the body (the render's grey ground, below the sills): every neutral patch
+    # under the view's floor line that reaches the outside is ground, not vehicle, so the cut-out sits cleanly on the
+    # night charcoal. Tyres, trim and wheel rims are dark (or enclosed by the tyre) and stay; door panels sit above
+    # the line. Repeated, since removing one patch can open the next to the outside.
+    if floor_y:
+        zone = np.zeros_like(vehicle)
+        zone[int(floor_y):, :] = True
+        band = np.zeros_like(vehicle)
+        band[int(floor_y) - 70:, :] = True
+        for _i in range(4):
+            floor = vehicle & ((zone & (L > 50)) | (band & (L > 190))) & (chroma < 16)
+            lab_f, n_f = ndimage.label(floor)
+            if not n_f:
+                break
+            out_edge = ndimage.binary_dilation(~vehicle, iterations=2)
+            touch = set(np.unique(lab_f[out_edge & floor])) - {0}
+            if not touch:
+                break
+            vehicle = vehicle & ~np.isin(lab_f, list(touch))
+        # any grey left under the floor line is the render's own ground shadow: it becomes the soft shadow layer
+        vehicle = vehicle & ~(((zone & (L > 85)) | (band & (L > 243))) & (chroma < 16))
+    vehicle = ndimage.binary_opening(vehicle, iterations=2)
+    lab_v, n_v = ndimage.label(vehicle)
+    if n_v > 1:
+        sizes = ndimage.sum(vehicle, lab_v, range(1, n_v + 1))
+        vehicle = lab_v == (int(np.argmax(sizes)) + 1)
     core = ndimage.binary_erosion(vehicle, iterations=1)
     v_alpha = ndimage.gaussian_filter(core.astype(np.float32), 0.8)
     v_alpha = np.clip(v_alpha * 1.15, 0, 1)
     # the render's own ground shadow, as a translucent shadow
     dark = np.clip((251.0 - L) / 130.0, 0, 1) ** 0.85
-    s_alpha = np.where(vehicle, 0, dark * 0.78)
-    s_alpha = ndimage.gaussian_filter(s_alpha, 1.2)
+    s_alpha = np.where(vehicle, 0, dark * 0.62)
+    s_alpha = ndimage.gaussian_filter(s_alpha, 3.0)                # a soft contact shadow, no hard patch edges
     alpha = np.maximum(v_alpha, s_alpha * (1 - v_alpha))
     out = np.zeros(rgb.shape[:2] + (4,), np.float32)
     w_v = np.where(alpha > 0, v_alpha / np.maximum(alpha, 1e-6), 0)[..., None]
@@ -99,7 +125,7 @@ def main(argv):
     src = argv[1] if len(argv) > 1 else os.path.join(INTEG, "..", "..")
     os.makedirs(OUT, exist_ok=True)
     for view, name in VIEWS.items():
-        img = cut(os.path.join(src, name))
+        img = cut(os.path.join(src, name), FLOOR_Y.get(view))
         dst = os.path.join(OUT, f"tukzie_{view}.png")
         img.save(dst, optimize=True)
         print(f"{dst}: {img.width} x {img.height}")
