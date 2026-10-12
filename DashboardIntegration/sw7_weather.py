@@ -403,8 +403,13 @@ def paint_icon(p, rect, kind, is_day=True, main=None, second=None):
 
 # ---- status-bar chip -------------------------------------------------------------------------------------------------------
 class WeatherChip(QPushButton):
-    """'☀ 24° Rondebosch' in the status bar: a card chip with a signal outline (it opens the weather card)."""
+    """The status-bar weather item, unboxed (Planning/ui-theme-refinement-prompt.md, item 5): a small icon, then
+    "24° · Rondebosch" inline with the other indicators. No box, pill, border or fill; the whole item (44 px tall,
+    with padding) is still the tap target that opens the weather card. Unavailable: "--°" and the fallback place."""
     H = 36
+    ICON = 20
+    GAP = 8
+    PAD = 12
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -415,6 +420,7 @@ class WeatherChip(QPushButton):
         self.report = None
         self.place_fallback = "UCT"
         self.setStyleSheet("QPushButton#sw7WeatherChip{background:transparent;border:none;padding:0px;}")
+        S.mark_quiet(self)                 # an indicator that opens a detail: ink, not signal
         self.set_report(None)
 
     def temp_text(self):
@@ -428,34 +434,45 @@ class WeatherChip(QPushButton):
     def summary(self):
         return self.report.status_text() if self.report is not None else f"-- {self.place_fallback}".strip()
 
+    def _fonts(self):
+        return S.font(S.BODY, QFont.Weight.Medium), S.font(S.BODY)
+
+    def parts(self):
+        """(temperature, separator, place) as painted."""
+        place = self.place_text()
+        return self.temp_text(), (" · " if place else ""), place
+
     def set_report(self, report):
         self.report = report
         self.setText("")                   # painted; the words are in the accessible name
         self.setAccessibleName(self.summary()); self.setToolTip(self.summary())
-        f1, f2 = S.font(S.BODY, QFont.Weight.Bold), S.font(S.BODY, QFont.Weight.DemiBold)
-        w = 14 + 22 + 8 + QFontMetrics(f1).horizontalAdvance(self.temp_text())
-        if self.place_text():
-            w += 8 + QFontMetrics(f2).horizontalAdvance(self.place_text())
-        self.setFixedWidth(w + 16)
+        f1, f2 = self._fonts()
+        t, sep, place = self.parts()
+        w = self.PAD + self.ICON + self.GAP + QFontMetrics(f1).horizontalAdvance(t)
+        if place:
+            w += QFontMetrics(f2).horizontalAdvance(sep + place)
+        self.setFixedWidth(w + self.PAD)
         self.update()
 
     def paintEvent(self, _e):
         p = QPainter(self); p.setRenderHint(QPainter.RenderHint.Antialiasing); p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
-        r = QRectF(1, (self.height() - self.H) / 2, self.width() - 2, self.H)
-        p.setPen(QPen(S.c("signal"), 2)); p.setBrush(S.c("signal_tint") if self.isDown() else S.c("card"))
-        p.drawRoundedRect(r.adjusted(1, 1, -1, -1), self.H / 2, self.H / 2)
+        if self.isDown():                  # touch feedback only while pressed
+            p.setPen(Qt.PenStyle.NoPen); p.setBrush(S.c("signal_tint"))
+            p.drawRoundedRect(QRectF(self.rect()).adjusted(2, 4, -2, -4), S.RADIUS_SM, S.RADIUS_SM)
         kind = self.report.kind if self.report is not None else "none"
         day = self.report.is_day if self.report is not None else True
-        paint_icon(p, QRectF(r.x() + 12, r.y() + 7, 22, 22), kind, day, S.c("signal"), S.c("signal"))
-        x = r.x() + 12 + 22 + 8
-        f1 = S.font(S.BODY, QFont.Weight.Bold); p.setFont(f1); p.setPen(S.c("ink"))
-        t = self.temp_text()
-        p.drawText(QRectF(x, r.y(), 200, r.height()), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, t)
-        x += QFontMetrics(f1).horizontalAdvance(t) + 8
-        if self.place_text():
-            p.setFont(S.font(S.BODY, QFont.Weight.DemiBold)); p.setPen(S.c("ink_2"))
-            p.drawText(QRectF(x, r.y(), 400, r.height()), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft,
-                       self.place_text())
+        cy = self.height() / 2
+        paint_icon(p, QRectF(self.PAD, cy - self.ICON / 2, self.ICON, self.ICON), kind, day, S.c("warn"), S.c("ink_2"))
+        x = self.PAD + self.ICON + self.GAP
+        f1, f2 = self._fonts()
+        t, sep, place = self.parts()
+        AL = Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
+        p.setFont(f1); p.setPen(S.c("ink") if self.report is not None else S.c("ink_3"))
+        p.drawText(QRectF(x, 0, 200, self.height()), AL, t)
+        x += QFontMetrics(f1).horizontalAdvance(t)
+        if place:
+            p.setFont(f2); p.setPen(S.c("ink_2"))
+            p.drawText(QRectF(x, 0, 400, self.height()), AL, sep + place)
         p.end()
 
 
@@ -484,7 +501,7 @@ class _Scrim(QWidget):
 class WeatherCard(QWidget):
     """The inverse card of the reference: charcoal, hero temperature, five columns, 'updated N min ago'."""
     W, H = 620, 432
-    RADIUS = 28
+    RADIUS = 8
     PAD = 36
     CLOSE_W, CLOSE_H = 132, 64
     HERO_PX = 132
@@ -578,17 +595,17 @@ class WeatherCard(QWidget):
             label, temp, code, day = cols[i] if i < len(cols) else ("", None, None, True)
             if rep is None or not label:
                 continue
-            p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True)); p.setPen(fg2)
-            p.drawText(QRectF(x, y0 + 16, cw, 18), AL.AlignHCenter, label.upper())
+            p.setFont(S.mono(S.LABEL)); p.setPen(fg2)                  # a time: Plex Mono
+            p.drawText(QRectF(x, y0 + 16, cw, 18), AL.AlignHCenter, label)
             _w, k = describe_code(code)
             paint_icon(p, QRectF(x + cw / 2 - 17, y0 + 42, 34, 34), k, day, S.c("warn"), fg2)
-            p.setFont(S.font(S.SECONDARY, QFont.Weight.Bold)); p.setPen(fg)
+            p.setFont(S.font(S.SECONDARY, QFont.Weight.Medium)); p.setPen(fg)
             p.drawText(QRectF(x, y0 + 82, cw, 30), AL.AlignHCenter, f"{temp:.0f}°" if temp is not None else "--")
         # footer: the age of what is shown, beside Close
-        p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True)); p.setPen(fg2)
+        p.setFont(S.font(S.LABEL)); p.setPen(fg2)
         foot = self.footer_text()
         p.drawText(QRectF(L, card.height() - 24 - self.CLOSE_H, R - L - self.CLOSE_W, self.CLOSE_H),
-                   AL.AlignLeft | AL.AlignVCenter, foot.upper())
+                   AL.AlignLeft | AL.AlignVCenter, foot)
         p.end()
 
     def footer_text(self):

@@ -802,3 +802,20 @@ STYLE_MAP_PATCHES = (
      "Dashboard = DashboardMain\n"),
 )
 PATCHES = PATCHES + STYLE_MAP_PATCHES
+
+STYLE_REFINE_COPIES = (
+    # The UI theme refinement (Planning/ui-theme-refinement-prompt.md): IBM Plex Sans (Regular, Medium, SemiBold) for
+    # the interface and IBM Plex Mono (Regular, Medium) for telemetry values, diagnostics, coordinates and timestamps,
+    # from the official IBM/plex releases (@ibm/plex-sans@1.1.0, @ibm/plex-mono@1.1.0), SIL Open Font Licence 1.1
+    # (OFL-IBMPlex.txt). sw7_style registers every TTF in app/fonts; Atkinson Hyperlegible stays as the fallback.
+    ("fonts/IBMPlexSans-Regular.ttf", "app/fonts/IBMPlexSans-Regular.ttf"),
+    ("fonts/IBMPlexSans-Medium.ttf", "app/fonts/IBMPlexSans-Medium.ttf"),
+    ("fonts/IBMPlexSans-SemiBold.ttf", "app/fonts/IBMPlexSans-SemiBold.ttf"),
+    ("fonts/IBMPlexMono-Regular.ttf", "app/fonts/IBMPlexMono-Regular.ttf"),
+    ("fonts/IBMPlexMono-Medium.ttf", "app/fonts/IBMPlexMono-Medium.ttf"),
+    ("fonts/OFL-IBMPlex.txt", "app/fonts/OFL-IBMPlex.txt"),
+)
+COPIES = COPIES + STYLE_REFINE_COPIES
+# No STYLE_REFINE_PATCHES: the refinement changes our own modules only (sw7_style, sw7_weather, sw7_driving,
+# sw7_analytics, sw7_style_pages, sw7_style_map, sw7_tile_map, sensors_page, front_camera_page), all behind
+# TUKZIE_SW7_STYLE (team: nothing installed, as before).

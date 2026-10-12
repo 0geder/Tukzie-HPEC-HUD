@@ -36,8 +36,10 @@ Tests: tests/test_style_pages.py (screenshots in tests/style/pages/).
 """
 from __future__ import annotations
 
+import math
+
 from PySide6.QtCore import QEvent, QObject, QPointF, QRect, QRectF, Qt, QTimer
-from PySide6.QtGui import QFont, QFontMetrics, QPainter, QPainterPath, QPen
+from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QAbstractButton, QGridLayout, QLabel, QPushButton, QWidget
 
 from ..widgets import sw7_style as S
@@ -862,8 +864,10 @@ def _charging(main):
     if page is None or not hasattr(page, "card_eta"):
         return
     vis = page.tuk
-    vis.anim_timer.stop()                 # no bubbles or spinning arc on paper: repaint only when a value changes
-    vis.sw7_bms, vis.sw7_soh, vis.sw7_sim = None, None, False
+    # The team's battery animation (bubbles in the fluid, the spinning arc) stays, restyled in ink and paper
+    # (BatteryAnimation): it runs at 30 fps only while Charging is on screen and the state of charge is known.
+    vis.sw7_bms, vis.sw7_soh, vis.sw7_sim, vis.sw7_no_data = None, None, False, False
+    BatteryAnimation(vis)
     container = page.card_eta.parentWidget()
     right = container.layout()
     right.setContentsMargins(16, 8, 16, 32)
@@ -915,13 +919,35 @@ def _charging(main):
 def _charging_update(page, s, *_a, **_k):
     vis = page.tuk
     vis.sw7_soh = getattr(s, "battery_soh_pct", None)
-    vis.sw7_sim = str(getattr(s, "data_source", "")) == "sw7_simulated_drive"
+    source = str(getattr(s, "data_source", ""))
+    vis.sw7_sim = source == "sw7_simulated_drive"
+    no_data = source == "no_data"
+    vis.sw7_no_data = no_data
     card = getattr(page, "sw7_card_range_now", None)
     if card is not None:
         from ..asis.config import VEHICLE_SPEC
         rng = getattr(s, "range_km", None)
         card.value_label.setText("--" if rng is None else f"{min(VEHICLE_SPEC.rated_max_range_km, float(rng)):.0f} km")
+    # Five states, each in words: charging, not charging, zero (a real 0, shown as 0), unknown and unavailable ("--")
+    if no_data:
+        for c in (page.card_range, page.card_energy):          # session figures with no live data: unavailable
+            c.value_label.setText("--")
+        page.status.setText("Charging state unknown · no live data")
+        page.status.setStyleSheet(f"color:{S.hx('ink_2')};background:transparent;")
+    elif bool(getattr(s, "charging", False)):
+        page.status.setStyleSheet(f"color:{S.hx('ink')};background:transparent;")
+    for c in tiles_of(page):
+        S.value_font(c.value_label, S.SECONDARY, QFont.Weight.Medium)
+        c.value_label.setStyleSheet(f"color:{S.hx('ink_3' if c.value_label.text().startswith('--') else 'ink')};"
+                                    "background:transparent;")
+    anim = getattr(vis, "sw7_anim", None)
+    if anim is not None:
+        anim.sync()
     vis.update()
+
+
+def tiles_of(page):
+    return [c for c in (getattr(page, "sw7_card_range_now", None), page.card_range, page.card_energy) if c is not None]
 
 
 def ring_values(vis):
@@ -945,49 +971,231 @@ def ring_values(vis):
             "soh": "--" if soh is None else f"{float(soh):.0f} %"}
 
 
-def _ring_paint(orig, vis, _e):
-    p = QPainter(vis)
-    p.setRenderHint(QPainter.RenderHint.Antialiasing); p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+def _ring_geometry(vis):
     w, h = vis.width(), vis.height()
     R = max(150.0, min(w, h) / 2 - 36)
     cx, cy = w / 2, h / 2
-    disc = QRectF(cx - R, cy - R, 2 * R, 2 * R)
-    S.paint_card(p, disc, R, 3)
-    vals = ring_values(vis)
-    vis._sw7_texts = vals
-    rr = R - 30
+    rr = R - 26                       # the state-of-charge track
+    ri = rr - 12                      # the fluid inside it
+    return cx, cy, R, rr, ri
+
+
+def _ring_back(vis, vals):
+    """The static back layer: the disc (hairline, very light shadow), the track and the state-of-charge arc."""
+    from PySide6.QtGui import QPixmap
+    cx, cy, R, rr, _ri = _ring_geometry(vis)
+    dpr = vis.devicePixelRatioF()
+    pix = QPixmap(int(vis.width() * dpr), int(vis.height() * dpr)); pix.setDevicePixelRatio(dpr)
+    pix.fill(Qt.GlobalColor.transparent)
+    p = QPainter(pix); p.setRenderHint(QPainter.RenderHint.Antialiasing)
+    S.paint_card(p, QRectF(cx - R, cy - R, 2 * R, 2 * R), R, 2)
     ring = QRectF(cx - rr, cy - rr, 2 * rr, 2 * rr)
-    pen = QPen(S.c("paper_deep"), 14); pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    pen = QPen(S.c("paper_deep"), 8); pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     p.setPen(pen); p.setBrush(Qt.BrushStyle.NoBrush); p.drawEllipse(ring)
     if vals["soc"] not in ("--", ""):
         pen.setColor(S.c("ink")); p.setPen(pen)
         p.drawArc(ring, 90 * 16, -int(max(0.0, min(100.0, float(vals["soc"]))) / 100.0 * 360 * 16))
+    p.end()
+    return pix
+
+
+def _ring_front(vis, vals):
+    """The static front layer: the hero percentage and the figures (Plex Mono), drawn over the fluid."""
+    from PySide6.QtGui import QPixmap
+    cx, cy, _R, _rr, _ri = _ring_geometry(vis)
+    dpr = vis.devicePixelRatioF()
+    pix = QPixmap(int(vis.width() * dpr), int(vis.height() * dpr)); pix.setDevicePixelRatio(dpr)
+    pix.fill(Qt.GlobalColor.transparent)
+    p = QPainter(pix); p.setRenderHint(QPainter.RenderHint.Antialiasing); p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
     AL = Qt.AlignmentFlag
-    # hero: the battery, 150 px, with a 22 px per cent sign
-    hero = S.font(S.HERO, QFont.Weight.Bold); fm = QFontMetrics(hero)
-    pct = S.font(S.SECONDARY, QFont.Weight.Bold); pfm = QFontMetrics(pct)
+    known = vals["soc"] not in ("--", "")
+    hero = S.font(S.HERO, QFont.Weight.DemiBold); fm = QFontMetrics(hero)
+    pct = S.font(S.SECONDARY, QFont.Weight.Medium); pfm = QFontMetrics(pct)
     tw, pw = fm.horizontalAdvance(vals["soc"]), pfm.horizontalAdvance("%")
     base = cy + 24
-    x = cx - (tw + 6 + pw) / 2
-    p.setFont(hero); p.setPen(S.c("ink")); p.drawText(QPointF(x, base), vals["soc"])
-    if vals["soc"] != "--":
+    x = cx - (tw + 6 + pw) / 2 if known else cx - tw / 2
+    p.setFont(hero); p.setPen(S.c("ink") if known else S.c("ink_3")); p.drawText(QPointF(x, base), vals["soc"])
+    if known:
         p.setFont(pct); p.setPen(S.c("ink_2")); p.drawText(QPointF(x + tw + 6, base - fm.capHeight() + pfm.capHeight()), "%")
-    p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True)); p.setPen(S.c("ink_2"))
-    p.drawText(QRectF(cx - 120, base - fm.capHeight() - 40, 240, 18), AL.AlignCenter, "BATTERY")
-    p.setFont(S.font(S.BODY)); p.setPen(S.c("ink_2"))
+    p.setFont(S.font(S.LABEL, QFont.Weight.Medium)); p.setPen(S.c("ink_2"))
+    p.drawText(QRectF(cx - 120, base - fm.capHeight() - 40, 240, 18), AL.AlignCenter,
+               "Battery" if known else "Battery · no reading")
+    p.setFont(S.mono(S.BODY, QFont.Weight.Normal)); p.setPen(S.c("ink_2"))
     p.drawText(QRectF(cx - 150, base + 12, 300, 22), AL.AlignCenter, vals["energy"])
 
     def pair(x0, y0, label, value):
-        p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True)); p.setPen(S.c("ink_2"))
+        p.setFont(S.font(S.LABEL, QFont.Weight.Medium)); p.setPen(S.c("ink_2"))
         p.drawText(QRectF(x0 - 70, y0, 140, 18), AL.AlignCenter, label)
-        p.setFont(S.font(S.BODY, QFont.Weight.Bold)); p.setPen(S.c("ink"))
+        p.setFont(S.mono(S.BODY) if S.is_figure(value) else S.font(S.BODY))
+        p.setPen(S.c("ink_3") if value.startswith("--") else S.c("ink"))
         p.drawText(QRectF(x0 - 70, y0 + 18, 140, 22), AL.AlignCenter, value)
     y1 = base + 52
-    for dx, label, key in ((-112, "POWER", "power"), (0, "VOLTAGE", "voltage"), (112, "CURRENT", "current")):
+    for dx, label, key in ((-112, "Power", "power"), (0, "Voltage", "voltage"), (112, "Current", "current")):
         pair(cx + dx, y1, label, vals[key])
     y2 = y1 + 52
-    for dx, label, key in ((-62, "TIME TO FULL", "ttf"), (62, "CELL HEALTH", "soh")):
+    for dx, label, key in ((-62, "Time to full", "ttf"), (62, "Cell health", "soh")):
         pair(cx + dx, y2, label, vals[key])
+    p.end()
+    return pix
+
+
+class BatteryAnimation(QObject):
+    """The team's battery animation (Charging page), restyled: bubbles rise through the battery fluid (filled to the
+    state of charge) and a short arc circles the track. Ink and paper when not charging (slow, ink_3 bubbles), the ok
+    colour while charging (faster with more power). Nothing moves when the state of charge is unknown, so no level
+    is suggested. It reuses the team's anim_timer at 30 fps, running only while the page is on screen. The disc and
+    the figures are two cached layers, so a frame paints two pixmaps, the fluid, about 24 small circles and one arc
+    (median under 2 ms on a laptop; tests/test_style_refine.py measures it)."""
+    BUBBLES = 24
+    FPS_MS = 33
+
+    def __init__(self, vis):
+        super().__init__(vis)
+        import random
+        self.vis = vis
+        self.rng = random.Random(7)               # the same bubble pattern on every start (and in the screenshots)
+        self.angle = 0.0
+        self.bubbles = [self._new(initial=True) for _ in range(self.BUBBLES)]
+        self.cache = {}
+        vis.sw7_anim = self
+        vis.sw7_frames = 0
+        vis.sw7_bubbles_shown = lambda: self.visible_bubbles() > 0
+        t = vis.anim_timer
+        t.stop()
+        try:
+            t.timeout.disconnect(vis._animate_step)
+        except (RuntimeError, TypeError):
+            pass
+        t.setInterval(self.FPS_MS)
+        t.timeout.connect(self.step)
+        vis.installEventFilter(self)
+        from ..theme import THEME
+        THEME.changed.connect(self.invalidate)
+
+    def _new(self, initial=False):
+        r = self.rng
+        return {"x": r.uniform(-0.62, 0.62), "y": r.uniform(-1.0, 1.0) if initial else 1.0 + r.uniform(0.02, 0.2),
+                "r": r.uniform(2.0, 4.0), "v": r.uniform(0.006, 0.014), "ph": r.uniform(0, 6.28),
+                "wv": r.uniform(0.04, 0.10), "a": r.uniform(0.35, 0.75)}
+
+    # state ---------------------------------------------------------------------------------------------------------
+    def soc(self):
+        vals = getattr(self.vis, "_sw7_texts", None) or ring_values(self.vis)
+        try:
+            return max(0.0, min(100.0, float(vals["soc"])))
+        except (TypeError, ValueError):
+            return None
+
+    def charging(self):
+        return float(getattr(self.vis, "current_kw", 0.0) or 0.0) > 0.0
+
+    def wanted(self):
+        return self.vis.isVisible() and self.soc() is not None and not getattr(self.vis, "sw7_no_data", False)
+
+    def sync(self):
+        t = self.vis.anim_timer
+        if self.wanted():
+            if not t.isActive():
+                t.start()
+        elif t.isActive():
+            t.stop()
+
+    def visible_bubbles(self):
+        soc = self.soc()
+        if soc is None or getattr(self.vis, "sw7_no_data", False):
+            return 0
+        level = 1.0 - 2.0 * soc / 100.0
+        return sum(1 for b in self.bubbles if b["y"] > level)
+
+    def invalidate(self, *_):
+        self.cache.clear()
+        self.vis.update()
+
+    def eventFilter(self, obj, e):
+        if e.type() in (QEvent.Type.Show, QEvent.Type.Hide):
+            QTimer.singleShot(0, self.sync)
+        elif e.type() == QEvent.Type.Resize:
+            self.cache.clear()
+        return False
+
+    def step(self):
+        if not self.wanted():
+            self.sync()
+            return
+        kw = max(0.0, min(22.0, float(getattr(self.vis, "current_kw", 0.0) or 0.0)))
+        charging = kw > 0
+        self.angle = (self.angle + (2.4 if charging else 0.8)) % 360
+        level = 1.0 - 2.0 * (self.soc() or 0.0) / 100.0            # fluid surface, -1 (top) to 1 (bottom)
+        speed = (1.0 + kw * 0.15) if charging else 0.45
+        for i, b in enumerate(self.bubbles):
+            b["y"] -= b["v"] * speed
+            b["ph"] += b["wv"]
+            if b["y"] < level + 0.08:
+                b["a"] -= 0.05
+            if b["y"] <= level or b["a"] <= 0:
+                self.bubbles[i] = self._new()
+        self.vis.sw7_frames = getattr(self.vis, "sw7_frames", 0) + 1
+        self.vis.update()
+
+    # paint ---------------------------------------------------------------------------------------------------------
+    def layers(self, vals):
+        key = (self.vis.width(), self.vis.height(), S.is_night(), tuple(sorted(vals.items())))
+        hit = self.cache.get(key)
+        if hit is None:
+            self.cache.clear()
+            hit = self.cache[key] = (_ring_back(self.vis, vals), _ring_front(self.vis, vals))
+        return hit
+
+    def paint(self, p, vals):
+        cx, cy, _R, rr, ri = _ring_geometry(self.vis)
+        back, front = self.layers(vals)
+        p.drawPixmap(0, 0, back)
+        soc = self.soc()
+        live = soc is not None and not getattr(self.vis, "sw7_no_data", False)
+        charging = self.charging()
+        if live and soc > 0:
+            # the fluid: a light tint up to the state of charge, with a hairline surface
+            clip = QPainterPath(); clip.addEllipse(QPointF(cx, cy), ri, ri)
+            p.save(); p.setClipPath(clip)
+            top = cy + ri - 2 * ri * soc / 100.0
+            tint = S.blend(S.hx("card"), S.hx("ok"), 0.16 if not S.is_night() else 0.22) if charging else \
+                S.blend(S.hx("card"), S.hx("paper_deep"), 0.9)
+            p.setPen(Qt.PenStyle.NoPen); p.setBrush(QColor(tint))
+            p.drawRect(QRectF(cx - ri, top, 2 * ri, cy + ri - top))
+            p.setPen(QPen(S.c("ok" if charging else "ink_3"), 1)); p.drawLine(QPointF(cx - ri, top), QPointF(cx + ri, top))
+            col = QColor(S.hx("ok" if charging else "ink_3"))
+            p.setPen(Qt.PenStyle.NoPen)
+            level = 1.0 - 2.0 * soc / 100.0
+            for b in self.bubbles:
+                if b["y"] <= level:
+                    continue
+                col.setAlphaF(max(0.0, min(1.0, b["a"])) * (0.9 if charging else 0.6))
+                p.setBrush(col)
+                wob = math.sin(b["ph"]) * 2.5
+                p.drawEllipse(QPointF(cx + b["x"] * ri + wob, cy + b["y"] * ri), b["r"], b["r"])
+            p.restore()
+        if live:
+            # the spinning arc: a short arc running round outside the track
+            orbit = rr + 13
+            pen = QPen(S.c("ok" if charging else "ink_3"), 2.0); pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+            p.setPen(pen); p.setBrush(Qt.BrushStyle.NoBrush)
+            p.drawArc(QRectF(cx - orbit, cy - orbit, 2 * orbit, 2 * orbit), int((90 - self.angle) * 16), int(-38 * 16))
+        p.drawPixmap(0, 0, front)
+
+
+def _ring_paint(orig, vis, _e):
+    p = QPainter(vis)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing); p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+    vals = ring_values(vis)
+    if getattr(vis, "sw7_no_data", False):
+        vals["soc"], vals["energy"] = "--", "-- of " + vals["energy"].split(" of ")[-1]
+    vis._sw7_texts = vals
+    anim = getattr(vis, "sw7_anim", None)
+    if anim is not None:
+        anim.paint(p, vals)
+    else:
+        cx, cy, _R, _rr, _ri = _ring_geometry(vis)
+        p.drawPixmap(0, 0, _ring_back(vis, vals)); p.drawPixmap(0, 0, _ring_front(vis, vals))
     p.end()
 
 
