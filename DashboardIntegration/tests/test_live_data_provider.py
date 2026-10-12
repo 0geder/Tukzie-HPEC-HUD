@@ -322,20 +322,32 @@ wait_until(lambda: dm.vehicle_data.mode == "live_controller" and dm.diagnostics.
            6, "patched dashboard live from the bridge")
 assert close(dm.current_state.soc_pct, 76.5)
 assert dm.current_state.front_obstacle_distance_m is not None
-assert "camera" in dm.page_ids and "camera" in dm.normal_ids and "camera" in dm.nav.buttons
+# Paper style (default): Front camera and Sensors are one page, Surroundings (id "sensors", "camera" an alias);
+# TUKZIE_SW7_STYLE=team keeps the 8-page build with the camera page in the nav order.
+MERGED = hasattr(dm, "sw7_surroundings")
+assert MERGED == (os.environ.get("TUKZIE_SW7_STYLE", "paper").strip().lower() != "team")
+if MERGED:
+    assert "camera" in dm.page_ids and "camera" not in dm.normal_ids and not dm.nav.buttons["camera"].isVisible()
+else:
+    assert "camera" in dm.page_ids and "camera" in dm.normal_ids and "camera" in dm.nav.buttons
 from app.pages.sw7_tile_map import SW7TileMap  # noqa: E402
 assert isinstance(dm.navigation.map, SW7TileMap), type(dm.navigation.map)
 dm.switch_page_id("navigation"); run_for(0.5)
 assert dm.navigation.map.vehicle is not None and dm.navigation.map.isVisible(), "tile map not fed or not shown"
 dm.grab().save(str(scratch / "dashboard_navigation.png"))
 dm.switch_page_id("navigation"); dm.navigate_pages(1)
-assert dm.stack.currentWidget() is dm.front_camera, "camera page not next after navigation"
-assert dm.nav.buttons["camera"].isChecked()
+if MERGED:
+    assert dm.stack.currentWidget() is dm.sensors and dm.nav.buttons["sensors"].isChecked(), "Surroundings not next after navigation"
+    assert dm.front_camera.isVisible() and dm.front_camera._streaming_wanted, "camera not streaming inside Surroundings"
+else:
+    assert dm.stack.currentWidget() is dm.front_camera, "camera page not next after navigation"
+    assert dm.nav.buttons["camera"].isChecked()
 dm.switch_page_id("diagnostics"); run_for(0.3)
 dm.grab().save(str(scratch / "dashboard_diagnostics.png"))
 dm.close()
 server2.shutdown(); server2.server_close()
-print("2 patched DashboardMain: live from the bridge, ride card fed, camera page in nav order")
+print("2 patched DashboardMain: live from the bridge, ride card fed, camera page in nav order"
+      + (" (inside Surroundings)" if MERGED else ""))
 
 
 def free_port(host="127.0.0.1"):
