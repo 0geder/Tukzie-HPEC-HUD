@@ -46,6 +46,7 @@ def build(name, base):
         shutil.copy(f, src)
     shutil.copy(os.path.join(INTEG, "tests", "dashboard_patches.py"), src)
     shutil.copytree(os.path.join(INTEG, "fonts"), os.path.join(src, "fonts"))
+    shutil.copytree(os.path.join(INTEG, "assets"), os.path.join(src, "assets"))
     if base:
         with open(os.path.join(src, "dashboard_patches.py"), "a", encoding="utf-8") as f:
             f.write("\nPATCHES = tuple(p for p in PATCHES if p not in STYLE_MAP_PATCHES)\n"

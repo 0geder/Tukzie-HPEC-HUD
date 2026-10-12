@@ -819,3 +819,16 @@ COPIES = COPIES + STYLE_REFINE_COPIES
 # No STYLE_REFINE_PATCHES: the refinement changes our own modules only (sw7_style, sw7_weather, sw7_driving,
 # sw7_analytics, sw7_style_pages, sw7_style_map, sw7_tile_map, sensors_page, front_camera_page), all behind
 # TUKZIE_SW7_STYLE (team: nothing installed, as before).
+
+STYLE_PLANES_COPIES = (
+    # Three planes (Planning/three-planes-hero-prompt.md): the hero word face, Anton by Vernon Adams (google/fonts
+    # ofl/anton, SIL Open Font Licence 1.1, OFL-Anton.txt), and the student's TUKZIE renders cut out of their white
+    # backgrounds by tools/cut_tukzie_renders.py. sw7_style registers every TTF in app/fonts and loads the renders
+    # from app/assets (cached, scaled once). No patches: our own modules only, all behind TUKZIE_SW7_STYLE.
+    ("fonts/Anton-Regular.ttf", "app/fonts/Anton-Regular.ttf"),
+    ("fonts/OFL-Anton.txt", "app/fonts/OFL-Anton.txt"),
+    ("assets/tukzie_three_quarter.png", "app/assets/tukzie_three_quarter.png"),
+    ("assets/tukzie_front.png", "app/assets/tukzie_front.png"),
+    ("assets/tukzie_side.png", "app/assets/tukzie_side.png"),
+)
+COPIES = COPIES + STYLE_PLANES_COPIES

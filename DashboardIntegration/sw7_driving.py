@@ -1037,7 +1037,12 @@ class DriveStage(QWidget):
     def place(self):
         pg = self.page
         W, H = self.width(), self.height()
-        pg.asis_panel.setGeometry(32, 12, W - 64, LAYOUT_STRIP_H)
+        # the advice strip stops short of the subject (the TUKZIE render, middle plane) so it never hides it
+        right = W - 32
+        sub = self.S.page_plane_geometry(pg).get("subject") if hasattr(self.S, "page_plane_geometry") else None
+        if sub is not None and sub.top() < 12 + LAYOUT_STRIP_H:
+            right = int(sub.left()) - 16
+        pg.asis_panel.setGeometry(32, 12, right - 32, LAYOUT_STRIP_H)
         gw = pg.gear.width()
         pg.gear.setGeometry(int((W - gw) / 2), 84, gw, pg.gear.height())
         fw = max(pg.faults.sizeHint().width(), 300)
@@ -1057,10 +1062,23 @@ class DriveStage(QWidget):
             t.raise_()
         self.update()
 
+    def cluster_rect(self):
+        """The card under the gear row and the warning lamps (None when the hero word is off)."""
+        S, pg = self.S, self.page
+        if not getattr(S, "BACK_WORDS_SHOWN", False):
+            return None
+        g, f = pg.gear.geometry(), pg.faults.geometry()
+        left, right = min(g.left(), f.left()) - 16, max(g.right(), f.right()) + 16
+        return QRectF(left, g.top() - 6, right - left, f.bottom() - g.top() + 12)
+
     def paintEvent(self, _):
         S = self.S
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        # the gear, turn indicators and warning lamps sit on one paper card (they lie over the hero word)
+        r = self.cluster_rect()
+        if r is not None:
+            S.paint_card(p, r, 8, 1)
         sp = self.page.speed
         if hasattr(sp, "disc"):
             cx, cy, R = sp.disc()
