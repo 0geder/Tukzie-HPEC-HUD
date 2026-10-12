@@ -13,8 +13,8 @@ NONE = VARIANT(pythoncom.VT_DISPATCH, None)
 mm = 0.001
 OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 P = {
-    "DispL": 274.2,     # Waveshare 10.1" HDMI LCD (B) drawing 274.12 (student measured 272); the larger value is safe
-    "DispW": 187.0,     # measured: display outer width
+    "DispL": 272.0,     # measured tight by the student, 12 Oct (Waveshare drawing says 274.12; the measurement wins)
+    "DispW": 187.0,     # measured tight by the student, 12 Oct
     "DispT": 20.0,      # student's estimate: whole stack thickness incl. the Pi 5 behind it
     "Clr": 0.6,         # clearance each side
     "Wall": 2.5,
@@ -22,7 +22,7 @@ P = {
     "CableRoom": 4.0,   # extra depth behind the stack for plugs and cables
     "LipW": 1.2,        # snap lip overhang on the long walls
     "LipT": 1.5,        # snap lip thickness
-    "CableW": 70.0,     # cable exit along the short wall
+    "CableW": 58.0,     # connector span 43 to 45 mm (measured) plus 6 to 7 mm each side for the plug bodies
     "CableH": 16.0,
     "BoltD": 3.4,       # M3 clearance
 }
