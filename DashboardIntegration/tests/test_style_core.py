@@ -337,7 +337,9 @@ def run():
     stack = rect_in(d.stack)
     check(stack.bottom() + 1 - (navg.top() + S.PILL_TOP) == S.NAV_OVERLAP, f"page stack runs {S.NAV_OVERLAP} px under the pill")
     pill_y = navg.top() + S.PILL_TOP + 4
-    check(near(img.pixelColor(640, navg.top() + S.PILL_TOP + S.PILL_H // 2 + 20), S.DAY["card"], 12), "nav pill in card colour")
+    # between the first two items' labels (x 640 is a label once the page agents merge Camera into Surroundings)
+    gap_x = (rect_in(nav.buttons["driving"]).center().x() + rect_in(nav.buttons["analytics"]).center().x()) // 2
+    check(near(img.pixelColor(gap_x, navg.top() + S.PILL_TOP + S.PILL_H // 2 + 20), S.DAY["card"], 12), "nav pill in card colour")
     sel = nav.buttons["driving"]; c = rect_in(sel).center()
     cy = navg.top() + S.PILL_TOP - 8 + S.CIRCLE_D // 2
     check(near(img.pixelColor(c.x() - 18, cy), S.DAY["signal"], 12), "selected item: a raised signal circle")
