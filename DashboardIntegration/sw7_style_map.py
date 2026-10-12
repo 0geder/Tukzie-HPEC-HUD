@@ -134,7 +134,7 @@ def _keyboard_theme(kb, *_a, **_k):
     kb.setStyleSheet(kb.styleSheet() + f"""
         QFrame#touchKeyboard {{ background: {S.hx('paper_deep')}; border-top: 1px solid {S.hx('hairline')}; }}
         QFrame#touchKeyboard QPushButton {{ background: {S.hx('card')}; color: {S.hx('signal')};
-            border: 1px solid {S.hx('hairline')}; border-radius: 6px; padding: 4px; font-size: 22px; font-weight: 500; }}
+            border: 1px solid {S.rgba('signal', 0.55)}; border-radius: 6px; padding: 4px; font-size: 22px; font-weight: 500; }}
         QFrame#touchKeyboard QPushButton:pressed {{ background: {S.hx('signal')}; color: {S.hx('card')}; }}
         """)
 

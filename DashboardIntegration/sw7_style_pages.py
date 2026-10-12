@@ -27,7 +27,8 @@ Diagnostics (one home per value)
     odometer, charging and the data source leave the cards; they stay in the folded details list.
 Charging
   - The ring is the middle plane: a raised disc with the battery as the hero (150 px), and one power, voltage,
-    current, time-to-full and cell-health figure. Voltage and current come from the BMS when not charging (the charger
+    current, time-to-full and cell-health figure, and the team's battery animation restyled (BatteryAnimation). Voltage
+    and current come from the BMS when not charging (the charger
     values while charging); cell health is the reported value or "--", never a made-up 98 %.
   - The "Time to full" and "Charging power" tiles go (the ring has both), the ring's ACTIVE / STANDBY word goes (the
     state line under the title is the one charging state). The tiles are Range (its home), Range added, Energy.
@@ -502,12 +503,12 @@ class SurroundingsView(QWidget):
         self.figure.setGeometry(tuk.toRect().adjusted(-l, -t, r, b))
         self.title.setGeometry(col_x, self.M - 4, 300, 32)
         self.link_chip.move(self.width() - self.M - self.link_chip.width(), self.M)
-        self.near.setGeometry(col_x, 72, 300, 18)
+        self.near.setGeometry(col_x, 62, 300, 18)
         fm = QFontMetrics(self.hero.font())
-        self.hero.setGeometry(col_x - 6, 84, self.COL_W, fm.height())
+        self.hero.setGeometry(col_x - 6, 66, self.COL_W, fm.height())
         tw = fm.horizontalAdvance(self.hero.text())
         ufm = QFontMetrics(self.unit.font())
-        base = 84 + fm.ascent()
+        base = 66 + fm.ascent()
         self.unit.setGeometry(col_x - 6 + tw + 10, int(base - ufm.ascent()), 80, ufm.height())
         self.sub_dot = QRect(col_x, int(base + 24), 10, 10)
         self.sub.setGeometry(col_x + 18, int(base + 14), self.COL_W - 18, 30)
@@ -956,6 +957,9 @@ def _charging_update(page, s, *_a, **_k):
         page.status.setStyleSheet(f"color:{S.hx('ink_2')};background:transparent;")
     elif bool(getattr(s, "charging", False)):
         page.status.setStyleSheet(f"color:{S.hx('ink')};background:transparent;")
+    src = page.findChild(QLabel, "sw7ChargeSource")        # the layout pass coloured it once, in the day palette
+    if src is not None:
+        src.setStyleSheet(f"color:{S.hx('ink')};background:transparent;")
     for c in tiles_of(page):
         S.value_font(c.value_label, S.SECONDARY, QFont.Weight.Medium)
         c.value_label.setStyleSheet(f"color:{S.hx('ink_3' if c.value_label.text().startswith('--') else 'ink')};"
@@ -1179,7 +1183,7 @@ class BatteryAnimation(QObject):
             p.save(); p.setClipPath(clip)
             top = cy + ri - 2 * ri * soc / 100.0
             tint = S.blend(S.hx("card"), S.hx("ok"), 0.16 if not S.is_night() else 0.22) if charging else \
-                S.blend(S.hx("card"), S.hx("paper_deep"), 0.9)
+                S.blend(S.hx("card"), S.hx("paper_deep"), 0.55)
             p.setPen(Qt.PenStyle.NoPen); p.setBrush(QColor(tint))
             p.drawRect(QRectF(cx - ri, top, 2 * ri, cy + ri - top))
             p.setPen(QPen(S.c("ok" if charging else "ink_3"), 1)); p.drawLine(QPointF(cx - ri, top), QPointF(cx + ri, top))

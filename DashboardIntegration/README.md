@@ -354,6 +354,34 @@ in `dashboard_main.py` (`STYLE_CORE_PATCHES`) calls `sw7_style.install` after th
 
 Screenshots (fake weather server): `tests/style/core/`. Not yet tested on the Pi 5 or against the real API.
 
+## UI theme refinement (12 Oct)
+
+From Planning/ui-theme-refinement-prompt.md ("change the skin, not the product"), on top of the paper style; nothing
+changes with `TUKZIE_SW7_STYLE=team` (checked widget for widget, and pixel for pixel on the static pages, against
+`tests/style/refine/team_reference.json`, recorded before the refinement).
+
+- Type: IBM Plex Sans (Regular, Medium, SemiBold) for the interface and IBM Plex Mono (Regular, Medium) for telemetry
+  values, diagnostics, coordinates and timestamps, bundled in `fonts/` from the official IBM/plex releases under the
+  SIL Open Font Licence (`fonts/OFL-IBMPlex.txt`, group `STYLE_REFINE_COPIES`). Bold maps to SemiBold (no synthetic
+  bold); both fonts have tabular figures. Atkinson Hyperlegible stays as the fallback. `S.mono()` and
+  `S.value_font()` (Mono for a figure, Sans for a word such as "Unavailable").
+- Surfaces: radii 4 to 8 px (circles stay circles), hairline borders, very light shadows, no back-plane words. The nav
+  bar is a flat 72 px bar with a hairline on top, directly under the page stack (it covers nothing); only the
+  selected item is signal, with a short signal bar. Side arrows flat with a hairline.
+- Weather: unboxed in the status bar (icon, "24° · Rondebosch"), still the tap target for the weather card, "--°"
+  when unavailable.
+- Pages: Drive (flat dial, finer ticks, a needle, Mono tick numbers and distances, the Around and battery bands in
+  words as well as colour), Analytics (hairline cards, ink chart lines, Mono axes), Diagnostics (figures in Mono,
+  "Unavailable" in Sans ink_3), Map (flat map with 8 px corners, hairline controls, 64 px search bar and Navigate),
+  Surroundings, Settings (ink off toggles, finer sliders), Charging (below).
+- Charging: the team's battery animation is back, restyled: bubbles rise through a light fluid filled to the state
+  of charge and a short arc circles the track (ok colour while charging, ink_3 otherwise). It runs at 30 fps only
+  while the page is shown and the state of charge is known; the disc and figures are cached layers, so a frame costs
+  about 1.1 to 1.3 ms on a laptop (not yet measured on the Pi 5). With no live data the state reads "Charging state
+  unknown · no live data" and the session tiles show "--", never zero.
+
+Test: `tests/test_style_refine.py` (screenshots `tests/style/refine/before_*.png` and `after_*.png`, day and night).
+
 ## Tests
 
 `tests/test_live_data_provider.py` (run with `python

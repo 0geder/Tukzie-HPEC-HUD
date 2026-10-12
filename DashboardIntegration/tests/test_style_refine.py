@@ -405,8 +405,15 @@ def checks(d, S):
     S.set_night(False); a.processEvents(); spin(200)
     # ---- telemetry in Plex Mono ---------------------------------------------------------------------------------------
     diag = d.diagnostics; lay = diag._sw7_layout
+    feed_state(d); feed_tel(d, NEAR)
+    d.switch_page_id("diagnostics"); a.processEvents(); spin(300)
     vals = [v for c in lay["cards"] for v in c.values.values() if isinstance(v, QLabel) and v.isVisible()]
-    check(vals and all(v.font().family() == "IBM Plex Mono" for v in vals), f"Diagnostics values in Plex Mono: {[v.font().family() for v in vals][:4]}")
+    figs = [v for v in vals if any(ch.isdigit() for ch in v.text())]
+    words = [v for v in vals if v.text() in ("Unavailable", "Yes", "No", "Up", "Live")]
+    check(figs and all(v.font().family() == "IBM Plex Mono" for v in figs),
+          f"Diagnostics figures in Plex Mono: {[(v.text(), v.font().family()) for v in figs][:4]}")
+    check(words and all(v.font().family() == "IBM Plex Sans" for v in words),
+          f"Diagnostics words in Plex Sans: {[(v.text(), v.font().family()) for v in words][:4]}")
     caps = [c for card in lay["cards"] for c in card.captions if c.isVisible()]
     check(caps and all(c.font().family() == "IBM Plex Sans" for c in caps), "Diagnostics captions in Plex Sans")
     # ---- unavailable never looks like zero ---------------------------------------------------------------------------

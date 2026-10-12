@@ -980,7 +980,7 @@ class SW7TileMap(QWidget):
             self.overlays_changed.connect(page._position_overlays)
             self.follow_handler = lambda: page.set_follow_mode(True)
             self.overview_handler = page.show_overview
-            page.plan_btn.setMinimumSize(120, 48)
+            page.plan_btn.setMinimumSize(120, 64 if self._S is not None else 48)   # paper: a 64 px target
             page.destination.setMinimumHeight(48)
             page.route_status.setStyleSheet(f"font-size: {16 if self._S is not None else PX['status']}px;")
             self.floating = [page.search, page.route_status, page.retry_btn]   # cached shadows (paper)
