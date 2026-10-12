@@ -280,7 +280,7 @@ if SHOTS:
     for bar_h in (38, 48):
         d.status.setFixedHeight(bar_h); QTest.qWait(150)
         hb._message = ("crit", "OBSTACLE 0.5 M AHEAD"); hb._refresh(); QTest.qWait(50)
-        g = hb.geometry(); h = max(24, min(32, d.status.height() - 6))
+        g = hb.geometry(); h = max(24, min(40, d.status.height() - 8))   # layout on: 40 px in the 48 px bar
         check(g.height() == h and g.y() == (d.status.height() - h) // 2,
               f"pill follows a {d.status.height()} px status bar: y {g.y()}, height {g.height()}")
     d.status.setMinimumHeight(0); d.status.setMaximumHeight(16777215); QTest.qWait(150)

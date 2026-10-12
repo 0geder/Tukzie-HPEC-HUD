@@ -265,7 +265,7 @@ full = build("full", False)
 base = build("base", True)
 ok = run(full, "on", None)
 ok = run(full, "off", "0") and ok
-ok = run(base, "base", None) and ok
+ok = run(base, "base", "0") and ok   # other layout groups off too, so only this group differs
 trees = {}
 for mode in ("off", "base"):
     path = os.path.join(OUT, "..", f"tree_{mode}.json")

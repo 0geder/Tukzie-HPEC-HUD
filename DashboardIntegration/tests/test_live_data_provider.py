@@ -105,6 +105,10 @@ serve(LIVE)
 
 # ---- scratch copy of the dashboard, with our files and the README patches ---
 scratch = Path(os.environ.get("TUKZIE_TEST_SCRATCH") or tempfile.mkdtemp(prefix="tukzie_dash_"))
+# The scratch app/ folder is deleted and rebuilt below; never let that be the source copy (v11, v11b and v11c
+# were emptied this way).
+if scratch.resolve() == DASH.resolve() or DASH.resolve() in scratch.resolve().parents or scratch.resolve() in DASH.resolve().parents:
+    raise SystemExit(f"TUKZIE_TEST_SCRATCH ({scratch}) overlaps the dashboard source ({DASH}); refusing to delete it")
 target = scratch / "app"
 def _force_remove(func, path, _exc):
     os.chmod(path, stat.S_IWRITE)   # copies of OneDrive files can be read-only

@@ -546,7 +546,7 @@ class HazardBanner(QFrame):
         self.text = QPushButton(); self.text.setFlat(True); self.text.setFont(THEME.font(13, QFont.Weight.Black))
         self.text.setCursor(Qt.CursorShape.PointingHandCursor)
         self.text.clicked.connect(self._open)
-        self.hide_btn = QPushButton("Hide"); self.hide_btn.setFont(THEME.font(10, QFont.Weight.Bold))
+        self.hide_btn = QPushButton("Hide"); self.hide_btn.setFont(THEME.font(12 if __import__("os").environ.get("TUKZIE_SW7_LAYOUT", "1").strip() != "0" else 10, QFont.Weight.Bold))
         self.hide_btn.clicked.connect(self._snooze)
         row.addWidget(self.text, 1); row.addWidget(self.hide_btn)
         parent.installEventFilter(self)
@@ -567,9 +567,11 @@ class HazardBanner(QFrame):
         pw = parent.width()
         bar = getattr(parent, "status", None)
         bar_h = bar.height() if bar is not None and bar.height() > 0 else 38
-        h = max(24, min(32, bar_h - 6))
+        from os import environ
+        layout = environ.get("TUKZIE_SW7_LAYOUT", "1").strip() != "0"
+        h = max(24, min(40, bar_h - 8)) if layout else max(24, min(32, bar_h - 6))   # 40 px in the 48 px bar
         w = min(460, max(200, self.sizeHint().width()))
-        clock_w = 190                      # the status bar's date and clock on the right
+        clock_w = 110 if layout else 190   # the layout pass shows the clock alone, the earlier bar date and clock
         self.setGeometry(int(max(8, pw - clock_w - w)), int((bar_h - h) / 2), int(w), int(h))
 
     def set_telemetry(self, telemetry):

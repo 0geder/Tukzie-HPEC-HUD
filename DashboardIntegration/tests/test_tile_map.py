@@ -121,6 +121,10 @@ TILE_URL = f"http://127.0.0.1:{server.server_address[1]}/{{z}}/{{x}}/{{y}}.png"
 
 # ---- scratch copy of the dashboard ---------------------------------------------------
 scratch = Path(os.environ.get("TUKZIE_TEST_SCRATCH") or tempfile.mkdtemp(prefix="tukzie_tiles_"))
+# The scratch app/ folder is deleted and rebuilt below; never let that be the source copy (v11, v11b and v11c
+# were emptied this way).
+if scratch.resolve() == DASH.resolve() or DASH.resolve() in scratch.resolve().parents or scratch.resolve() in DASH.resolve().parents:
+    raise SystemExit(f"TUKZIE_TEST_SCRATCH ({scratch}) overlaps the dashboard source ({DASH}); refusing to delete it")
 
 
 def _force_remove(func, path, _exc):
