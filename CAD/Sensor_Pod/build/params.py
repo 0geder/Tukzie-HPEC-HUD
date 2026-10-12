@@ -103,7 +103,9 @@ LID_TONGUE_H = 3.0
 LID_FIT = 0.3
 GNSS_WIN_T = 1.2           # thinned roof over the GNSS patch (plastic only, no metal or carbon fill)
 DIVIDER_Y = -86.0          # front face of the Pi / ESP32 divider (2 thick)
-LID_SCREWS = [(sx * 66.5, y) for sx in (-1, 1) for y in (-18.5, -92.0, -148.0)]
+# M3 x 10 into heat-set inserts in corner bosses
+LID_SCREWS = ([(sx * 66.5, -18.5) for sx in (-1, 1)] + [(sx * 66.5, -91.0) for sx in (-1, 1)]
+              + [(sx * 64.0, -146.0) for sx in (-1, 1)])
 
 # Raspberry Pi 4 (official mechanical drawing): 85 x 56, M2.5 holes 58 x 49, 3.5 from the edges
 PI_X0, PI_X1 = -40.0, 45.0   # design: USB-A / Ethernet end at -X, USB-C edge forward
@@ -119,7 +121,10 @@ ESP_L, ESP_W = 75.0, 52.0
 ESP_STANDOFF = 12.0                # design: room for the LiPo underneath (LiPo thickness: MEASURE)
 ESP_HOLES = [(ESP_X0 + x, ESP_Y0 + y) for x in (2.0, 73.0) for y in (2.0, 50.0)]
 GNSS_PATCH = (25.0, 25.0, 8.0)     # estimated (active patch); MEASURE
-BUCK = (32.0, -148.0, 35.0, 56.0, 20.0)   # placeholder 5 V buck: X0, Y0, width X, length Y, height
+BUCK = (31.0, -141.0, 30.0, 50.0, 20.0)   # placeholder 5 V buck (or small hub): X0, Y0, width X, length Y, height. MEASURE
+BOX_REAR_CHAMFER = 8.0    # design: vertical rear corner facets (plan)
+BOX_REAR_FACET = 4.0      # design: rear bottom facet (side view); larger would cut into the rear bosses
+GNSS_WIN = (-40.0, 23.0, -140.0, -106.0)   # X0, X1, Y0, Y1 of the thinned roof over the ESP32
 
 # Openings in the box
 USB_HATCH = (-80.0, -48.0, -18.0, 0.0)    # Y0, Y1, Z0, Z1 in the -X wall: reach the flash drive without the lid off
@@ -135,7 +140,7 @@ TUBE_LINER = 1.0           # rubber strip under the clamp
 MOUNT_Y = -70.0            # design: clamp centre under the box, near the centre of mass
 RAIL_PLATE = (60.0, 64.0, 6.0)      # X, Y, thickness (bolt heads counterbored 3.5)
 RAIL_W, RAIL_W2, RAIL_H = 30.0, 38.0, 6.0   # dovetail (matches the dashboard rail)
-RAIL_BOLTS = [(sx * 22.0, MOUNT_Y + sy * 22.0) for sx in (-1, 1) for sy in (-1, 1)]
+RAIL_BOLTS = [(sx * 22.0, MOUNT_Y + sy * 21.0) for sx in (-1, 1) for sy in (-1, 1)]
 BRACKET = (56.0, 60.0, 18.0)        # channel block X, Y, Z
 SLIDE = 0.3
 STOP_T = 6.0

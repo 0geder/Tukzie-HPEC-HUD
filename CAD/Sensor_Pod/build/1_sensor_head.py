@@ -125,6 +125,11 @@ part.prism("Y", [("rect", -8, z1 + 3, 8, z1 + 9)], RY + WALL - 0.2, RY + WALL + 
 part.cut("X", [("rect", RY + WALL + 0.5, z1 + 4, RY + WALL + 0.5 + TIE_SLOT[1], z1 + 4 + TIE_SLOT[0])], -9, 9,
          "Ribbon Tie Slot")
 
+# 14. Drip lip on the rear face over the box lid's front edge, so water running down the head misses the lid seam.
+lip = [(RY + 0.1, BOX_TOP_Z + LID_T + 0.5), (RY - 4.0, BOX_TOP_Z + LID_T + 0.5), (RY - 4.0, BOX_TOP_Z + LID_T + 1.5),
+       (RY + 0.1, BOX_TOP_Z + LID_T + 4.0)]
+part.prism("X", [("poly", lip)], -(HX - 1.0), HX - 1.0, "Rear Drip Lip")
+
 part.save(os.path.join(PRINT, "SW7_Pod_Head_Upper.SLDPRT"), "head_upper_iso.png", "front_iso")
 part.close_doc()
 
