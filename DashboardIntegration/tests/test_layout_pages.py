@@ -277,13 +277,15 @@ if SHOTS:
     d.telemetry.stop()                   # our test telemetry only, no dead-bridge polls in between
     QTest.qWait(600)
     hb = d.hazard_banner
+    bar_min, bar_max = d.status.minimumHeight(), d.status.maximumHeight()   # put back after the check
     for bar_h in (38, 48):
         d.status.setFixedHeight(bar_h); QTest.qWait(150)
         hb._message = ("crit", "OBSTACLE 0.5 M AHEAD"); hb._refresh(); QTest.qWait(50)
-        g = hb.geometry(); h = max(24, min(40, d.status.height() - 8))   # layout on: 40 px in the 48 px bar
+        on = os.environ.get("TUKZIE_SW7_LAYOUT", "1").strip() != "0"
+        g = hb.geometry(); h = max(24, min(40, d.status.height() - 8)) if on else max(24, min(32, d.status.height() - 6))
         check(g.height() == h and g.y() == (d.status.height() - h) // 2,
               f"pill follows a {d.status.height()} px status bar: y {g.y()}, height {g.height()}")
-    d.status.setMinimumHeight(0); d.status.setMaximumHeight(16777215); QTest.qWait(150)
+    d.status.setMinimumHeight(bar_min); d.status.setMaximumHeight(bar_max); QTest.qWait(150)   # the real bar height
     for pid in ("diagnostics", "sensors"):
         d.switch_page_id(pid); QTest.qWait(150)
         area = getattr(d, pid).findChild(QScrollArea)
