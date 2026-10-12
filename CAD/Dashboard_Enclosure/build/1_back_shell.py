@@ -1,5 +1,5 @@
 """Dashboard display back shell (master): a tray the 272 x 187 mm display stack presses into from the front, with
-snap lips on the long walls, a cable exit on the +X short side, vent slots and M3 bolt holes. 3_split_and_plates.py
+snap lips on the long walls, a cable exit on the -X short side (driver's left), vent slots and M3 bolt holes. 3_split_and_plates.py
 cuts it into four quarters that fit a Prusa Mini (180 x 180 mm bed) and makes the rail plate, which bolts across the
 centre, joins the quarters and carries the dovetail for the bracket. Modelled face down: back plate at Y = 0,
 opening facing +Y, +X is the driver's right.
@@ -144,13 +144,13 @@ eq.Add2(-1, f'"{d2}" = "DispW" + 2 * "Clr"', True)
 eq.Add2(-1, '"D1@Display Pocket" = "ShellH" - "LipT" - "BackT"', True)
 print("pocket", vol())
 
-# 4. Vent slots in the back plate, two rows near the +X short side (where the Pi 5 and its ports are),
+# 4. Vent slots in the back plate, two rows near the -X short side (the connector side, the driver's left),
 #    kept clear of the bolt holes.
 plane_at(P["BackT"], "Back Inner", '"BackT"')
 s = sketch("Back Inner")
 sm.AddToDB = True
 for i in range(8):
-    x0 = 66 + i * 8
+    x0 = -(66 + i * 8) - 3
     for z0, z1 in ((28, 84), (-84, -28)):
         sm.CreateCornerRectangle(x0 * mm, z0 * mm, 0, (x0 + 3) * mm, z1 * mm, 0)
 sm.AddToDB = False
@@ -158,14 +158,26 @@ f = cut_either_way(s, P["BackT"] + 1)
 f.Name = "Vent Slots"
 print("vents", vol())
 
-# 5. Cable exit through the +X short wall (right-hand side seen from the driver), above the back plate.
+# 5. Cable exit through the -X short wall: the display's HDMI, USB and power plugs come out on the driver's left
+#    (photo 2026-10-12_display_on_desk_cables_left.jpg). The cut goes from the Right plane in whichever direction
+#    moves the centre of mass towards +X, i.e. removes material on the -X side.
 s = sketch("Right Plane")
 y0 = P["BackT"] + 2
 sm.AddToDB = True
 sm.CreateCornerRectangle(-P["CableW"] / 2 * mm, y0 * mm, 0, P["CableW"] / 2 * mm, (y0 + P["CableH"]) * mm, 0)
 sm.AddToDB = False
-f = cut_either_way(s, L / 2 + 1)
-f.Name = "Cable Exit (+X short side)"
+cx0 = m.Extension.CreateMassProperty.CenterOfMass[0]
+close_and_select(s)
+f = cut(L / 2 + 1, False)
+if f is None or m.Extension.CreateMassProperty.CenterOfMass[0] <= cx0:
+    if f is not None:
+        m.EditUndo2(1)
+    m.ClearSelection2(True)
+    select(s, "SKETCH")
+    f = cut(L / 2 + 1, True)
+if f is None or m.Extension.CreateMassProperty.CenterOfMass[0] <= cx0:
+    raise SystemExit("cable exit did not land on the -X wall")
+f.Name = "Cable Exit (-X short side)"
 print("cable exit", vol())
 
 # 6. M3 bolt holes through the back plate: eight for the rail plate across the centre (two per quarter) and

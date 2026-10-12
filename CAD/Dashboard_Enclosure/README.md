@@ -19,9 +19,11 @@ The display is a Waveshare 10.1" HDMI LCD (B) in its stock case (named in the va
 Hardware: 16 x M3 x 8 bolts with nuts (the shell's back is 3 mm thick and the plates 3 to 4 mm), and 1 x M4 thumb screw.
 Also glue the quarter walls where they butt together (epoxy or CA for PETG).
 
-Layout, seen from the driver (+X is the driver's right):
-- Cable exit, 70 x 16 mm, in the right-hand short wall. This is the side where the display's and the Pi's connectors are.
-- Vent slots in two rows near the right-hand side, over the Pi 5.
+Layout, seen from the driver (+X is the driver's right, so the connector side is -X):
+- Cable exit, 70 x 16 mm, in the left-hand short wall. The display's HDMI, USB and power plugs come out on that side
+  (photo `Photos/Reference/Enclosures/2026-10-12_display_on_desk_cables_left.jpg`). The opening is centred on the side
+  and covers about 58 to 128 mm from the top edge, where the plugs sit in the photo.
+- Vent slots in two rows near the left-hand side, behind the display's driver board.
 - The rail runs vertically on the back, so the display slides down onto the bracket and lifts off upwards.
 
 ## Numbers used
@@ -38,8 +40,9 @@ Layout, seen from the driver (+X is the driver's right):
 
 1. Measure the stack depth and set `DispT` in `build/1_back_shell.py`.
 2. Measure the tube at the meter and set `TubeD` in `build/2_bracket.py`.
-3. Check that the connectors really come out on the right-hand short side, and that the cable exit's height
-   (it starts 2 mm above the floor) lines up with them.
+3. Check the cable exit against the plugs. Measure how far the plugs are from the top edge and from the back of
+   the display. The exit starts 2 mm above the floor and is 16 mm tall. Right-angle HDMI and USB plugs keep the
+   width beside the vehicle small.
 4. Print the bracket and the rail plate first and test the slide. The clearance is `Slide` = 0.3 mm a side.
 5. Use PETG or ASA. PLA softens in the sun. Print the quarters open side up; they need no supports.
 
