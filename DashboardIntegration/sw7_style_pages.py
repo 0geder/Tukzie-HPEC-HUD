@@ -147,9 +147,9 @@ class _Bed(QObject):
     """Paints cached shadows (and, with fill, the cards themselves) under chosen children, before the host paints.
     Static cards then cost one cached pixmap each, not a live QGraphicsDropShadowEffect."""
 
-    def __init__(self, host, cards, radius=20, level=2, fill=None):
+    def __init__(self, host, cards, radius=20, level=2, fill=None, lines=False):
         super().__init__(host)
-        self.cards, self.radius, self.level, self.fill = list(cards), radius, level, fill
+        self.cards, self.radius, self.level, self.fill, self.lines = list(cards), radius, level, fill, lines
         host.installEventFilter(self)
 
     def eventFilter(self, obj, event):
@@ -159,7 +159,9 @@ class _Bed(QObject):
             for c in self.cards:
                 if c.isVisibleTo(obj) and c.parentWidget() is obj:
                     r = QRectF(c.geometry())
-                    if self.fill:
+                    if self.lines:                       # no card: a hairline over the group
+                        p.fillRect(QRectF(r.left(), r.top(), r.width(), 1), S.c("hairline"))
+                    elif self.fill:
                         S.paint_card(p, r, self.radius, self.level, self.fill)
                     else:
                         S.paint_shadow(p, r, self.radius, self.level)
@@ -913,11 +915,31 @@ def _charging(main):
     page.sw7_card_range_now.findChild(QLabel).setObjectName("dim")
     from . import charging_page as cp
     cards = [w for w in container.findChildren(cp._GradientCard) if w.parentWidget() is container]
-    page._sw7_bed = _Bed(container, cards, 8, 1, fill="card")
-    for card in cards:
-        if card.layout() is not None:
-            m = card.layout().contentsMargins()
-            card.layout().setContentsMargins(max(20, m.left()), max(12, m.top()), max(20, m.right()), max(12, m.bottom()))
+    if S.BACK_WORDS_SHOWN:
+        # three planes: no cards; each group sits on the paper under a hairline, so CHARGE and the vehicle show
+        # between the groups, and the column is compact enough to leave the lower right to the vehicle
+        page._sw7_bed = _Bed(container, cards, 8, 1, lines=True)
+        for card in cards:
+            card.setStyleSheet("QFrame { background: transparent; border: none; }")
+            if card.layout() is not None:
+                card.layout().setContentsMargins(0, 10, 0, 4)
+        for card in tiles:
+            card.setMinimumHeight(64)
+            card.layout().setContentsMargins(0, 10, 12, 4)
+        page.power_graph.setMinimumHeight(64)
+        right.setContentsMargins(16, 8, 24, 8)
+        right.setSpacing(0)
+        for i in range(right.count()):
+            item = right.itemAt(i)
+            if item.spacerItem() is not None and item.spacerItem().sizeHint().height() in (12, 16):
+                item.spacerItem().changeSize(0, 6)
+        right.invalidate()
+    else:
+        page._sw7_bed = _Bed(container, cards, 8, 1, fill="card")
+        for card in cards:
+            if card.layout() is not None:
+                m = card.layout().contentsMargins()
+                card.layout().setContentsMargins(max(20, m.left()), max(12, m.top()), max(20, m.right()), max(12, m.bottom()))
     for lab in page.findChildren(QLabel):
         if lab in [c.value_label for c in tiles]:
             continue
@@ -1064,7 +1086,13 @@ def _ring_back(vis, vals):
     pix = QPixmap(int(vis.width() * dpr), int(vis.height() * dpr)); pix.setDevicePixelRatio(dpr)
     pix.fill(Qt.GlobalColor.transparent)
     p = QPainter(pix); p.setRenderHint(QPainter.RenderHint.Antialiasing)
-    S.paint_card(p, QRectF(cx - R, cy - R, 2 * R, 2 * R), R, 2)
+    if not S.BACK_WORDS_SHOWN:
+        S.paint_card(p, QRectF(cx - R, cy - R, 2 * R, 2 * R), R, 2)
+    else:
+        # three planes: no disc, as in the team's page; the ring and the outline stand on the paper and CHARGE reads
+        # through them. The hull keeps a paper fill so the bubbles and the level stay clear.
+        hull = hull_paths(vis)[0]
+        p.setPen(Qt.PenStyle.NoPen); p.setBrush(S.c("card")); p.drawPath(hull)
     pen = QPen(S.c("paper_deep"), 4); pen.setCapStyle(Qt.PenCapStyle.FlatCap)
     p.setPen(pen); p.setBrush(Qt.BrushStyle.NoBrush); p.drawEllipse(QPointF(cx, cy), rr, rr)
     p.end()

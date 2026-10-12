@@ -950,7 +950,9 @@ PLANES = {
     "camera": Plane("ROAD", (-0.03, 0.0, 1.06, 0.98), "bottom"),
     "navigation": Plane("MAP", (-0.03, 0.0, 1.06, 0.98), "bottom"),
     "sensors": Plane("AROUND", (-0.03, 0.42, 1.06, 0.58), "bottom"),     # under the nearest-distance hero
-    "charging": Plane("CHARGE", (-0.03, 0.0, 1.06, 1.0), "bottom", "front", (0.60, 0.745, 0.30, 0.245)),
+    # Charging: CHARGE across the band above the nav bar, read through the ring (no disc); the front view stands in the
+    # lower right under the compact column, cutting into "GE"
+    "charging": Plane("CHARGE", (0.015, 0.0, 0.97, 0.985), "bottom", "front", (0.70, 0.56, 0.28, 0.425)),
     "settings": Plane("SETUP", (-0.03, 0.0, 1.06, 1.0), "bottom", "side", (0.56, 0.72, 0.36, 0.27)),
 }
 
