@@ -31,6 +31,8 @@ LAYOUT_MAP_PATCHES: the Navigation page's overlays around the map's control colu
 STYLE_CORE_PATCHES: the paper and depth style, core (sw7_style.py and sw7_weather.py, added to COPIES by STYLE_CORE_COPIES):
 palette, THEME in Paper or Ink, the frame (status bar, floating nav pill, arrows, chip, strip, obstacle pill) and the
 Open-Meteo weather. TUKZIE_SW7_STYLE=team installs nothing (the layout-pass look).
+STYLE_MAP_PATCHES: the paper style on the Map page's overlays and Settings (sw7_style_map.py, added to COPIES by
+STYLE_MAP_COPIES); the map's own paper look is in sw7_tile_map.py. TUKZIE_SW7_STYLE=team installs nothing.
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -746,4 +748,23 @@ STYLE_CORE_PATCHES = (
      "_sw7_style.install(DashboardMain)\n"),
 )
 
-PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_FRAME_PATCHES + LAYOUT_DRIVE_PATCHES + LAYOUT_PAGES_PATCHES + LAYOUT_MAP_PATCHES + STYLE_CORE_PATCHES
+STYLE_MAP_COPIES = (
+    ("sw7_style_map.py", "app/pages/sw7_style_map.py"),
+)
+COPIES = COPIES + STYLE_MAP_COPIES
+
+STYLE_MAP_PATCHES = (
+    # dashboard_main.py: the paper and depth style, page agent P3 (Planning/paper-depth-theme-prompt.md): the Map
+    # page's search field, status line (one remaining-distance and ETA figure, in the map's arrival-time bar) and
+    # touch keyboard, and Settings (paper cards, signal controls, the LOOK swatches in place of the colour theme
+    # picker). The map's slab, tinted tiles, ink route and charcoal turn banner are in sw7_tile_map.py. Nothing with
+    # TUKZIE_SW7_STYLE=team. Anchored on the file's last line (after sw7_style.install), so it also applies without
+    # the core group (test_style_core's base build), where it installs nothing.
+    ("app/pages/dashboard_main.py",
+     "Dashboard = DashboardMain\n",
+     "from .sw7_style_map import install as _sw7_style_map   # SW-7 paper style: Map and Settings\n"
+     "_sw7_style_map(DashboardMain)\n"
+     "Dashboard = DashboardMain\n"),
+)
+
+PATCHES = WIRING_PATCHES + LIVE_ONLY_PATCHES + VEHICLE_PATCHES + TILE_MAP_PATCHES + SETTINGS_PATCHES + LOGIN_PATCHES + SENSORS_PATCHES + THEME_PATCHES + DRIVING_PATCHES + ANALYTICS_CAROUSEL_PATCHES + NAV_LAYOUT_PATCHES + SIM_LINK_PATCHES + SEARCH_PATCHES + LAYOUT_FRAME_PATCHES + LAYOUT_DRIVE_PATCHES + LAYOUT_PAGES_PATCHES + LAYOUT_MAP_PATCHES + STYLE_CORE_PATCHES + STYLE_MAP_PATCHES
