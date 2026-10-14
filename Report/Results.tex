@@ -142,7 +142,29 @@ Run on a laptop inside a copy of the dashboard's code, against the live detector
 
 All telemetry-unit subsystems ran together on the target board, and the chain from the telemetry unit through the Raspberry Pi~4 to the dashboard on the Raspberry Pi~5 ran on the bench. The under-voltage that throttled the Raspberry Pi~4 through the bench work, and held the detector at 6.1\,frames/s on 4 October, was traced to the telemetry unit's modem on its USB port (Section~\ref{sec:inv-power}). The Pi reached 81\,\textdegree C without a fan and 48 to 66\,\textdegree C with one.
 
-\outstanding{full-system test on the vehicle over a defined route, with the telemetry unit on its own supply.}
+Table~\ref{tab:power-budget} gives the power budget against the 72\,V pack (GA~5). Only the Raspberry Pi~5 figure is measured, from its own power-management readings on 14 October with the dashboard running (2.2 to 3.0\,W on its internal rails); the rest are estimates from datasheets and published bench figures, to be replaced by inline USB meter readings. On the same day the Raspberry Pi~4, with the detector using three of its four cores, reported that its supply had fallen below the under-voltage threshold since boot (\texttt{get\_throttled} 0x50000), so its present supply is not adequate.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Power budget of the added electronics at 5\,V, and the draw on the 72\,V pack through a DC-DC converter of about 88\,\% efficiency. Typical is the steady draw while driving; peak is the worst short burst, not all at once.}
+\label{tab:power-budget}
+\begin{tabular}{|p{5.6cm}|p{1.5cm}|p{1.3cm}|p{5.2cm}|}
+\hline
+\textbf{Load} & \textbf{Typical (W)} & \textbf{Peak (W)} & \textbf{Source} \\ \hline
+Raspberry Pi~5, dashboard & 4.0 & 8 & Measured 2.2 to 3.0\,W on the rails, plus input conversion and USB \\ \hline
+10.1\,in display, full backlight & 5.0 & 6 & Estimate; to measure \\ \hline
+Raspberry Pi~4 with camera, fan and three ToF sensors, detector running & 6.8 & 8 & Estimate from published full-load figures (about 6.4\,W) plus the camera, fan and sensors \\ \hline
+ESP32-S3, A7670 modem, GNSS antenna and two IMUs & 1.0 & 9 & Estimate; the modem's transmit bursts of up to about 2\,A are the peak, and the cause of the brown-out in Section~\ref{sec:inv-power} \\ \hline
+SEN55 (planned) & 0.4 & 0.5 & Datasheet \\ \hline
+\textbf{Total at 5\,V} & \textbf{17} & \textbf{31} & \\ \hline
+\textbf{From the 72\,V pack} & \textbf{20 (0.27\,A)} & \textbf{35 (0.5\,A)} & At 88\,\% converter efficiency \\ \hline
+\end{tabular}
+\end{table}
+
+At about 20\,W the added electronics use 20\,Wh per hour, 160\,Wh over an eight-hour shift. Against a 7.2\,kWh pack, the figure the team's dashboard uses (not confirmed), that is 0.28\,\% of the pack per hour and 2.2\,\% per shift, and about 0.8\,\% of the motor's rated input of 2.5\,kW. The draw is small while driving but not when parked: left on, the full system would empty the same pack in about 15 days, so it must switch off with the vehicle, leaving at most the telemetry unit (about 1\,W) on. The converter must accept the pack's whole voltage range, about 60 to 90\,V depending on the cell chemistry, with margin for transients, and deliver at least 40\,W at 5\,V for the peaks, with a fuse of about 2\,A on its 72\,V input.
+
+\outstanding{full-system test on the vehicle over a defined route, with the telemetry unit on its own supply; inline current measurements of the display, the Raspberry Pi~4 and the telemetry unit to replace the estimates in Table~\ref{tab:power-budget}; the pack's capacity and chemistry from the vehicle team.}
 
 \section{Summary against the requirements}
 
