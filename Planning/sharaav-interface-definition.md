@@ -25,6 +25,20 @@ the GNSS speed units are unconfirmed. This UART link is therefore optional:
 if SW-6 still sends speed, it would feed the dashboard through the same
 bridge. Below, "the HUD" read as "the driver display" (now the dashboard).
 
+**Update, 2026-10-14** (Sharaav, WhatsApp 12:43 to 12:45): only one of SW-7 (Samson) or Melokuhle can interface
+with SW-6. Data offered: location coordinates, date and time, speed (inaccurate at first, per his tests), a status
+code and a message code. Message codes: 0 "" (null, sent by either side), 1 "Met with accident", 2 "Low on battery",
+3 "Rough terrain is present", 4 "Potholes are present" (1 to 4 sent only by SW-6, as road advisories),
+5 "My host message" (custom fleet message, sent only by the host). Status codes: 0 Parked, 1 Charging,
+2 Delivering, 3 Taxi.
+
+Proposed: SW-7 takes the interface (the advisories are for the driver display; SW-7's MQTT upload forwards the
+fields to Melokuhle's database, so one link serves both). Advisories 1 to 4 go into the dashboard's alert banner
+under the same rules as camera alerts; code 5 as a fleet message; status as a label in the status bar.
+Still to agree: link (UART on GPIO43/44, 115200 8N1, as above?), exact line format and field order, send rate,
+whether codes repeat while active, time base (UTC from GNSS?), speed units, and whether an advisory carries a
+location or an expiry. Not built; after the road test.
+
 ## Physical layer
 
 - Dedicated USB-C port on the SW-7 Makerfabs board, wired via CH340K to
