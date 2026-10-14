@@ -75,7 +75,7 @@ Detector rate (SSD-MobileNet, 4 threads) & 19.5\,frames/s alone; 17.3 with the l
 Sensor readout to result & Alone: 102\,ms median, 120\,ms 95th percentile, 136\,ms maximum. Whole system: 118 to 122\,ms median, 146 to 148\,ms 95th percentile \\ \hline
 Alert onset at the detector (3 frames) & about 0.26\,s, 2.2\,m of travel at 30\,km/h (0.2\,s, 1.7\,m alone) \\ \hline
 Alert clearing & before the fix, 16 activations in 47\,s for one person; after it, cleared only after 5 empty frames \\ \hline
-Time-of-flight sensors (3 $\times$ VL53L0X) & about 31 readings per second each; steady; each confirmed by covering it; not yet checked against a tape. On 12 to 13 October the right sensor started and answered at its address but returned no range (status 4, signal 0 to 13 in 357 readings over 90\,s) while the left and ahead sensors ranged; wiring ruled out, optics or the sensor suspected \\ \hline
+Time-of-flight sensors (3 $\times$ VL53L0X) & about 31 readings per second each; steady; each confirmed by covering it; not yet checked against a tape. On 12 to 13 October the right sensor started and answered at its address but returned no range (status 4, signal 0 to 13 in 357 readings over 90\,s) while the left and ahead sensors ranged; wiring ruled out, the sensor's aim suspected; after it was adjusted on 14 October it ranged normally (0.63 to 0.67\,m, signal about 70) \\ \hline
 Camera and time-of-flight fusion & 29 offline tests pass; first live fused hazard: camera estimate 0.874\,m, time-of-flight 0.096\,m, reported 0.096\,m (before calibration) \\ \hline
 YOLO11n, COCO, NCNN, 320 input & 7.9\,frames/s, 175\,ms median readout to result \\ \hline
 Pothole model, run 1 & mAP@50 0.597 on its own test set; 0.000 on South African frames \\ \hline
