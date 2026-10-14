@@ -40,7 +40,7 @@ UP = {
     "SW7_Pod_Box_Lid": "-Y",           # outer face on the bed
     "SW7_Pod_Camera_Retainer": "+Y",
     "SW7_Pod_Head_Tray": "+Y",         # floor on the bed
-    "SW7_Pod_Head_Upper": "-Z",        # on its back: rear face (pod -Y = model +Z) on the bed
+    "SW7_Pod_Head_Upper": "-Y",        # roof on the bed (14 Oct): 85 g and 8 h 25 min against 114 g and 10 h 18 min on its back
     "SW7_Pod_Rail_Plate": "-Y",        # plate on the bed, rail up
     "SW7_Pod_Sunshade": "-Y",          # top plate on the bed, posts up
     "SW7_Pod_USB_Hatch_Cover": "+X",   # flat
