@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\Users\0geda\OneDrive - University of Cape Town\Documents\PlatformIO\Projects\Tukzie-HPEC-HUD\CAD\Sensor_Pod_Front\build\audit_1_assembly.py", line 13, in <module>
+    from swlib import sw, OPENED, OUT, invoke, arr, PRINT, NONE, call0
+  File "C:\Users\0geda\OneDrive - University of Cape Town\Documents\PlatformIO\Projects\Tukzie-HPEC-HUD\CAD\Sensor_Pod_Front\build\swlib.py", line 32, in <module>
+    sw = win32com.client.GetActiveObject("SldWorks.Application")
+  File "C:\Users\0geda\AppData\Roaming\Python\Python313\site-packages\win32com\client\__init__.py", line 94, in GetActiveObject
+    dispatch = pythoncom.GetActiveObject(resultCLSID)
+pywintypes.com_error: (-2147221021, 'Operation unavailable', None, None)

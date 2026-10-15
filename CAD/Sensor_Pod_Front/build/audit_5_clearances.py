@@ -45,7 +45,7 @@ def closest(a, b):
 def bodies(c):
     """(name, body) of every solid body of a component, in the assembly's context."""
     out = []
-    for bd in c.GetBodies3(0, None) or []:
+    for bd in c.GetBodies2(0) or []:
         out.append((bd.Name, bd))
     return out
 
@@ -80,7 +80,36 @@ for src in (pi, cab):
             if d < 9e8:
                 flag = "  CONTACT" if d < 0.05 else ""
                 print(f"  {src.Name2:28s} {n1:22s} -> {tname:22s} {d:6.2f}  at {pod(p1)} -> {pod(p2)}{flag}")
-print("  cables -> Pi 5 (plugs are meant to touch their ports):")
+print("\n1b. per feature of the Pi 5 stack (the stack is one body, whose minimum is the intended standoff contact)")
+
+
+def feat_dist(c, feat, targets):
+    """Minimum distance from the faces of feature `feat` of component c to any body of the target components
+    (or to (component, body-name prefix) pairs)."""
+    best = (9e9, None, None)
+    for f in c.FeatureByName(feat).GetFaces or []:
+        for t in targets:
+            tc, prefix = t if isinstance(t, tuple) else (t, "")
+            for n, bd in bodies(tc):
+                if not n.startswith(prefix):
+                    continue
+                d, p1, p2 = closest(f, bd)
+                if d / mm < best[0]:
+                    best = (d / mm, f"{tc.Name2}:{n}", pod(p1))
+    return best
+
+
+base, lid = comp("FPod_Box_Base"), comp("FPod_Box_Lid")
+covers = [comp("FPod_Rear_Port_Cover"), comp("FPod_Side_Port_Cover")]
+for feat, targets in (("Underside Parts 1", [base]), ("Underside Parts 2", [base]), ("Underside Parts 3", [base]),
+                      ("microSD Card", [base]), ("Cooler Fins", [base]), ("Ethernet", [base] + covers),
+                      ("USB-A Stacks", [base] + covers), ("Micro-HDMI", [base] + covers), ("USB-C", [base] + covers),
+                      ("AI HAT+ PCB", [base, lid]), ("Hailo And Heatsink", [base, lid]),
+                      ("Stacking Pins", [lid, (cab, "Ribbon")]), ("Dupont Housings", [lid, (cab, "Ribbon")]),
+                      ("AI HAT+ PCB", [(cab, "Ribbon")]), ("PCIe Flat Cable Loop", [base])):
+    d, who, at = feat_dist(pi, feat, targets)
+    print(f"  {feat:22s} -> {who:45s} {d:6.2f} mm  at {at}")
+print("\n  cables -> Pi 5 (plugs are meant to touch their ports):")
 for n1, (d, n2, p1, p2) in dist_bodies(cab, pi):
     print(f"  {n1:22s} {d:6.2f}  at {pod(p1)}")
 
@@ -137,7 +166,7 @@ for n1, (dd, n2, p1, p2) in dist_bodies(k, pi):
     print(f"  {n1:22s} -> Pi 5 + cooler {dd:6.2f} mm at {pod(p1)} -> {pod(p2)}")
 asm.ClearSelection2(True)
 k.Select4(False, NONE, False)
-asm.EditDelete
+call0(asm, "EditDelete")
 for c in hidden:
     c.SetSuppression2(2)
 call0(asm, "EditRebuild3")

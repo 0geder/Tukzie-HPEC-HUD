@@ -25,23 +25,27 @@ box base
   Rear Port Opening: -1075.2 mm3
   Rear Port Bosses: +1290.3 mm3
   Rear Port Boss Roots: +284.7 mm3
+  Rear Boss Gusset -57: +205.6 mm3
+  Rear Boss Gusset -16: +213.6 mm3
   Rear Port Insert Holes: -326.7 mm3
   Rear Port Drip Ledge: +906.3 mm3
-  Rear Tie Block usbc: +679.6 mm3
+  Rear Tie Block usbc: +679.7 mm3
   Rear Tie Tunnel usbc: -72.0 mm3
   Rear Tie Block hdmi: +679.6 mm3
   Rear Tie Tunnel hdmi: -72.0 mm3
   Side Port Opening: -1152.0 mm3
-  Side Port Bosses: +1299.0 mm3
-  Side Port Insert Holes: -326.8 mm3
+  Side Port Bosses: +1298.9 mm3
+  Side Boss Gusset -94: +213.7 mm3
+  Side Boss Gusset -50: +213.6 mm3
+  Side Port Insert Holes: -326.7 mm3
   Side Tie Block eth: +772.2 mm3
   Side Tie Tunnel eth: -70.2 mm3
   Side Tie Block usba: +752.4 mm3
   Side Tie Tunnel usba: -68.4 mm3
   Bundle Tie Anchor: +294.0 mm3
   Bundle Tie Slot: -96.0 mm3
-  Rail Plate Bosses: +1206.4 mm3
-  Rail Insert Holes: -301.6 mm3
+  Rail Plate Bosses: +1206.3 mm3
+  Rail Insert Holes: -301.5 mm3
 save SW7_FPod_Box_Base.SLDPRT error code 0 size [152.8, 116.5, 56.4] box [-76.4, 76.4, -128.4, -11.9, -28.4, 28.0]
 box lid
   Lid Plate: +40600.3 mm3
@@ -56,10 +60,10 @@ rear port cover
   Screw Holes: -109.0 mm3
 save SW7_FPod_Rear_Port_Cover.SLDPRT error code 0 size [52.0, 3.0, 30.5] box [-62.5, -10.5, -127.4, -124.4, -24.0, 6.5]
 side port cover
-  Cover Plate: +5294.7 mm3
+  Cover Plate: +5494.5 mm3
   Cable Notches: -646.8 mm3
   Screw Holes: -109.0 mm3
-save SW7_FPod_Side_Port_Cover.SLDPRT error code 0 size [3.0, 53.0, 33.3] box [72.4, 75.4, -99.5, -46.5, -26.8, 6.5]
+save SW7_FPod_Side_Port_Cover.SLDPRT error code 0 size [3.0, 55.0, 33.3] box [72.4, 75.4, -99.5, -44.5, -26.8, 6.5]
 sunshade
   Shade Plate: +16336.0 mm3
   Posts: +1005.3 mm3

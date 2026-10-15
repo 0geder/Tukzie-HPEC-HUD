@@ -44,6 +44,11 @@ PARTS = {   # part: settings family (the rail plate carries the pod: 5 perimeter
     "SW7_FPod_Rear_Port_Cover": "enclosure", "SW7_FPod_Side_Port_Cover": "enclosure",
     "SW7_FPod_Rail_Plate": "structural",
 }
+# Parts whose remaining overhangs are only 45 deg ledge undersides and short bridges (checked in SolidWorks, audit 3:
+# the cable window top 40 mm, the port tops 28 and 30 mm, tie tunnels 3 to 4 mm), sliced without supports. On 16 Oct
+# the box base without supports was 130.8 g / 11 h 28 min, against 147.1 g / 13 h 42 min with auto supports and
+# 139.7 g / 12 h 30 min with build-plate-only supports (before the 45 deg gussets under the port bosses were added).
+NO_SUPPORT = {"SW7_FPod_Box_Base": "+Y"}     # part: the orientation (floor down) this applies to
 BED, GAP, MARGIN = 180.0, 6.0, 8.0
 OVERHANG_COS = math.cos(math.radians(45))
 
@@ -167,7 +172,7 @@ for part, family in PARTS.items():
     cands = [r for r in rows if r[6]][:2]
     best = None
     for over, nb, h, up, tris, size, fits in cands:
-        key = family if over < 50 else family + "_support"
+        key = family if over < 50 or NO_SUPPORT.get(part) == up else family + "_support"
         path = os.path.join(CAND, f"{part}_up{up[0] == '+' and 'p' or 'm'}{up[1]}.stl")
         write_stl(path, centred(tris), part)
         res, err = slice_files(os.path.basename(path)[:-4], key, [path], CAND, project=False)

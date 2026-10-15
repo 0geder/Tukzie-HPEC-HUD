@@ -1,6 +1,9 @@
-assembly fixed: 17 of 17
-save 0 C:\Users\0geda\OneDrive - University of Cape Town\Documents\PlatformIO\Projects\Tukzie-HPEC-HUD\CAD\Sensor_Pod_Front\SW7_Front_Sensor_Pod_Assembly.SLDASM
-interferences: 0
-box mm: [-300.0, -81.4, -56.0, 300.0, 50.6, 154.4]
-exploded fixed: 12 of 12
-save 0
+Traceback (most recent call last):
+  File "C:\Users\0geda\OneDrive - University of Cape Town\Documents\PlatformIO\Projects\Tukzie-HPEC-HUD\CAD\Sensor_Pod_Front\build\5_assembly.py", line 85, in <module>
+    asm = build([(p, IDENT, (0, 0, 0)) for p in parts + refs] + CLAMP, "assembly")
+  File "C:\Users\0geda\OneDrive - University of Cape Town\Documents\PlatformIO\Projects\Tukzie-HPEC-HUD\CAD\Sensor_Pod_Front\build\5_assembly.py", line 63, in build
+    sw.CloseDoc(d.GetTitle)
+                ^^^^^^^^^^
+  File "C:\Users\0geda\AppData\Roaming\Python\Python313\site-packages\win32com\client\dynamic.py", line 631, in __getattr__
+    raise AttributeError(f"{self._username_}.{attr}")
+AttributeError: <unknown>.GetTitle

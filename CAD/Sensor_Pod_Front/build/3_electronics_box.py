@@ -94,6 +94,10 @@ b.cut("Y", [("rect", rx0, rz0, rx1, rz1)], RY - 0.5, RYI + 0.5, "Rear Port Openi
 b.prism("Y", [("circle", x, z, 4.0) for x, z in REAR_BOSSES], RYI - 0.1, RYI + 6.5, "Rear Port Bosses")
 b.prism("Y", [("rect", x - 4, FLOOR - 0.5, x + 4, z) for x, z in REAR_BOSSES if z < rz0], RYI - 0.1, RYI + 6.5,
         "Rear Port Boss Roots")
+# 45 deg gussets under the upper (horizontal) bosses, so the base prints with no supports (slicer comparison).
+for x, z in [p_ for p_ in REAR_BOSSES if p_[1] > rz0]:
+    b.prism("X", [("poly", [(RYI - 0.1, z), (RYI + 6.5, z), (RYI + 6.5, z - 4.0), (RYI - 0.1, z - 10.6)])], x - 4, x + 4,
+            f"Rear Boss Gusset {x:+.0f}")
 b.cut("Y", [("circle", x, z, INSERT_M3_D / 2) for x, z in REAR_BOSSES], RY - 0.5, RY + INSERT_M3_L + 0.5,
       "Rear Port Insert Holes")
 b.prism("X", ledge(RY, REAR_LEDGE_Z), REAR_BOSSES[0][0] - COVER_MARGIN[0], REAR_BOSSES[-1][0] + COVER_MARGIN[0],
@@ -107,6 +111,9 @@ for kind, x in REAR_NOTCHES:
 sy0, sy1, sz0_, sz1_ = SIDE_PORT
 b.cut("X", [("rect", sy0, sz0_, sy1, sz1_)], XI - 0.5, BX + 0.5, "Side Port Opening")
 b.prism("X", [("circle", y, z, 4.0) for y, z in SIDE_BOSSES], XI - 6.5, XI + 0.1, "Side Port Bosses")
+for y, z in [p_ for p_ in SIDE_BOSSES if p_[1] > sz0_]:
+    b.prism("Y", [("poly", [(XI + 0.1, z), (XI - 6.5, z), (XI - 6.5, z - 4.0), (XI + 0.1, z - 10.6)])], y - 4, y + 4,
+            f"Side Boss Gusset {y:+.0f}")
 b.cut("X", [("circle", y, z, INSERT_M3_D / 2) for y, z in SIDE_BOSSES], BX - INSERT_M3_L - 0.5, BX + 0.5,
       "Side Port Insert Holes")
 for kind, y in SIDE_NOTCHES:

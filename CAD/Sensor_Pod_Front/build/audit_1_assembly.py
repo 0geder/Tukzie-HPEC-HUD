@@ -10,7 +10,7 @@ import os
 import sys
 import pythoncom
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from swlib import sw, OPENED, OUT, invoke, arr, PRINT, NONE
+from swlib import sw, OPENED, OUT, invoke, arr, PRINT, NONE, call0
 
 mm = 0.001
 ASM = os.path.join(OUT, "SW7_Front_Sensor_Pod_Assembly.SLDASM")
@@ -64,8 +64,8 @@ print(f"\nprobe (box base copy shifted 5 mm): {'DETECTED' if probe_hits else 'NO
       f" {probe_hits[:2]}")
 asm.ClearSelection2(True)
 c.Select4(False, NONE, False)
-asm.EditDelete
-asm.EditRebuild3
+call0(asm, "EditDelete")      # the original's bare `asm.EditDelete` never ran under late binding
+call0(asm, "EditRebuild3")
 
 touch = interferences(True)
 graph = {}

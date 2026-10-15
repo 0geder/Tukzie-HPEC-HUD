@@ -1,66 +1,8 @@
-
-Flange, head upper to box  (Head_Upper r (2.0, 2.0) / Box_Base r (1.7, 1.7), axis Y)
-  (-32.0, 2.0)       Head_Upper: (2.0, (-11.9, -5.4))   Box_Base: (1.7, (-14.3, -11.9))   OK
-  (32.0, 2.0)        Head_Upper: (2.0, (-11.9, -5.4))   Box_Base: (1.7, (-14.3, -11.9))   OK
-
-Flange, tray to box  (Head_Tray r (2.0, 2.0) / Box_Base r (1.7, 1.7), axis Y)
-  (-32.0, -20.0)     Head_Tray: (2.0, (-11.9, -5.4))   Box_Base: (1.7, (-14.3, -11.9))   OK
-  (32.0, -20.0)      Head_Tray: (2.0, (-11.9, -5.4))   Box_Base: (1.7, (-14.3, -11.9))   OK
-
-Head seam screws  (Head_Upper r (2.0, 2.0) / Head_Tray r (1.7, 1.7), axis X)
-  (34.0, -8.0)       Head_Upper: (2.0, (-45.8, -39.7))   Head_Tray: (1.7, (-48.4, -46.0))   OK
-  (34.0, -8.0)       Head_Upper: (2.0, (-45.8, -39.7))   Head_Tray: (1.7, (-48.4, -46.0))   OK
-
-Lid screws  (Box_Lid r (1.7, 1.7) / Box_Base r (2.0, 2.0), axis Z)
-  (-66.5, -18.5)     Box_Lid: (1.7, (26.0, 28.4))   Box_Base: (2.0, (20.0, 26.0))   OK
-  (66.5, -18.5)      Box_Lid: (1.7, (26.0, 28.4))   Box_Base: (2.0, (20.0, 26.0))   OK
-  (-64.0, -116.0)    Box_Lid: (1.7, (26.0, 28.4))   Box_Base: (2.0, (20.0, 26.0))   OK
-  (64.0, -116.0)     Box_Lid: (1.7, (26.0, 28.4))   Box_Base: (2.0, (20.0, 26.0))   OK
-
-Rear port cover screws  (Rear_Port_Cover r (1.7, 1.7) / Box_Base r (2.0, 2.0), axis Y)
-  (-57.0, -22.3)     Rear_Port_Cover: (1.7, (-127.4, -124.4))   Box_Base: (2.0, (-124.4, -117.9))   OK
-  (-57.0, 2.5)       Rear_Port_Cover: (1.7, (-127.4, -124.4))   Box_Base: (2.0, (-124.4, -117.9))   OK
-  (-16.0, -22.3)     Rear_Port_Cover: (1.7, (-127.4, -124.4))   Box_Base: (2.0, (-124.4, -117.9))   OK
-  (-16.0, 2.5)       Rear_Port_Cover: (1.7, (-127.4, -124.4))   Box_Base: (2.0, (-124.4, -117.9))   OK
-
-Side port cover screws  (Side_Port_Cover r (1.7, 1.7) / Box_Base r (2.0, 2.0), axis X)
-  (-94.0, -22.3)     Side_Port_Cover: (1.7, (72.4, 75.4))   Box_Base: (2.0, (65.9, 72.4))   OK
-  (-94.0, 2.5)       Side_Port_Cover: (1.7, (72.4, 75.4))   Box_Base: (2.0, (65.9, 72.4))   OK
-  (-52.0, -22.3)     Side_Port_Cover: (1.7, (72.4, 75.4))   Box_Base: (2.0, (65.9, 72.4))   OK
-  (-52.0, 2.5)       Side_Port_Cover: (1.7, (72.4, 75.4))   Box_Base: (2.0, (65.9, 72.4))   OK
-
-Rail plate bolts  (Rail_Plate r (1.7, 1.7) / Box_Base r (2.0, 2.0), axis Z)
-  (-22.0, -91.0)     Rail_Plate: (1.7, (-30.9, -28.4))   Box_Base: (2.0, (-28.4, -22.4))   OK
-  (-22.0, -49.0)     Rail_Plate: (1.7, (-30.9, -28.4))   Box_Base: (2.0, (-28.4, -22.4))   OK
-  (22.0, -91.0)      Rail_Plate: (1.7, (-30.9, -28.4))   Box_Base: (2.0, (-28.4, -22.4))   OK
-  (22.0, -49.0)      Rail_Plate: (1.7, (-30.9, -28.4))   Box_Base: (2.0, (-28.4, -22.4))   OK
-
-Original pod rail plate on this box  (Original_Rail_Plate r (1.7, 1.7) / Box_Base r (2.0, 2.0), axis Z)
-  (-22.0, -91.0)     Original_Rail_Plate: (1.7, (-30.9, -28.4))   Box_Base: (2.0, (-28.4, -22.4))   OK
-  (-22.0, -49.0)     Original_Rail_Plate: (1.7, (-30.9, -28.4))   Box_Base: (2.0, (-28.4, -22.4))   OK
-  (22.0, -91.0)      Original_Rail_Plate: (1.7, (-30.9, -28.4))   Box_Base: (2.0, (-28.4, -22.4))   OK
-  (22.0, -49.0)      Original_Rail_Plate: (1.7, (-30.9, -28.4))   Box_Base: (2.0, (-28.4, -22.4))   OK
-
-Camera retainer screws  (Camera_Retainer r (1.2, 1.2) / Head_Upper r (0.8, 0.8), axis Z)
-  (-16.9, 31.0)      Camera_Retainer: (1.2, (15.0, 17.0))   Head_Upper: (0.8, (17.0, 24.0))   OK
-  (-16.9, 43.5)      Camera_Retainer: (1.2, (15.0, 17.0))   Head_Upper: (0.8, (17.0, 24.0))   OK
-  (16.9, 31.0)       Camera_Retainer: (1.2, (15.0, 17.0))   Head_Upper: (0.8, (17.0, 24.0))   OK
-  (16.9, 43.5)       Camera_Retainer: (1.2, (15.0, 17.0))   Head_Upper: (0.8, (17.0, 24.0))   OK
-
-Sunshade posts  (Box_Lid r (1.7, 1.7) / Sunshade r (1.25, 1.25), axis Z)
-  (-44.0, -24.0)     Box_Lid: (1.7, (26.0, 28.4))   Sunshade: (1.25, (28.4, 34.4))   OK
-  (-44.0, -98.0)     Box_Lid: (1.7, (26.0, 28.4))   Sunshade: (1.25, (28.4, 34.4))   OK
-  (44.0, -24.0)      Box_Lid: (1.7, (26.0, 28.4))   Sunshade: (1.25, (28.4, 34.4))   OK
-  (44.0, -98.0)      Box_Lid: (1.7, (26.0, 28.4))   Sunshade: (1.25, (28.4, 34.4))   OK
-
-board-mounting pilots (estimated positions; the other side is the real board):
-  Sensor board (-11.3, 11.8)      (0.8, (-9.6, -1.6))
-  Sensor board (-11.3, 34.9)      (0.8, (-9.6, -1.6))
-  Sensor board (11.3, 11.8)       (0.8, (-9.6, -1.6))
-  Sensor board (11.3, 34.9)       (0.8, (-9.6, -1.6))
-  Pi 5 (M2.5 clearance from below) (-51.5, -89.0)     (1.35, (-26.2, -18.0))
-  Pi 5 (M2.5 clearance from below) (6.5, -89.0)       (1.35, (-26.2, -18.0))
-  Pi 5 (M2.5 clearance from below) (-51.5, -40.0)     (1.35, (-26.2, -18.0))
-  Pi 5 (M2.5 clearance from below) (6.5, -40.0)       (1.35, (-26.2, -18.0))
-
-ALL FASTENER HOLES MATCH
+Traceback (most recent call last):
+  File "C:\Users\0geda\OneDrive - University of Cape Town\Documents\PlatformIO\Projects\Tukzie-HPEC-HUD\CAD\Sensor_Pod_Front\build\audit_2_fasteners.py", line 12, in <module>
+    from swlib import sw, OPENED, PRINT, OUT, call0
+  File "C:\Users\0geda\OneDrive - University of Cape Town\Documents\PlatformIO\Projects\Tukzie-HPEC-HUD\CAD\Sensor_Pod_Front\build\swlib.py", line 32, in <module>
+    sw = win32com.client.GetActiveObject("SldWorks.Application")
+  File "C:\Users\0geda\AppData\Roaming\Python\Python313\site-packages\win32com\client\__init__.py", line 94, in GetActiveObject
+    dispatch = pythoncom.GetActiveObject(resultCLSID)
+pywintypes.com_error: (-2147221021, 'Operation unavailable', None, None)

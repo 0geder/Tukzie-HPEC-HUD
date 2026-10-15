@@ -124,7 +124,8 @@ REAR_BOSSES = [(x, z) for x in (-57.0, -16.0) for z in (-19.5, 2.5)]   # (X, Z).
 #   audit 4 measured 0.10 mm from their insert holes to the rear bottom facet; a root block joins them to the floor
 SIDE_PORT = (-88.0, -58.0, -15.0, 1.0)     # Y0, Y1, Z0 (sill), Z1 of the opening in the +X wall
 SIDE_NOTCHES = [("eth", PI_Y0 + PI5_ETH_BY), ("usba", PI_Y0 + PI5_USB_BY[0])]     # (cable, Y)
-SIDE_BOSSES = [(y, z) for y in (-94.0, -52.0) for z in (-22.3, 2.5)]               # (Y, Z)
+SIDE_BOSSES = [(y, z) for y in (-94.0, -50.0) for z in (-22.3, 2.5)]   # Y -50 (was -52): audit 5 measured 0.28 mm
+#   from the gusset under the upper boss to the USB-A plug stand-in. (Y, Z)
 COVER_T = 3.0
 COVER_MARGIN = (5.5, 4.5)   # cover overlap past the opening: sideways, below (top edge stays under the lid skirt)
 COVER_TOP_Z = 6.5           # lid skirt bottom is at BOX_TOP_Z - LID_TONGUE_H = 7.0
