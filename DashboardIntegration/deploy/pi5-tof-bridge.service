@@ -1,0 +1,14 @@
+[Unit]
+Description=SW-7 front ToF and fusion on the Pi 5 (no serial; telemetry JSON on :8082, no beacon)
+After=pi5-hazard-detector.service
+
+[Service]
+User=piadam
+WorkingDirectory=/home/piadam/hazard_detector_test
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/piadam/hazard_detector_test/venv/bin/python telemetry_bridge.py --serial-port /dev/ttyNONE --port 8082 --no-beacon
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
