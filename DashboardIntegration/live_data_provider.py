@@ -129,13 +129,16 @@ def is_replay(telemetry) -> bool:
     return isinstance(esp, dict) and str(esp.get("fw") or "").endswith("-replay")
 
 
-def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=None):
+def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=None, dual=False, front_telemetry=None):
     """Map one /telemetry reply onto a new VehicleState.
 
     driver_inputs: a VehicleState (normally the manager's sim state) to copy
     DRIVER_INPUT_FIELDS from. previous: the last state this provider built,
     used to keep the last known state of charge when soc goes null.
     live_only: build on the blank no-data state (default: TUKZIE_LIVE_ONLY).
+    dual: two-camera layout (sw7_dual_camera, 15 Oct 2026). The Pi 4 bridge is then at the rear, so its
+    straight-on ToF reading is the rear obstacle, and the front obstacle comes from front_telemetry (the
+    Pi 5's own ToF bridge reply, or None when it has not answered).
     Returns None when the ESP32 part is missing or stale."""
     if not esp32_is_fresh(telemetry):
         return None
@@ -186,15 +189,21 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     s.heading = crs % 360.0 if crs is not None else None
     s.altitude_m = _num(esp.get("alt")) if gps_ok else None
 
-    front = front_tof_m(telemetry)
+    if dual:
+        front = front_tof_m(front_telemetry) if isinstance(front_telemetry, dict) else None
+        rear = front_tof_m(telemetry)        # the rear board's "ahead" sensor looks straight back
+    else:
+        front, rear = front_tof_m(telemetry), None
     s.front_obstacle_distance_m = front
+    if dual:
+        s.rear_obstacle_distance_m = rear
 
     # spd_raw is deliberately not mapped: speed_kmh keeps its default of 0
     # (None in live-only mode).
     s.signal_validity = {
         "speed": False, "soc": soc is not None, "battery_temp": False,
         "gps": gps_ok, "heading": s.heading is not None, "front_obstacle": front is not None,
-        "rear_obstacle": False, "weather": False, "road_surface": False,
+        "rear_obstacle": rear is not None, "weather": False, "road_surface": False,
         "door": False, "seatbelt": False, "tyres": False,
     }
     return s
@@ -220,6 +229,8 @@ class LiveDataProvider(QObject):
             self.resolver = resolver
             resolver.host_changed.connect(self.endpoint_changed)
         self.link = "offline"
+        self.dual = False                # set by sw7_dual_camera: this bridge is then the rear one
+        self.front_telemetry = None      # the Pi 5 front ToF reply, fed by sw7_dual_camera
         self.last_telemetry = None
         self._last_state = None
         self._reply = None
@@ -300,7 +311,8 @@ class LiveDataProvider(QObject):
             self._set_link("offline")
         else:
             sim = getattr(self.manager, "sim", None)
-            state = build_live_state(telemetry, sim.state if sim is not None else None, self._last_state)
+            state = build_live_state(telemetry, sim.state if sim is not None else None, self._last_state,
+                                     dual=self.dual, front_telemetry=self.front_telemetry)
             if state is None:
                 self._set_link("stale")
             else:

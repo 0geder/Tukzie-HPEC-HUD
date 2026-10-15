@@ -599,6 +599,10 @@ class DualCamera(QObject):
         tel = getattr(main, "telemetry", None)
         if tel is not None:
             tel.telemetry_updated.connect(lambda t: self._on_telemetry(REAR, t))
+            # The Pi 4 bridge is now the rear one: its straight-on ToF becomes the rear obstacle and the
+            # front obstacle comes from the Pi 5's own ToF (live_data_provider.build_live_state, dual=True).
+            tel.dual = True
+            self.front_tof.updated.connect(lambda t: setattr(tel, "front_telemetry", t))
         self._watchdog = QTimer(self)
         self._watchdog.setInterval(1000)
         self._watchdog.timeout.connect(self._check_stale)
