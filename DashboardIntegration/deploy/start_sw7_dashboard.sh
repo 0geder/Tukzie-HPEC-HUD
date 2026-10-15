@@ -19,6 +19,16 @@ export TUKZIE_SW7_THEME=0
 # No fixed addresses: sw7_endpoints.py finds the Pi 4 (localhost, wired 10.20.0.1,
 # beacon, pi4-camera.local, last good). Set TUKZIE_PI4_HOST only to force one for a test.
 unset TUKZIE_CAMERA_URL TUKZIE_TELEMETRY_URL
+# Front camera on the Pi 5 itself (15 Oct 2026: the Pi 5 runs the detector with its own camera at the front;
+# the Pi 4 camera becomes the rear view). When the local detector answers, the camera page uses it; the
+# telemetry still comes from the Pi 4 bridge. Without a local detector the Pi 4 camera is used as before.
+for _i in 1 2 3 4 5 6 7 8 9 10; do
+    if curl -s -m 1 -o /dev/null http://127.0.0.1:8080/alerts; then
+        export TUKZIE_CAMERA_URL=http://127.0.0.1:8080
+        break
+    fi
+    sleep 2
+done
 # Announce this Pi on every network so the laptop's pre-test check finds it (one instance).
 pgrep -f "sw7_integration/pi5_beacon.py" >/dev/null || \
     setsid nohup python3 /home/piadam/sw7_integration/pi5_beacon.py >/dev/null 2>&1 < /dev/null &

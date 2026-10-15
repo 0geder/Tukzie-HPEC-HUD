@@ -1,0 +1,14 @@
+[Unit]
+Description=SW-7 front camera hazard detector on the Pi 5 (live view and alerts on :8080)
+After=network-online.target
+
+[Service]
+User=piadam
+WorkingDirectory=/home/piadam/hazard_detector_test
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/piadam/hazard_detector_test/venv/bin/python hazard_detector.py --duration 0 --threads 4 --preview --preview-host 0.0.0.0 --log-path /home/piadam/alerts_live.jsonl
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
