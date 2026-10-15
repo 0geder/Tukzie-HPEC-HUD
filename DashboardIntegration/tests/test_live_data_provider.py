@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import json
 import os
+os.environ["TUKZIE_SW7_DUAL_CAM"] = "0"   # the single-camera Surroundings; the dual camera: tests/test_dual_camera.py
 # Keep the resolver tests off the real beacon port: a live Pi 4 on the same network
 # broadcasts to 50808 and would be picked up instead of the test's fake sources.
 os.environ.setdefault("TUKZIE_BEACON_PORT", "50919")

@@ -39,6 +39,9 @@ STYLE_PAGES_COPIES): Front camera and Sensors merged into Surroundings (7 nav it
 "camera" and "surroundings"), Diagnostics and Charging with one home per value. TUKZIE_SW7_STYLE=team: nothing.
 STYLE_MAP_PATCHES: the paper style on the Map page's overlays and Settings (sw7_style_map.py, added to COPIES by
 STYLE_MAP_COPIES); the map's own paper look is in sw7_tile_map.py. TUKZIE_SW7_STYLE=team installs nothing.
+DUAL_CAMERA_PATCHES: the Front | Rear camera toggle on Surroundings (sw7_dual_camera.py, added to COPIES by
+DUAL_CAMERA_COPIES): each side's camera, alerts, ToF and fusion, the banner from both sides, Rear in gear R.
+TUKZIE_SW7_DUAL_CAM=0 installs nothing (the single-camera Surroundings).
 Tests: SETTINGS, LOGIN and SENSORS anchor on v1.1 only, so the tests run against a copy
 of v1.1 (TUKZIE_DASHBOARD_DIR).
 PATCHES: all of them, in order (what the test and the deploy step apply).
@@ -832,3 +835,24 @@ STYLE_PLANES_COPIES = (
     ("assets/tukzie_side.png", "app/assets/tukzie_side.png"),
 )
 COPIES = COPIES + STYLE_PLANES_COPIES
+
+DUAL_CAMERA_COPIES = (
+    ("sw7_dual_camera.py", "app/pages/sw7_dual_camera.py"),
+)
+COPIES = COPIES + DUAL_CAMERA_COPIES
+
+DUAL_CAMERA_PATCHES = (
+    # dashboard_main.py: the Front | Rear camera toggle on Surroundings (15 Oct 2026: the Pi 5 has the front camera and
+    # ToF board, the Pi 4 the rear ones). sw7_dual_camera.install wraps the shell after sw7_style_pages and
+    # sw7_style_map have; it installs nothing with TUKZIE_SW7_DUAL_CAM=0, with TUKZIE_SW7_STYLE=team, or on a build
+    # without the Surroundings group. Anchored on the file's last line, like the style groups.
+    ("app/pages/dashboard_main.py",
+     "Dashboard = DashboardMain\n",
+     "try:   # SW-7 dual camera: Front (Pi 5) | Rear (Pi 4) on Surroundings (TUKZIE_SW7_DUAL_CAM=0: off)\n"
+     "    from .sw7_dual_camera import install as _sw7_dual_camera\n"
+     "    _sw7_dual_camera(DashboardMain)\n"
+     "except ImportError:\n"
+     "    pass\n"
+     "Dashboard = DashboardMain\n"),
+)
+PATCHES = PATCHES + DUAL_CAMERA_PATCHES

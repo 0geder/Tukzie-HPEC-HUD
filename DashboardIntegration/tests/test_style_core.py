@@ -12,6 +12,7 @@ patch group, one without STYLE_CORE_PATCHES and its copies. A local fake server 
 Run: TUKZIE_DASHBOARD_DIR=<team Dashboard folder> python tests/test_style_core.py
 """
 import glob, json, os, shutil, subprocess, sys, tempfile, threading, time
+os.environ["TUKZIE_SW7_DUAL_CAM"] = "0"   # the single-camera Surroundings; the dual camera: tests/test_dual_camera.py
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
