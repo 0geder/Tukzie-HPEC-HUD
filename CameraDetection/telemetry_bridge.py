@@ -58,7 +58,9 @@ and time, and adds a "fusion" block to /telemetry:
                   "sensor": "ahead", "bearing_deg": -3.1, "distance_m": 0.98,
                   "band": "immediate", "confidence": 0.71,
                   "camera_distance_m": 1.31, "tof_distance_m": 0.98,
-                  "tof_dt_ms": 12}, ...],
+                  "tof_dt_ms": 12, "side": "front", "ttc_s": 1.6,
+                  "closing_mps": 0.61, "approaching": true,
+                  "ttc_source": "tof"}, ...],
                  "age_ms": 80, "camera_fps": 14.8, "camera_age_ms": 160,
                  "config": "fusion_config.json"}
 The same block is at GET /hazards (503 while fusion is inactive). In auto
@@ -68,6 +70,12 @@ for a C9 test session): time, ToF readings and hazards, numbers only, no
 images. Off by default because the approved data handling for the camera
 logs five fields per alert with a distance band, not continuous distances
 and bearings.
+
+Approaching hazards (sensor_fusion.py rule 6): each fused hazard carries
+ttc_s, closing_mps, approaching, ttc_source and side. The ToF closing rate
+is fitted over the last 0.3 s of the ToF history kept here (TOF_HISTORY).
+--side front|rear names the end of the trike this Pi watches; without it
+the side the detector reports is used.
 
 Testing without hardware:
   python3 telemetry_bridge.py --replay tests/dash_sample.txt --fake-tof
@@ -647,7 +655,7 @@ class Bridge:
                  replay=None, replay_interval=1.0, tof=True, fake_tof=False,
                  beacon=True, beacon_port=BEACON_PORT, beacon_targets=None,
                  beacon_interval_s=BEACON_INTERVAL_S, camera_port=CAMERA_PORT,
-                 fusion="off", detections_url=None, fusion_config=None, fusion_log=None):
+                 fusion="off", detections_url=None, fusion_config=None, fusion_log=None, side=None):
         label = ("replay:%s" % replay) if replay else serial_port
         self.state = TelemetryState(label, replay_file=replay)
         self.stop = threading.Event()
@@ -665,7 +673,7 @@ class Bridge:
             self.fusion = sensor_fusion.FusionRunner(
                 self.stop, self.state.tof_history, self.state.set_fusion,
                 url=detections_url or "http://127.0.0.1:%d/detections" % camera_port,
-                config_path=fusion_config, log_path=fusion_log, mode=fusion)
+                config_path=fusion_config, log_path=fusion_log, mode=fusion, side=side)
             self.server.fusion = self.fusion
 
     def start(self):
@@ -719,6 +727,9 @@ def main():
     ap.add_argument("--fusion-log", default="",
                     help="Append every fused update here as JSON lines (numbers only), for a C9 test session only; "
                          "off by default (routine logging of distances and bearings is outside the approved data handling)")
+    ap.add_argument("--side", choices=("front", "rear"), default=None,
+                    help="Which end of the trike this Pi's ToF sensors and camera face, copied to every fused "
+                         "hazard. Default: the side the detector reports in /detections, else null")
     ap.add_argument("--duration", type=float, default=0, help="Seconds to run, 0 = until Ctrl+C or SIGTERM")
     a = ap.parse_args()
 
@@ -732,7 +743,7 @@ def main():
                     beacon_port=a.beacon_port, beacon_targets=a.beacon_target,
                     beacon_interval_s=a.beacon_interval, camera_port=a.camera_port,
                     fusion=a.fusion, detections_url=a.detections_url, fusion_config=a.fusion_config,
-                    fusion_log=a.fusion_log or None).start()
+                    fusion_log=a.fusion_log or None, side=a.side).start()
     print("Telemetry bridge %s on http://%s:%d/telemetry, source %s, tof %s" % (
         VERSION, a.host, bridge.port, bridge.state.serial_label,
         "fake" if a.fake_tof else ("off" if a.no_tof else "sensors")))

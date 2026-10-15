@@ -40,11 +40,34 @@ camera's optical axis, negative = left):
    sensor's centre bearing and its distance the latest sample.
 5. Camera data older than camera_stale_ms (1 s) is ignored, so with the
    detector stopped only ToF-only obstacles are reported.
+6. Approaching (time to contact). For each ToF sensor, a Theil-Sen line
+   fit of range against time over the last TOF_TTC_WINDOW_S (0.3 s) of
+   valid, in-range samples (null and out-of-range readings left out; at
+   least TOF_TTC_MIN_SAMPLES over TOF_TTC_MIN_SPAN_S) gives the closing
+   speed; when the range falls consistently (TOF_TTC_MIN_CONSISTENCY of
+   the pairwise slopes) at TOF_MIN_CLOSING_MPS or more, TTC = range now /
+   closing speed. Every hazard gains:
+     "ttc_s": float or null, "closing_mps": float or null (positive =
+     nearer), "approaching": bool, "ttc_source": "tof" | "camera" | null,
+     "side": "front" | "rear" | null.
+   A fused hazard (camera and ToF agree on bearing, so the object is
+   inside the ToF's range) takes the ToF's rate when it has one
+   ("ttc_source": "tof"), else the camera's; a camera-only hazard (beyond
+   ToF range) takes the detector's ttc_s, closing_mps and approaching
+   (TTC from box growth, with the detector's hysteresis; closing_mps
+   uncalibrated); a ToF-only obstacle takes its sensor's. A ToF-timed
+   hazard is approaching when its TTC is under TTC_WARNING_S (4 s), with
+   no further hysteresis than the 0.3 s fit. "side" is the bridge's
+   --side, else the side the detector reports in /detections. The band is
+   still from the distance alone. With the trike moving forward,
+   stationary objects ahead also close and are reported as approaching
+   (a forward collision warning, intended).
 
 Limitations, stated rather than hidden: a ToF sensor reports the nearest
 surface in its cone, which need not be the object the camera saw at that
 bearing (no plausibility check against the uncalibrated camera estimate is
-made); detections are per frame, not tracked; with the default geometry
+made); association is per frame (the detector's track_id is not used
+to match); with the default geometry
 the side cones (-47.5 to -22.5 and 22.5 to 47.5 degrees) overlap the
 camera's 53.5 degree view only at its edges, so most side objects can only
 be ToF-only.
@@ -66,6 +89,23 @@ import urllib.request
 DEFAULT_BANDS = [(3.0, "immediate"), (8.0, "warning"), (15.0, "monitoring")]
 
 TOF_NAMES = ("left", "ahead", "right")
+
+# ToF closing rate (rule 6). Window of samples fitted, seconds: about 9
+# samples at 30 Hz, 6 at the bridge's 20 Hz read rate.
+TOF_TTC_WINDOW_S = 0.3
+# Fewest valid samples, and shortest span between first and last, for a fit.
+TOF_TTC_MIN_SAMPLES = 5
+TOF_TTC_MIN_SPAN_S = 0.15
+# Slower than this is not counted as closing: the VL53L0X reading varies
+# by about a centimetre on a still target, which over 0.3 s is a few
+# centimetres per second of apparent speed.
+TOF_MIN_CLOSING_MPS = 0.1
+# Share of the non-zero pairwise slopes that must show a falling range.
+TOF_TTC_MIN_CONSISTENCY = 0.75
+# Same thresholds as hazard_detector.TTC_WARNING_S and TTC_IMMEDIATE_S (a
+# test checks): a ToF-timed hazard is "approaching" below the warning one.
+TTC_WARNING_S = 4.0
+TTC_IMMEDIATE_S = 2.0
 
 DEFAULT_CONFIG = {
     "camera_hfov_deg": 53.5,
@@ -154,6 +194,57 @@ def nearest_sample(history, t):
     return best
 
 
+def theil_sen(ts, ys):
+    """Robust line fit y = a + b t (same as hazard_detector.theil_sen; kept
+    here so the bridge does not import the detector and numpy). Returns
+    (a, b, share of the non-zero pairwise slopes that are negative), or
+    None with fewer than two distinct times."""
+    slopes = []
+    n = len(ts)
+    for i in range(n):
+        for j in range(i + 1, n):
+            dt = ts[j] - ts[i]
+            if dt > 1e-6:
+                slopes.append((ys[j] - ys[i]) / dt)
+    if not slopes:
+        return None
+    slopes.sort()
+    m = len(slopes)
+    b = slopes[m // 2] if m % 2 else 0.5 * (slopes[m // 2 - 1] + slopes[m // 2])
+    rs = sorted(y - b * t for t, y in zip(ts, ys))
+    k = len(rs)
+    a = rs[k // 2] if k % 2 else 0.5 * (rs[k // 2 - 1] + rs[k // 2])
+    nonzero = sum(1 for s in slopes if s != 0)
+    neg = sum(1 for s in slopes if s < 0) / nonzero if nonzero else 0.0
+    return a, b, neg
+
+
+def tof_closing(history, name, sensor_cfg):
+    """Closing speed and time to contact of one ToF sensor (rule 6).
+    Returns (closing_mps or None, ttc_s or None): closing_mps is positive
+    when the range is falling, None with too few valid samples in the
+    window; ttc_s is set only when the range is falling consistently and
+    faster than TOF_MIN_CLOSING_MPS."""
+    if not history:
+        return None, None
+    t_end = history[-1][0]
+    pts = [(t, vals.get(name) / 1000.0) for t, vals in history
+           if t >= t_end - TOF_TTC_WINDOW_S - 1e-9 and valid_in_range(vals.get(name), sensor_cfg)]
+    if len(pts) < TOF_TTC_MIN_SAMPLES or pts[-1][0] - pts[0][0] < TOF_TTC_MIN_SPAN_S:
+        return None, None
+    ts = [p[0] for p in pts]
+    fit = theil_sen(ts, [p[1] for p in pts])
+    if fit is None:
+        return None, None
+    a, b, falling = fit
+    closing = -b
+    r_now = a + b * ts[-1]
+    ttc = None
+    if closing >= TOF_MIN_CLOSING_MPS and falling >= TOF_TTC_MIN_CONSISTENCY and r_now > 0:
+        ttc = r_now / closing
+    return closing, ttc
+
+
 def tof_debounced(history, name, sensor_cfg, n):
     """True when the last n samples of sensor name are all valid and in range."""
     if n <= 0 or len(history) < n:
@@ -198,11 +289,30 @@ def _r(x, nd):
     return None if x is None else round(x, nd)
 
 
-def fuse(detections, frame_t, history, cfg, bands=None, now=None):
+def _tof_timing(rate):
+    """ttc_s, closing_mps, approaching and ttc_source from a ToF rate."""
+    closing, ttc = rate
+    if closing is None:
+        return {"ttc_s": None, "closing_mps": None, "approaching": False, "ttc_source": None}
+    return {"ttc_s": _r(ttc, 2), "closing_mps": _r(closing, 2),
+            "approaching": ttc is not None and ttc < TTC_WARNING_S, "ttc_source": "tof"}
+
+
+def _camera_timing(d):
+    """The detector's own ttc_s, closing_mps and approaching (with its
+    hysteresis), or nulls from a detector without them."""
+    ttc, closing = d.get("ttc_s"), d.get("closing_mps")
+    src = "camera" if (ttc is not None or closing is not None or d.get("approaching")) else None
+    return {"ttc_s": ttc, "closing_mps": closing, "approaching": bool(d.get("approaching", False)),
+            "ttc_source": src}
+
+
+def fuse(detections, frame_t, history, cfg, bands=None, now=None, side=None):
     """Fused hazard list from one set of camera detections (frame time
     frame_t on the local monotonic clock, or None) and the ToF history
     [(t_mono, {"left": mm or None, ...}), ...] sorted by time. Sorted
-    nearest first."""
+    nearest first. side ("front", "rear" or None) is copied to every
+    hazard; a camera hazard without it takes the detection's own side."""
     now = time.monotonic() if now is None else now
     if frame_t is None or (now - frame_t) * 1000.0 > cfg["camera_stale_ms"]:
         detections = []
@@ -212,12 +322,18 @@ def fuse(detections, frame_t, history, cfg, bands=None, now=None):
         d["_bearing"] = detection_bearing(d, cfg)
         dets.append(d)
     matches = associate(dets, frame_t, history, cfg)
+    rates = {name: tof_closing(history, name, s) for name, s in cfg["sensors"].items()}
     hazards = []
     for i, d in enumerate(dets):
         cam = d.get("est_distance_m")
         m = matches.get(i)
         tof_m = m[1] / 1000.0 if m else None
         dist = tof_m if m else cam
+        # Inside the ToF's range (matched) its closing rate is preferred;
+        # with too few ToF samples for a rate, or beyond it, the camera's.
+        timing = _tof_timing(rates[m[0]]) if m else None
+        if timing is None or timing["ttc_source"] is None:
+            timing = _camera_timing(d)
         hazards.append({
             "class": d.get("class"),
             "source": "fused" if m else "camera",
@@ -229,6 +345,8 @@ def fuse(detections, frame_t, history, cfg, bands=None, now=None):
             "camera_distance_m": _r(cam, 3),
             "tof_distance_m": _r(tof_m, 3),
             "tof_dt_ms": _r(m[2], 0) if m else None,
+            "side": side or d.get("side"),
+            **timing,
         })
     used = {m[0] for m in matches.values()}
     n = int(cfg.get("debounce_readings", 3))
@@ -248,6 +366,8 @@ def fuse(detections, frame_t, history, cfg, bands=None, now=None):
             "camera_distance_m": None,
             "tof_distance_m": _r(tof_m, 3),
             "tof_dt_ms": None,
+            "side": side,
+            **_tof_timing(rates[name]),
         })
     hazards.sort(key=lambda h: (h["distance_m"] is None, h["distance_m"] or 0.0))
     return hazards
@@ -277,7 +397,7 @@ class FusionRunner(threading.Thread):
     /telemetry JSON is unchanged on a Pi without the detector."""
 
     def __init__(self, stop, tof_history_fn, publish_fn, url="http://127.0.0.1:8080/detections",
-                 config_path=None, log_path=None, mode="auto", period_s=0.2):
+                 config_path=None, log_path=None, mode="auto", period_s=0.2, side=None):
         super().__init__(daemon=True)
         self.stop = stop
         self.tof_history_fn = tof_history_fn
@@ -289,6 +409,10 @@ class FusionRunner(threading.Thread):
         self.log_path = os.path.expanduser(log_path) if log_path else None
         self.mode = mode
         self.period_s = period_s
+        # "front" or "rear" from the bridge's --side; None: the side the
+        # detector reports in /detections (the last one seen), else null.
+        self.side = side
+        self.detector_side = None
         self.active = mode == "on"
         self.updates = 0
         self.camera_errors = 0
@@ -312,7 +436,10 @@ class FusionRunner(threading.Thread):
         bands = None
         if resp and resp.get("bands"):
             bands = [(float(l), b) for l, b in resp["bands"]]
-        hazards = fuse(resp.get("detections", []) if resp else [], frame_t, history, self.cfg, bands, now)
+        if resp and resp.get("side"):
+            self.detector_side = resp["side"]
+        hazards = fuse(resp.get("detections", []) if resp else [], frame_t, history, self.cfg, bands, now,
+                       side=self.side or self.detector_side)
         camera_age_ms = None if frame_t is None else int(round((now - frame_t) * 1000))
         block = {
             "hazards": hazards,

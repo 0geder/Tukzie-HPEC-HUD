@@ -40,8 +40,9 @@ value is ever persisted.
 
 ## What this is not
 
-Not lane-level blind-spot geometry, not multi-frame object tracking, not
-an autonomous-driving perception stack. Chosen deliberately to match what
+Not lane-level blind-spot geometry, not an autonomous-driving perception
+stack (the object tracking below is a short-lived box-overlap tracker for
+the approaching warning, nothing more). Chosen deliberately to match what
 a Raspberry Pi 4 with no hardware ML accelerator can actually sustain in
 real time - a hazard-presence-and-rough-range indicator, not a precision
 ranging or decision-making system.
@@ -105,6 +106,70 @@ keeps per-frame timings, `--threads` sets inference threads (default 4),
 filter, and `--verbose` prints every detection.
 
 To start it at boot and restart it on failure, see `deploy/INSTALL.md`.
+
+## Approaching objects (time to contact)
+
+Warns of something closing fast, such as a car coming up from behind or
+an object ahead, from either camera. The same detector runs on the Pi 5
+(front, about 19 fps) and the Pi 4 (rear, about 14.7 fps); `--side
+front|rear`, or `{"side": "rear"}` in `detector_options.json` (default
+front), says which, and is echoed in `/alerts` and `/detections`.
+
+- Tracking: each detection gets a `track_id` from a box-overlap (IoU)
+  tracker that survives up to 2 missed frames. Ids count up from 1 at
+  start-up and identify no person or vehicle.
+- Time to contact from box growth (Lee's tau): TTC = w / (dw/dt), from a
+  robust line fit of 1/width against the frames' sensor timestamps over
+  the last 0.6 s. Valid only with at least 5 frames over 0.25 s,
+  consistent growth, at least 5 % growth, no box cut by the left or right
+  image edge, and the height agreeing within a factor 2 when not cut at
+  the top or bottom. It needs no focal length. `closing_mps`, the slope
+  of the pinhole distance estimate, does, and is uncalibrated like the
+  distance.
+- Alert: TTC under 4 s is `warning`, under 2 s `immediate`, after 3
+  frames; it holds until the TTC is above 5 s (2.5 s for immediate) or
+  invalid for 5 frames. The distance alerts are unchanged; an approaching
+  track raises its class's band when more urgent, and one with no
+  distance alert (a car beyond 15 m) gets its own `/alerts` entry.
+  Earliest alert after an object first appears: its 8th frame at 19 fps
+  (0.37 s) or 7th at 14.7 fps (0.41 s), plus the pipeline latency.
+- Ego motion: with the trike moving forward, still objects ahead grow in
+  the front camera and are reported as approaching. That is intended (a
+  forward collision warning); at the rear only objects closing faster
+  than the trike are reported.
+- Constants (thresholds, window, hysteresis) are at the top of the
+  "Approaching objects" section of `hazard_detector.py`, each commented.
+
+Schema, additive (existing fields unchanged). Each `/alerts` `active`
+entry and each `/detections` `detections` entry gains:
+
+```
+"side": "front" | "rear",
+"track_id": 3,
+"approaching": true,         # alert state, with the hysteresis above
+"ttc_s": 2.41,               # this frame's TTC, null when not valid
+"closing_mps": 4.8           # positive = nearer; uncalibrated, null with too few frames
+```
+
+and both responses gain a top-level `"side"`. The telemetry bridge's fused
+hazards (`sensor_fusion.py` rule 6) gain `ttc_s`, `closing_mps`,
+`approaching`, `side` and `ttc_source` (`"tof"`, `"camera"` or null): the
+ToF closing rate (robust fit over 0.3 s, nulls and out-of-range readings
+left out) is used inside ToF range when camera and ToF agree on bearing,
+the camera's TTC beyond it. The bridge takes `--side front|rear`; without
+it the side the detector reports is used.
+
+Logging: approaching alerts are logged to the same alert log with the five
+fields plus `"approaching": true`, `track_id`, `ttc_s` (0.1 s) and `side`;
+distance-alert lines are unchanged. This, and the new alert itself, is a
+change to the logged fields and the alert method, so it needs the ethics
+review described above before field use.
+
+Status (15 Oct 2026): tested offline only (`tests/test_approach.py`, 40
+tests, synthetic box sequences and ToF histories; the existing tests
+still pass). Added cost on the laptop with six objects in view: median
+0.28 ms, p95 0.46 ms a frame. Not yet run on either Pi, nor against real
+approaches; the accuracy test is BenchTest C11.
 
 ## Experimental pothole path (off by default)
 

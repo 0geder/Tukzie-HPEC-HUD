@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SW-7 hazard/obstacle detector for the Pi 4 camera.
+SW-7 hazard/obstacle detector for the Pi 5 (front) and Pi 4 (rear) cameras.
 
 Runs under ethics approval EBE/03305/2026 (approved with conditions,
 23 Sep 2026 - 22 Sep 2027, EBE Faculty Research Ethics Committee). The
@@ -33,11 +33,11 @@ pretrained, COCO-trained SSD-MobileNet-v1 object detector (quantized
 TFLite, no NPU required) on live camera frames, and reports which of a
 small set of road-relevant classes are present, with a *rough* distance
 estimate from a known-object-width heuristic. It does NOT do lane-level
-blind-spot geometry, does NOT track individual objects across frames
-(the persistence check below is class-level, not per-instance), and does
-NOT constitute an autonomous-driving perception stack - it is a
-hazard-presence-and-rough-range indicator, sized to what a Pi 4 with no
-hardware accelerator can actually sustain in real time.
+blind-spot geometry and does NOT constitute an autonomous-driving
+perception stack - it is a hazard-presence-and-rough-range indicator,
+sized to what a Pi 4 with no hardware accelerator can actually sustain in
+real time. The distance alerts are class-level (see
+ALERT_PERSISTENCE_FRAMES); the approaching alerts below are per track.
 
 Distance estimate uses the pinhole-camera relationship:
     distance_m = (real_object_width_m * focal_length_px) / bbox_width_px
@@ -58,10 +58,60 @@ the frame's monotonic timestamp and the frame rate. No image data. The
 telemetry bridge on the same Pi reads it (sensor_fusion.py); the raw
 estimate is served, never written to disk by this script.
 
-Time-to-collision (TTC = distance / closing_speed) is only computed if a
-vehicle speed is supplied externally (e.g. from the ESP32's GNSS speed
-field) - that field's units are not yet confirmed (see Methodology.tex,
-GNSS section), so TTC output is clearly marked provisional whenever shown.
+Approaching objects and time to contact (TTC). The same code runs on the
+Pi 5 at the front (about 19 fps) and the Pi 4 at the rear (about 14.7
+fps); --side front|rear (or "side" in detector_options.json, default
+front) names which, and is echoed in /alerts and /detections.
+  - Tracking: a small IoU tracker (ApproachMonitor) gives each detection
+    of a HAZARD_CLASSES class a track_id that persists across frames and
+    survives up to TRACK_MAX_MISSED (2) missed frames. The id is a counter
+    from 1 at start-up; it links boxes of one object over a second or so
+    and identifies nobody (no face, plate or appearance is used, only box
+    overlap), so the "no per-instance identification" condition holds.
+  - TTC from scale expansion (Lee's tau): over the last TTC_WINDOW_S
+    (0.6 s) of the track, a Theil-Sen fit of 1/box_width against the
+    frames' sensor timestamps gives TTC = w / (dw/dt). Valid only with at
+    least TTC_MIN_FRAMES frames over TTC_MIN_SPAN_S, consistent growth
+    (TTC_MIN_CONSISTENCY of pairwise slopes), at least TTC_MIN_REL_GROWTH
+    growth, no box clipped by the left or right image edge, and (when not
+    clipped top or bottom) the height giving a TTC within a factor 2. It
+    needs no focal length, so it is independent of the uncalibrated
+    --focal-length-px. closing_mps, the slope of the pinhole distance
+    estimate, is NOT: it scales with --focal-length-px and the class
+    width, and is reported for evaluation only.
+  - Approaching alert: TTC under TTC_WARNING_S (4 s) is "warning", under
+    TTC_IMMEDIATE_S (2 s) "immediate", taken after 3 consecutive frames,
+    held until TTC rises above 1.25 times the threshold (or is invalid)
+    for 5 frames. The class-level distance alerts are unchanged; in
+    /alerts an approaching track raises the band of its class's entry when
+    more urgent, and an approaching track with no distance alert (a fast
+    car beyond 15 m, say) gets its own entry.
+  - Ego motion: with the trike moving forward, stationary objects ahead
+    (parked cars, a person standing) grow in the front camera and are
+    reported as approaching. That is intended: it is a forward collision
+    warning, the TTC being to contact at the current closing speed. At
+    the rear, the same motion makes stationary objects shrink, so only
+    objects closing faster than the trike moves (an overtaking or
+    tailgating car) are reported.
+
+Schema (additive; earlier fields unchanged). Every entry of GET /alerts
+"active" and of GET /detections "detections" gains:
+    "side": "front" | "rear",
+    "track_id": int (null only on an /alerts entry whose track was never
+                     seen, which the code does not produce),
+    "approaching": bool (the hysteresis state above),
+    "ttc_s": float or null (this frame's TTC, null when not valid),
+    "closing_mps": float or null (positive = nearer; uncalibrated).
+Both responses also carry a top-level "side". An /alerts entry with
+"approaching": true has distance_band raised to the approaching band
+when that is more urgent.
+
+Alert log. Approaching alerts go to the same JSONL log (--log-path) with
+the five fields above plus "approaching": true, "track_id", "ttc_s"
+(0.1 s, null on clear) and "side" (APPROACH_LOG_FIELDS); distance-alert
+lines are unchanged. These four extra fields and the approaching alert
+itself are a change to the logged fields and the alert method, which the
+ethics conditions (README) ask to be reviewed before field use.
 
 Experimental pothole path, off by default (pothole_detector.py, --potholes on|off or
 "potholes" in detector_options.json): the run-2 YOLO11n pothole model runs
@@ -129,7 +179,8 @@ DISTANCE_BANDS = [
 # rather than every single-frame flicker. This is a
 # class-level debounce, not per-instance tracking: it cannot distinguish
 # two different cars both briefly visible from one car persisting, since
-# no cross-frame object identity is maintained. That limitation is
+# the distance alert does not use the object tracks (only the approaching
+# alert does; the distance alert was deliberately left as it was). That limitation is
 # stated here rather than implied by the counter's existence.
 ALERT_PERSISTENCE_FRAMES = 3
 
@@ -227,6 +278,420 @@ def log_alert(log_path, class_name, band, confidence, alert_status):
     with open(log_path, "a") as f:
         f.write(json.dumps(record) + "\n")
     return record
+
+
+# Approaching objects: tracking and time to contact ---------------------------
+#
+# Tracker. Every detection of a HAZARD_CLASSES class above the confidence
+# threshold is matched to a track by box overlap (IoU), greedily, highest
+# overlap first, within a class group (car, truck and bus form one group,
+# because the COCO model often swaps them on the same vehicle). A track
+# survives TRACK_MAX_MISSED frames without a match. The track id is a
+# counter that starts at 1 when the detector starts: it links boxes of
+# the same object across frames, it does not say who or which vehicle.
+
+# Minimum box overlap (intersection over union) for a detection to
+# continue a track. At 15 to 19 fps an object at 2 s time to contact
+# grows about 3 % a frame, so consecutive boxes overlap far more than this.
+TRACK_IOU_MIN = 0.3
+
+# Frames a track may go unmatched before it is dropped (the brief asks
+# for 1 to 2 missed frames to be tolerated).
+TRACK_MAX_MISSED = 2
+
+# Classes that may continue each other's tracks.
+TRACK_CLASS_GROUP = {"car": "vehicle", "truck": "vehicle", "bus": "vehicle"}
+
+# Time to contact from scale expansion (Lee's tau): for a box of width w
+# on an object closing at constant speed, 1/w is proportional to the
+# distance, so it falls linearly in time and reaches 0 at contact. A
+# robust straight-line fit (Theil-Sen, the median of all pairwise slopes)
+# of 1/w against the frames' sensor timestamps over the last
+# TTC_WINDOW_S seconds gives TTC = -(1/w)(now) / slope. No focal length
+# is needed, so this does not depend on the uncalibrated --focal-length-px.
+
+# Sliding window of samples used for the fit, seconds (the brief allows
+# 0.4 to 0.8 s): about 11 frames on the Pi 5, 9 on the Pi 4.
+TTC_WINDOW_S = 0.6
+
+# Fewest samples, and shortest time span between first and last, for a
+# fit to count. 5 frames is about 0.3 s on the Pi 4 at 14.7 fps.
+TTC_MIN_FRAMES = 5
+TTC_MIN_SPAN_S = 0.25
+
+# The fitted width must grow by at least this fraction across the window.
+# Constant-size objects with box jitter fail this; over 0.6 s it is the
+# growth of an object at about 12 s time to contact.
+TTC_MIN_REL_GROWTH = 0.05
+
+# Share of the pairwise slopes that must agree (width growing). About 0.5
+# for pure jitter, near 1 for a steady approach. A Kendall-type check.
+TTC_MIN_CONSISTENCY = 0.75
+
+# A box edge within this fraction of the image edge counts as clipped:
+# its width (left or right edge) or height (top or bottom edge) is then
+# not the object's, so the width fit is rejected (left or right) or the
+# height check is skipped (top or bottom).
+TTC_EDGE_MARGIN = 0.01
+
+# Height check: when the box is not clipped at the top or bottom, the
+# time to contact from the height must have the same sign and lie within
+# this factor of the width's, else the estimate is rejected (an object
+# turning changes its width without approaching).
+TTC_HEIGHT_RATIO_MAX = 2.0
+
+# Approaching alert thresholds, seconds of time to contact.
+TTC_WARNING_S = 4.0
+TTC_IMMEDIATE_S = 2.0
+
+# Hysteresis: once a band is held it is kept until the time to contact
+# rises above the threshold times this factor (5.0 s and 2.5 s).
+TTC_RELEASE_FACTOR = 1.25
+
+# Fields of an approaching-alert line in the alert log: the five above
+# plus these four. See the ethics note in the module docstring.
+APPROACH_LOG_FIELDS = ALERT_LOG_FIELDS + ("approaching", "track_id", "ttc_s", "side")
+
+SIDES = ("front", "rear")
+
+
+def theil_sen(ts, ys):
+    """Robust line fit y = a + b t: b is the median of all pairwise slopes,
+    a the median of y - b t. Returns (a, b, share of the non-zero pairwise
+    slopes that are negative), or None with fewer than two distinct times.
+    Zero slopes (a repeated reading) are left out of the share."""
+    slopes = []
+    n = len(ts)
+    for i in range(n):
+        ti, yi = ts[i], ys[i]
+        for j in range(i + 1, n):
+            dt = ts[j] - ti
+            if dt > 1e-6:
+                slopes.append((ys[j] - yi) / dt)
+    if not slopes:
+        return None
+    slopes.sort()
+    m = len(slopes)
+    b = slopes[m // 2] if m % 2 else 0.5 * (slopes[m // 2 - 1] + slopes[m // 2])
+    rs = sorted(y - b * t for t, y in zip(ts, ys))
+    k = len(rs)
+    a = rs[k // 2] if k % 2 else 0.5 * (rs[k // 2 - 1] + rs[k // 2])
+    nonzero = sum(1 for s in slopes if s != 0)
+    neg = sum(1 for s in slopes if s < 0) / nonzero if nonzero else 0.0
+    return a, b, neg
+
+
+def box_iou(a, b):
+    """Intersection over union of two (x0, y0, x1, y1) boxes."""
+    ix = min(a[2], b[2]) - max(a[0], b[0])
+    iy = min(a[3], b[3]) - max(a[1], b[1])
+    if ix <= 0 or iy <= 0:
+        return 0.0
+    inter = ix * iy
+    union = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
+    return inter / union if union > 0 else 0.0
+
+
+def _ttc_from_sizes(ts, sizes):
+    """(ttc_s, share of pairwise slopes agreeing, relative growth) from a
+    size sequence, or None when the fit is impossible."""
+    inv = [1.0 / s for s in sizes]
+    fit = theil_sen(ts, inv)
+    if fit is None:
+        return None
+    a, b, neg = fit
+    u_first = a + b * ts[0]
+    u_last = a + b * ts[-1]
+    if b >= 0 or u_last <= 0:
+        return None, neg, 0.0
+    return -u_last / b, neg, u_first / u_last - 1.0
+
+
+def scale_ttc(samples):
+    """Time to contact of one track from scale expansion.
+
+    samples: [(t_s, (x0, y0, x1, y1)), ...] oldest first, boxes normalised
+    to 0..1, t on the sensor clock. Returns (ttc_s or None, reason): reason
+    is "ok", "few_frames", "clipped", "not_growing", "inconsistent",
+    "slow" or "height_disagrees"."""
+    if len(samples) < TTC_MIN_FRAMES or samples[-1][0] - samples[0][0] < TTC_MIN_SPAN_S:
+        return None, "few_frames"
+    lo, hi = TTC_EDGE_MARGIN, 1.0 - TTC_EDGE_MARGIN
+    if any(b[0] <= lo or b[2] >= hi for _, b in samples):
+        return None, "clipped"
+    ts = [t for t, _ in samples]
+    widths = [max(1e-4, b[2] - b[0]) for _, b in samples]
+    res = _ttc_from_sizes(ts, widths)
+    if res is None or res[0] is None:
+        return None, "not_growing"
+    ttc, agree, growth = res
+    if agree < TTC_MIN_CONSISTENCY:
+        return None, "inconsistent"
+    if growth < TTC_MIN_REL_GROWTH:
+        return None, "slow"
+    if not any(b[1] <= lo or b[3] >= hi for _, b in samples):
+        hres = _ttc_from_sizes(ts, [max(1e-4, b[3] - b[1]) for _, b in samples])
+        if hres is None or hres[0] is None or not (
+                1.0 / TTC_HEIGHT_RATIO_MAX <= hres[0] / ttc <= TTC_HEIGHT_RATIO_MAX):
+            return None, "height_disagrees"
+    return ttc, "ok"
+
+
+def closing_speed_mps(samples, class_name, focal_length_px, frame_w):
+    """Closing speed, m/s (positive = getting nearer, negative = moving
+    away), from the slope of the pinhole distance estimate over the window.
+    Scales with --focal-length-px and the class's assumed width, so it is
+    as uncalibrated as est_distance_m. None with too few samples, a
+    clipped box or a class without a known width."""
+    real_w = KNOWN_WIDTHS_M.get(class_name)
+    if real_w is None or len(samples) < TTC_MIN_FRAMES or samples[-1][0] - samples[0][0] < TTC_MIN_SPAN_S:
+        return None
+    lo, hi = TTC_EDGE_MARGIN, 1.0 - TTC_EDGE_MARGIN
+    if any(b[0] <= lo or b[2] >= hi for _, b in samples):
+        return None
+    k = real_w * focal_length_px / frame_w
+    fit = theil_sen([t for t, _ in samples], [k / max(1e-4, b[2] - b[0]) for _, b in samples])
+    return None if fit is None else -fit[1]
+
+
+class ApproachState:
+    """Onset, escalation, hysteresis and clear for one track's approaching
+    alert, with the same discipline as the distance alerts: a band is
+    taken after ALERT_PERSISTENCE_FRAMES consecutive frames below its
+    threshold, raised to immediate after as many frames below 2 s, lowered
+    or cleared only after CLEAR_AFTER_MISSED_FRAMES frames above the
+    release threshold (or with no valid time to contact)."""
+
+    def __init__(self):
+        self.band = None      # None, "warning" or "immediate"
+        self.onset = 0
+        self.up = 0
+        self.down = 0
+        self.off = 0
+
+    def _raw(self, ttc):
+        if ttc is None:
+            return None
+        warn = TTC_WARNING_S * (TTC_RELEASE_FACTOR if self.band else 1.0)
+        imm = TTC_IMMEDIATE_S * (TTC_RELEASE_FACTOR if self.band == "immediate" else 1.0)
+        if ttc < imm:
+            return "immediate"
+        if ttc < warn:
+            return "warning"
+        return None
+
+    def update(self, ttc):
+        """Feed one frame's time to contact (None if not valid or the track
+        was not seen). Returns "active", "escalated", "lowered", "cleared"
+        or None."""
+        raw = self._raw(ttc)
+        if self.band is None:
+            if raw is None:
+                self.onset = 0
+                return None
+            self.onset += 1
+            if self.onset >= ALERT_PERSISTENCE_FRAMES:
+                self.band, self.onset, self.up, self.down, self.off = raw, 0, 0, 0, 0
+                return "active"
+            return None
+        if raw is None:
+            self.up = self.down = 0
+            self.off += 1
+            if self.off >= CLEAR_AFTER_MISSED_FRAMES:
+                self.band, self.off = None, 0
+                return "cleared"
+            return None
+        self.off = 0
+        if raw == self.band:
+            self.up = self.down = 0
+        elif BAND_RANK[raw] < BAND_RANK[self.band]:
+            self.down = 0
+            self.up += 1
+            if self.up >= ALERT_PERSISTENCE_FRAMES:
+                self.band, self.up = raw, 0
+                return "escalated"
+        else:
+            self.up = 0
+            self.down += 1
+            if self.down >= CLEAR_AFTER_MISSED_FRAMES:
+                self.band, self.down = raw, 0
+                return "lowered"
+        return None
+
+
+class Track:
+    __slots__ = ("id", "cls", "box", "confidence", "missed", "samples", "ttc_s", "ttc_reason",
+                 "closing_mps", "approach")
+
+    def __init__(self, tid, cls, box, confidence):
+        from collections import deque
+        self.id = tid
+        self.cls = cls
+        self.box = box
+        self.confidence = confidence
+        self.missed = 0
+        self.samples = deque()
+        self.ttc_s = None
+        self.ttc_reason = "few_frames"
+        self.closing_mps = None
+        self.approach = ApproachState()
+
+    @property
+    def approaching(self):
+        return self.approach.band is not None
+
+
+class ApproachMonitor:
+    """IoU tracker plus per-track time to contact and approaching state.
+    update() is called once per frame with that frame's detections."""
+
+    def __init__(self, focal_length_px=600.0, frame_w=640):
+        self.focal_length_px = focal_length_px
+        self.frame_w = frame_w
+        self.tracks = []
+        self.next_id = 1
+
+    def update(self, dets, t):
+        """dets: [(class_name, confidence, (x0, y0, x1, y1) normalised)].
+        t: the frame's sensor time, seconds. Returns (tracks, events):
+        tracks[i] is the Track of dets[i]; events is a list of (status,
+        Track) with status from ApproachState.update, including "cleared"
+        for an approaching track that is dropped."""
+        boxes = [tuple(min(1.0, max(0.0, float(v))) for v in d[2]) for d in dets]
+        pairs = []
+        for di, (cls, _, _) in enumerate(dets):
+            g = TRACK_CLASS_GROUP.get(cls, cls)
+            for ti, tr in enumerate(self.tracks):
+                if TRACK_CLASS_GROUP.get(tr.cls, tr.cls) != g:
+                    continue
+                o = box_iou(boxes[di], tr.box)
+                if o >= TRACK_IOU_MIN:
+                    pairs.append((o, di, ti))
+        pairs.sort(key=lambda p: -p[0])
+        det_track = [None] * len(dets)
+        used = set()
+        for o, di, ti in pairs:
+            if det_track[di] is not None or ti in used:
+                continue
+            det_track[di] = self.tracks[ti]
+            used.add(ti)
+        for di, (cls, conf, _) in enumerate(dets):
+            tr = det_track[di]
+            if tr is None:
+                tr = Track(self.next_id, cls, boxes[di], conf)
+                self.next_id += 1
+                self.tracks.append(tr)
+                det_track[di] = tr
+            tr.cls, tr.box, tr.confidence, tr.missed = cls, boxes[di], float(conf), 0
+            tr.samples.append((t, boxes[di]))
+        matched = {id(tr) for tr in det_track}
+        events, alive = [], []
+        for tr in self.tracks:
+            while tr.samples and tr.samples[0][0] < t - TTC_WINDOW_S - 1e-9:
+                tr.samples.popleft()
+            if id(tr) in matched:
+                s = list(tr.samples)
+                tr.ttc_s, tr.ttc_reason = scale_ttc(s)
+                tr.closing_mps = closing_speed_mps(s, tr.cls, self.focal_length_px, self.frame_w)
+            else:
+                tr.missed += 1
+                tr.ttc_s, tr.ttc_reason = None, "not_seen"
+            ev = tr.approach.update(tr.ttc_s)
+            if tr.missed > TRACK_MAX_MISSED:
+                if tr.approaching or ev == "cleared":
+                    tr.approach.band = None
+                    events.append(("cleared", tr))
+                continue
+            if ev:
+                events.append((ev, tr))
+            alive.append(tr)
+        self.tracks = alive
+        return det_track, events
+
+    def approaching_tracks(self):
+        return [tr for tr in self.tracks if tr.approaching]
+
+
+def track_fields(track, side):
+    """The fields each /alerts and /detections entry gains."""
+    if track is None:
+        return {"side": side, "track_id": None, "approaching": False, "ttc_s": None, "closing_mps": None}
+    return {
+        "side": side,
+        "track_id": track.id,
+        "approaching": track.approaching,
+        "ttc_s": None if track.ttc_s is None else round(track.ttc_s, 2),
+        "closing_mps": None if track.closing_mps is None else round(track.closing_mps, 2),
+    }
+
+
+def log_approach(log_path, class_name, band, confidence, alert_status, track_id, ttc_s, side):
+    """One approaching-alert line: the five ALERT_LOG_FIELDS plus
+    "approaching": true, the track id, the time to contact (0.1 s, null on
+    clear) and the side. Never a frame, a box or a distance."""
+    record = {
+        "class": class_name,
+        "distance_band": band,
+        "confidence": round(float(confidence), 2),
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "alert_status": alert_status,
+        "approaching": True,
+        "track_id": int(track_id),
+        "ttc_s": None if ttc_s is None else round(float(ttc_s), 1),
+        "side": side,
+    }
+    if set(record.keys()) != set(APPROACH_LOG_FIELDS):
+        raise RuntimeError("log_approach record must match APPROACH_LOG_FIELDS exactly")
+    with open(log_path, "a") as f:
+        f.write(json.dumps(record) + "\n")
+    return record
+
+
+def alerts_list(active_record, class_track, class_fields, monitor, approach_record, side):
+    """GET /alerts "active": the class-level distance alerts, each with the
+    fields of the track that last held it, its band raised to the track's
+    approaching band when that is more urgent; then one entry per
+    approaching track not already listed. Most urgent first."""
+    live = {tr.id: tr for tr in monitor.tracks}
+    out, listed = [], set()
+    for cls, rec in active_record.items():
+        tr = live.get(class_track.get(cls))
+        fields = track_fields(tr, side) if tr is not None else class_fields.get(cls, track_fields(None, side))
+        e = dict(rec, **fields)
+        if tr is not None and tr.approaching and (
+                e["distance_band"] is None or BAND_RANK[tr.approach.band] < BAND_RANK[e["distance_band"]]):
+            e["distance_band"] = tr.approach.band
+        listed.add(fields["track_id"])
+        out.append(e)
+    for tr in monitor.approaching_tracks():
+        if tr.id in listed:
+            continue
+        rec = approach_record.get(tr.id) or {"class": tr.cls, "confidence": round(tr.confidence, 2),
+                                             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                                             "alert_status": "active"}
+        e = {k: rec[k] for k in ALERT_LOG_FIELDS if k in rec}
+        e["distance_band"] = tr.approach.band
+        e.update(track_fields(tr, side))
+        out.append(e)
+    out.sort(key=lambda r: (BAND_RANK.get(r["distance_band"], 9),
+                            r["ttc_s"] if r.get("ttc_s") is not None else 1e9))
+    return out
+
+
+def side_setting(cli_value, options_path):
+    """"front" or "rear": --side, else "side" in detector_options.json,
+    else "front"."""
+    raw = cli_value
+    if raw is None:
+        try:
+            with open(options_path) as f:
+                raw = json.load(f).get("side")
+        except (OSError, ValueError):
+            raw = None
+    raw = (raw or "front").strip().lower()
+    if raw not in SIDES:
+        raise ValueError("side must be front or rear, not %r" % raw)
+    return raw
 
 
 PREVIEW_PAGE = b"""<!doctype html><html><head><title>SW-7 detector preview</title>
@@ -372,16 +837,20 @@ class PreviewServer:
                 self._jpeg = buf.getvalue()
                 self._lock.notify_all()
 
-    def set_alerts(self, active, fps, latency_ms, road_hazards=None):
-        """Publish the currently active alerts for GET /alerts. Same five
-        fields as the alert log, nothing else about the scene. With the
+    def set_alerts(self, active, fps, latency_ms, road_hazards=None, side=None):
+        """Publish the currently active alerts for GET /alerts. The five
+        fields of the alert log plus the track fields (side, track_id,
+        approaching, ttc_s, closing_mps; see the module docstring). With the
         pothole path on, "road_hazards" lists the active experimental
-        pothole alerts (a new key, so readers of "active" are unaffected)."""
+        pothole alerts (a new key, so readers of "active" are unaffected).
+        side, when given, is also echoed at the top level."""
         d = {
             "active": active,
             "fps": round(fps, 1),
             "latency_ms": None if latency_ms is None else round(latency_ms),
         }
+        if side is not None:
+            d["side"] = side
         if road_hazards is not None:
             d["road_hazards"] = road_hazards
         body = json.dumps(d).encode()
@@ -389,7 +858,7 @@ class PreviewServer:
             self._alerts_json = body
 
     def set_detections(self, detections, frame_t_mono, fps, hfov_deg=DEFAULT_HFOV_DEG,
-                       road_hazards=None, road_hazards_meta=None):
+                       road_hazards=None, road_hazards_meta=None, side=None):
         """Publish the latest frame's detections for GET /detections (see
         detection_record). frame_t_mono is the frame's time on this Pi's
         monotonic clock, seconds; the response also carries t_mono, the
@@ -403,6 +872,8 @@ class PreviewServer:
             "bands": [[limit, band] for limit, band in DISTANCE_BANDS],
             "confidence_threshold": CONFIDENCE_THRESHOLD,
         }
+        if side is not None:
+            d["side"] = side
         if road_hazards_meta is not None:   # new keys only; "detections" never holds a pothole
             d["road_hazards"] = list(road_hazards or [])
             d["road_hazards_meta"] = road_hazards_meta
@@ -533,6 +1004,9 @@ def main():
                         help="Road band as fractions of the frame height (default 0.42,0.68, as trained)")
     parser.add_argument("--pothole-conf", type=float, default=None,
                         help="Pothole confidence threshold (default 0.5)")
+    parser.add_argument("--side", choices=SIDES, default=None,
+                        help="Where this camera looks, echoed in /alerts and /detections: front (Pi 5) or "
+                             "rear (Pi 4). Default: \"side\" in detector_options.json if present, else front")
     parser.add_argument("--test-image", default=None,
                         help="Use this saved picture instead of the camera (repeated at about 15 fps), "
                              "to test the pipeline without the camera")
@@ -620,7 +1094,11 @@ def main():
     print(f"WARNING: focal_length_px={args.focal_length_px} is UNCALIBRATED - "
           f"distance estimates are order-of-magnitude only until calibrated.")
     print("Watching for:", ", ".join(sorted(HAZARD_CLASSES)))
-    print(f"Alert log (class/band/confidence/timestamp/status only): {args.log_path}")
+    side = side_setting(args.side, options_path)
+    print(f"Alert log (class/band/confidence/timestamp/status only; approaching alerts add "
+          f"track_id/ttc_s/side): {args.log_path}")
+    print(f"Side: {side}. Approaching alert: time to contact under {TTC_WARNING_S:g} s (warning), "
+          f"{TTC_IMMEDIATE_S:g} s (immediate), from box growth over {TTC_WINDOW_S:g} s")
 
     # Stop cleanly under systemd (SIGTERM) the same way as Ctrl+C, so the
     # camera and preview are released in the finally block.
@@ -644,6 +1122,11 @@ def main():
     pothole_records = []    # latest pothole run's detections, for GET /detections road_hazards
     pothole_alert = None    # active experimental pothole alert, for GET /alerts road_hazards
     pothole_last = {"frame_t_mono": None, "infer_ms": None}
+    # Per-object tracks and time to contact (see "Approaching objects" above).
+    monitor = ApproachMonitor(args.focal_length_px, args.width)
+    class_track = {}       # class -> id of the track that last held its distance alert
+    class_fields = {}      # class -> that track's fields, kept while the track is gone
+    approach_record = {}   # track id -> the approaching record last logged, for GET /alerts
 
     preview = None
     timing = LatencyStats(args.timing_log)
@@ -689,9 +1172,11 @@ def main():
             scores = interpreter.get_tensor(output_details[2]['index'])[0]
 
             frame_h, frame_w = frame.shape[0], frame.shape[1]
-            in_band_this_frame = {}  # class_name -> (band, confidence, bbox_px); nearest band wins, then confidence
+            frame_t = (sensor_ns if sensor_ns else t_got) / 1e9
+            in_band_this_frame = {}  # class_name -> (band, confidence, bbox_px, track); nearest band wins, then confidence
             drawn = []  # detections for the live view only, never logged
             frame_dets = []  # for GET /detections only (served, never logged)
+            kept = []   # (index, class_name) of the hazard-class detections above the threshold
             for i in range(len(scores)):
                 if scores[i] < CONFIDENCE_THRESHOLD:
                     continue
@@ -699,21 +1184,32 @@ def main():
                 if class_id >= len(labels):
                     continue
                 class_name = labels[class_id]
-                if class_name not in HAZARD_CLASSES:
-                    continue
-
+                if class_name in HAZARD_CLASSES:
+                    kept.append((i, class_name))
+            t_trk = time.perf_counter()
+            det_tracks, approach_events = monitor.update(
+                [(c, float(scores[i]), (boxes[i][1], boxes[i][0], boxes[i][3], boxes[i][2])) for i, c in kept],
+                frame_t)
+            track_ms = (time.perf_counter() - t_trk) * 1000.0
+            for (i, class_name), track in zip(kept, det_tracks):
                 ymin, xmin, ymax, xmax = boxes[i]
                 bbox_width_px = (xmax - xmin) * frame_w
                 distance_m = estimate_distance_m(class_name, bbox_width_px, args.focal_length_px)
                 band = distance_band(distance_m)
                 if preview is not None:
-                    frame_dets.append(detection_record(class_name, scores[i], boxes[i], frame_w,
-                                                       args.focal_length_px, args.hfov_deg))
-                    drawn.append({
+                    frame_dets.append(dict(detection_record(class_name, scores[i], boxes[i], frame_w,
+                                                            args.focal_length_px, args.hfov_deg),
+                                           **track_fields(track, side)))
+                    item = {
                         "box": (int(xmin * frame_w), int(ymin * frame_h), int(xmax * frame_w), int(ymax * frame_h)),
                         "class": class_name, "confidence": float(scores[i]),
                         "distance_m": distance_m, "band": band,
-                    })
+                    }
+                    if track.approaching:
+                        item["band"] = track.approach.band
+                        item["label"] = (f"#{track.id} {class_name} APPROACHING TTC {track.ttc_s:.1f}s"
+                                         if track.ttc_s is not None else f"#{track.id} {class_name} APPROACHING")
+                    drawn.append(item)
                 if band is None:
                     continue  # detected, but outside the reportable zones entirely
 
@@ -721,12 +1217,14 @@ def main():
                 prev = in_band_this_frame.get(class_name)
                 if (prev is None or BAND_RANK[band] < BAND_RANK[prev[0]]
                         or (band == prev[0] and confidence > prev[1])):
-                    in_band_this_frame[class_name] = (band, confidence, bbox_width_px)
+                    in_band_this_frame[class_name] = (band, confidence, bbox_width_px, track)
 
             ts_console = time.strftime("%H:%M:%S")
             for class_name in HAZARD_CLASSES:
                 if class_name in in_band_this_frame:
-                    band, confidence, bbox_px = in_band_this_frame[class_name]
+                    band, confidence, bbox_px, track = in_band_this_frame[class_name]
+                    class_track[class_name] = track.id
+                    class_fields[class_name] = track_fields(track, side)
                     streak[class_name] += 1
                     missed[class_name] = 0
                     if args.verbose:
@@ -757,9 +1255,28 @@ def main():
                         if missed[class_name] >= CLEAR_AFTER_MISSED_FRAMES:
                             active_band[class_name] = None
                             active_record.pop(class_name, None)
+                            class_track.pop(class_name, None)
+                            class_fields.pop(class_name, None)
                             missed[class_name] = 0
                             log_alert(args.log_path, class_name, None, 0.0, "cleared")
                             print(f"[{ts_console}] cleared: {class_name}")
+
+            for status, tr in approach_events:
+                if status == "cleared":
+                    approach_record.pop(tr.id, None)
+                    log_approach(args.log_path, tr.cls, None, 0.0, "cleared", tr.id, None, side)
+                    print(f"[{ts_console}] cleared: approaching {tr.cls} #{tr.id}")
+                else:   # "active", "escalated" or "lowered": log the new band
+                    approach_record[tr.id] = log_approach(args.log_path, tr.cls, tr.approach.band, tr.confidence,
+                                                          "active", tr.id, tr.ttc_s, side)
+                    ttc_txt = "?" if tr.ttc_s is None else f"{tr.ttc_s:.1f}"
+                    print(f"[{ts_console}] ALERT approaching {tr.cls} #{tr.id} ({tr.approach.band}, {status}) "
+                          f"TTC {ttc_txt} s, {side}")
+            if args.verbose:
+                for tr in monitor.tracks:
+                    if tr.ttc_s is not None:
+                        print(f"[{ts_console}] track #{tr.id} {tr.cls} ttc={tr.ttc_s:.2f}s "
+                              f"closing={tr.closing_mps} m/s (uncalibrated) track_ms={track_ms:.2f}")
 
             if pothole is not None:
                 # Never waits: collect a finished run if there is one, then hand
@@ -825,11 +1342,13 @@ def main():
                         "confidence_threshold": pothole_cfg["conf"],
                         "debounce": f"{pd.DEBOUNCE_K} of {pd.DEBOUNCE_N} runs",
                         "rate_hz": round(pothole.rate_hz(), 2), "runs": pothole.runs, **pothole_last}}
-                preview.set_alerts(sorted(active_record.values(),
-                                          key=lambda r: BAND_RANK.get(r["distance_band"], 9)),
-                                   fps_now, total_ms if sensor_ns else None, **alert_extra)
-                frame_t = (sensor_ns if sensor_ns else t_got) / 1e9
-                preview.set_detections(frame_dets, frame_t, fps_now, args.hfov_deg, **det_extra)
+                # Positional, so stand-in preview objects that pass *args through keep working.
+                preview.set_alerts(alerts_list(active_record, class_track, class_fields, monitor,
+                                               approach_record, side),
+                                   fps_now, total_ms if sensor_ns else None,
+                                   alert_extra.get("road_hazards"), side)
+                preview.set_detections(frame_dets, frame_t, fps_now, args.hfov_deg,
+                                       det_extra.get("road_hazards"), det_extra.get("road_hazards_meta"), side)
 
     except KeyboardInterrupt:
         pass

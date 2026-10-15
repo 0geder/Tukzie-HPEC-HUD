@@ -179,8 +179,10 @@ class AssociationTests(unittest.TestCase):
 
     def test_fields(self):
         h = self.fuse([det("person", 0.0, 2.0)], {"left": None, "ahead": 800, "right": None})[0]
+        # the ten original fields, plus the five approaching fields (rule 6, additive)
         self.assertEqual(set(h), {"class", "source", "sensor", "bearing_deg", "distance_m", "band", "confidence",
-                                  "camera_distance_m", "tof_distance_m", "tof_dt_ms"})
+                                  "camera_distance_m", "tof_distance_m", "tof_dt_ms",
+                                  "side", "ttc_s", "closing_mps", "approaching", "ttc_source"})
         json.dumps(h)
 
 
