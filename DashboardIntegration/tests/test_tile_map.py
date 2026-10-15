@@ -37,6 +37,7 @@ import importlib
 import json
 import math
 import os
+os.environ["TUKZIE_SW7_DUAL_CAM"] = "0"   # the single-camera Surroundings; the dual camera: tests/test_dual_camera.py
 import shutil
 import stat
 import struct

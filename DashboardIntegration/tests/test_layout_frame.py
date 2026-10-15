@@ -9,6 +9,7 @@ patch group, one without LAYOUT_FRAME_PATCHES. Runs them offscreen at 1280 x 800
 Run: TUKZIE_DASHBOARD_DIR=<team Dashboard folder> python tests/test_layout_frame.py
 """
 import glob, json, os, shutil, subprocess, sys, tempfile, time
+os.environ["TUKZIE_SW7_DUAL_CAM"] = "0"   # the single-camera Surroundings; the dual camera: tests/test_dual_camera.py
 # Paper and depth style (sw7_weather): never the real weather API in a test, and no shared weather cache.
 os.environ.setdefault("TUKZIE_WEATHER_URL", "http://127.0.0.1:9/v1/forecast")
 os.environ.setdefault("TUKZIE_REVERSE_URL", "http://127.0.0.1:9/reverse")

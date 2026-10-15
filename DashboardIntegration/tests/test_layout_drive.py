@@ -19,6 +19,7 @@ Saves before (layout off) and after (layout on) screenshots at 1280 x 800 in tes
 Run: TUKZIE_DASHBOARD_DIR=<copy of v1.1 Dashboard> python DashboardIntegration/tests/test_layout_drive.py
 """
 import glob, json, os, shutil, subprocess, sys, tempfile
+os.environ["TUKZIE_SW7_DUAL_CAM"] = "0"   # the single-camera Surroundings; the dual camera: tests/test_dual_camera.py
 
 # Paper and depth style (sw7_weather): never the real weather API in a test, and no shared weather cache.
 os.environ.setdefault("TUKZIE_WEATHER_URL", "http://127.0.0.1:9/v1/forecast")

@@ -15,6 +15,7 @@ Run: TUKZIE_DASHBOARD_DIR=<copy of v1.1> python DashboardIntegration/tests/test_
 from __future__ import annotations
 
 import os
+os.environ["TUKZIE_SW7_DUAL_CAM"] = "0"   # the single-camera Surroundings; the dual camera: tests/test_dual_camera.py
 import shutil
 import stat
 import sys

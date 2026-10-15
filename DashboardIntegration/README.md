@@ -14,6 +14,7 @@ Add-ons for the vehicle dashboard (PySide6, the dashboard team's
 | `sw7_layout_frame.py` | `app/widgets/` | Layout pass for the status bar (48 px, 16 px text), nav bar (labels, 64 px targets), side arrows, Settings and Charging; `TUKZIE_SW7_LAYOUT=0` keeps the team's layout (tests/test_layout_frame.py) |
 | `sw7_style.py` | `app/widgets/` | Paper and depth style (default; `TUKZIE_SW7_STYLE=team` keeps the layout-pass look): palette, Ink night variant, type scale, shadows, back plane, signal audit, and the restyled frame (tests/test_style_core.py) |
 | `sw7_weather.py` | `app/widgets/` | Open-Meteo weather for the status bar and the charcoal weather card; sunrise and sunset switch the night variant |
+| `sw7_dual_camera.py` | `app/pages/` | Front (Pi 5) and Rear (Pi 4) camera toggle on Surroundings, the banner from both sides; `TUKZIE_SW7_DUAL_CAM=0` keeps one camera (tests/test_dual_camera.py) |
 
 They are kept here, outside the dashboard repo, so the dashboard team can
 review them before anything in their code changes. The telemetry contract is
@@ -411,6 +412,53 @@ From Planning/three-planes-hero-prompt.md, on top of the refinement; nothing cha
 - COPIES: group `STYLE_PLANES_COPIES` (the font, its licence, the three renders to `app/assets`).
 
 Test: `tests/test_style_planes.py` (screenshots `tests/style/planes/`, day and night).
+
+## Front and rear cameras (15 Oct)
+
+Since 15 Oct the Pi 5 (front, behind the display) has its own camera, detector and ToF board, and the Pi 4 (rear,
+near the battery) keeps its camera, detector, ToF board and the ESP32 bridge. `sw7_dual_camera.py`
+(`DUAL_CAMERA_PATCHES`, one line in `dashboard_main.py`) puts a Front | Rear toggle on Surroundings. Paper style only;
+`TUKZIE_SW7_DUAL_CAM=0` installs nothing, which gives the single-camera page exactly (checked widget for widget and
+pixel for pixel against a build without the group).
+
+| Side | Camera (`/stream`, `/alerts`) | ToF and fusion (`/telemetry`) |
+|---|---|---|
+| Front | `TUKZIE_FRONT_CAMERA_URL`, default `http://127.0.0.1:8080` | `TUKZIE_FRONT_TOF_URL`, default `http://127.0.0.1:8082` |
+| Rear | `TUKZIE_REAR_CAMERA_URL`, default `http://<Pi 4 host>:8080`, the host of the provider's bridge (resolver, or `TUKZIE_TELEMETRY_URL`) | the Pi 4 bridge on :8081 (the live-data provider) |
+
+- The toggle is two 112 x 64 px segments at the top right of the camera frame, signal outline, the selected one filled.
+  A side switches everything together: the stream, the alerts, the three ToF distances, the fused hazards, the link
+  chip ("Front sensors live"). The frame says FRONT or REAR, the ToF card AROUND THE TUK-TUK · FRONT or · REAR.
+- Only the selected side's stream is fetched and decoded. Both sides' `/alerts` and ToF are polled (JSON, 500 ms) for
+  the banner. The ride row stays on the Pi 4's ESP32 whichever side is shown.
+- Rear convention, as a car's reversing camera: the image is mirrored left to right, so the driver's left is on the
+  left of the screen. The rear ToF board faces backwards, so its left sensor sees the vehicle's right: `left_mm` and
+  `right_mm` are swapped and a fused hazard's bearing is negated before anything is drawn; the figure keeps the
+  vehicle nose up with the rear sensors at its tail, and the straight back reading is "behind".
+  `TUKZIE_REAR_TOF_SWAP=0` turns the swap off if the rear bridge already reports the vehicle's left and right. The
+  detector draws its labels before the image reaches the dashboard, so they read mirrored on the rear view.
+- A side that cannot be reached shows its own offline state: "NO FRONT CAMERA IMAGE · Camera offline, retrying" (the
+  last frame is dropped, also when the stream stalls), "--" and "No reading" for the ToF, "No sensor data", a "--"
+  hero, "Front sensors offline". Never 0, never the other side's values. The other side keeps working.
+- Gear R (the dashboard's gear state from the keyboard, controller or gear selector; there is no gear signal from the
+  vehicle yet) selects Rear and shows Surroundings in place of the team's reverse page, which has no rear sensor.
+  Leaving R returns to the side chosen before (the team's code returns to Driving).
+- The driver's last choice is kept in `user_prefs.json` (global key `sw7_camera_side`); the switch in R is not saved.
+- Banner: alerts from both sides, labelled. Approaching objects first when the detector sends the new fields
+  (`approaching`, `ttc_s`, `track_id`, `closing_mps`, `side`): "CAR APPROACHING · REAR · 2.1 s", red under 2 s,
+  amber under 4 s, one entry per `track_id` (the smaller TTC). Then immediate obstacles ("OBSTACLE 0.4 M FRONT
+  RIGHT"), then a side whose sensor link was lost for 5 s. On Surroundings it shows only the side not on screen;
+  tapping it opens Surroundings on that side. Without the new fields there are no approaching alerts and no TTC.
+- The hazards list shows "Approaching · 2.1 s" before the band for approaching objects.
+- Drive's Around tile shows the front ToF ("AROUND · FRONT"); it used to show the Pi 4 board, which is now at the rear.
+  It stays front-only: in R Surroundings (Rear) is on screen, not Drive.
+- `start_sw7_dashboard.sh` sets `TUKZIE_SW7_DUAL_CAM=1` and no longer exports `TUKZIE_CAMERA_URL`; with
+  `TUKZIE_SW7_DUAL_CAM=0` it does what it did before (the Pi 5 camera when the local detector answers).
+
+Test: `tests/test_dual_camera.py`, four fake servers (front camera, front ToF, rear camera, rear bridge) inside the
+dashboard process; screenshots `tests/style/dualcam/` (made-up test images and readings), day and night. The older
+tests set `TUKZIE_SW7_DUAL_CAM=0`, since they check the single-camera page and feed it through the Pi 4 link. Not yet
+tested on the Pi 5 and Pi 4 themselves, nor with the real detector's approaching fields.
 
 ## Tests
 
