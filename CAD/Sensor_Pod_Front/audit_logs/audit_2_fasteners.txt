@@ -12,10 +12,10 @@ Head seam screws  (Head_Upper r (2.0, 2.0) / Head_Tray r (1.7, 1.7), axis X)
   (34.0, -8.0)       Head_Upper: (2.0, (-45.8, -39.7))   Head_Tray: (1.7, (-48.4, -46.0))   OK
 
 Lid screws  (Box_Lid r (1.7, 1.7) / Box_Base r (2.0, 2.0), axis Z)
-  (-66.5, -18.5)     Box_Lid: (1.7, (10.0, 12.4))   Box_Base: (2.0, (4.0, 10.0))   OK
-  (66.5, -18.5)      Box_Lid: (1.7, (10.0, 12.4))   Box_Base: (2.0, (4.0, 10.0))   OK
-  (-64.0, -116.0)    Box_Lid: (1.7, (10.0, 12.4))   Box_Base: (2.0, (4.0, 10.0))   OK
-  (64.0, -116.0)     Box_Lid: (1.7, (10.0, 12.4))   Box_Base: (2.0, (4.0, 10.0))   OK
+  (-66.5, -18.5)     Box_Lid: (1.7, (26.0, 28.4))   Box_Base: (2.0, (20.0, 26.0))   OK
+  (66.5, -18.5)      Box_Lid: (1.7, (26.0, 28.4))   Box_Base: (2.0, (20.0, 26.0))   OK
+  (-64.0, -116.0)    Box_Lid: (1.7, (26.0, 28.4))   Box_Base: (2.0, (20.0, 26.0))   OK
+  (64.0, -116.0)     Box_Lid: (1.7, (26.0, 28.4))   Box_Base: (2.0, (20.0, 26.0))   OK
 
 Rear port cover screws  (Rear_Port_Cover r (1.7, 1.7) / Box_Base r (2.0, 2.0), axis Y)
   (-57.0, -22.3)     Rear_Port_Cover: (1.7, (-127.4, -124.4))   Box_Base: (2.0, (-124.4, -117.9))   OK
@@ -48,19 +48,19 @@ Camera retainer screws  (Camera_Retainer r (1.2, 1.2) / Head_Upper r (0.8, 0.8),
   (16.9, 43.5)       Camera_Retainer: (1.2, (15.0, 17.0))   Head_Upper: (0.8, (17.0, 24.0))   OK
 
 Sunshade posts  (Box_Lid r (1.7, 1.7) / Sunshade r (1.25, 1.25), axis Z)
-  (-44.0, -24.0)     Box_Lid: (1.7, (10.0, 12.4))   Sunshade: (1.25, (12.4, 18.4))   OK
-  (-44.0, -98.0)     Box_Lid: (1.7, (10.0, 12.4))   Sunshade: (1.25, (12.4, 18.4))   OK
-  (44.0, -24.0)      Box_Lid: (1.7, (10.0, 12.4))   Sunshade: (1.25, (12.4, 18.4))   OK
-  (44.0, -98.0)      Box_Lid: (1.7, (10.0, 12.4))   Sunshade: (1.25, (12.4, 18.4))   OK
+  (-44.0, -24.0)     Box_Lid: (1.7, (26.0, 28.4))   Sunshade: (1.25, (28.4, 34.4))   OK
+  (-44.0, -98.0)     Box_Lid: (1.7, (26.0, 28.4))   Sunshade: (1.25, (28.4, 34.4))   OK
+  (44.0, -24.0)      Box_Lid: (1.7, (26.0, 28.4))   Sunshade: (1.25, (28.4, 34.4))   OK
+  (44.0, -98.0)      Box_Lid: (1.7, (26.0, 28.4))   Sunshade: (1.25, (28.4, 34.4))   OK
 
 board-mounting pilots (estimated positions; the other side is the real board):
   Sensor board (-11.3, 11.8)      (0.8, (-9.6, -1.6))
   Sensor board (-11.3, 34.9)      (0.8, (-9.6, -1.6))
   Sensor board (11.3, 11.8)       (0.8, (-9.6, -1.6))
   Sensor board (11.3, 34.9)       (0.8, (-9.6, -1.6))
-  Pi 5         (-51.5, -89.0)     (1.1, (-25.0, -18.0))
-  Pi 5         (6.5, -89.0)       (1.1, (-25.0, -18.0))
-  Pi 5         (-51.5, -40.0)     (1.1, (-25.0, -18.0))
-  Pi 5         (6.5, -40.0)       (1.1, (-25.0, -18.0))
+  Pi 5 (M2.5 clearance from below) (-51.5, -89.0)     (1.35, (-26.2, -18.0))
+  Pi 5 (M2.5 clearance from below) (6.5, -89.0)       (1.35, (-26.2, -18.0))
+  Pi 5 (M2.5 clearance from below) (-51.5, -40.0)     (1.35, (-26.2, -18.0))
+  Pi 5 (M2.5 clearance from below) (6.5, -40.0)       (1.35, (-26.2, -18.0))
 
 ALL FASTENER HOLES MATCH

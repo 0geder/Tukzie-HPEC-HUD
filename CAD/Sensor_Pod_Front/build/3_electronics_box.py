@@ -3,14 +3,14 @@
 Derived from CAD/Sensor_Pod/build/3_electronics_box.py. Removed: the ESP32 bay, the divider and its lead notches,
 the ESP32 standoffs, the LiPo space, the 5 V buck anchors, the GNSS thinned roof, the LTE SMA hole, the gland and the
 middle lid screws. The box is 112.5 mm long instead of 142.5.
-Base: the Pi 5 with the Active Cooler and the AI HAT+ stacked on it, on four 8 mm standoffs (M2.5 x 16 from
+Base: the Pi 5 with the Active Cooler and the AI HAT+ stacked on it, on four 10 mm standoffs (M2.5 x 18 from
 under the floor into the HAT kit's spacers), its 40-pin header towards the head, the micro-HDMI / USB-C edge at
 the rear and the USB / Ethernet end at +X. Front wall: the head's cable window and the four flange holes (unchanged).
 A 22 mm gap between the front wall and the Pi leaves room for a hex key on the flange bolts, the Dupont housings on
 the header and the ribbon's S-bend. The Active Cooler blows towards -X under the HAT, so the exhaust slots are in the -X wall at that height;
 upper slot rows in both side walls let air cross over the HAT and the Hailo; the intake is through floor slots
 behind 3 mm upstands at the +X end. Every side opening is under a drip ledge with a 45 deg underside.
-The box is 16 mm taller than the original (BOX_TOP_Z 26) for the HAT stack. Cable ports: the rear wall
+The box is 18 mm taller than the original (BOX_TOP_Z 28) for the HAT stack. Cable ports: the rear wall
 (USB-C power, micro-HDMI 0 to the display) and the +X wall (Ethernet to the rear Pi 4, USB-A for the display's touch)
 each have an opening, a flat cover with U-notches for the cables, four M3 insert bosses and a tie block per cable.
 Lid: as the original (drip skirt, M3 screws into insert bosses), without the GNSS window.
@@ -45,8 +45,10 @@ b.cut("Y", [("rect", x0, z0, x1, z1)] + [("circle", x, z, M3_CLEAR / 2) for x, z
       FYI - 0.5, FY + 0.5, "Cable Window and Flange Holes")
 
 # Pi 5 standoffs. The AI HAT+ kit spacers sit on top of the Pi, so the Pi is held by M2.5 x 16 pan heads from
-# under the floor (counterbored), through the standoff and the Pi into the spacers.
+# under the floor (counterbored), through the standoff and the Pi into the spacers. A wider base round each
+# counterbore (audit 4: a plain 6 mm standoff left a 0.32 mm skin over the counterbore).
 b.prism("Z", [("circle", x, y, 3.0) for x, y in PI_HOLES], FLOOR - 0.5, FLOOR + PI_STANDOFF, "Pi Standoffs")
+b.prism("Z", [("circle", x, y, 4.25) for x, y in PI_HOLES], FLOOR - 0.5, FLOOR + 2.5, "Pi Standoff Bases")
 b.cut("Z", [("circle", x, y, M25_CLEAR / 2) for x, y in PI_HOLES], ZB - 0.5, FLOOR + PI_STANDOFF + 0.5,
       "Pi Screw Holes")
 b.cut("Z", [("circle", x, y, M25_HEAD[0] / 2) for x, y in PI_HOLES], ZB - 0.5, ZB + M25_HEAD[1], "Pi Counterbores")
@@ -69,8 +71,8 @@ def ledge(wall, z):
     """Drip ledge profile on an outer wall face at `wall` (pod coordinate, sign = outward), root at z: 45 deg
     underside out to LEDGE_L, 1 mm tip, sloped top back to the wall."""
     s_ = 1 if wall > 0 else -1
-    return [("poly", [(wall - s_ * 0.2, z), (wall + s_ * LEDGE_L, z + LEDGE_L), (wall + s_ * LEDGE_L, z + LEDGE_L + 1),
-                      (wall - s_ * 0.2, z + LEDGE_L + 3)])]
+    return [("poly", [(wall - s_ * 0.2, z), (wall + s_ * LEDGE_L, z + LEDGE_L), (wall + s_ * LEDGE_L, z + LEDGE_L + LEDGE_TIP),
+                      (wall - s_ * 0.2, z + LEDGE_L + LEDGE_TIP + 2)])]
 
 
 # Exhaust slots in the -X wall at fin height (between the Pi and the HAT), under a drip ledge; upper rows in both
@@ -90,6 +92,8 @@ for sx in (-1, 1):
 rx0, rx1, rz0, rz1 = REAR_PORT
 b.cut("Y", [("rect", rx0, rz0, rx1, rz1)], RY - 0.5, RYI + 0.5, "Rear Port Opening")
 b.prism("Y", [("circle", x, z, 4.0) for x, z in REAR_BOSSES], RYI - 0.1, RYI + 6.5, "Rear Port Bosses")
+b.prism("Y", [("rect", x - 4, FLOOR - 0.5, x + 4, z) for x, z in REAR_BOSSES if z < rz0], RYI - 0.1, RYI + 6.5,
+        "Rear Port Boss Roots")
 b.cut("Y", [("circle", x, z, INSERT_M3_D / 2) for x, z in REAR_BOSSES], RY - 0.5, RY + INSERT_M3_L + 0.5,
       "Rear Port Insert Holes")
 b.prism("X", ledge(RY, REAR_LEDGE_Z), REAR_BOSSES[0][0] - COVER_MARGIN[0], REAR_BOSSES[-1][0] + COVER_MARGIN[0],
@@ -106,7 +110,8 @@ b.prism("X", [("circle", y, z, 4.0) for y, z in SIDE_BOSSES], XI - 6.5, XI + 0.1
 b.cut("X", [("circle", y, z, INSERT_M3_D / 2) for y, z in SIDE_BOSSES], BX - INSERT_M3_L - 0.5, BX + 0.5,
       "Side Port Insert Holes")
 for kind, y in SIDE_NOTCHES:
-    b.prism("Z", [("rect", XI - 6, y - 6, XI + 0.1, y + 6)], FLOOR - 0.5, sz0_, f"Side Tie Block {kind}")
+    b.prism("Z", [("rect", XI - 6, max(y - 6, sy0), XI + 0.1, min(y + 6, sy1))], FLOOR - 0.5, sz0_,
+            f"Side Tie Block {kind}")    # clipped to the opening (audit 4: 0.3 / 0.6 mm slivers past its ends)
     b.cut("Y", [("rect", XI - 3 - TIE_W / 2, FLOOR + 1.5, XI - 3 + TIE_W / 2, FLOOR + 1.5 + TIE_H)], y - 7, y + 7,
           f"Side Tie Tunnel {kind}")
 
@@ -115,8 +120,8 @@ b.prism("Z", [("rect", -6, -24, 6, -17)], FLOOR - 0.5, FLOOR + 3.5, "Bundle Tie 
 b.cut("X", [("rect", -22.5, FLOOR, -18.5, FLOOR + TIE_SLOT[1])], -7, 7, "Bundle Tie Slot")
 
 # Rail plate bosses with M3 inserts from below (same pattern as the original, so the original rail plate fits).
-# 5 high (original 6): 1.4 mm over the insert, and 1.5 mm under the Pi's underside parts.
-b.prism("Z", [("circle", x, y, 4.0) for x, y in RAIL_BOLTS], FLOOR - 0.5, FLOOR + 5, "Rail Plate Bosses")
+# 6 high as the original: 2.4 mm over the insert, 4 mm under the Pi's PCB (standoffs 10).
+b.prism("Z", [("circle", x, y, 4.0) for x, y in RAIL_BOLTS], FLOOR - 0.5, FLOOR + 6, "Rail Plate Bosses")
 b.cut("Z", [("circle", x, y, INSERT_M3_D / 2) for x, y in RAIL_BOLTS], ZB - 0.5, ZB + INSERT_M3_L, "Rail Insert Holes")
 
 b.save(os.path.join(PRINT, "SW7_FPod_Box_Base.SLDPRT"), "box_base_iso.png")

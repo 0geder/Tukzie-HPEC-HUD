@@ -1,8 +1,8 @@
 
 == SW7_FPod_Box_Base
-  bodies 1  Check3 faults [0]  box [-76.4, -28.4, 11.9, 72.4, 10.0, 124.4]
-  size [148.8, 38.4, 112.5] mm  fits 180 cube: True  volume 88645 mm3
-  holes (axis, centre in model mm, radius): 44
+  bodies 1  Check3 faults [0]  box [-76.4, -28.4, 11.9, 76.4, 26.0, 128.4]
+  size [152.8, 54.4, 116.5] mm  fits 180 cube: True  volume 112331 mm3
+  holes (axis, centre in model mm, radius): 48
      ('X', (-22.3, 52.0), 2.0)
      ('X', (-22.3, 52.0), 4.0)
      ('X', (-22.3, 94.0), 2.0)
@@ -15,17 +15,21 @@
      ('Y', (-66.5, 18.5), 4.0)
      ('Y', (-64.0, 116.0), 2.0)
      ('Y', (-64.0, 116.0), 4.0)
-     ('Y', (-51.5, 40.0), 1.1)
+     ('Y', (-51.5, 40.0), 1.35)
+     ('Y', (-51.5, 40.0), 2.75)
      ('Y', (-51.5, 40.0), 3.0)
-     ('Y', (-51.5, 89.0), 1.1)
+     ('Y', (-51.5, 89.0), 1.35)
+     ('Y', (-51.5, 89.0), 2.75)
      ('Y', (-51.5, 89.0), 3.0)
      ('Y', (-22.0, 49.0), 2.0)
      ('Y', (-22.0, 49.0), 4.0)
      ('Y', (-22.0, 91.0), 2.0)
      ('Y', (-22.0, 91.0), 4.0)
-     ('Y', (6.5, 40.0), 1.1)
+     ('Y', (6.5, 40.0), 1.35)
+     ('Y', (6.5, 40.0), 2.75)
      ('Y', (6.5, 40.0), 3.0)
-     ('Y', (6.5, 89.0), 1.1)
+     ('Y', (6.5, 89.0), 1.35)
+     ('Y', (6.5, 89.0), 2.75)
      ('Y', (6.5, 89.0), 3.0)
      ('Y', (22.0, 49.0), 2.0)
      ('Y', (22.0, 49.0), 4.0)
@@ -47,19 +51,19 @@
      ('Z', (-16.0, 2.5), 4.0)
      ('Z', (32.0, -20.0), 1.7)
      ('Z', (32.0, 2.0), 1.7)
-  print up = model (0, 1, 0); downward faces above the bed (bridge or support): 20, 704 mm2
-     area 176.0 height above bed 25.9 face box [-76.4, -2.5, 44.0, -72.4, -2.5, 88.0]
+  print up = model (0, 1, 0); downward faces above the bed (bridge or support): 41, 1717 mm2
+     area 287.2 height above bed 36.59 face box [-62.5, 8.2, 124.4, -10.5, 12.0, 128.4]
+     area 243.0 height above bed 44.09 face box [72.4, 15.7, 44.0, 76.4, 19.5, 88.0]
+     area 243.0 height above bed 44.09 face box [-76.4, 15.7, 44.0, -72.4, 19.5, 88.0]
+     area 243.0 height above bed 26.09 face box [-76.4, -2.3, 44.0, -72.4, 1.5, 88.0]
      area 96.0 height above bed 36.4 face box [-20.0, 8.0, 11.9, 20.0, 8.0, 14.3]
      area 72.0 height above bed 27.4 face box [70.0, -1.0, 58.0, 72.4, -1.0, 88.0]
      area 67.2 height above bed 26.4 face box [-50.0, -2.0, 122.0, -22.0, -2.0, 124.4]
      area 48.0 height above bed 4.4 face box [-6.0, -24.0, 18.5, 6.0, -24.0, 22.5]
-     area 36.0 height above bed 5.9 face box [65.5, -22.5, 76.3, 68.5, -22.5, 88.3]
-     area 36.0 height above bed 5.9 face box [65.5, -22.5, 57.4, 68.5, -22.5, 69.4]
-     area 36.0 height above bed 5.9 face box [-35.2, -22.5, 117.5, -23.2, -22.5, 120.5]
-  sketches (name, status, segments, dimensions): [('Sketch1', 'under defined', 6, 1), ('Sketch2', 'under defined', 3, 0), ('Sketch3', 'under defined', 8, 1), ('Sketch4', 'under defined', 4, 1), ('Sketch5', 'under defined', 4, 1), ('Sketch6', 'under defined', 1, 1), ('Sketch7', 'under defined', 1, 1), ('Sketch8', 'under defined', 1, 1), ('Sketch9', 'under defined', 1, 1), ('Sketch10', 'under defined', 4, 1), ('Sketch11', 'under defined', 8, 1), ('Sketch12', 'under defined', 24, 1), ('Sketch13', 'under defined', 8, 1), ('Sketch14', 'under defined', 24, 1), ('Sketch15', 'under defined', 28, 1), ('Sketch16', 'under defined', 4, 1), ('Sketch17', 'under defined', 4, 1), ('Sketch18', 'under defined', 4, 1), ('Sketch19', 'under defined', 4, 1), ('Sketch20', 'under defined', 4, 1), ('Sketch21', 'under defined', 4, 1), ('Sketch22', 'under defined', 4, 1), ('Sketch23', 'under defined', 4, 1), ('Sketch24', 'under defined', 4, 1), ('Sketch25', 'under defined', 4, 1), ('Sketch26', 'under defined', 4, 1), ('Sketch27', 'under defined', 4, 1), ('Sketch28', 'under defined', 4, 1), ('Sketch29', 'under defined', 4, 1), ('Sketch30', 'under defined', 4, 1), ('Sketch31', 'under defined', 4, 1), ('Sketch32', 'under defined', 4, 1), ('Sketch33', 'under defined', 4, 1), ('Sketch34', 'under defined', 4, 1)]
+  sketches (name, status, segments, dimensions): [('Sketch1', 'under defined', 6, 1), ('Sketch2', 'under defined', 3, 0), ('Sketch3', 'under defined', 8, 1), ('Sketch4', 'under defined', 4, 1), ('Sketch5', 'under defined', 4, 1), ('Sketch6', 'under defined', 4, 1), ('Sketch7', 'under defined', 1, 1), ('Sketch8', 'under defined', 1, 1), ('Sketch9', 'under defined', 1, 1), ('Sketch10', 'under defined', 1, 1), ('Sketch11', 'under defined', 4, 1), ('Sketch12', 'under defined', 8, 1), ('Sketch13', 'under defined', 24, 1), ('Sketch14', 'under defined', 8, 1), ('Sketch15', 'under defined', 24, 1), ('Sketch16', 'under defined', 28, 1), ('Sketch17', 'under defined', 4, 1), ('Sketch18', 'under defined', 28, 1), ('Sketch19', 'under defined', 4, 1), ('Sketch20', 'under defined', 28, 1), ('Sketch21', 'under defined', 4, 1), ('Sketch22', 'under defined', 4, 1), ('Sketch23', 'under defined', 4, 1), ('Sketch24', 'under defined', 4, 1), ('Sketch25', 'under defined', 4, 1), ('Sketch26', 'under defined', 4, 1), ('Sketch27', 'under defined', 4, 1), ('Sketch28', 'under defined', 4, 1), ('Sketch29', 'under defined', 4, 1), ('Sketch30', 'under defined', 4, 1), ('Sketch31', 'under defined', 4, 1), ('Sketch32', 'under defined', 4, 1), ('Sketch33', 'under defined', 4, 1), ('Sketch34', 'under defined', 4, 1), ('Sketch35', 'under defined', 4, 1), ('Sketch36', 'under defined', 4, 1), ('Sketch37', 'under defined', 4, 1), ('Sketch38', 'under defined', 4, 1), ('Sketch39', 'under defined', 4, 1), ('Sketch40', 'under defined', 4, 1)]
 
 == SW7_FPod_Box_Lid
-  bodies 1  Check3 faults [0]  box [-74.3, 7.0, 10.0, 74.3, 12.4, 126.3]
+  bodies 1  Check3 faults [0]  box [-74.3, 23.0, 10.0, 74.3, 28.4, 126.3]
   size [148.6, 5.4, 116.3] mm  fits 180 cube: True  volume 42693 mm3
   holes (axis, centre in model mm, radius): 8
      ('Y', (-66.5, 18.5), 1.7)
@@ -107,8 +111,8 @@
   sketches (name, status, segments, dimensions): [('Sketch1', 'under defined', 6, 1), ('Sketch2', 'under defined', 4, 0), ('Sketch3', 'under defined', 3, 0), ('Sketch4', 'under defined', 3, 0), ('Sketch5', 'under defined', 6, 1), ('Sketch6', 'under defined', 4, 1), ('Sketch7', 'under defined', 4, 1), ('Sketch8', 'under defined', 4, 1), ('Sketch9', 'under defined', 2, 1), ('Sketch10', 'under defined', 2, 1), ('Sketch11', 'under defined', 1, 1), ('Sketch12', 'under defined', 1, 1), ('Sketch13', 'under defined', 4, 1), ('Sketch14', 'under defined', 4, 1), ('Sketch15', 'under defined', 1, 1)]
 
 == SW7_FPod_Head_Upper
-  bodies 1  Check3 faults [0]  box [-52.4, -12.5, -56.0, 52.4, 50.6, 15.9]
-  size [104.8, 63.1, 71.9] mm  fits 180 cube: True  volume 54953 mm3
+  bodies 1  Check3 faults [0]  box [-52.4, -12.5, -56.0, 52.4, 50.6, 11.9]
+  size [104.8, 63.1, 67.9] mm  fits 180 cube: True  volume 54111 mm3
   holes (axis, centre in model mm, radius): 9
      ('X', (-8.0, -34.0), 2.0)
      ('Y', (-16.9, -43.5), 0.8)
@@ -119,8 +123,7 @@
      ('Z', (-32.0, 2.0), 4.0)
      ('Z', (32.0, 2.0), 2.0)
      ('Z', (32.0, 2.0), 4.0)
-  print up = model (0, -1, 0); downward faces above the bed (bridge or support): 22, 1820 mm2
-     area 444.1 height above bed 34.26 face box [-47.4, 13.9, 11.9, 47.4, 16.3, 15.9]
+  print up = model (0, -1, 0); downward faces above the bed (bridge or support): 21, 1375 mm2
      area 182.3 height above bed 54.59 face box [-46.0, -4.0, -30.0, 46.0, -4.0, 9.5]
      area 178.3 height above bed 32.28 face box [-13.0, 15.0, -54.2, 13.0, 18.3, -48.2]
      area 151.2 height above bed 3.6 face box [-18.9, 47.0, -38.0, 18.9, 47.0, -34.0]
@@ -128,7 +131,8 @@
      area 101.7 height above bed 27.73 face box [48.4, 20.7, -41.7, 52.4, 22.9, -19.3]
      area 101.7 height above bed 27.73 face box [-52.4, 20.7, -41.7, -48.4, 22.9, -19.3]
      area 85.8 height above bed 49.1 face box [-43.4, 1.5, -48.2, 43.4, 1.5, -47.2]
-  sketches (name, status, segments, dimensions): [('Sketch1', 'under defined', 6, 1), ('Sketch2', 'under defined', 3, 0), ('Sketch3', 'under defined', 3, 0), ('Sketch4', 'under defined', 3, 0), ('Sketch5', 'under defined', 3, 0), ('Sketch6', 'under defined', 4, 1), ('Sketch7', 'under defined', 3, 0), ('Sketch8', 'under defined', 3, 0), ('Sketch9', 'under defined', 4, 1), ('Sketch10', 'under defined', 12, 1), ('Sketch11', 'under defined', 4, 1), ('Sketch12', 'under defined', 4, 1), ('Sketch13', 'under defined', 1, 1), ('Sketch14', 'under defined', 4, 1), ('Sketch15', 'under defined', 4, 1), ('Sketch16', 'under defined', 1, 1), ('Sketch17', 'under defined', 4, 1), ('Sketch18', 'under defined', 2, 1), ('Sketch19', 'under defined', 2, 1), ('Sketch20', 'under defined', 4, 1), ('Sketch21', 'under defined', 4, 1), ('Sketch22', 'under defined', 4, 1), ('Sketch23', 'under defined', 4, 1), ('Sketch24', 'under defined', 4, 1), ('Sketch25', 'under defined', 4, 1), ('Sketch26', 'under defined', 1, 0), ('Sketch28', 'under defined', 4, 0), ('Sketch29', 'under defined', 1, 0), ('Sketch31', 'under defined', 4, 0), ('Sketch32', 'under defined', 1, 0), ('Sketch34', 'under defined', 4, 0), ('Sketch35', 'under defined', 1, 0), ('Sketch37', 'under defined', 4, 0), ('Sketch38', 'under defined', 4, 1), ('Sketch39', 'under defined', 4, 1), ('Sketch40', 'under defined', 4, 1), ('Sketch41', 'under defined', 4, 1), ('Sketch42', 'under defined', 4, 1), ('Sketch43', 'under defined', 4, 1), ('Sketch44', 'under defined', 4, 1)]
+     area 64.0 height above bed 33.6 face box [-8.0, 17.0, 5.5, 8.0, 17.0, 9.5]
+  sketches (name, status, segments, dimensions): [('Sketch1', 'under defined', 6, 1), ('Sketch2', 'under defined', 3, 0), ('Sketch3', 'under defined', 3, 0), ('Sketch4', 'under defined', 3, 0), ('Sketch5', 'under defined', 3, 0), ('Sketch6', 'under defined', 4, 1), ('Sketch7', 'under defined', 3, 0), ('Sketch8', 'under defined', 3, 0), ('Sketch9', 'under defined', 4, 1), ('Sketch10', 'under defined', 12, 1), ('Sketch11', 'under defined', 4, 1), ('Sketch12', 'under defined', 4, 1), ('Sketch13', 'under defined', 1, 1), ('Sketch14', 'under defined', 4, 1), ('Sketch15', 'under defined', 4, 1), ('Sketch16', 'under defined', 1, 1), ('Sketch17', 'under defined', 4, 1), ('Sketch18', 'under defined', 2, 1), ('Sketch19', 'under defined', 2, 1), ('Sketch20', 'under defined', 4, 1), ('Sketch21', 'under defined', 4, 1), ('Sketch22', 'under defined', 4, 1), ('Sketch23', 'under defined', 4, 1), ('Sketch24', 'under defined', 4, 1), ('Sketch25', 'under defined', 4, 1), ('Sketch26', 'under defined', 1, 0), ('Sketch28', 'under defined', 4, 0), ('Sketch29', 'under defined', 1, 0), ('Sketch31', 'under defined', 4, 0), ('Sketch32', 'under defined', 1, 0), ('Sketch34', 'under defined', 4, 0), ('Sketch35', 'under defined', 1, 0), ('Sketch37', 'under defined', 4, 0), ('Sketch38', 'under defined', 4, 1), ('Sketch39', 'under defined', 4, 1), ('Sketch40', 'under defined', 4, 1), ('Sketch41', 'under defined', 4, 1), ('Sketch42', 'under defined', 4, 1), ('Sketch43', 'under defined', 4, 1)]
 
 == SW7_FPod_Rail_Plate
   bodies 1  Check3 faults [0]  box [-30.0, -40.4, 28.0, 30.0, -28.4, 112.0]
@@ -170,7 +174,7 @@
   sketches (name, status, segments, dimensions): [('Sketch1', 'under defined', 4, 1), ('Sketch2', 'under defined', 8, 1), ('Sketch3', 'under defined', 4, 1)]
 
 == SW7_FPod_Sunshade
-  bodies 1  Check3 faults [0]  box [-50.0, 12.4, 20.0, 50.0, 19.4, 102.0]
+  bodies 1  Check3 faults [0]  box [-50.0, 28.4, 20.0, 50.0, 35.4, 102.0]
   size [100.0, 7.0, 82.0] mm  fits 180 cube: True  volume 17223 mm3
   holes (axis, centre in model mm, radius): 8
      ('Y', (-44.0, 24.0), 1.25)

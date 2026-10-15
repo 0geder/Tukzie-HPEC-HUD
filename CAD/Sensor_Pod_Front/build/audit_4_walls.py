@@ -21,9 +21,11 @@ LIMIT = float(args.pop(0)) if args and args[0].replace(".", "").isdigit() else 2
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.dirname(HERE)
 if not args:
-    args = [os.path.join(OUT, f) for f in ("SW7_Dash_Bracket.SLDPRT", "SW7_Dash_Clamp_Cap.SLDPRT")] + \
-           [os.path.join(OUT, "print_parts", f) for f in sorted(os.listdir(os.path.join(OUT, "print_parts")))
-            if f.endswith(".SLDPRT")]
+    args = [os.path.join(OUT, "print_parts", f) for f in sorted(os.listdir(os.path.join(OUT, "print_parts")))
+            if f.endswith(".SLDPRT") and not f.startswith("~$")]
+
+
+INSERT_R = 2.0          # M3 heat-set insert hole radius
 
 
 def call0(obj, name):
@@ -65,7 +67,7 @@ def kind(face):
     return "other"
 
 
-for path in args:
+for path in [os.path.abspath(a) for a in args]:
     t0 = time.time()
     m = sw.OpenDoc(path, 1)
     try:
@@ -88,9 +90,16 @@ for path in args:
                 cp = call0(srf, "CylinderParams")
                 if abs(cp[6] * 1000 - INSERT_R) < 0.01 and f.FaceInSurfaceSense is not None:
                     ins[i] = (9e9, None, [round(v * 1000, 1) for v in cp[:3]])
+        fbox = [[v * 1000 for v in f.GetBox] for f in faces]
+
+        def box_gap(a, b):
+            return max(max(a[k] - b[k + 3], b[k] - a[k + 3], 0.0) for k in range(3))
+
         for i in range(len(faces)):
             for j in range(i + 1, len(faces)):
                 fi, fj = faces[i], faces[j]
+                if box_gap(fbox[i], fbox[j]) >= (8.0 if (i in ins or j in ins) else LIMIT):
+                    continue        # prefilter: face boxes further apart than anything that is reported
                 if any(fj.IsSame(g) if hasattr(fj, "IsSame") else False for g in []):
                     pass
                 d, p1, p2 = closest(m, fi, fj)

@@ -38,7 +38,7 @@ reference: Pi 5
   USB-C: +207.5 mm3
   Micro-HDMI: +389.1 mm3
   CAM-DISP Connectors: +434.0 mm3
-save REF_FPod_Pi5_with_Cooler.SLDPRT error code 0 size [94.0, 57.0, 35.2] box [-61.0, 33.0, -93.0, -36.0, -19.5, 15.7]
+save REF_FPod_Pi5_with_Cooler.SLDPRT error code 0 size [94.0, 57.0, 35.2] box [-61.0, 33.0, -93.0, -36.0, -17.5, 17.7]
 reference: cables
   Plug usbc: +1243.1 mm3
   Cable usbc: +591.5 mm3
@@ -70,13 +70,13 @@ reference: cables
   Ribbon 18: +8.9 mm3
   Ribbon 19: +8.9 mm3
   Ribbon 20: +8.8 mm3
-  Ribbon 21: +126.9 mm3
+  Ribbon 21: +113.1 mm3
   Jumpers Window: +120.0 mm3
   Jumpers Across: +1034.9 mm3
-  Jumpers Rise: +1218.8 mm3
+  Jumpers Rise: +1306.8 mm3
   Jumpers Hairpin: +673.5 mm3
   Jumpers Into Housings: +43.5 mm3
-save REF_FPod_Cables.SLDPRT error code 0 size [150.4, 142.5, 41.1] box [-48.0, 102.4, -154.4, -11.9, -18.4, 22.7]
+save REF_FPod_Cables.SLDPRT error code 0 size [150.4, 142.5, 41.2] box [-48.0, 102.4, -154.4, -11.9, -16.5, 24.7]
 reference: view cones
   ToF Cone Left: +22065.5 mm3
   ToF Cone Ahead: +22065.6 mm3
@@ -86,9 +86,9 @@ save REF_FPod_View_Cones.SLDPRT error code 0 size [189.0, 97.7, 68.0] box [-94.5
 tools: hex keys
   Bolt Head -32: +71.3 mm3
   Key Short Arm -32: +117.8 mm3
-  Key Long Arm -32: +497.7 mm3
+  Key Long Arm -32: +510.8 mm3
   Bolt Head +32: +71.2 mm3
   Key Short Arm +32: +117.8 mm3
-  Key Long Arm +32: +497.7 mm3
-save TOOL_FPod_Hex_Keys.SLDPRT error code 0 size [69.6, 19.0, 78.8] box [-34.8, 34.8, -33.3, -14.3, -22.8, 56.0]
+  Key Long Arm +32: +510.8 mm3
+save TOOL_FPod_Hex_Keys.SLDPRT error code 0 size [69.6, 19.0, 80.8] box [-34.8, 34.8, -33.3, -14.3, -22.8, 58.0]
 done

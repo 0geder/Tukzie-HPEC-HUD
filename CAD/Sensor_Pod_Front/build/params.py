@@ -91,8 +91,10 @@ PI_X0 = -55.0               # design: board USB-C end. Leaves 15 mm to the -X wa
 PI_Y1 = -36.5               # design: header edge. 22.2 mm from the front wall's inner face, so a 2.5 mm hex key
 #   (ISO 2936 short arm 18 mm) reaches the lower flange bolts with the Pi in place (original pod defect 3)
 PI_Y0 = PI_Y1 - PI5_W       # -92.5: micro-HDMI / USB-C edge
-PI_STANDOFF = 8.0           # same as the Pi 4: PCB bottom 8 above the floor's inner face. With the HAT the Pi is
-#   held by the stack: M2.5 x 16 pan heads from under the floor, through the standoff and the Pi into the kit spacers
+PI_STANDOFF = 10.0          # design: PCB bottom 10 above the floor's inner face (Pi 4: 8). Raised after audit 4 so
+#   the rail plate bosses keep a 2.4 mm cap over their inserts and still clear the Pi's underside (Ethernet and USB
+#   pins) by 4 mm. With the HAT the Pi is held by the stack: M2.5 x 18 pan heads from under the floor, through the
+#   standoff and the Pi into the kit spacers
 
 
 def b2p(bx, by):
@@ -103,7 +105,7 @@ def b2p(bx, by):
 PI_HOLES = [b2p(*h) for h in PI5_HOLES_B]
 
 # ---------------- Electronics box ----------------
-BOX_TOP_Z = 26.0            # design: raised from 10 for the AI HAT+ stack (Dupont jumpers on the stacking pins
+BOX_TOP_Z = 28.0            # design: raised from 10 for the AI HAT+ stack (Dupont jumpers on the stacking pins
 #   above the HAT, their R5 bend, and 8 mm of air over the Hailo heatsink). Lid underside = BOX_TOP_Z
 BOX_X = 72.4                # same width as the original (same lid and head-to-box look); half-width outside
 BOX_REAR_Y = -124.4         # design: rear plugs (23 mm micro-HDMI / USB-C overmould, estimated) end at Y -115.5,
@@ -115,11 +117,12 @@ LID_SCREWS = [(sx * 66.5, -18.5) for sx in (-1, 1)] + [(sx * 64.0, BOX_REAR_Y + 
 # cable-tie block inside under each cable (strain relief). The lid's drip skirt hangs over the cover's top edge.
 #   Rear wall: USB-C power and micro-HDMI 0 (display). +X wall: Ethernet (to the rear Pi 4) and USB-A (display touch).
 CABLE_D = {"usbc": 5.0, "hdmi": 7.0, "eth": 7.0, "usba": 5.0}   # notch widths = cable OD + foam. MEASURE the cables
-REAR_PORT = (-50.0, -22.0, -18.0, -2.0)    # X0, X1, Z0 (sill), Z1 of the opening in the rear wall
+REAR_PORT = (-50.0, -22.0, -16.0, 0.0)     # X0, X1, Z0 (sill), Z1 of the opening in the rear wall
 REAR_NOTCHES = [("usbc", PI_X0 + PI5_USBC_BX), ("hdmi", PI_X0 + PI5_HDMI_BX[0])]   # (cable, X)
-REAR_BOSSES = [(x, z) for x in (-57.0, -16.0) for z in (-22.3, 2.5)]   # (X, Z); the lower pair overlaps the floor
-#   by 0.3; X -57 merges the left pair into the rear lid boss (at -56 they were exactly tangent and the feature failed)
-SIDE_PORT = (-88.0, -58.0, -17.0, -1.0)    # Y0, Y1, Z0 (sill), Z1 of the opening in the +X wall
+REAR_BOSSES = [(x, z) for x in (-57.0, -16.0) for z in (-19.5, 2.5)]   # (X, Z). X -57 merges the left pair into
+#   the rear lid boss (at -56 they were exactly tangent and the feature failed). Lower pair at Z -19.5 (was -22.3):
+#   audit 4 measured 0.10 mm from their insert holes to the rear bottom facet; a root block joins them to the floor
+SIDE_PORT = (-88.0, -58.0, -15.0, 1.0)     # Y0, Y1, Z0 (sill), Z1 of the opening in the +X wall
 SIDE_NOTCHES = [("eth", PI_Y0 + PI5_ETH_BY), ("usba", PI_Y0 + PI5_USB_BY[0])]     # (cable, Y)
 SIDE_BOSSES = [(y, z) for y in (-94.0, -52.0) for z in (-22.3, 2.5)]               # (Y, Z)
 COVER_T = 3.0
@@ -130,13 +133,14 @@ COVER_TOP_Z = 6.5           # lid skirt bottom is at BOX_TOP_Z - LID_TONGUE_H = 
 # drip ledge; the intake is through floor slots with 3 mm upstands at the +X end, plus a small floor exhaust and drain
 # at the -X end.
 SIDE_VENT_Y = [-84.0 + 6.0 * i for i in range(7)]   # slot centres, 3 wide
-SIDE_VENT_Z = (-16.0, -4.0)  # -X wall, lower row: the cooler's exhaust, between the Pi and the HAT
-SIDE_LEDGE_Z = -2.5
-UPPER_VENT_Z = {-1: (6.0, 14.0), 1: (8.0, 14.0)}    # upper rows in the -X and +X walls: cross-flow over the HAT and
+SIDE_VENT_Z = (-14.0, -2.0)  # -X wall, lower row: the cooler's exhaust, between the Pi and the HAT
+SIDE_LEDGE_Z = -0.5
+UPPER_VENT_Z = {-1: (8.0, 16.0), 1: (10.0, 16.0)}    # upper rows in the -X and +X walls: cross-flow over the HAT and
 #   the Hailo (the +X row starts above the side port cover)
-UPPER_LEDGE_Z = 15.5         # ledge root; with LEDGE_L its top is 22.5, under the lid skirt (23.0)
+UPPER_LEDGE_Z = 17.0         # ledge root; its top is 24.5, under the lid skirt (25.0)
 REAR_LEDGE_Z = 8.0           # over the rear port cover
 LEDGE_L = 4.0                # drip ledges project 4 mm with a 45 deg underside (prints without support)
+LEDGE_TIP = 1.5              # drip edge thickness (1.0 in the first build; audit 4)
 INTAKE = (38.0, 58.0, -86.0, -46.0)        # X0, X1, Y0, Y1 of the floor intake upstand
 FLOOR_EXHAUST = (-69.5, -57.0, -86.0, -46.0)
 
