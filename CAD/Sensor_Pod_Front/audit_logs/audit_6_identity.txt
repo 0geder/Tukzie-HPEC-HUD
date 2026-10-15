@@ -1,0 +1,25 @@
+SW7_FPod_Head_Upper          vs SW7_Pod_Head_Upper         SAME
+    volume mm3   54111.46   original 54111.46
+    area mm2     46830.68   original 46830.68
+    centre mm    [-0.0, 28.548, -21.266]   original [-0.0, 28.548, -21.266]
+    box mm       [-52.4, -12.5, -56.0, 52.4, 50.6, 11.9]   original [-52.4, -12.5, -56.0, 52.4, 50.6, 11.9]
+    faces        161   original 161
+SW7_FPod_Head_Tray           vs SW7_Pod_Head_Tray          SAME
+    volume mm3   27743.48   original 27743.48
+    area mm2     24541.27   original 24541.27
+    centre mm    [-0.0, -20.279, -17.799]   original [-0.0, -20.279, -17.799]
+    box mm       [-48.4, -28.4, -48.2, 48.4, -1.6, 11.9]   original [-48.4, -28.4, -48.2, 48.4, -1.6, 11.9]
+    faces        69   original 69
+SW7_FPod_Camera_Retainer     vs SW7_Pod_Camera_Retainer    SAME
+    volume mm3   918.53   original 918.53
+    area mm2     1296.85   original 1296.85
+    centre mm    [0.0, 16.0, -38.053]   original [-0.0, 16.0, -38.053]
+    box mm       [-18.9, 15.0, -45.5, 18.9, 17.0, -29.3]   original [-18.9, 15.0, -45.5, 18.9, 17.0, -29.3]
+    faces        14   original 14
+SW7_FPod_Rail_Plate          vs SW7_Pod_Rail_Plate         SAME
+    volume mm3   44377.75   original 44377.75
+    area mm2     14185.02   original 14185.02
+    centre mm    [0.0, -33.406, 70.0]   original [0.0, -33.406, 70.0]
+    box mm       [-30.0, -40.4, 28.0, 30.0, -28.4, 112.0]   original [-30.0, -40.4, 28.0, 30.0, -28.4, 112.0]
+    faces        27   original 27
+ALL IDENTICAL

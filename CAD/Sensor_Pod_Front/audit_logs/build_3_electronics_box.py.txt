@@ -1,0 +1,65 @@
+box base
+  Box Block: +882694.4 mm3
+  Rear Bottom Facet: -1051.7 mm3
+  Shell: -781362.4 mm3
+  Cable Window and Flange Holes: -3159.2 mm3
+  Pi Standoffs: +904.8 mm3
+  Pi Screw Holes: -238.2 mm3
+  Pi Counterbores: -158.7 mm3
+  Lid Boss 1: +2545.8 mm3
+  Lid Boss 2: +2545.8 mm3
+  Lid Boss 3: +2598.6 mm3
+  Lid Boss 4: +2598.6 mm3
+  Lid Insert Holes: -301.6 mm3
+  Intake Upstand: +672.0 mm3
+  Intake Slots: -518.4 mm3
+  Floor Exhaust Upstand: +582.0 mm3
+  Floor Exhaust Slots: -194.4 mm3
+  Exhaust Vents: -604.8 mm3
+  Exhaust Drip Ledge: +678.9 mm3
+  Upper Vents L: -403.2 mm3
+  Upper Drip Ledge L: +678.9 mm3
+  Upper Vents R: -302.4 mm3
+  Upper Drip Ledge R: +678.8 mm3
+  Rear Port Opening: -1075.2 mm3
+  Rear Port Bosses: +1246.2 mm3
+  Rear Port Insert Holes: -326.7 mm3
+  Rear Port Drip Ledge: +802.3 mm3
+  Rear Tie Block usbc: +535.6 mm3
+  Rear Tie Tunnel usbc: -72.0 mm3
+  Rear Tie Block hdmi: +535.6 mm3
+  Rear Tie Tunnel hdmi: -72.0 mm3
+  Side Port Opening: -1152.0 mm3
+  Side Port Bosses: +1298.9 mm3
+  Side Port Insert Holes: -326.7 mm3
+  Side Tie Block eth: +648.0 mm3
+  Side Tie Tunnel eth: -72.0 mm3
+  Side Tie Block usba: +648.0 mm3
+  Side Tie Tunnel usba: -72.0 mm3
+  Bundle Tie Anchor: +294.0 mm3
+  Bundle Tie Slot: -96.0 mm3
+  Rail Plate Bosses: +1005.3 mm3
+  Rail Insert Holes: -301.6 mm3
+save SW7_FPod_Box_Base.SLDPRT error code 0 size [152.8, 116.5, 54.4] box [-76.4, 76.4, -128.4, -11.9, -28.4, 26.0]
+box lid
+  Lid Plate: +40600.3 mm3
+  Drip Skirt: +1747.6 mm3
+  Front Skirt L: +259.5 mm3
+  Front Skirt R: +259.6 mm3
+  Screw Holes: -174.3 mm3
+save SW7_FPod_Box_Lid.SLDPRT error code 0 size [148.6, 116.3, 5.4] box [-74.3, 74.3, -126.3, -10.0, 23.0, 28.4]
+rear port cover
+  Cover Plate: +5194.8 mm3
+  Cable Notches: -538.8 mm3
+  Screw Holes: -109.0 mm3
+save SW7_FPod_Rear_Port_Cover.SLDPRT error code 0 size [52.0, 3.0, 33.3] box [-62.5, -10.5, -127.4, -124.4, -26.8, 6.5]
+side port cover
+  Cover Plate: +5294.7 mm3
+  Cable Notches: -574.8 mm3
+  Screw Holes: -109.0 mm3
+save SW7_FPod_Side_Port_Cover.SLDPRT error code 0 size [3.0, 53.0, 33.3] box [72.4, 75.4, -99.5, -46.5, -26.8, 6.5]
+sunshade
+  Shade Plate: +16336.0 mm3
+  Posts: +1005.3 mm3
+  Post Pilots: -117.8 mm3
+save SW7_FPod_Sunshade.SLDPRT error code 0 size [100.0, 82.0, 7.0] box [-50.0, 50.0, -102.0, -20.0, 28.4, 35.4]

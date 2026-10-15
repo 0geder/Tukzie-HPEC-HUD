@@ -166,3 +166,17 @@ pod's rail plate changed to match:
 Rerun after the change:
 - audit 1: 16 of 16 fixed, 0 hard interferences, probe detected;
 - audit 2: all fastener holes match.
+
+
+## Note (16 Oct 2026): head upper script and saved part disagree on the rear drip lip
+
+Found while building the front pod variant (`CAD/Sensor_Pod_Front`). `build/1_sensor_head.py` step 14 adds a
+"Rear Drip Lip" on the head's rear face, over the box lid's front edge. The saved part
+`print_parts/SW7_Pod_Head_Upper.SLDPRT` does not have it:
+- Rebuilding the script gives a part 841.6 mm3 larger, reaching 4 mm further back (Y -15.9 instead of -11.9).
+- The saved part is 67.9 mm deep, as are its STL and the sliced bed 08.
+
+These were measured by `CAD/Sensor_Pod_Front/build/audit_6_identity.py`. Bed 08 as sliced is therefore the head
+without the lip. Nothing in this folder was changed: the part and bed 08 stay as they are. If the lip is wanted, rerun
+`1_sensor_head.py` and re-slice bed 08. Without it, a foam strip or a bead of sealant along the lid's front edge
+against the head does the same job. The front pod's copy of the script leaves the lip out, so its head matches bed 08.

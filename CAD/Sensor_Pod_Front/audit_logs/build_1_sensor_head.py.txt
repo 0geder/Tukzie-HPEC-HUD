@@ -1,0 +1,43 @@
+upper shell
+  Head Block: +311157.8 mm3
+  Roof Corner Facet L: -2525.0 mm3
+  Roof Corner Facet R: -2525.1 mm3
+  Front Corner Facet L: -838.8 mm3
+  Front Corner Facet R: -838.8 mm3
+  Shell: -256770.1 mm3
+  Brow: +3410.9 mm3
+  Brow Corner Facet L: -341.5 mm3
+  Brow Corner Facet R: -341.5 mm3
+  Brow Drip Groove: -58.5 mm3
+  Seam Skirt: +1028.8 mm3
+  Seam Block L: +400.0 mm3
+  Seam Block Root L: +207.9 mm3
+  Seam Insert L: -75.7 mm3
+  Seam Block R: +400.0 mm3
+  Seam Block Root R: +208.0 mm3
+  Seam Insert R: -75.7 mm3
+  Cable Window: -1212.2 mm3
+  Flange Bosses: +603.2 mm3
+  Flange Insert Holes: -163.4 mm3
+  Camera Rail L: +1909.9 mm3
+  Camera Rear Lip L: +57.1 mm3
+  Camera Rail R: +1909.8 mm3
+  Camera Rear Lip R: +57.2 mm3
+  Camera Top Bar: +210.8 mm3
+  Retainer Pilots: -56.3 mm3
+  Camera Window: -483.6 mm3
+  ToF Window Left: -932.8 mm3
+  ToF Window Ahead: -148.7 mm3
+  ToF Window Right: -932.8 mm3
+  ToF Hood Ahead: +415.2 mm3
+  ToF Hood Left: +185.5 mm3
+  ToF Hood Right: +185.5 mm3
+  Light-Bar Groove: -171.6 mm3
+  Ribbon Tie Anchor: +384.0 mm3
+  Ribbon Tie Slot: -128.0 mm3
+save SW7_FPod_Head_Upper.SLDPRT error code 0 size [104.8, 67.9, 63.1] box [-52.4, 52.4, -11.9, 56.0, -12.5, 50.6]
+camera retainer
+  Retainer Plate: +1224.7 mm3
+  Ribbon Slot: -270.0 mm3
+  M2 Clearance Holes: -36.2 mm3
+save SW7_FPod_Camera_Retainer.SLDPRT error code 0 size [37.8, 16.2, 2.0] box [-18.9, 18.9, 29.3, 45.5, 15.0, 17.0]

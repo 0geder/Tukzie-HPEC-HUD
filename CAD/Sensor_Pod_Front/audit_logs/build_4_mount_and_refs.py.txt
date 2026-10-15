@@ -1,0 +1,94 @@
+rail plate
+  Rail Plate: +30240.0 mm3
+  Dovetail Rail: +14688.0 mm3
+  M3 Holes: -217.9 mm3
+  Counterbores: -268.7 mm3
+  Lock Detents: -63.6 mm3
+save SW7_FPod_Rail_Plate.SLDPRT error code 0 size [60.0, 84.0, 12.0] box [-30.0, 30.0, -112.0, -28.0, -40.4, -28.4]
+reference: sensor board
+  PCB: +5043.3 mm3
+  J2 Header And Dupont Plugs: +3845.6 mm3
+  ToF Carrier Left: +224.0 mm3
+  ToF Carrier Ahead: +224.0 mm3
+  ToF Carrier Right: +224.0 mm3
+save REF_FPod_Sensor_Board.SLDPRT error code 0 size [86.0, 43.0, 34.0] box [-43.0, 43.0, -0.0, 43.0, -20.0, 14.0]
+reference: camera
+  Camera Case: +10169.5 mm3
+save REF_FPod_Camera_Case.SLDPRT error code 0 size [29.2, 12.4, 28.2] box [-14.6, 14.6, 30.6, 43.0, 17.0, 45.2]
+reference: Pi 5
+  Pi 5 PCB: +7616.0 mm3
+  Underside Parts 1: +4131.0 mm3
+  Underside Parts 2: +2016.0 mm3
+  Underside Parts 3: +342.0 mm3
+  microSD Card: +63.0 mm3
+  Cooler Fins: +19505.4 mm3
+  Cooler Fan: +12330.0 mm3
+  40-pin Header And Stacking Socket: +4129.0 mm3
+  HAT Spacer 1: +380.1 mm3
+  HAT Spacer 2: +380.2 mm3
+  HAT Spacer 3: +380.1 mm3
+  HAT Spacer 4: +380.1 mm3
+  AI HAT+ PCB: +5476.0 mm3
+  Hailo And Heatsink: +2924.0 mm3
+  Stacking Pins: +1548.4 mm3
+  Dupont Housings: +371.9 mm3
+  PCIe Flat Cable Loop: +1696.3 mm3
+  Ethernet: +4592.7 mm3
+  USB-A Stacks: +8120.0 mm3
+  USB-C: +207.5 mm3
+  Micro-HDMI: +389.1 mm3
+  CAM-DISP Connectors: +434.0 mm3
+save REF_FPod_Pi5_with_Cooler.SLDPRT error code 0 size [94.0, 57.0, 35.2] box [-61.0, 33.0, -93.0, -36.0, -19.5, 15.7]
+reference: cables
+  Plug usbc: +1243.1 mm3
+  Cable usbc: +591.5 mm3
+  Plug hdmi: +1940.6 mm3
+  Cable hdmi: +1251.4 mm3
+  Plug eth: +5460.0 mm3
+  Cable eth: +1268.3 mm3
+  Plug usba: +4480.0 mm3
+  Cable usba: +523.3 mm3
+  Ribbon 0: +41.4 mm3
+  Ribbon 1: +8.9 mm3
+  Ribbon 2: +8.9 mm3
+  Ribbon 3: +8.9 mm3
+  Ribbon 4: +8.8 mm3
+  Ribbon 5: +8.9 mm3
+  Ribbon 6: +8.9 mm3
+  Ribbon 7: +9.0 mm3
+  Ribbon 8: +8.9 mm3
+  Ribbon 9: +8.8 mm3
+  Ribbon 10: +8.9 mm3
+  Ribbon 11: +8.9 mm3
+  Ribbon 12: +8.8 mm3
+  Ribbon 13: +387.4 mm3
+  Ribbon Fold: +119.0 mm3
+  Ribbon 14: +0.0 mm3
+  Ribbon 15: +0.0 mm3
+  Ribbon 16: +2.0 mm3
+  Ribbon 17: +8.5 mm3
+  Ribbon 18: +8.9 mm3
+  Ribbon 19: +8.9 mm3
+  Ribbon 20: +8.8 mm3
+  Ribbon 21: +126.9 mm3
+  Jumpers Window: +120.0 mm3
+  Jumpers Across: +1034.9 mm3
+  Jumpers Rise: +1218.8 mm3
+  Jumpers Hairpin: +673.5 mm3
+  Jumpers Into Housings: +43.5 mm3
+save REF_FPod_Cables.SLDPRT error code 0 size [150.4, 142.5, 41.1] box [-48.0, 102.4, -154.4, -11.9, -18.4, 22.7]
+reference: view cones
+  ToF Cone Left: +22065.5 mm3
+  ToF Cone Ahead: +22065.6 mm3
+  ToF Cone Right: +22065.5 mm3
+  Camera FOV (horizontal): +66441.5 mm3
+save REF_FPod_View_Cones.SLDPRT error code 0 size [189.0, 97.7, 68.0] box [-94.5, 94.5, 15.3, 113.0, -7.7, 60.3]
+tools: hex keys
+  Bolt Head -32: +71.3 mm3
+  Key Short Arm -32: +117.8 mm3
+  Key Long Arm -32: +497.7 mm3
+  Bolt Head +32: +71.2 mm3
+  Key Short Arm +32: +117.8 mm3
+  Key Long Arm +32: +497.7 mm3
+save TOOL_FPod_Hex_Keys.SLDPRT error code 0 size [69.6, 19.0, 78.8] box [-34.8, 34.8, -33.3, -14.3, -22.8, 56.0]
+done

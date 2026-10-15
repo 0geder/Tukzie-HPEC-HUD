@@ -1,0 +1,6 @@
+assembly fixed: 17 of 17
+save 0 C:\Users\0geda\OneDrive - University of Cape Town\Documents\PlatformIO\Projects\Tukzie-HPEC-HUD\CAD\Sensor_Pod_Front\SW7_Front_Sensor_Pod_Assembly.SLDASM
+interferences: 0
+box mm: [-300.0, -81.4, -56.0, 300.0, 50.6, 154.4]
+exploded fixed: 12 of 12
+save 0
