@@ -20,6 +20,14 @@ LID_TOP = 12.4          # pod Z of the lid's outer face (BOX_TOP_Z 10 + LID_T 2.
 LID_T = 2.4
 # Grille over the Pi 4 bay (Pi at X -40..45, Y -82..-26; fan at X 16, Y -58). Slots along X, 4 mm wide, 2.5 mm ribs.
 G_X0, G_X1, G_Y0, G_Y1 = -30.0, 38.0, -74.0, -34.0
+OUT_LID, OUT_HOOD, TAG = "SW7_Pod_Box_Lid_vented.stl", "SW7_Pod_Lid_Vent_Hood.stl", "lid_vent"
+# Front pod (Pi 5 + AI HAT+, CAD/Sensor_Pod_Front): python lid_vent.py front
+import sys
+if len(sys.argv) > 1 and sys.argv[1] == "front":
+    SRC = r"C:\Users\0geda\Desktop\Fourth Year\EEE4022S\3D Prints\front_pod\stl\SW7_FPod_Box_Lid.STL"
+    LID_TOP = 30.4                                       # BOX_TOP_Z 28 + LID_T 2.4
+    G_X0, G_X1, G_Y0, G_Y1 = -48.0, 22.0, -86.0, -44.0   # over the Pi 5 (X -55..30, Y -92.5..-36.5) and the Hailo
+    OUT_LID, OUT_HOOD, TAG = "SW7_FPod_Box_Lid_vented.stl", "SW7_FPod_Lid_Vent_Hood.stl", "fpod_lid_vent"
 SLOT_W, RIB_W = 4.0, 2.5
 # Hood: roof 10 mm over the lid on walls at the front (+Y) and both sides, open at the rear (-Y).
 HOOD_GAP, HOOD_T, WALL_T, OVER = 10.0, 2.0, 2.0, 8.0
@@ -93,20 +101,20 @@ print("hood %.0f x %.0f x %.1f mm, %.0f mm3; lid-hood overlap %.3f mm3 (pins in 
       (HX1 - HX0, HY1 - HY0, HOOD_GAP + HOOD_T, hood.volume(), inter))
 
 lid_t = from_pod(tm(lid))
-lid_t.export(os.path.join(HERE, "SW7_Pod_Box_Lid_vented.stl"))                    # same frame as the original STL
+lid_t.export(os.path.join(HERE, OUT_LID))                    # same frame as the original STL
 h = tm(hood)
 h.apply_transform(trimesh.transformations.rotation_matrix(np.pi, [1, 0, 0]))       # roof on the bed
 h.apply_translation(-h.bounds[0])
-h.export(os.path.join(HERE, "SW7_Pod_Lid_Vent_Hood.stl"))
+h.export(os.path.join(HERE, OUT_HOOD))
 asm = trimesh.util.concatenate([tm(lid), tm(hood)])
-asm.export(os.path.join(HERE, "lid_vent_assembled_podframe.stl"))
+asm.export(os.path.join(HERE, TAG + "_assembled_podframe.stl"))
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 fig, axs = plt.subplots(1, 2, figsize=(15, 5))
 A = tm(lid); B = tm(hood)
-for ax, (org, nrm, ij, ttl) in zip(axs, [([0, -54, 0], [0, 1, 0], (0, 2), "Section Y = -54 (across)"),
+for ax, (org, nrm, ij, ttl) in zip(axs, [([0, (G_Y0 + G_Y1) / 2, 0], [0, 1, 0], (0, 2), "Section across the grille"),
                                          ([5, 0, 0], [1, 0, 0], (1, 2), "Section X = 5 (along; front is +Y)")]):
     for mesh, col in ((A, "k"), (B, "tab:orange")):
         s = mesh.section(plane_origin=org, plane_normal=nrm)
@@ -114,6 +122,6 @@ for ax, (org, nrm, ij, ttl) in zip(axs, [([0, -54, 0], [0, 1, 0], (0, 2), "Secti
             for e in s.discrete:
                 ax.plot(e[:, ij[0]], e[:, ij[1]], color=col, lw=1)
     ax.set_aspect("equal"); ax.grid(alpha=.3); ax.set_title(ttl)
-    ax.set_xlim((-80, 80) if ij[0] == 0 else (-100, -10)); ax.set_ylim(4, 26)
-plt.tight_layout(); plt.savefig(os.path.join(HERE, "lid_vent_sections.png"), dpi=80)
+    ax.set_xlim((-80, 80) if ij[0] == 0 else (-130, -10)); ax.set_ylim(LID_TOP - 8, LID_TOP + 14)
+plt.tight_layout(); plt.savefig(os.path.join(HERE, TAG + "_sections.png"), dpi=80)
 print("written to", HERE)
