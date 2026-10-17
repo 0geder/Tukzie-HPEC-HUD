@@ -25,6 +25,7 @@ ap.add_argument("--pi4", default="192.168.137.220")
 ap.add_argument("--pi5", default="192.168.137.128")
 ap.add_argument("--out", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs"))
 ap.add_argument("--period", type=float, default=0.5)
+ap.add_argument("--background", action="store_true", help="no keyboard; markers only from roadtest_markers.txt")
 a = ap.parse_args()
 
 SOURCES = {
@@ -69,13 +70,35 @@ def status():
               "  ".join(f"{k} {ok}/{ok + bad}" for k, (ok, bad) in counts.items()), flush=True)
 
 
+def marker_file():
+    """Markers can also be appended to <out>/roadtest_markers.txt (one per line), so the recorder can run in the
+    background and markers can be added from another window or by Claude."""
+    mpath = os.path.join(a.out, "roadtest_markers.txt")
+    open(mpath, "a").close()
+    with open(mpath, encoding="utf-8") as mf:
+        mf.seek(0, 2)
+        while not stop.is_set():
+            line = mf.readline()
+            if line.strip():
+                write({"t": round(time.time(), 3), "src": "marker", "text": line.strip(), "via": "file"})
+            elif not line:
+                stop.wait(0.5)
+
+
 write({"t": round(time.time(), 3), "src": "marker", "text": "session start", "sources": SOURCES})
+threading.Thread(target=marker_file, daemon=True).start()
 for _name, _url in SOURCES.items():
     threading.Thread(target=poll, args=(_name, _url), daemon=True).start()
 threading.Thread(target=status, daemon=True).start()
 print(f"Recording to {path}\nType a marker and press Enter (e.g. 'S3 run2 start 20kmh'); 'q' to stop.", flush=True)
+if "--background" in sys.argv[1:] or not sys.stdin or sys.stdin.closed:
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
 try:
-    for line in sys.stdin:
+    for line in ([] if "--background" in sys.argv[1:] else sys.stdin):
         line = line.strip()
         if line.lower() in ("q", "quit", "exit"):
             break
