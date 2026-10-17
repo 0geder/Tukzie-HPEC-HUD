@@ -176,6 +176,71 @@ Each IMU pod (Figure~\ref{fig:mech-imu}) holds one GY-521 board in a pocket size
 \label{fig:mech-imu}
 \end{figure}
 
+\paragraph{Revision 3 (13 October).} The first printed pod showed two faults in a fit test: the boards carry a right-angle header whose Dupont housings stand out past the board edge, so the lid could not close, and no screws were to hand. Revision 3 follows the push-fit style of the camera case (Figure~\ref{fig:mech-imu3}):
+\begin{itemize}
+\item 1.6\,mm walls instead of a solid block; 24 by 39 by 11.6\,mm with the lid;
+\item the board on ledges 2.5\,mm above the floor, clear of the header's solder tails, located by two pegs in its holes;
+\item clearance reduced to 0.4\,mm a side at the student's request;
+\item tubes under the lid press the board onto the pegs, so no screws are used;
+\item the lid pushes onto a half-lap rim with a 0.1\,mm gap;
+\item an 18\,mm bay for the Dupont housings, with a wire slot closed by the lid;
+\item four cable-tie ears.
+\end{itemize}
+Two pods print in 1\,h 19\,min from 13.7\,g, against 2\,h 28\,min for revision 2. The geometry is scripted (\texttt{CAD/IMU\_Pod/rev3/imu\_pod\_rev3.py}), and the script checks that lid and base do not overlap. The peg spacing uses the unmeasured 15.2\,mm hole spacing, with about 1\,mm of play.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/cad/imu_pod_rev3_sections.png}
+\caption{IMU pod revision 3, sections: board (blue) on its ledges and pegs, lid (orange) with the tubes over the pegs, connector bay to the right.}
+\label{fig:mech-imu3}
+\end{figure}
+
+\section{Front sensor pod for the Raspberry Pi~5}
+\label{sec:mech-fpod}
+
+The two-sided layout (Section~\ref{sec:two-sided}) needs a second sensor pod at the front for the Raspberry Pi~5, which carries the AI HAT+ (Hailo accelerator) on its own cooler. It keeps the original head (camera, time-of-flight board, windows and hoods) on a new box for the computer alone (\texttt{CAD/Sensor\_Pod\_Front}; Figure~\ref{fig:mech-fpod}).
+
+\begin{itemize}
+\item \emph{Reused parts.} An identity audit compared volume, area, centre of mass, bounding box and face count. The head tray, camera retainer and rail plate match the original parts, and the head upper matches the sliced original once a drip lip that the original script adds, but the saved part lacks, is left out. So beds 08, 09 and 12 serve both pods.
+\item \emph{The stack.} The box was raised by 16\,mm to 153 by 117 by 56\,mm. It holds, from the bottom: the Raspberry Pi~5 on 10\,mm standoffs; the official cooler; the AI HAT+ on 16\,mm spacers; and the Hailo with an assumed 8\,mm heatsink. The time-of-flight jumpers plug onto the stacking pins above the HAT, and the camera ribbon drops through the HAT's slot (164\,mm path, leaving 36\,mm of the 200\,mm cable).
+\item \emph{Cooling.} The cooler blows out through low slots in one wall; slots higher in both side walls give air across the HAT and the Hailo. The lid has an exhaust grille under a hood (below).
+\item \emph{Fixing.} M2.5 by 16 screws from under the floor through the standoffs into the HAT's spacers. A 22\,mm gap lets a hex key reach the head's lower flange bolts with the computer fitted, which removes an assembly-order problem of the original pod.
+\end{itemize}
+
+The six audit findings were fixed: thin insert walls, a 0.32\,mm skin under the screw heads, two slivers, a short insert cap, thin drip-ledge tips and bosses that would print in mid-air. The assembly then measured:
+\begin{itemize}
+\item no interference;
+\item every fastener hole coaxial;
+\item every insert wall at least 2.0\,mm;
+\item the Hailo's heatsink 14.8\,mm from the lid, and the jumper loop 3.3\,mm from it;
+\item the hex keys clear of everything by 2.7\,mm.
+\end{itemize}
+A last change, moving two bosses that came within 0.28\,mm of a USB plug, was not re-audited, because the CAD program crashed twice during the full-assembly check. The spacer height, the heatsink and the cable length are datasheet values or estimates to be measured. The new parts print in about 20 hours from 250\,g of PLA: the box base without supports, the lid and hood, and one bed of rail plate, sunshade and port covers.
+
+\begin{figure}[htbp]
+\centering
+\subfigure[Assembly on a dummy bar: head, box and lid.]{\includegraphics[width=0.48\textwidth]{figures/cad/fpod_assembly_iso.png}}
+\subfigure[Side view with the walls hidden: computer, cooler, AI HAT+, Hailo heatsink, jumper loop and camera ribbon.]{\includegraphics[width=0.48\textwidth]{figures/cad/fpod_internals_side.png}}
+\subfigure[Box base and vented lid, rendered from the print files.]{\includegraphics[width=0.7\textwidth]{figures/cad/fpod_box_render.png}}
+\caption{Front sensor pod for the Raspberry Pi~5 and AI HAT+.}
+\label{fig:mech-fpod}
+\end{figure}
+
+\section{Ventilated lids}
+\label{sec:mech-vent}
+
+In the closed rear box the Raspberry Pi~4 reached 76.9\,\textdegree C (Section~\ref{sec:inv-power}): the box's only vents were in the floor and low in one wall, and nothing let warm air out at the top. Both pods' lids now have an exhaust grille over the computer, seven 4\,mm slots giving about 1,900\,mm$^2$ open. A separate hood stands 10\,mm above the grille, closed at the front and sides and open to the rear with a drip lip, so warm air leaves and rain and the head wind stay out (Figure~\ref{fig:mech-vent}).
+
+Four pins on the hood push into holes in the lid, so no screws are needed. Both parts print flat without supports: the rear lid in 3\,h 39\,min, the front lid in 3\,h 00\,min, and each hood in about 1\,h 25\,min. The lids were changed from the exported parts with a script (\texttt{CAD/Sensor\_Pod/vent\_rev/lid\_vent.py}), which checks that hood and lid do not overlap. The temperature in the vented boxes has not yet been measured.
+
+\begin{figure}[htbp]
+\centering
+\subfigure[Rear pod (Raspberry Pi~4 and telemetry unit).]{\includegraphics[width=\textwidth]{figures/cad/lid_vent_sections.png}}
+\subfigure[Front pod (Raspberry Pi~5 and AI HAT+).]{\includegraphics[width=\textwidth]{figures/cad/fpod_lid_vent_sections.png}}
+\caption{Ventilated lids, sections: lid (black) with the grille, hood (orange) open to the rear.}
+\label{fig:mech-vent}
+\end{figure}
+
 \section{Verification of the geometry}
 \label{sec:mech-verification}
 
