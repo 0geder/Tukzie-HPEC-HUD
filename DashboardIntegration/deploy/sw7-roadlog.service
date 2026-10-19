@@ -1,0 +1,10 @@
+[Unit]
+Description=SW-7 road-test recorder on the Pi 5 (front local, rear over the Ethernet cable)
+After=pi5-tof-bridge.service
+[Service]
+User=piadam
+ExecStart=/usr/bin/python3 /home/piadam/road_logger.py --background --pi4 10.20.0.1 --pi5 127.0.0.1 --out /home/piadam/roadtest
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

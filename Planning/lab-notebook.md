@@ -115,3 +115,13 @@ Tested results are marked as measured; anything assumed is marked as an estimate
   127 ms; rear ToF right 242 mm.
 - Ethernet: no carrier on either side again (the cable was unplugged or knocked loose).
 - Front ToF: left 697 mm, ahead 312 mm (reading normally). BMS 60 %, 74.58 V. Modem signal 17. Lines lost 9.7 %.
+
+### 17:15: road-test recorder moved onto the vehicle
+- The laptop recorder only works if the laptop rides along with its hotspot. The recorder now runs on the Raspberry Pi 5
+  as a service (sw7-roadlog, starts at boot): front sensors read locally (127.0.0.1), rear sensors and the ESP32 over the
+  Ethernet cable (10.20.0.1), twice a second, to /home/piadam/roadtest/<date>_roadtest.jsonl. Markers: lines appended to
+  /home/piadam/roadtest/roadtest_markers.txt.
+- First 12 s: front 24 of 24 polls, rear 0 of 11, because the Ethernet cable was unplugged. On the road the cable is the
+  only link to the rear unit, so it must be plugged in and tied down.
+- Timing caution: the Pi clock is set by the network; without internet on the road, a restart leaves it wrong. GNSS
+  time in the ESP32 record (once it has a fix) is the reference for aligning the logs.
