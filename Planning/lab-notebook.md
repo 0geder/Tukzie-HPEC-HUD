@@ -140,3 +140,8 @@ Tested results are marked as measured; anything assumed is marked as an estimate
   beeper through an optocoupler into a free ESP32 pin (best; touches the 72 V wiring, needs supervisor approval);
   (2) the IMUs' forward acceleration at moving off (firmware change); (3) front against rear camera scale change.
 - Report: Methodology, vehicle tests (recorder and state labelling) updated, commit 947e67d.
+
+### 17:40: camera case for the Pi 5's camera sliced
+- The Pi 5's front camera (OV5647) gets the same printed case as the Pi 4's: case bottom, case top and the 30 degree
+  corner mount from Projects/Pi Camera Mount. One bed, all flat on the bed with no supports needed: 1 h 27 min, 14 g.
+  Files: Desktop/Fourth Year/EEE4022S/3D Prints/pi5_camera/.
