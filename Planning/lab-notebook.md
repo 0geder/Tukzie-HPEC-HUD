@@ -101,3 +101,17 @@ Tested results are marked as measured; anything assumed is marked as an estimate
   side sensors on the vehicle).
 - ESP32: IMUs 200 Hz, no drops; BMS 60 %, 74.58 V, 0.0 A, 1.8 s old; modem signal 11 of 31 (weak at the vehicle's
   position); MQTT down; dashboard lines lost 222 of 3,544 (6.3 %).
+
+### About 17:00: restarts on the bench, from the Pi 5 power log
+- Both Pis had restarted again since 16:01: the Pi 5 was 5 minutes into a new boot, the Pi 4 about 52 minutes.
+- The Pi 5 power log (sw7-powerwatch, every 5 s, kept across restarts) shows four restarts since 14:28. In the last
+  reading before each one the supply was normal (4.95 to 5.08 V), the throttle flags clean (0x0) and the temperature
+  57 to 59 C, at load 2.8 to 5.0. The lowest supply in the two minutes before each was 4.89 to 4.97 V.
+- So the Pi 5 is not browning out slowly or overheating: power is lost abruptly within the 5 s between readings. Likely
+  causes: the USB-C plug or the supply's input working loose or being knocked during the mounting work, the source
+  cutting out, or the supply's overcurrent protection tripping on a short peak. The journal did not keep the earlier
+  boots (restarts within its 5-minute flush interval), so there is no kernel message either way.
+- Pi 4: 15 under-voltage messages this boot, flags 0x50000, 69.6 C; ESP32 still on its USB. Rear camera 14.5 frames/s,
+  127 ms; rear ToF right 242 mm.
+- Ethernet: no carrier on either side again (the cable was unplugged or knocked loose).
+- Front ToF: left 697 mm, ahead 312 mm (reading normally). BMS 60 %, 74.58 V. Modem signal 17. Lines lost 9.7 %.
