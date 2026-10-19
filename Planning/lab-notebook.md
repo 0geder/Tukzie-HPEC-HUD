@@ -151,3 +151,12 @@ Tested results are marked as measured; anything assumed is marked as an estimate
   no clash. Printed roof down: 8 h 25 min, 85 g. Opened in PrusaSlicer 2.9.6 and copied to the USB stick.
 - The Pi 5 camera case sliced at 17:40 was a misunderstanding of "camera bracket"; kept in 3D Prints/pi5_camera in case
   it is wanted.
+
+### 17:55: measurement gap for the single road test
+- Finding: the live DASH line carries one vibration number per second (vib, vib_dis); the full ride features exist only
+  in the ESP32's 10 s flash log, and the raw 200 Hz samples are not saved anywhere. A drive recorded as things stand
+  would not support RQ1 (feature repeatability) or RQ4 (spectral separation of powertrain and road).
+- Work started (agent, branch to be reviewed): firmware v0.7.5 with a raw 200 Hz stream of both IMUs on a separate
+  non-blocking path (drops counted, never blocking the IMU tasks), the full 1 s features and the forward acceleration in
+  each DASH line; the Pi 4 bridge saving the raw stream and the ESP32's other output to files; an analysis tool for
+  state labelling, spectra and repeatability. To be bench-tested (IMU timing unchanged) before flashing.
