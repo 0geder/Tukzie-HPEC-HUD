@@ -160,3 +160,10 @@ Tested results are marked as measured; anything assumed is marked as an estimate
   non-blocking path (drops counted, never blocking the IMU tasks), the full 1 s features and the forward acceleration in
   each DASH line; the Pi 4 bridge saving the raw stream and the ESP32's other output to files; an analysis tool for
   state labelling, spectra and repeatability. To be bench-tested (IMU timing unchanged) before flashing.
+
+### Drive start (v0.7.4 firmware; the raw-stream firmware not ready in time)
+- Pre-drive check: recorder on the Pi 5 active, all four sources 20 of 20 polls in 10 s, 20,559 records in the session
+  file so far; IMUs 200 Hz, no drops; BMS 59 %, 74.54 V; no GNSS fix yet; modem signal 17; Pi 5 up 1 h 5 min, flags
+  clean, Ethernet linked. Marker "drive session starting" written to the Pi 5 marker file.
+- Known limits of this drive: live ride features are one vibration number per second (full features in the ESP32's
+  10 s flash log); no raw 200 Hz IMU data unless a phone accelerometer is taped beside IMU 1; MQTT down; no gear signal.
