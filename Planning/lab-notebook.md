@@ -125,3 +125,8 @@ Tested results are marked as measured; anything assumed is marked as an estimate
   only link to the rear unit, so it must be plugged in and tied down.
 - Timing caution: the Pi clock is set by the network; without internet on the road, a restart leaves it wrong. GNSS
   time in the ESP32 record (once it has a fix) is the reference for aligning the logs.
+
+### 17:20: Ethernet re-connected, recorder complete
+- Cable link up at 1000 Mb/s, 0.25 ms round trip; rear bridge answers in 2 ms.
+- Recorder on the Pi 5, last 10 s: front, front alerts, rear and rear alerts each 20 of 20 polls. Rear sample: IMUs
+  200 Hz, BMS 60 %, 74.57 V, rear ToF right 222 mm. All four sources now record on the vehicle without the laptop.
