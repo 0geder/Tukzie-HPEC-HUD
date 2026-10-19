@@ -54,9 +54,9 @@ tag = time.strftime("%Y%m%d_%H%M%S") + f"_{a.cls}_{a.dist:g}m"
 try:
     raw = b""
     with urllib.request.urlopen(f"http://{a.pi}:8080/stream", timeout=3) as r:
-        while raw.count(b"ÿÙ") < 2 and len(raw) < 2_000_000:
+        while raw.count(b"\xff\xd9") < 2 and len(raw) < 2_000_000:
             raw += r.read(65536)
-    e = raw.rfind(b"ÿÙ"); s0 = raw.rfind(b"ÿØ", 0, e)
+    e = raw.rfind(b"\xff\xd9"); s0 = raw.rfind(b"\xff\xd8", 0, e)
     open(os.path.join(cal, tag + ".jpg"), "wb").write(raw[s0:e + 2])
     with urllib.request.urlopen(f"http://{a.pi}:8080/detections", timeout=2) as r:
         open(os.path.join(cal, tag + "_detections.json"), "wb").write(r.read())
