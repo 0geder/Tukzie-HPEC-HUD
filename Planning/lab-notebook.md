@@ -90,3 +90,14 @@ Tested results are marked as measured; anything assumed is marked as an estimate
 - Ethernet between the Pis: no carrier on either side (cable not connected or not seated).
 - SEN55: not on the Pi 4 bus.
 - For the report: first sustained BMS on the vehicle (R5), mounted-system check before the stationary tests.
+
+### 16:01: recheck on the vehicle
+- Ethernet between the Pis now linked: carrier on both sides; the Pi 5 reaches the rear bridge over the cable in 6 ms.
+- Raspberry Pi 5: up 37 min, no restart; supply 5.07 V now, lowest 4.90 V in the last 5 min (still marginal);
+  57.1 C; front camera 21.6 frames/s, 57 ms; front ToF clear (nothing within range); dashboard running.
+- Raspberry Pi 4: up 1 h 18 min, no restart, but under-voltage and throttling active at the moment of the check
+  (0x50005) and 16 under-voltage messages this boot; ESP32 still on its USB; 52.5 C; rear camera 14.5 frames/s,
+  151 ms (throttling raises the delay from about 120 ms). Rear ToF: left 75 mm, right 24 mm (objects close to the
+  side sensors on the vehicle).
+- ESP32: IMUs 200 Hz, no drops; BMS 60 %, 74.58 V, 0.0 A, 1.8 s old; modem signal 11 of 31 (weak at the vehicle's
+  position); MQTT down; dashboard lines lost 222 of 3,544 (6.3 %).
