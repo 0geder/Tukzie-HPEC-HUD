@@ -167,3 +167,8 @@ Tested results are marked as measured; anything assumed is marked as an estimate
   clean, Ethernet linked. Marker "drive session starting" written to the Pi 5 marker file.
 - Known limits of this drive: live ride features are one vibration number per second (full features in the ESP32's
   10 s flash log); no raw 200 Hz IMU data unless a phone accelerometer is taped beside IMU 1; MQTT down; no gear signal.
+
+### 18:35: run under way (reported by the student)
+- The student reported the run in progress at about 18:35. The Pis were out of reach of the laptop (no reply to ping or
+  ssh at 18:22 and 18:35), so the run was not watched live; it is recorded on the Pi 5 (sw7-roadlog). Run start and
+  end times are being written on the run sheet, to be turned into markers afterwards.
