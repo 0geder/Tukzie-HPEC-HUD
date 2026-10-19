@@ -130,3 +130,13 @@ Tested results are marked as measured; anything assumed is marked as an estimate
 - Cable link up at 1000 Mb/s, 0.25 ms round trip; rear bridge answers in 2 ms.
 - Recorder on the Pi 5, last 10 s: front, front alerts, rear and rear alerts each 20 of 20 polls. Rear sample: IMUs
   200 Hz, BMS 60 %, 74.57 V, rear ToF right 222 mm. All four sources now record on the vehicle without the laptop.
+
+### 17:30: how driving and reversing will be known
+- No signal in the system gives the gear or direction. The ESP32 record has GNSS speed and course and the vibration
+  features; GNSS course is the direction of motion, not the vehicle's heading, and is unreliable at reversing speeds.
+- Driving or parked: labelled afterwards from battery current (motor working), vibration (running or moving) and GNSS
+  speed (moving; separates driving from the motor running on stands). GNSS speed units still to confirm outdoors.
+- Reversing: from run markers and video for now. Options for a direct signal: (1) the trike's reverse switch or reverse
+  beeper through an optocoupler into a free ESP32 pin (best; touches the 72 V wiring, needs supervisor approval);
+  (2) the IMUs' forward acceleration at moving off (firmware change); (3) front against rear camera scale change.
+- Report: Methodology, vehicle tests (recorder and state labelling) updated, commit 947e67d.
