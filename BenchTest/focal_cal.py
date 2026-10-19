@@ -48,6 +48,21 @@ with open(out, "a", newline="") as fh:
     if new:
         wr.writeheader()
     wr.writerow(row)
+# proof: one camera frame (with the detector's boxes drawn on it) and the raw detections, saved per run
+cal = os.path.join(os.path.dirname(out), "calibration"); os.makedirs(cal, exist_ok=True)
+tag = time.strftime("%Y%m%d_%H%M%S") + f"_{a.cls}_{a.dist:g}m"
+try:
+    raw = b""
+    with urllib.request.urlopen(f"http://{a.pi}:8080/stream", timeout=3) as r:
+        while raw.count(b"ÿÙ") < 2 and len(raw) < 2_000_000:
+            raw += r.read(65536)
+    e = raw.rfind(b"ÿÙ"); s0 = raw.rfind(b"ÿØ", 0, e)
+    open(os.path.join(cal, tag + ".jpg"), "wb").write(raw[s0:e + 2])
+    with urllib.request.urlopen(f"http://{a.pi}:8080/detections", timeout=2) as r:
+        open(os.path.join(cal, tag + "_detections.json"), "wb").write(r.read())
+    print("proof saved:", os.path.join(cal, tag + ".jpg"))
+except Exception as ex:
+    print("could not save the proof frame:", ex)
 print(f"{a.dist} m: box {w:.0f} px (spread {row['box_px_spread']}), focal {f:.0f} px; "
       f"the detector (600 px) said {row['est_dist_at_600']} m")
 fs = [float(r["focal_px"]) for r in csv.DictReader(open(out)) if r["pi"] == a.pi]
