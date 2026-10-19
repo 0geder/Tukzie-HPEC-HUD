@@ -145,3 +145,9 @@ Tested results are marked as measured; anything assumed is marked as an estimate
 - The Pi 5's front camera (OV5647) gets the same printed case as the Pi 4's: case bottom, case top and the 30 degree
   corner mount from Projects/Pi Camera Mount. One bed, all flat on the bed with no supports needed: 1 h 27 min, 14 g.
   Files: Desktop/Fourth Year/EEE4022S/3D Prints/pi5_camera/.
+
+### 17:45: cover for the sensor board holder (head upper, bed 08)
+- The cover over the modified head tray is the original head upper (bed 08): checked earlier against the modified tray,
+  no clash. Printed roof down: 8 h 25 min, 85 g. Opened in PrusaSlicer 2.9.6 and copied to the USB stick.
+- The Pi 5 camera case sliced at 17:40 was a misunderstanding of "camera bracket"; kept in 3D Prints/pi5_camera in case
+  it is wanted.
