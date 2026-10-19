@@ -72,3 +72,21 @@ Tested results are marked as measured; anything assumed is marked as an estimate
 - Wiring options given: Pi 4 bus shared with the time-of-flight board (pins 2/4 for 5 V, a GND, pins 3/5 for SDA/SCL,
   Int.Sel to GND, pin 6 Boot 0 not connected) or the ESP32 (5V, GND, IO17, IO18). The Pi 4 option needs no firmware
   change. The VDD test pad was damaged while soldering; VDD to be taken from the connector's pin-1 leg.
+
+### 15:52: first check with everything mounted on the TUKZIE
+- Raspberry Pi 5 (front): up 28 min with no restart; dashboard, front camera and detector (22.0 frames/s, 93 ms),
+  ToF service and power logger running. Supply 5.00 V now, lowest 4.93 V in the last 5 minutes at load 4.2 (marginal;
+  the Pi 5 wants 5.1 V). 57.6 C, flags clean.
+- Front time-of-flight board: all three sensors answer at 0x30 to 0x32 but return nothing (8190, signal 0 to 21):
+  nothing within their 1.2 m range in front of the mounted vehicle, so the dashboard correctly shows no reading.
+  The service log showed I/O errors and a re-open about 30 minutes earlier (during mounting), since recovered.
+  Hand test on the vehicle still to do.
+- Raspberry Pi 4 (rear): up 1 h 8 min, no restart in that time, but 11 "Undervoltage detected" messages this boot;
+  the ESP32 is still on the Pi 4's own USB (through its internal hub). Rear camera 14.5 frames/s, 131 ms. Rear ToF
+  reading (left 42 mm, right 270 mm: parts of the vehicle or the mount close to the sensors; check their view). 62.8 C.
+- ESP32: both IMUs 200 Hz, no drops. BMS now reporting on the vehicle: 60 %, 74.58 V, 0.0 A, record 2.2 s old,
+  because the unit now sits near the pack (it did not reach the BMS from the bench). Dashboard lines lost: 191 of
+  3,208 (6.0 %). Modem signal not reported at the time; no GNSS fix (indoors).
+- Ethernet between the Pis: no carrier on either side (cable not connected or not seated).
+- SEN55: not on the Pi 4 bus.
+- For the report: first sustained BMS on the vehicle (R5), mounted-system check before the stationary tests.
