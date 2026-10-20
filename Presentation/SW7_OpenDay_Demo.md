@@ -37,7 +37,7 @@ renders.
 
 - One side says "Camera offline, retrying" or "sensors offline": the other side keeps working, which is itself the
   point ("a side that drops out shows as offline, never as zero"). Then restart the detector on the Pi that owns that
-  camera (`sudo systemctl restart hazard-detector`); it comes back within a few seconds.
+  camera (`sudo systemctl restart pi5-hazard-detector` on the Pi 5, `hazard-detector` on the Pi 4); it comes back within a few seconds.
 - Rear side offline and the front fine: check the Ethernet cable at both ends first (it came loose twice during
   mounting on 19 October), then that the Pi 4 is up.
 - No LTE (4G) indoors: the dashboard does not need it; its data comes over the cable. Say "the 4G is down in here, so
