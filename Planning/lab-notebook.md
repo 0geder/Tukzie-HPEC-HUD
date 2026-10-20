@@ -172,3 +172,28 @@ Tested results are marked as measured; anything assumed is marked as an estimate
 - The student reported the run in progress at about 18:35. The Pis were out of reach of the laptop (no reply to ping or
   ssh at 18:22 and 18:35), so the run was not watched live; it is recorded on the Pi 5 (sw7-roadlog). Run start and
   end times are being written on the run sheet, to be turned into markers afterwards.
+
+## 20 October 2026: road-test data check (drive of 19 October)
+
+Files copied from the Pis to BenchTest/logs/roadtest_2026-10-19/ (recordings, both alert logs, Pi 5 power log; not
+committed to git because of their size, kept on OneDrive).
+- Main recording 17:15:34 to 19:04:10 (108.6 min, 51,489 records, no damaged lines). The Pi 5 did not restart during
+  the drive (its restarts were at 19:04 and 19:10, after it); two short recordings follow from those restarts.
+- Driving, found from battery current and vibration: 16 active segments between 18:15 and 18:49, 19.5 min of motor
+  current or high vibration in total, plus short ones at 17:58 and 18:04 (possibly the stationary runs).
+- Coverage during the drive: front sensors and alerts throughout; rear and ESP32 throughout the drive (the only rear
+  gap, 409 s from 18:06:34, was before it).
+- Captured:
+  - IMUs: 200 Hz in all but 2 of 10,287 records, no drops (R1 on the vehicle).
+  - Battery under load: current up to 46.9 A (discharge, logged as negative), pack from 74.6 down to 72.8 V under load,
+    charge 60 to 58 % (R5).
+  - Vibration (one number per second): median 0.031 parked, 95th percentile 2.0, maximum 5.09 while driving.
+  - Front alerts 17:15 to 19:10: 1,342 (person 815, car 513, of which 261 car "approaching", plus 366 person
+    approaching); rear alerts: 741 (car 201, of which 36 approaching).
+- Not captured:
+  - GNSS fix: none in any record, so no position or speed for the whole drive (R4; speed dependence for RQ4; the
+    moving label must come from current and vibration instead).
+  - Raw 200 Hz IMU samples (not supported by v0.7.4); full 1 s ride features only in the ESP32 flash log (10 s
+    records), still to be read out.
+  - Run markers: only "drive session starting"; run times have to come from the run sheet or video.
+  - MQTT upload (down), so no sync latency.
