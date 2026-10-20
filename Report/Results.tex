@@ -26,7 +26,9 @@ Dashboard line added (v0.7.0) & 200\,Hz on both IMUs, 0 dropped \\ \hline
 \end{tabular}
 \end{table}
 
-\outstanding{acquisition rate, drops and gap distribution on the moving vehicle (road test, 14 October 2026).}
+On the first road session (19 October; Section~\ref{sec:field-test-design}) both IMUs held 200\,Hz in all but 2 of 10,287 one-second records over 108.6 minutes, which included about 19.5 minutes of driving, with no dropped samples. R1 is met on the vehicle for rate and loss.
+
+\outstanding{the gap distribution on the moving vehicle, which needs the raw sample stream (firmware v0.7.5).}
 
 \section{Calibration (R2)}
 
@@ -45,11 +47,15 @@ The feature self-test passed at every boot: RMS, peak-to-peak and crest factor o
 \label{fig:recorded-session}
 \end{figure}
 
+On the road session the per-second vibration value separated the states clearly: a median of 0.031 with the vehicle parked against a 95th percentile of 2.0 and a maximum of 5.09 while driving, the driving periods coinciding with battery current of up to 46.9\,A. The full 1\,s features were stored only in the unit's 10\,s log, no raw samples were kept, and the runs were not marked, so the per-run analysis below is outstanding.
+
 \outstanding{ride features, speed-normalised index and disagreement on the vehicle: stationary powertrain baseline at each motor setting, repeated traversals of the same road sections, and speed dependence (RQ1, RQ4).}
 
 \section{Position (R4)}
 
 With the corrected parser, the receiver reached a three-dimensional fix 105\,s after a cold start (51\,s in an earlier session), with 23 to 25 satellites and a horizontal dilution of precision of about 0.9 to 1.5. Over 104 fixes the position was a median of 2.7\,m from a phone's position, 95\% within 11.0\,m and at most 12.3\,m away. The phone has an error of a few metres itself, so this is a consistency check, not an absolute accuracy; against the criterion of 10\,m, the median and most fixes pass but the 95th percentile does not. The speed field read 0 to 5.8 while stationary; the manual gives knots, but the readings and their low-speed noise have not been checked against a known speed. The network position (v0.7.3) answered in about 0.7\,s with a reported accuracy of 550\,m.
+
+On the road session of 19 October the receiver reported no fix in any of 10,287 records, so no position or speed was recorded during the drive; the antenna's connection and placement on the vehicle are being checked. R4 is not met on the vehicle.
 
 \outstanding{time to first fix with assisted GNSS, and the speed field against a known speed on the vehicle.}
 
@@ -57,7 +63,9 @@ With the corrected parser, the receiver reached a three-dimensional fix 105\,s a
 
 After the checksum correction the unit stored 14 consecutive valid records on the vehicle over about 140\,s: 74.78\,V, 0.00\,A and 60\% state of charge (3.12\,V per cell for 24 cells), at $-88$ to $-93$\,dBm, after which the connection was lost. On 16 October, with the telemetry unit moved to within about 2\,m of the pack (Section~\ref{sec:two-sided}), the link held: 60\,\% state of charge, 74.67 to 74.68\,V and 0.0\,A with the vehicle off, each record 0.2 to 1.3\,s old. Before that the laptop had found the unit advertising as ``DB24SA01L24S150ABU'' at $-100$\,dBm, at the edge of reception, which explains the earlier drop-outs. The name gives a 24-cell pack and a 150\,A BMS; 74.7\,V at 60\,\% (3.11\,V per cell) fits lithium iron phosphate, about 60 to 88\,V over its range. With the system mounted on the vehicle on 19 October the link held throughout the session, at 60\,\% and 74.57 to 74.58\,V, with each record under 3\,s old. R5 is partly met: the link is sustained near the pack, but the voltage has not been compared with a meter and the current has not been seen under load.
 
-\outstanding{sustained BMS session on the vehicle with the voltage checked against a meter.}
+On the road session the link held throughout. The current reached 46.9\,A under load, the pack voltage fell from 74.6 to 72.8\,V while driving, and the state of charge from 60 to 58\,\%. R5 is met on the vehicle except for the meter check.
+
+\outstanding{the voltage checked against a meter.}
 
 \section{Hazard sensing (R6 to R8)}
 
@@ -104,6 +112,8 @@ Whole system & 14.6--14.7 & 55--58 / - & - & 51--52 / - & - & 118--122 / 146--14
 \end{table}
 
 The time-of-flight stand-ins answered and each responded to a fingertip in the right order (centre 267 to 300\,mm and right 24 to 38\,mm on the bench; left 8190, the code for no target), so the first part of R8 is met; their accuracy against a tape and the fusion validation (test C9) have not been run, so the rest of R8 is outstanding. The first live fused hazard shows the matching working and how far the uncalibrated camera distance can be wrong at close range. The fusion's sensor directions and the camera's focal length are still defaults.
+
+On the road session (17:15 to 19:10) the front detector raised 1,342 alerts: people 815 and cars 513, of which 261 car alerts were marked approaching. The rear detector raised 741: cars 201, 36 of them approaching. Whether each alert was correct has not been checked against video.
 
 \outstanding{fusion validation C9 (distance error against a tape at 0.5, 1.0 and 1.5\,m), focal-length calibration, the pothole model's held-out test score and a run on a road, and detection on the vehicle outdoors.}
 
@@ -166,6 +176,8 @@ SEN55 (planned) & 0.4 & 0.5 & Datasheet \\ \hline
 
 At about 20\,W the added electronics use 20\,Wh per hour, 160\,Wh over an eight-hour shift. Against a 7.2\,kWh pack, the figure the team's dashboard uses (not confirmed; the BMS's name gives 24 cells but not the capacity), that is 0.28\,\% of the pack per hour and 2.2\,\% per shift, and about 0.8\,\% of the motor's rated input of 2.5\,kW. The draw is small while driving but not when parked: left on, the full system would empty the same pack in about 15 days, so it must switch off with the vehicle, leaving at most the telemetry unit (about 1\,W) on. The converter must accept the pack's whole voltage range, about 60 to 88\,V for its 24 lithium iron phosphate cells (R5 above), and be rated to at least 100\,V for transients, and deliver at least 40\,W at 5\,V for the peaks, with a fuse of about 2\,A on its 72\,V input.
 
+On the road session the recorder on the Raspberry Pi~5 captured all four sources for 108.6 minutes without the laptop. The only gap in the rear data, 409\,s, fell before the drive, and the Raspberry Pi~5 did not restart while driving.
+
 \outstanding{full-system test on the vehicle over a defined route, with the telemetry unit on its own supply; inline current measurements of the display, the Raspberry Pi~4 and the telemetry unit to replace the estimates in Table~\ref{tab:power-budget}; the pack's capacity and chemistry from the vehicle team.}
 
 \section{Summary against the requirements}
@@ -178,11 +190,11 @@ At about 20\,W the added electronics use 20\,Wh per hour, 160\,Wh over an eight-
 \begin{tabular}{|p{0.8cm}|p{7.6cm}|p{5.4cm}|}
 \hline
 \textbf{ID} & \textbf{Result} & \textbf{Status} \\ \hline
-R1 & 200.0 to 200.5\,Hz, 0 dropped (260 and 94\,Hz filters); gaps over 10\,ms only at a flush, with catch-up samples & Met on bench; vehicle outstanding \\ \hline
+R1 & 200.0 to 200.5\,Hz, 0 dropped (260 and 94\,Hz filters); gaps over 10\,ms only at a flush, with catch-up samples & Met on bench and on the vehicle (rate, loss); gap distribution outstanding \\ \hline
 R2 & 9.80 to 9.81\,m/s\textsuperscript{2} after calibration; drifts with orientation & Met at calibration; mounted recalibration outstanding \\ \hline
 R3 & Self-tests pass; 149 of 149 windows fused & Met \\ \hline
-R4 & Median 2.7\,m, 95\% within 11.0\,m of the phone & Partly met \\ \hline
-R5 & 14 valid records; link intermittent; no meter check & Partly met \\ \hline
+R4 & Median 2.7\,m, 95\% within 11.0\,m of the phone; no fix on the road session & Partly met; not met on the vehicle \\ \hline
+R5 & Sustained on the vehicle: up to 46.9\,A, 74.6 to 72.8\,V under load; no meter check & Met on the vehicle except the meter check \\ \hline
 R6 & Median interval 500.06\,ms, range 499.72 to 500.41\,ms & Met \\ \hline
 R7 & 14.6\,frames/s with the whole system (19.5 alone); onset at the detector about 0.26\,s & Met at the detector (person class) \\ \hline
 R8 & Sensors answer; no tape check; fusion not validated & Partly met \\ \hline
