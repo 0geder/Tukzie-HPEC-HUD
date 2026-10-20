@@ -197,3 +197,7 @@ committed to git because of their size, kept on OneDrive).
     records), still to be read out.
   - Run markers: only "drive session starting"; run times have to come from the run sheet or video.
   - MQTT upload (down), so no sync latency.
+
+- Report updated with the first road session (commit 91f9598): Results R1, R4, R5, ride states, camera alerts on the
+  road and recorder coverage; Discussion (what the session supports and cannot yet answer); Methodology (session
+  run); Conclusions note; requirements table rows R1, R4 and R5.
