@@ -1,14 +1,18 @@
 // SW7 A1 portrait poster, in the style of the UCT poster template
 // (campus banner header, light-blue content panels, UCT crest).
+// Updated 20 Oct 2026 with the two-sided layout, the Pi 5 detector, the approaching-object warning,
+// the power budget and the first road session; numbers from the report.
 const pptxgen = require("pptxgenjs");
 const path = require("path");
 const A = (f) => path.join(__dirname, "assets", f);
+const R = (f) => path.join(__dirname, "..", "..", "Report", "figures", f);
 
 const C = {
   navy: "14305C", sky: "1565C0", panel: "E8F0FA", accent: "D4700C",
   text: "1B1F24", muted: "4A5566", white: "FFFFFF",
 };
 const FONT = "Calibri";
+const NB = " ";   // keeps a number and its unit on one line
 
 const W = 33.11, H = 46.81;            // A1 portrait, inches
 const M = 1.2, GAP = 0.9;              // outer margin, gap between columns/panels
@@ -47,108 +51,129 @@ function panel(n, title, x, y, h) {
     valign: "middle", isTextBox: true, margin: 0 });
   return { x: x + 0.7, y: y + 2.2, w: COLW - 1.4 };   // content box
 }
-function bullets(items, box, h, size = 32) {
+function bullets(items, box, h, size = 32, color = C.text) {
   s.addText(items.map((t, i) => ({ text: t, options: { bullet: { indent: 32 }, breakLine: i < items.length - 1, paraSpaceAfter: 14 } })), {
-    x: box.x, y: box.y, w: box.w, h, fontFace: FONT, fontSize: size, color: C.text, valign: "top", isTextBox: true, margin: 0,
+    x: box.x, y: box.y, w: box.w, h, fontFace: FONT, fontSize: size, color, valign: "top", isTextBox: true, margin: 0,
   });
 }
+function caption(t, x, y, w, h = 1.0) {
+  s.addText(t, { x, y, w, h, fontFace: FONT, fontSize: 24, italic: true, color: C.muted, valign: "top", isTextBox: true, margin: 0 });
+}
 
-const TOP = BANNER_H + 0.9;
+const TOP = BANNER_H + 0.9, BOTTOM = H - 3.1;
 
 // ================= left column =================
 // 1 Background
-let yL = TOP, h1 = 7.0;
+let yL = TOP, h1 = 6.6;
 let b = panel(1, "Background", XL, yL, h1);
 bullets([
   "Electric cargo trikes are a low-cost route to last-mile freight in African cities, but their ride and road conditions go unmeasured.",
-  "Head-down displays draw the driver's eyes off the road; single glances should stay under 2 s.",
-  "Aim: a low-cost unit that characterises the trike's ride at the edge and gives the driver only safety-relevant alerts.",
-], b, h1 - 2.5);
+  "Head-down displays draw the driver's eyes off the road; single glances should stay under 2" + NB + "s.",
+  "Aim: a low-cost unit that characterises the ride at the edge and gives the driver only safety-relevant alerts, each stage tested before the next.",
+], b, h1 - 2.4, 30);
 
-// 2 System
+// 2 System: two sides joined by Ethernet
 yL += h1 + GAP;
-const imgW = COLW - 1.4, imgH = imgW * 1349 / 1845;
-let h2 = 2.2 + imgH + 1.3;
-b = panel(2, "System", XL, yL, h2);
-s.addImage({ path: A("bench_labelled.png"), x: b.x, y: b.y, w: imgW, h: imgH });
-s.addText("Bench setup: ESP32-S3 telemetry unit with LTE modem, two IMUs, GNSS, BLE battery link and Hall counter; Raspberry Pi 4 with camera detector and three distance sensors, time-aligned by a sync-pulse wire; records stored in a central database on the Pi 5.", {
-  x: b.x, y: b.y + imgH + 0.15, w: b.w, h: 1.0, fontFace: FONT, fontSize: 24, italic: true, color: C.muted, isTextBox: true, margin: 0,
-});
+const h2 = 10.0;
+b = panel(2, "System: front and rear", XL, yL, h2);
+{
+  const cw = (b.w - 3.0) / 2, ch = 6.3, cy = b.y;
+  const side = (x, head, items) => {
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: cy, w: cw, h: ch, rectRadius: 0.2, fill: { color: C.white }, line: { color: C.sky, width: 3 } });
+    s.addText(head, { x: x + 0.35, y: cy + 0.25, w: cw - 0.7, h: 1.3, fontFace: FONT, fontSize: 30, bold: true, color: C.navy, valign: "top", isTextBox: true, margin: 0 });
+    bullets(items, { x: x + 0.35, y: cy + 1.65, w: cw - 0.7 }, ch - 1.8, 24);
+  };
+  side(b.x, "Front: Raspberry Pi 5,\nbehind the dashboard", [
+    "Front camera and object detector",
+    "Time-of-flight board and camera fusion",
+    "Dashboard on the 10.1" + NB + "in touchscreen",
+    "Road recorder for all four sources",
+  ]);
+  const xr = b.x + b.w - cw;
+  side(xr, "Rear: Raspberry Pi 4,\nbeside the battery", [
+    "Rear camera, detector and time-of-flight board",
+    "Telemetry unit: ESP32-S3 with LTE and GNSS",
+    "Two IMUs at 200" + NB + "Hz; battery over Bluetooth",
+    "Local log and LTE uplink to a database",
+  ]);
+  const lx = b.x + cw + 0.2, lw = xr - lx - 0.2, ly = cy + ch / 2;
+  s.addShape(pres.shapes.LINE, { x: lx, y: ly, w: lw, h: 0, line: { color: C.navy, width: 5, beginArrowType: "triangle", endArrowType: "triangle" } });
+  s.addText("Ethernet", { x: lx, y: ly - 0.95, w: lw, h: 0.7, fontFace: FONT, fontSize: 28, bold: true, color: C.navy, align: "center", isTextBox: true, margin: 0 });
+  s.addText("1000" + NB + "Mb/s\n0.22 to 0.25" + NB + "ms", { x: lx, y: ly + 0.25, w: lw, h: 1.2, fontFace: FONT, fontSize: 22, color: C.muted, align: "center", valign: "top", isTextBox: true, margin: 0 });
+  caption("Two sides since 15 October: the battery's Bluetooth did not reach the front, and the Pi 5 runs the detector more than twice as fast.",
+    b.x, cy + ch + 0.25, b.w, 1.1);
+}
 
-// 3 Approach: staged verification flow
+// 3 Hazard warnings on the dashboard
 yL += h2 + GAP;
-let h3 = H - 3.1 - yL;
-b = panel(3, "Approach", XL, yL, h3);
-const steps = [
-  "Bring up each interface on the target board",
-  "Acquire both IMUs at 200 Hz and calibrate them",
-  "Compute ride features and fuse the two IMUs",
-  "Log locally, publish over LTE, replay after an outage",
-  "Validate on the moving vehicle",
-];
-const stepH = 1.05, stepGap = 0.3;
-steps.forEach((t, i) => {
-  const y = b.y + i * (stepH + stepGap);
-  const last = i === steps.length - 1;
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: b.x, y, w: b.w, h: stepH, rectRadius: 0.2,
-    fill: { color: last ? C.white : C.white }, line: { color: last ? C.accent : C.sky, width: 3, dashType: last ? "dash" : "solid" } });
-  s.addText([{ text: `${i + 1}  `, options: { bold: true, color: last ? C.accent : C.sky } }, { text: t, options: { color: C.text } }], {
-    x: b.x + 0.4, y, w: b.w - 0.8, h: stepH, fontFace: FONT, fontSize: 30, valign: "middle", isTextBox: true, margin: 0 });
-});
-s.addText("Each stage is tested before the next is built on it. Stage 5: road test planned for 14 October.", {
-  x: b.x, y: b.y + steps.length * (stepH + stepGap) + 0.05, w: b.w, h: 0.9, fontFace: FONT, fontSize: 24, italic: true, color: C.muted, isTextBox: true, margin: 0,
-});
+const h3 = BOTTOM - yL;
+b = panel(3, "Hazard warnings on the dashboard", XL, yL, h3);
+{
+  const iw = (b.w - 0.5) / 2, ih = iw * 800 / 1280;
+  s.addImage({ path: R("ui/ui_dualcam_front.png"), x: b.x, y: b.y, w: iw, h: ih });
+  s.addImage({ path: R("ui/ui_dualcam_rear_approaching.png"), x: b.x + iw + 0.5, y: b.y, w: iw, h: ih });
+  caption("Front | Rear switch on the existing dashboard (test images).", b.x, b.y + ih + 0.15, iw, 0.9);
+  caption("Rear view mirrored; a car approaching at 1.6" + NB + "s.", b.x + iw + 0.5, b.y + ih + 0.15, iw, 0.9);
+  const by = b.y + ih + 1.25;
+  bullets([
+    "Detection on the Pi 5 beside the display: 51 to 54" + NB + "ms median from sensor readout at 19.2" + NB + "fps, against 118 to 122" + NB + "ms on the Pi 4 with the whole system.",
+    "Approaching objects: time to contact from the growth of the box, τ = w / (dw/dt), with no focal length or object size (Lee 1976). Warning under 4" + NB + "s, immediate under 2" + NB + "s.",
+    "Synthetic tests within 2" + NB + "%; not yet tested on a real approach.",
+    "Banner names the side and puts approaching objects first; live data only, frames never stored. Glance time not yet measured.",
+  ], { x: b.x, y: by, w: b.w }, yL + h3 - by - 0.4, 30);
+}
 
 // ================= right column =================
-// 4 Bench results
+// 4 Bench results: six tiles
 let yR = TOP;
-const chartW = COLW - 1.4, chartH = chartW * 888 / 2604;
-const statH = 3.05;
-let h4 = 2.2 + 2 * statH + 0.4 + 0.6 + chartH + 1.3;
+const statH = 2.85, statG = 0.35;
+const h4 = 2.2 + 3 * statH + 2 * statG + 0.5;
 b = panel(4, "Bench results", XR, yR, h4);
-const stats = [
-  ["200 Hz", "both IMUs, no samples dropped; 149 of 149 windows fused"],
-  ["120 ms", "median camera latency in the full system at 14.6 fps (detector alone: 102 ms)"],
-  ["2.7 m", "median GNSS error against a phone, 104 fixes"],
-  ["112 / 112", "records stored in the database across a 10-minute LTE outage"],
-];
-const statW = (b.w - 0.5) / 2;
-stats.forEach(([big, small], i) => {
-  const x = b.x + (i % 2) * (statW + 0.5), y = b.y + Math.floor(i / 2) * (statH + 0.4);
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: statW, h: statH, rectRadius: 0.2, fill: { color: C.white }, line: { color: C.white } });
-  s.addText(big, { x: x + 0.3, y: y + 0.2, w: statW - 0.6, h: 1.55, fontFace: FONT, fontSize: 66, bold: true, color: C.navy, isTextBox: true, margin: 0 });
-  s.addText(small, { x: x + 0.3, y: y + 1.75, w: statW - 0.6, h: 1.15, fontFace: FONT, fontSize: 26, color: C.muted, valign: "top", isTextBox: true, margin: 0 });
-});
-const cy = b.y + 2 * statH + 0.4 + 0.6;
-s.addImage({ path: A("vibration_chart.png"), x: b.x, y: cy, w: chartW, h: chartH });
-s.addText("Recorded 150 s bench session: board still, then disturbed by hand from about 75 s. The fused estimate (green) sits between the two sensors.", {
-  x: b.x, y: cy + chartH + 0.15, w: b.w, h: 1.0, fontFace: FONT, fontSize: 24, italic: true, color: C.muted, isTextBox: true, margin: 0,
-});
+{
+  const stats = [
+    ["200" + NB + "Hz", "both IMUs, no samples dropped; 149 of 149 windows fused"],
+    ["51 to 54" + NB + "ms", "median detection on the Pi 5 at 19.2 fps (Pi 4: about 120" + NB + "ms)"],
+    ["2.7" + NB + "m", "median GNSS error against a phone, 104 fixes"],
+    ["112 / 112", "records stored in the database across a 10-minute LTE outage"],
+    ["within 2" + NB + "%", "time to contact in 40 synthetic tests; 0.27" + NB + "ms per frame"],
+    ["about 20" + NB + "W", "power budget, 0.27" + NB + "A from the 72" + NB + "V pack; only the Pi 5 measured"],
+  ];
+  const statW = (b.w - 0.5) / 2;
+  stats.forEach(([big, small], i) => {
+    const x = b.x + (i % 2) * (statW + 0.5), y = b.y + Math.floor(i / 2) * (statH + statG);
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: statW, h: statH, rectRadius: 0.2, fill: { color: C.white }, line: { color: C.white } });
+    s.addText(big, { x: x + 0.3, y: y + 0.15, w: statW - 0.6, h: 1.35, fontFace: FONT, fontSize: 60, bold: true, color: C.navy, isTextBox: true, margin: 0, valign: "middle" });
+    s.addText(small, { x: x + 0.3, y: y + 1.55, w: statW - 0.6, h: 1.2, fontFace: FONT, fontSize: 24, color: C.muted, valign: "top", isTextBox: true, margin: 0 });
+  });
+}
 
 // 5 Faults found and fixed
 yR += h4 + GAP;
-let h5 = 9.8;
+const h5 = 8.0;
 b = panel(5, "Fault investigations", XR, yR, h5);
 bullets([
-  "Boot loop: flash asked for quad mode on a dual-mode chip; size, mode and table now set together.",
-  "GNSS reply layout not as assumed; the parser anchors on the hemisphere letter (2.7 m median).",
-  "Battery checksum summed one byte too many, so every frame failed by 3; fixed, 74.78 V read.",
-  "92% of logged records were invalid JSON (nan); read-back proved transfer intact; now null.",
-  "Pink image: no infrared-cut filter on the camera; NoIR tuning and saturation 1.8.",
-  "One stuck distance sensor froze all three; 0.5 s timeout, wiring re-seated.",
-  "Pi 4 reboots: power flags logged every 2 s showed the modem's current drawn through the Pi's USB; the unit needs its own supply.",
-  "Outage test: the ingest's broker session silently stopped delivery; made opt-in, records backfilled.",
-], b, h5 - 2.4, 25);
+  "Seven faults diagnosed as symptom, candidate causes, deciding test, cause and fix: a flash-mode boot loop, the GNSS reply layout, a battery checksum off by 3, invalid JSON, a pink camera image, a frozen distance sensor.",
+  "The one that mattered most: Pi 4 reboots. Power flags logged every 2" + NB + "s showed under-voltage 14" + NB + "s after the telemetry unit's modem came up on its USB port; moved off, no restarts in 4" + NB + "h.",
+  "It returned in the closed box (76.9" + NB + "°C, a brown-out restart): the unit needs its own supply, and the lids now have vents.",
+], b, h5 - 2.4, 28);
 
-// 6 Conclusions
+// 6 Road session and conclusions
 yR += h5 + GAP;
-let h6 = H - 3.1 - yR;
-b = panel(6, "Conclusions and next steps", XR, yR, h6);
+const h6 = BOTTOM - yR;
+b = panel(6, "First road session (19 Oct)", XR, yR, h6);
 bullets([
-  "Every subsystem runs together on the target hardware; hazards, navigation and destination search run on the existing dashboard (Pi 5).",
-  "Firmware v0.7.4: no record lost across a 10-minute outage. Pothole path built, off by default: too slow beside the detector on a Pi 4.",
-  "Next: road test (planned 14 Oct), recalibrate, end-to-end latency with GNSS time, RQ1, RQ3 and RQ4 on the move, glance time.",
-], b, h6 - 2.4, 26);
+  "Recorded on the vehicle for 108.6" + NB + "min, about 19.5" + NB + "min of driving, with no laptop on board.",
+  "Both IMUs held 200" + NB + "Hz with no drops (R1 met on the vehicle). Battery link held under load: up to 46.9" + NB + "A, 74.6 to 72.8" + NB + "V.",
+  "1,342 front and 741 rear camera alerts, not yet checked against video.",
+], b, 3.6, 30);
+const oy = b.y + 3.7;
+s.addText([
+  ["Open: ", "no GNSS fix (R4 not met on the vehicle); no raw samples or run markers, so RQ1 and RQ4 are not yet answered; glance time (RQ2) not measured."],
+  ["Next: ", "a second, shorter session with the raw stream and GNSS, the real approach test, and a separate supply for the telemetry unit."],
+].flatMap(([k, t], i, a) => [
+  { text: k, options: { bold: true, color: C.accent, bullet: { indent: 32 } } },
+  { text: t, options: { breakLine: i < a.length - 1, paraSpaceAfter: 14 } },
+]), { x: b.x, y: oy, w: b.w, h: yR + h6 - oy - 0.4, fontFace: FONT, fontSize: 30, color: C.text, valign: "top", isTextBox: true, margin: 0 });
 
 // ---- footer ----
 s.addImage({ path: A("uct_logo.png"), x: M, y: H - 2.75, w: 2.3, h: 2.34 });
