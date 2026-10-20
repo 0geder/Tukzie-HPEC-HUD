@@ -4,272 +4,303 @@ Word-for-word talk for the 16 to 17 November presentation, slide by slide. The f
 speaker notes in SW7_Final_Presentation.pptx (and SW7_Talking_Points.md, generated from build_deck.js). If you change
 a sentence here, change it in build_deck.js too, or the two drift apart.
 
-Length: 1,349 words. At about 140 words a minute that is 9 minutes 37 seconds of speaking. Slide changes and short
-pauses add a few seconds each, so expect to finish close to 9:50 at a calm pace. Under 10 minutes is the rule. If you
-are behind, use the 30-second cuts below; each cut saves 10 to 30 seconds.
+Updated 20 October 2026 with the results since 11 October: the two-sided layout, detection on the Pi 5, the
+approaching-object warning, the enclosures and power budget, and the first road session (19 October). The Approach
+slide was folded into the Firmware slide (one line), and the bench-photo slide was replaced by the two-sided system.
 
-Checkpoints: be on slide 7 by 4:10, on slide 10 by 7:05, on slide 12 by 9:00. If you reach slide 10 later than
-7:20, use the cuts for slides 10 and 11.
+Length: 1,275 words over 14 slides. At about 140 words a minute that is 9 minutes 08 seconds of
+speaking. Fourteen slide changes and short pauses add about 25 seconds, so expect to finish near 9:35 at a calm pace.
+Under 10 minutes is the rule. If you are behind, use the cuts below; each saves 10 to 30 seconds.
 
-How to read it: say each number slowly and once. Pause for a breath after each slide title. Where the script says
-"here is one in full" or "the main new result", slow down; those are the parts the examiners will remember.
+Checkpoints: be on slide 6 by 3:00, on slide 10 by 5:55, on slide 13 by 8:00. If you reach slide 10 later than
+6:15, use the cuts for slides 10 to 13.
+
+How to read it: say each number slowly and once. Pause for a breath after each slide title. Slow down on slide 7
+(the power fault) and slide 13 (the road session); those are the parts the examiners will remember.
 
 Status words used on the slides: tested (measured on the hardware), tested offscreen (automated tests without the
-real touchscreen or vehicle), off by default or in progress (built, no result to claim).
+real touchscreen or vehicle), synthetic (tested on generated data only), checked in CAD (geometry only, not printed),
+untested or open (built, no result to claim).
 
 | Slide | Title | Words | Target | Running total |
 |---|---|---|---|---|
-| 1 | Title | 67 | 0:29 | 0:29 |
-| 2 | Why this matters | 92 | 0:39 | 1:08 |
-| 3 | Aim and research questions | 120 | 0:51 | 1:59 |
-| 4 | The system on the bench | 107 | 0:46 | 2:45 |
-| 5 | Firmware | 114 | 0:49 | 3:34 |
-| 6 | Approach | 77 | 0:33 | 4:07 |
-| 7 | 200 Hz acquisition and fusion | 128 | 0:55 | 5:02 |
-| 8 | Seven fault investigations | 141 | 1:00 | 6:02 |
-| 9 | Timing, position, outage test | 141 | 1:00 | 7:02 |
-| 10 | Camera and distance sensing | 139 | 1:00 | 8:02 |
-| 11 | Dashboard | 131 | 0:56 | 8:58 |
-| 12 | Conclusions | 92 | 0:39 | 9:37 |
+| 1 | Title | 56 | 0:24 | 0:24 |
+| 2 | Why this matters | 78 | 0:33 | 0:57 |
+| 3 | Aim and research questions | 93 | 0:40 | 1:37 |
+| 4 | The system: front and rear, joined by one cable | 104 | 0:45 | 2:22 |
+| 5 | Firmware: deterministic acquisition first | 83 | 0:36 | 2:58 |
+| 6 | Result: 200 Hz acquisition and dual-IMU fusion | 89 | 0:38 | 3:36 |
+| 7 | Seven fault investigations: symptom, test, cause, fix | 109 | 0:47 | 4:23 |
+| 8 | Result: timing, position, and no data lost in an outage | 91 | 0:39 | 5:02 |
+| 9 | Hazard detection: twice as fast at the front | 98 | 0:42 | 5:44 |
+| 10 | Approaching objects: time to contact from box growth | 102 | 0:44 | 6:28 |
+| 11 | Both cameras on the existing dashboard | 89 | 0:38 | 7:06 |
+| 12 | On the vehicle: enclosures, heat and power | 88 | 0:38 | 7:44 |
+| 13 | First road session, 19 October | 114 | 0:49 | 8:33 |
+| 14 | Conclusions and next steps | 81 | 0:35 | 9:08 |
 
 ---
 
-## Slide 1: Title (0:29, running 0:29)
+## Slide 1: Title (0:24, running 0:24)
 
 Key number: 72 volt trike.
 
 Script:
-Good morning. I'm Samson Okuthe, and my project is SW-7, supervised by Associate Professor Simon Winberg with
-Sampath Jayalath as co-supervisor. It is part of TUKZIE, a 72 volt electric cargo trike for last-mile freight. I
-built its on-board electronics: a telemetry unit that measures how the trike rides and sends the data to a central
-database, and safety alerts on the dashboard the trike already has.
+Good morning. I'm Samson Okuthe, and my project is SW-7, supervised by Associate Professor Simon Winberg with Sampath
+Jayalath. It is part of TUKZIE, a 72 volt electric cargo trike for last-mile freight. I built its on-board
+electronics: a telemetry unit that measures how the trike rides, and safety alerts on the dashboard it already has.
 
 If short on time (about 20 s):
 Good morning. I'm Samson Okuthe, project SW-7, supervised by Associate Professor Simon Winberg. I built the on-board
-electronics for TUKZIE, a 72 volt electric cargo trike: a telemetry unit that measures the ride and sends it to a
-central database, and safety alerts on the trike's existing dashboard.
+electronics for TUKZIE, a 72 volt electric cargo trike: ride telemetry, and safety alerts on its existing dashboard.
 
 ---
 
-## Slide 2: Why this matters (0:39, running 1:08)
+## Slide 2: Why this matters (0:33, running 0:57)
 
 Key number: 2 seconds (longest single glance, NHTSA).
 
 Script:
-First, electric trikes make economic sense for freight in African cities. On delivery routes studied in Dar es
-Salaam, an electric cargo tricycle cut the operating cost per kilometre by 45.5 percent against a motorcycle, and by
-up to 86 percent against a light car. Second, anything that takes the driver's eyes off the road is a risk. NHTSA
-guidance limits a single glance to two seconds. So the open problem is to combine edge telemetry with short,
-safety-only driver information on a low-cost trike, and to measure whether each part works.
+Electric trikes make economic sense for freight in African cities: on delivery routes in Dar es Salaam, an electric
+cargo tricycle cut the operating cost per kilometre by 45.5 percent against a motorcycle. But anything that takes the
+driver's eyes off the road is a risk; NHTSA guidance limits a single glance to two seconds. So the problem is to
+combine edge telemetry with short, safety-only alerts on a low-cost trike, and to measure whether each part works.
 
-If short on time (30 s):
-Electric cargo trikes cut operating cost per kilometre by 45.5 percent against a motorcycle on routes in Dar es
-Salaam. But anything that takes the driver's eyes off the road is a risk: NHTSA allows two seconds per glance. The
-problem is to combine edge telemetry with short, safety-only driver information on a low-cost trike, and to measure
-each part.
+If short on time (about 25 s):
+Electric cargo trikes cut operating cost per kilometre by 45.5 percent against a motorcycle in Dar es Salaam. But
+NHTSA allows two seconds per glance. The problem: edge telemetry plus safety-only alerts, each part measured.
 
 ---
 
-## Slide 3: Aim and research questions (0:51, running 1:59)
+## Slide 3: Aim and research questions (0:40, running 1:37)
 
-Key number: four research questions; only RQ3's loss and recovery is fully tested.
+Key number: Only RQ3's loss and recovery is fully tested; RQ1 held its rate on the road.
 
 Script:
-These are my four research questions, and where each one honestly stands. RQ1 asks how accurately and repeatably a
-low-cost unit can characterise the trike's ride. The instrument is verified on the bench; repeatability on the
-vehicle is not measured yet. RQ2 asks how to show safety alerts on the existing dashboard with the least
-distraction. It moved from a head-up display to that dashboard with my supervisor's agreement, because a second
-screen adds distraction. Glance time is not measured yet. RQ3 asks about latency, data loss and recovery. Loss and
-recovery now pass a ten-minute outage test; end-to-end latency still needs GNSS time outdoors. RQ4, separating road
-from powertrain vibration, has passed self-tests only, because it needs road data.
+Four research questions, and where each honestly stands. RQ1, how accurately and repeatably a low-cost unit
+characterises the ride: the instrument is verified, and on the first road session it held its rate, but repeatability
+is not measured yet. RQ2, alerts on the existing dashboard with the least distraction: this replaced the head-up
+display with my supervisor's agreement. It is built; glance time is not measured. RQ3, latency, loss and recovery:
+loss and recovery pass a ten-minute outage test; latency needs GNSS time. RQ4, road against powertrain vibration,
+needs the second road session.
 
-If short on time (30 s):
-Four research questions. RQ1, ride characterisation: the instrument is verified, repeatability on the vehicle is
-not. RQ2, alerts on the existing dashboard rather than a head-up display, agreed with my supervisor: built, glance
-time not measured. RQ3: loss and recovery pass a ten-minute outage test, latency is still open. RQ4: self-tests only,
-it needs road data.
+If short on time (about 30 s):
+Four questions. RQ1: the instrument is verified and held its rate on the road; repeatability is not measured. RQ2:
+built on the existing dashboard; glance time not measured. RQ3: loss and recovery pass; latency open. RQ4 needs the
+second road session.
 
 ---
 
-## Slide 4: The system on the bench (0:46, running 2:45)
+## Slide 4: The system: front and rear, joined by one cable (0:45, running 2:22)
 
-Key number: 200 Hz on each of two IMUs.
+Key number: Ethernet 1000 Mb/s, 0.22 to 0.25 ms round trip.
 
 Script:
-This is the system on the bench. The telemetry unit is an ESP32-S3 with a built-in LTE modem that also gives GNSS.
-It samples two MPU6050 IMUs at 200 hertz each, reads the battery over Bluetooth, and has a hardware counter for the
-motor's Hall sensor. Every record goes to a local log and over LTE to a central database on the team's Pi 5. A
-Raspberry Pi 4 runs the camera detector and three time-of-flight distance sensors. One wire links the boards: the
-ESP32 pulses it every half second and the Pi logs each edge, so camera and IMU data can be lined up in time.
+Since the fifteenth of October the system has two sides, joined by one Ethernet cable. At the front, a Raspberry Pi 5
+behind the dashboard runs its own camera, the detector, a time-of-flight board and the fusion, so a front alert never
+crosses the network. At the rear, beside the battery, the Pi 4 runs the rear camera and sensors and carries the
+telemetry unit: an ESP32-S3 with LTE and GNSS, two IMUs at 200 hertz and the battery link. Two findings drove this:
+the battery's Bluetooth did not reach the front, and the Pi 5 runs the detector more than twice as fast.
 
-If short on time (30 s):
-The telemetry unit is an ESP32-S3 with LTE and GNSS. It samples two IMUs at 200 hertz, reads the battery over
-Bluetooth, logs locally and sends every record to a database on the team's Pi 5. A Pi 4 runs the camera and three
-distance sensors, and one sync wire lines up camera and IMU time.
+If short on time (about 30 s):
+Two sides joined by Ethernet. Front: the Pi 5 behind the dashboard with its own camera, detector and distance sensors.
+Rear: the Pi 4 beside the battery with the rear camera and the telemetry unit. The battery's Bluetooth did not reach
+the front, and the Pi 5 is twice as fast.
 
 ---
 
-## Slide 5: Firmware (0:49, running 3:34)
+## Slide 5: Firmware: deterministic acquisition first (0:36, running 2:58)
 
-Key number: 5 ms fixed period per IMU task (and 94 Hz filter in v0.7.4).
+Key number: 5 ms fixed period per IMU task; 94 Hz filter in v0.7.4.
 
 Script:
-The firmware runs on FreeRTOS across the two cores. Core 1 holds the timing-critical work: one task per IMU at the
-highest priority, each on a fixed 5 millisecond period. They never print or block: each sample is time-stamped and
-pushed into a bounded queue, and if it is full the sample is dropped and counted. Core 0 does the blocking work: the
-modem, GNSS, MQTT and the flash log, in one task because the modem's serial line has no lock. Version 0.7.4, flashed
-in October, gives every record a sequence number, replays the backlog after an outage, and moves the IMU filter from
-260 to 94 hertz, against aliasing at 200 hertz sampling.
+The firmware runs on FreeRTOS across two cores. Core 1 holds one task per IMU at the highest priority, on a fixed 5
+millisecond period. They never block: each sample is time-stamped into a bounded queue, and if it is full the sample
+is dropped and counted. Core 0 does the modem, GNSS, MQTT and the flash log, in one task because the modem's serial
+line has no lock. Version 0.7.4 adds sequence numbers, backlog replay and a 94 hertz filter against aliasing.
 
-If short on time (30 s):
-Core 1 runs one task per IMU at top priority on a fixed 5 millisecond period; they never block, and a full queue
-drops and counts a sample. Core 0 does the modem, MQTT and the log. Version 0.7.4 adds sequence numbers and backlog
-replay, and moves the IMU filter to 94 hertz against aliasing.
+If short on time (about 25 s):
+Core 1 runs one task per IMU on a fixed 5 millisecond period; they never block, and a full queue drops and counts a
+sample. Core 0 does the modem and the log. Version 0.7.4 adds sequence numbers, replay and a 94 hertz filter.
 
 ---
 
-## Slide 6: Approach (0:33, running 4:07)
-
-Key number: 5 stages; stages 1 to 4 done on the bench.
-
-Script:
-My method was staged verification. Each interface was brought up alone on the real board, against a pass criterion
-written before the test. Then both IMUs at 200 hertz, calibrated; then the ride features and fusion, each
-self-tested at boot; then the log, the LTE publish and the replay to the database. The last stage, the moving
-vehicle, is drawn dashed. This order is why the faults I'll show next could each be traced to one change.
-
-If short on time (20 s):
-Staged verification: each stage tested against a pass criterion written in advance before the next was built on it.
-Four stages are done on the bench; the vehicle is the fifth. That is why each fault could be traced to one change.
-
----
-
-## Slide 7: 200 Hz acquisition and dual-IMU fusion (0:55, running 5:02)
+## Slide 6: Result: 200 Hz acquisition and dual-IMU fusion (0:38, running 3:36)
 
 Key number: 149 of 149 windows fused, under 1 ms skew.
 
 Script:
-First results. Both IMUs run at 200 hertz with no dropped samples, counted, not assumed. Flash writes cause gaps of
-33 to 40 milliseconds, now once a minute, and the queue holds the samples through each one. Uncalibrated, the two
-accelerometers read about 8 percent apart in an earlier session. A factor per sensor against gravity brings both to
-9.80 or 9.81 at calibration, but it only holds in that orientation, so it will be redone once mounted. With equal
-noise, inverse-variance fusion reduces to the mean. Windows are paired only if they end within half a window, the
-disagreement is reported, and if one sensor goes silent the other takes over. In a 150 second session all 149
-windows were fused with under a millisecond of skew.
+Both IMUs run at 200 hertz with no dropped samples, counted, not assumed. Flash writes cause one gap of under 45
+milliseconds a minute, and the queue holds the samples through it. A gravity factor per sensor brings both to 9.80 or
+9.81, but only in that orientation, so it is redone once mounted. Fusion is an equal-weight mean; windows pair only if
+they end within half a window, and the disagreement is reported. In a 150 second session all 149 windows fused with
+under a millisecond of skew.
 
-If short on time (30 s):
-Both IMUs run at 200 hertz with no dropped samples; flash writes cause short gaps, now once a minute. A gravity
-calibration brings both sensors to 9.8, but only in that orientation, so it is redone once mounted. Fusion is an
-equal-weight mean with the disagreement reported: 149 of 149 windows fused, under a millisecond of skew.
+If short on time (about 25 s):
+Both IMUs at 200 hertz, no dropped samples; one flash gap a minute. Calibration brings both to 9.8, but only in that
+orientation. Fusion: 149 of 149 windows, under a millisecond of skew.
 
-Careful: do not say "8 percent reduced to noise". The 8 percent came from an earlier session than the calibration.
+Careful: Do not say "8 percent reduced to noise". The 8 percent came from an earlier session than the calibration.
 
 ---
 
-## Slide 8: Seven fault investigations (1:00, running 6:02)
+## Slide 7: Seven fault investigations: symptom, test, cause, fix (0:47, running 4:23)
 
-Key number: under-voltage 14 s after the modem came up; 3 restarts in 20 minutes, then none in 4 hours.
+Key number: Under-voltage 14 s after the modem came up; none in 4 h once moved; 76.9 C in the closed box.
 
 Script:
-The report works through seven faults that needed a real diagnosis: symptom, candidate causes, deciding test, and
-fix. Here is one in full. The Raspberry Pi 4 kept throttling and rebooting. It could have been its own supply, the
-distance-sensor board, the telemetry unit on its USB port, or heat. A logger recorded the power flags every two
-seconds. With nothing attached, the flags were clear. Fourteen seconds after the telemetry unit was plugged in, when
-its modem came up, under-voltage began. With the unit on the Pi, there were three restarts in twenty minutes; moved
-off the Pi, none in four hours. The others follow the same pattern, from a GNSS reply in an unexpected layout to a
-battery checksum off by exactly three. The outage test found an eighth: a broker setting that silently stopped
-delivery to the database.
+Because each stage was tested before the next, every fault could be traced to one change. Seven needed a real
+diagnosis; here is the one that mattered most. The Pi 4 kept throttling and rebooting. A logger recorded its power
+flags every two seconds: clear with nothing attached, then under-voltage fourteen seconds after the telemetry unit's
+modem came up on its USB port. Moved off, no restarts in four hours. It came back in the closed box: 76.9 degrees and
+a brown-out restart. So the unit needs its own supply, and the lids gained vents. The Pi 5's restarts while mounting
+were different: abrupt power loss, not a brown-out.
 
-If short on time (30 s):
-Seven faults needed a real diagnosis. One example: the Pi 4 kept rebooting. Logging its power flags every two
-seconds showed under-voltage starting 14 seconds after the telemetry unit's modem came up on its USB port. Moved off
-the Pi, no restarts in four hours. The others, from GNSS to the battery checksum, were found and fixed the same way.
+If short on time (about 35 s):
+Seven faults needed a real diagnosis. The key one: the Pi 4 rebooted because the telemetry unit's modem on its USB
+port pulled its supply down, found by logging power flags every two seconds. It came back in the closed box, so the
+unit needs its own supply and the lids gained vents.
+
+Careful: The Pi 5 restarts on 19 October were not a brown-out: its logger showed normal supply, flags and temperature just
+before each one. Say "abrupt power loss", not "under-voltage".
 
 ---
 
-## Slide 9: Timing, position, and no data lost in an outage (1:00, running 7:02)
+## Slide 8: Result: timing, position, and no data lost in an outage (0:39, running 5:02)
 
 Key number: 112 of 112 records stored after a 10-minute outage.
 
 Script:
-Timing first: over 121 sync edges the median interval was 500.06 milliseconds with a spread under 0.7, so camera and
-IMU clocks line up precisely. Position: on a rooftop, 104 fixes were a median of 2.7 metres from a phone, and indoors
-the modem gives a network position stated to 550 metres. The main new result is the outage test. With version 0.7.4
-I switched the radio off for ten minutes. The unit built up 60 records, reconnected 5.2 seconds after the radio came
-back, and cleared the backlog in about 40 seconds. The database on the Pi 5 holds 112 of 112 records, and 111 of 111
-against the unit's own log, so nothing was lost. Two limits: the public test broker does not queue, so reading the
-log back is the safety net, and latency needs GNSS time outdoors.
+The sync wire gives a median interval of 500.06 milliseconds over 121 edges, with under 0.7 of spread, so camera and
+IMU clocks line up. On a rooftop, GNSS was a median 2.7 metres from a phone. The outage test: I switched the radio off
+for ten minutes. The unit reconnected 5.2 seconds after it came back and cleared 60 records in about 40 seconds; the
+database holds 112 of 112. The public test broker does not queue, so the log read-back is the safety net, and latency
+needs GNSS time.
 
-If short on time (30 s):
-The sync wire gives a 500.06 millisecond interval with under 0.7 of spread, and GNSS is 2.7 metres from a phone.
-The new result: I switched the radio off for ten minutes. The unit reconnected in 5.2 seconds, cleared 60 records in
-about 40, and the database holds 112 of 112. Latency still needs GNSS time outdoors.
+If short on time (about 30 s):
+Sync wire: 500.06 milliseconds, under 0.7 of spread. GNSS: 2.7 metres from a phone on a rooftop. Radio off for ten
+minutes: reconnected in 5.2 seconds, 112 of 112 records in the database. Latency still needs GNSS time.
 
 ---
 
-## Slide 10: Camera hazard detection and distance sensing (1:00, running 8:02)
+## Slide 9: Hazard detection: twice as fast at the front (0:42, running 5:44)
 
-Key number: about 120 ms at 14.6 fps in the full system (102 ms at 19.5 fps detector alone).
+Key number: 51 to 54 ms on the Pi 5 against 118 to 122 ms on the Pi 4.
 
 Script:
-The camera's role grew, on supervisor direction, from a visual record to hazard awareness. I designed and 3D printed
-this casing. The live detector is a pretrained 8-bit SSD-MobileNet. On its own it ran at 19.5 frames per second, 102
-milliseconds from sensor to result. With everything else running on a healthy Pi 4 it is 14.6 frames per second and
-about 120 milliseconds, and that is the figure for the system. An alert needs three frames to raise and five empty
-frames to clear, and no frame is stored. COCO has no potholes, so I trained my own model: 0.71 mAP at 50 on
-validation tiles. On the Pi it finds the pothole in a test image at confidence 0.63, but only one run every four
-seconds fits beside the main detector, so it is off by default.
+The detector is a pretrained 8-bit SSD-MobileNet. On the Pi 4 with the whole system running it takes 118 to 122
+milliseconds from sensor readout to result, at 14.6 frames per second. On the Pi 5 beside the dashboard it is 51 to 54
+milliseconds at 19.2 frames per second, with no throttling. At 30 kilometres an hour that is about 0.6 metres less
+travel before an alert. An alert needs three frames to raise and five to clear, and no frame is ever stored. My
+pothole model works on a test image but is off by default.
 
-If short on time (30 s):
-The detector is a pretrained SSD-MobileNet: about 120 milliseconds at 14.6 frames per second with the full system
-running. Alerts need three frames to raise and five to clear, and no frame is stored. My pothole model works on a
-test image, but only one run every four seconds fits beside the main detector, so it is off by default.
+If short on time (about 30 s):
+The same detector takes about 120 milliseconds on the Pi 4 with the whole system, and 51 to 54 on the Pi 5 beside the
+dashboard. Three frames to raise, five to clear, no frame stored. The pothole model is off by default.
 
-Careful: never say "alerts in 0.5 seconds" as alert latency. That was the time after opening the page with a person
-already in view.
+Careful: Never say "alerts in 0.5 seconds" as alert latency. That was the time after opening the page with a person already in
+view. The screen-side delay is not measured.
 
 ---
 
-## Slide 11: Hazard alerts and navigation on the existing dashboard (0:56, running 8:58)
+## Slide 10: Approaching objects: time to contact from box growth (0:44, running 6:28)
 
-Key number: offline search matches in under 20 ms; Photon 1.1 to 1.4 s on the Pi 5.
+Key number: Within 2 percent in 40 synthetic tests; 0.27 ms per frame.
 
 Script:
-This is where RQ2 lands: my pages on the dashboard the team already runs, the default at boot on their Pi 5. It
-shows only real values, with a chip that always reads LIVE, REPLAY, NO DATA or SIMULATED. On the left, the Sensors
-page shows the distance gauges and fused hazards. An immediate hazard now shows as a red pill in the status bar, so
-it no longer covers the page. In the middle is navigation with spoken directions, in a simulated drive that is
-clearly marked. On the right is the new destination search: offline matches in under 20 milliseconds, and online
-suggestions in just over a second on the Pi. Pages change with a two-finger swipe. These are tested offscreen; glance
-time on the vehicle is still open.
+Distance bands say how near an object is, not whether it is coming closer. For an object closing at constant speed,
+the inverse of its box width falls in a straight line to zero at contact. So time to contact is the width over its
+rate of growth, after Lee in 1976, and it needs no focal length or object size. I fit that line robustly over the last
+0.6 seconds, and warn below 4 seconds, immediate below 2. In 40 synthetic tests it is within 2 percent, at 0.27
+milliseconds a frame. It has not been tested on a real approach.
 
-If short on time (30 s):
-My pages run on the team's dashboard, the default at boot on their Pi 5, showing only real values with a LIVE or
-SIMULATED chip. Sensors and hazards on the left, navigation with spoken directions in the middle, and the new
-destination search on the right. Tested offscreen; glance time on the vehicle is still open.
+If short on time (about 30 s):
+Time to contact is the box width over its rate of growth, so it needs no calibration. Warning below 4 seconds,
+immediate below 2. Synthetic tests within 2 percent; not yet tested on a real approach.
+
+Careful: Do not claim the 261 road alerts marked approaching were correct; they have not been checked against video.
 
 ---
 
-## Slide 12: Conclusions and next steps (0:39, running 9:37)
+## Slide 11: Both cameras on the existing dashboard (0:38, running 7:06)
 
-Key number: nothing lost across a 10-minute outage.
+Key number: One page, Front | Rear switch; rear mirrored.
 
 Script:
-To conclude. Every subsystem runs together on the target hardware: two IMUs at 200 hertz, calibrated and fused;
-GNSS within about 3 metres; the battery over Bluetooth; a full local log; and now a central database that lost
-nothing across a ten-minute outage. Camera detection takes about 120 milliseconds in the full system, and hazards,
-navigation and search run on the existing dashboard. What remains is the vehicle: end-to-end latency with GNSS time,
-repeatability for RQ1, road data for RQ4, and glance time for RQ2. Thank you, I'm happy to take questions.
+This is where RQ2 lands, on the dashboard the team already runs. The Surroundings page now has a Front and Rear
+switch, which moves the picture, alerts, distances and hazards together, each from that side's own unit. The rear view
+is mirrored like a reversing camera. The banner shows warnings from both sides, names the side, and puts an
+approaching object first. It shows only live data, never a simulated value. It is tested offscreen and live on the Pi
+5; glance time on the vehicle is still open.
 
-If short on time (25 s):
-Every subsystem runs together on the target hardware, and the database lost nothing across a ten-minute outage.
-What remains is the vehicle: latency with GNSS time, repeatability, road data and glance time. Thank you, I'm happy
-to take questions.
+If short on time (about 25 s):
+Surroundings now switches between front and rear, the rear mirrored like a reversing camera, and the banner names the
+side and puts approaching objects first. Tested offscreen and live on the Pi 5; glance time is open.
+
+Careful: Do not say "reverse gear selects the rear" as a vehicle feature: there is no gear signal from the vehicle yet.
 
 ---
 
-## Before 16 November: update after the road test
+## Slide 12: On the vehicle: enclosures, heat and power (0:38, running 7:44)
 
-The road test was planned for 14 October, before this talk. If it happens, slides 3, 6, 9 and 12 and this script
-must change: replace "planned 14 October" with what was measured, and move any RQ1, RQ3 or RQ4 result from "open" to
-"tested". Rebuild with build_deck.js so the notes and the talking points match, then re-time the script.
+Key number: About 20 W, 0.27 A from the 72 V pack; only the Pi 5 measured.
+
+Script:
+The enclosures were modelled from scripts in SOLIDWORKS, each checked for interference, fasteners and thin walls: a
+display mount, a front pod for the Pi 5 and its AI HAT, and a screwless IMU pod. After the Pi 4 reached 76.9 degrees
+in its closed box, both lids gained an exhaust grille under a rain hood. The power budget is about 20 watts, 0.27 amps
+from the 72 volt pack, under one percent of the motor's rated input. Only the Pi 5 is measured; the rest are
+estimates.
+
+If short on time (about 25 s):
+The enclosures were modelled from scripts and checked in CAD; the lids gained vents after 76.9 degrees in the closed
+box. The power budget is about 20 watts, under one percent of the motor's rated input; only the Pi 5 is measured.
+
+Careful: Only the rear box and a first IMU pod have been printed; say "checked in CAD" for the rest.
+
+---
+
+## Slide 13: First road session, 19 October (0:49, running 8:33)
+
+Key number: 108.6 min recorded, about 19.5 min driving; 200 Hz with no drops.
+
+Script:
+On the nineteenth of October the whole system was mounted and the first road session run. A recorder on the Pi 5
+captured all four sources for 108.6 minutes, about 19.5 of them driving, with no laptop on board. Both IMUs held 200
+hertz with no drops, so R1 is met on the vehicle. The battery link held under load: up to 46.9 amps, the pack falling
+from 74.6 to 72.8 volts. The cameras raised 1,342 front and 741 rear alerts, not yet checked against video. But GNSS
+had no fix, and there were no raw samples or run markers, so RQ1 and RQ4 are not answered yet. A second, shorter
+session is planned.
+
+If short on time (about 35 s):
+On 19 October the whole system was mounted and driven: 108.6 minutes recorded on the Pi 5, about 19.5 of driving. The
+IMUs held 200 hertz and the battery link held at up to 46.9 amps. No GNSS fix, raw samples or run markers, so RQ1 and
+RQ4 wait for a second session.
+
+Careful: Say "first road session", not "road test complete". Do not give a venue or route that is not in your own run sheet.
+
+---
+
+## Slide 14: Conclusions and next steps (0:35, running 9:08)
+
+Key number: Detection about 50 ms at the front; nothing lost across an outage.
+
+Script:
+To conclude. Every subsystem runs together, now on the vehicle: two IMUs at 200 hertz, fused; a database that lost
+nothing across an outage; detection in about 50 milliseconds at the front; an approaching-object warning; and both
+cameras on the existing dashboard. What remains is the second road session with raw data and GNSS for RQ1 and RQ4, the
+real approach test, glance time for RQ2, and a separate supply for the telemetry unit. Thank you, I'm happy to take
+questions.
+
+If short on time (about 20 s):
+Every subsystem runs together, now on the vehicle. What remains is the second road session with raw data and GNSS, the
+real approach test, glance time and a separate supply for the telemetry unit. Thank you, I'm happy to take questions.
+
+---
+
+## Before 16 November: update after the second road session
+
+If the second, shorter session happens before the talk (raw stream with firmware v0.7.5, GNSS fix, timed runs,
+powertrain baseline on stands), slides 3, 13 and 14 and this script must change: move any RQ1 or RQ4 result from
+"open" to "tested", add the GNSS result for R4, and keep anything not measured marked as open. Rebuild with
+build_deck.js so the notes and the talking points match, then re-time the script (it must stay under 10 minutes).

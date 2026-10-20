@@ -1,6 +1,6 @@
 # SW7 presentation: question preparation
 
-Likely questions from the examiners and the open day, with short answers based on the report, the test logs and the code (state on 11 October 2026, updated the same day after the outage test T15). Where something has not been measured, the answer says so. Saying "not measured yet, and this is how I would measure it" is a strong answer; guessing a number is not.
+Likely questions from the examiners and the open day, with short answers based on the report, the test logs and the code (state on 11 October 2026, updated the same day after the outage test T15; section 18 adds the work up to 20 October, including the first road session). Where something has not been measured, the answer says so. Saying "not measured yet, and this is how I would measure it" is a strong answer; guessing a number is not.
 
 How to answer: give the number, say how it was measured, then state the limit. For example: "102 ms median, measured from the sensor's own readout timestamp over a one-minute run on the bench; not yet on the vehicle."
 
@@ -22,6 +22,7 @@ Contents
 15. Numbers to know by heart
 16. New since the 11 October morning update (T15, pothole path, dashboard, report)
 17. The critical review's weak points: questions an examiner who read the report closely will ask
+18. New since 11 October: two sides, approaching objects, power, the first road session
 
 ---
 
@@ -332,7 +333,7 @@ A wiring appendix (Pi 4 header, sensor board and SEN5x pinouts, a connection tab
 What is still in progress? (no results to claim)
 - Superseded the same day: the central database, v0.7.4, destination search and the pothole path are now done or built; see section 16.
 - Still open: end-to-end latency (needs GNSS time), the pothole held-out score, a team broker with credentials.
-- Road test planned for 14 October: mount, recalibrate, then RQ1, RQ3 and RQ4 on the move. (Update this after the test.)
+- First road session on 19 October: R1 and R5 met on the vehicle; no GNSS fix, raw samples or run markers, so RQ1 and RQ4 wait for a second, shorter session (see section 18).
 
 ## 14. Questions to expect that expose gaps
 
@@ -464,4 +465,37 @@ What about the ethics of a camera on a public road?
 Frames are processed in memory and never stored; each alert keeps five fields only (class, distance band, confidence, time, status); there is no face or plate recognition. Whether an ethics appendix is required is with the supervisor. Adding the pothole class should be checked against the approval ("road obstacles") before field use.
 
 The dashboard runs over a phone hotspot on the bench. Is that acceptable on the vehicle?
-No. On the vehicle the Pi 4 and Pi 5 need their own link (a wired link at 10.20.0.1 is planned), so the driver's display does not depend on a phone or on coverage. Until then it is a bench arrangement.
+No, and it is no longer used on the vehicle. Since 15 October a dedicated Ethernet cable joins the Pi 5 and the Pi 4 (10.20.0.1 and 10.20.0.2, 1000 Mb/s, 0.22 to 0.25 ms round trip), so the driver's display does not depend on a phone or on coverage. It came loose twice during mounting on 19 October, so it must be tied down.
+
+---
+
+## 18. New since 11 October (two sides, approaching objects, power, the first road session)
+
+State: 20 October 2026. Fuller answers with follow-ups are in SW7_Examiner_Prep.md section K.
+
+Why did you move detection to the Pi 5? (tested on the bench)
+The same detector runs at 19.2 frames/s and 51 to 54 ms median from readout to result on the Pi 5 with the dashboard running, against 118 to 122 ms at 14.6 frames/s on the Pi 4 with the whole system. At 30 km/h that is about 0.6 m less travel before an alert. The battery's Bluetooth also did not reach the telemetry unit at the front, so the unit moved to the rear. With detection beside the display, a front alert no longer crosses the network. Cost: 64 to 73 percent of the Pi 5's CPU in total; the rear stays on the slower Pi 4.
+
+How does time to contact work without a calibrated camera? (synthetic only)
+Image width is proportional to 1/distance, so for constant closing speed 1/w falls in a straight line to zero at contact, and tau = w / (dw/dt) (Lee 1976; Dagan et al. 2004). Focal length and object size cancel. A robust Theil-Sen line over the last 0.6 s, with gates on frame count, slope agreement, growth and image edges. Warning under 4 s, immediate under 2 s. Limits: untested on a real approach (C11); assumes constant speed; noisy for small distant boxes; pose changes alter width; a still object ahead counts as approaching while the trike moves (intended forward-collision behaviour).
+
+What did the first road session show? (tested on the vehicle, 19 October)
+Recorded on the Pi 5 for 108.6 minutes, about 19.5 of driving, no laptop on board. Both IMUs at 200 Hz in all but 2 of 10,287 records, no drops: R1 met on the vehicle for rate and loss. Battery link held under load: up to 46.9 A, 74.6 to 72.8 V, 60 to 58 percent: R5 met except the meter check. Parked and driving separate clearly in the vibration value. 1,342 front and 741 rear alerts, not checked against video.
+
+Why no GNSS fix on the road?
+Cause not known yet. No fix in any of 10,287 records. The receiver and parser worked on the bench (fix in 105 s, 2.7 m median), so the suspects are the antenna's connection and placement on the vehicle, which are being checked. The drive was long enough for a cold start, so waiting time is unlikely. R4 is not met on the vehicle.
+
+Why is RQ4 still not answered?
+It needs raw 200 Hz samples for spectra (v0.7.4 keeps one-second features only), a speed reference (no GNSS, no Hall tap) and marked runs including the stationary powertrain baseline. The session had none of these. The second, shorter session with firmware v0.7.5 (raw stream), working GNSS and timed runs is planned. The same gaps stop RQ1's repeatability.
+
+How much power does it use, and what about the brown-outs?
+About 20 W typical, 0.27 A from the 72 V pack, under 1 percent of the motor's 2.5 kW rated input; only the Pi 5 is measured. Converter: full 60 to 88 V range, rated 100 V, 40 W at 5 V, fused, off with the vehicle. Brown-outs: the LTE modem's transmit bursts through the Pi 4's USB port; it recurred in the closed box on 16 October (76.9 C, restart with under-voltage present). The telemetry unit needs its own supply, which is not yet fitted. The Pi 5's four restarts on 19 October were abrupt power losses (normal readings just before), not brown-outs, and it did not restart during the drive.
+
+What ethics conditions applied to the road session?
+Approval EBE/03305/2026 with conditions: a signed physical risk assessment before driving, a closed area not a public road, two people whenever the 72 V system is on, only me as investigator, no faces recorded, glance observation only if the supervisor confirms it is covered, vehicle returned to standard; plus the camera conditions (no frames stored, five fields per alert). [Student: confirm from your run sheet that each was met before saying so; the report does not yet record the venue or the risk-assessment signature.]
+
+Why is the rear view mirrored?
+Like a car's reversing camera, so the driver's left is on the left; the rear sensors' left and right are swapped to match. The banner labels each warning Front or Rear and puts approaching objects first.
+
+Are the enclosures printed?
+The rear box and a first IMU pod (whose fit test led to revision 3). The display mount, front pod for the Pi 5 and AI HAT+, and vented lids are checked in CAD only. The Pi 4 reached 76.9 C in the closed box, which is why both lids now have an exhaust grille under a rain hood; the vented temperature is not measured yet.
