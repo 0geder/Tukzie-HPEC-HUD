@@ -13,7 +13,7 @@
 
 #include "sync_ledger.h"
 
-#define FIRMWARE_VERSION "v0.7.4"
+#define FIRMWARE_VERSION "v0.7.4.1"
 
 // ============================================================
 // SW-7 ESP32-S3 Firmware (version: FIRMWARE_VERSION above)
@@ -62,6 +62,17 @@ static const uint8_t BMS_QUERY_COMMAND[] = {0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 
 // sitting on the same connector as IMU2's I2C pins (J5 pins 7-8) for a
 // single compact wiring loom to the Pi.
 #define SYNC_PULSE_PIN 15
+
+// ---- Serial link to the Raspberry Pi 4 (v0.7.4.1, 21 Oct 2026) ----
+// On the vehicle the unit runs from its own LiPo: powered from the Pi's USB it
+// drew the Pi into under-voltage (and the board charges its battery from USB).
+// The DASH line therefore also goes out on a plain UART, three wires to the Pi:
+// IO41 (TX) to Pi pin 10 (GPIO15, RXD), IO42 (RX) from Pi pin 8 (GPIO14, TXD),
+// and a common ground (already shared through the sync wire's GND on Pi pin 9).
+// Both sides are 3.3 V logic. USB serial keeps working for flashing and debug.
+#define LINK_UART_TX_PIN 41
+#define LINK_UART_RX_PIN 42
+#define LINK_UART_BAUD 460800
 
 // ---- Acquisition parameters ----
 // ISO 2631-1 weights whole-body vibration up to 80 Hz, so Nyquist alone
@@ -2341,6 +2352,7 @@ String buildTelemetryJson(uint32_t seq) {
 volatile bool dashEnabled = true;
 uint32_t dashLineCount = 0;
 uint32_t dashTruncatedCount = 0;
+uint32_t dashUartSkipped = 0;   // DASH lines not sent on the Pi UART because its TX buffer was full
 
 // Writes v with fmt into out, or "null" when v is NaN or infinite, since
 // JSON has neither (same rule as the replace() pass in buildTelemetryJson).
@@ -2449,6 +2461,13 @@ void DashTask(void* pvParameters) {
       continue;
     }
     Serial.write(reinterpret_cast<const uint8_t*>(line), (size_t)len);
+    // Same line on the UART to the Pi. The TX buffer (2 KB, set in setup) holds
+    // several lines, so a stalled reader cannot hold up this task for long.
+    if (Serial2.availableForWrite() >= len) {
+      Serial2.write(reinterpret_cast<const uint8_t*>(line), (size_t)len);
+    } else {
+      dashUartSkipped++;
+    }
     seq++;
     dashLineCount++;
   }
@@ -2524,9 +2543,9 @@ void handleLocalCommand(String line) {
     Serial.println();
     Serial.printf("[CMD] IMU scale factors: imu1=%.4f imu2=%.4f\n",
                   rideChar1Config.mag_scale, rideChar2Config.mag_scale);
-    Serial.printf("[CMD] dash line: %s, %u lines sent, %u skipped as too long\n",
+    Serial.printf("[CMD] dash line: %s, %u lines sent, %u skipped as too long, %u not sent on the Pi UART (busy)\n",
                   dashEnabled ? "on" : "OFF", (unsigned)dashLineCount,
-                  (unsigned)dashTruncatedCount);
+                  (unsigned)dashTruncatedCount, (unsigned)dashUartSkipped);
     printSyncStatus();
   } else if (line == "!log off") {
     flushLocalLog();
@@ -2687,6 +2706,7 @@ void ModemTask(void* pvParameters) {
   String localCmd;          // a '!' line being typed
   bool forwardingLine = false;  // mid-way through a line going to the modem
   String modemLine;         // modem output, scanned for connection-lost URCs
+  String uartCmd;           // a '!' line arriving from the Pi on the UART link
   for (;;) {
     while (Serial.available()) {
       char c = static_cast<char>(Serial.read());
@@ -2705,6 +2725,16 @@ void ModemTask(void* pvParameters) {
       }
       Serial1.write(static_cast<uint8_t>(c));
       forwardingLine = !(c == '\n' || c == '\r');
+    }
+    // Local '!' commands from the Pi over the UART link (no AT pass-through here).
+    while (Serial2.available()) {
+      char c = static_cast<char>(Serial2.read());
+      if (c == '\n' || c == '\r') {
+        if (uartCmd.length() > 1 && uartCmd[0] == '!') handleLocalCommand(uartCmd);
+        uartCmd = "";
+      } else if (uartCmd.length() < 64) {
+        uartCmd += c;
+      }
     }
     if (!mqttConnected && (long)(millis() - mqttNextAttemptMs) >= 0) {
       Serial.println("[MQTT] Reconnecting...");
@@ -2788,6 +2818,9 @@ void ModemTask(void* pvParameters) {
 // ============================================================
 void setup() {
   Serial.begin(115200);
+  // UART link to the Raspberry Pi 4 (see LINK_UART_*): DASH lines go out here too.
+  Serial2.setTxBufferSize(2048);
+  Serial2.begin(LINK_UART_BAUD, SERIAL_8N1, LINK_UART_RX_PIN, LINK_UART_TX_PIN);
 
   const unsigned long serialWaitStart = millis();
   while (!Serial && millis() - serialWaitStart < 3000) {
