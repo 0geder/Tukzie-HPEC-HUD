@@ -219,3 +219,10 @@ committed to git because of their size, kept on OneDrive).
 - ca.crt: self-signed CA "tukzie-local-dev-ca", valid to 2036. Topics must start with "tukzie/".
 - From the laptop (phone uplink) the broker host did not accept a TCP connection on 18883 or 8883, with or without TLS
   (timeouts). The CA's name ("local-dev") suggests the broker may only be reachable on a particular network.
+
+### ESP32 moved to its own battery
+- The ESP32 now runs from its own LiPo. With it unplugged from the Pi 4, the Pi 4 started cleanly: up 1 min, flags 0x0,
+  0 under-voltage messages (against 11 to 16 per boot with the ESP32 on its USB). The rear ToF board reads normally.
+- No data link to the ESP32 at the time: no USB serial device on the Pi 4, so the bridge has no ESP32 record. Options:
+  a USB data-only (VBUS-blocking) adapter, or the UART wires (Pi pins 8 and 10 plus GND) with a firmware change.
+- The board charges its battery from USB, so a plain USB cable to the Pi would put the load back on the Pi.
