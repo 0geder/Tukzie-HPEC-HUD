@@ -1,7 +1,7 @@
 # SW-7 telemetry bridge as an always-on service on the Raspberry Pi 4.
 # Starts at boot, restarts if it stops unexpectedly, and serves
 # GET /telemetry on port 8081 for the Pi 5 dashboard: the latest DASH line
-# from the ESP32 on USB serial plus the three ToF sensors. See
+# from the ESP32 plus the three ToF sensors. See
 # DashboardIntegration/TELEMETRY_LINK.md for the JSON.
 #
 # It keeps running with the ESP32 unplugged or the ToF sensors absent
@@ -12,6 +12,13 @@
 # groups (ToF), which is the default for the first Pi OS user.
 # Only one program can use the ToF sensors at a time, so stop this
 # service before running tof_reader.py by hand.
+#
+# Since 21 Oct 2026 the ESP32 runs on its own battery and sends over three
+# wires to the Pi's UART (ESP32 IO41 -> Pi pin 10, IO42 <- Pi pin 8, GND),
+# so the Pi no longer powers it. The Pi needs dtoverlay=disable-bt in
+# config.txt and no console=serial0 in cmdline.txt, so that /dev/serial0
+# is the full PL011 UART. For the old USB link use --serial-port
+# /dev/ttyACM0 --baud 115200.
 #
 # Install: see CameraDetection/deploy/INSTALL.md
 
@@ -25,7 +32,7 @@ Type=simple
 User=ogeder
 WorkingDirectory=/home/ogeder/hazard_detector
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/home/ogeder/hazard_detector/venv/bin/python3 /home/ogeder/hazard_detector/telemetry_bridge.py --serial-port /dev/ttyACM0 --host 0.0.0.0 --port 8081
+ExecStart=/home/ogeder/hazard_detector/venv/bin/python3 /home/ogeder/hazard_detector/telemetry_bridge.py --serial-port /dev/serial0 --baud 460800 --host 0.0.0.0 --port 8081
 Restart=on-failure
 RestartSec=3
 # SIGTERM is handled in the script: the serial port, sensors and HTTP
