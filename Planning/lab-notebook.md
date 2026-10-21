@@ -247,3 +247,9 @@ committed to git because of their size, kept on OneDrive).
 - Correction (student, 21 Oct): no GNSS antenna has ever been connected to the ESP32 board. That is why there was no
   fix on the 19 Oct road test, not a receiver fault. The position in the DASH line is the cell-network estimate
   (about 550 m). For the second run: fit the GNSS antenna to the board's GPS antenna connector with a sky view.
+- 07:00 to 07:28: GNSS antenna fitted. After a RESET both IMUs at 200 Hz, 0 drops. No GNSS fix in 6 min (indoors).
+  Then the ESP32 restarted on its own (about 07:17), the modem stopped answering (csq empty for 10 min, so no cell
+  position or GNSS either) and the board stopped sending at about 07:27 (UART line idle). Suspected: ESP32 battery
+  too weak for the modem's transmit bursts (brown-out). To check: battery voltage during modem start.
+  The UART link itself had no bad lines (1,910 lines). Pi 5 unreachable from 07:23 (Pi 4 eth0 no carrier): off or
+  cable out.
