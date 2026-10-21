@@ -55,7 +55,7 @@ On the road session the per-second vibration value separated the states clearly:
 
 With the corrected parser, the receiver reached a three-dimensional fix 105\,s after a cold start (51\,s in an earlier session), with 23 to 25 satellites and a horizontal dilution of precision of about 0.9 to 1.5. Over 104 fixes the position was a median of 2.7\,m from a phone's position, 95\% within 11.0\,m and at most 12.3\,m away. The phone has an error of a few metres itself, so this is a consistency check, not an absolute accuracy; against the criterion of 10\,m, the median and most fixes pass but the 95th percentile does not. The speed field read 0 to 5.8 while stationary; the manual gives knots, but the readings and their low-speed noise have not been checked against a known speed. The network position (v0.7.3) answered in about 0.7\,s with a reported accuracy of 550\,m.
 
-On the road session of 19 October the receiver reported no fix in any of 10,287 records, so no position or speed was recorded during the drive; the antenna's connection and placement on the vehicle are being checked. R4 is not met on the vehicle.
+On the road session of 19 October the receiver reported no fix in any of 10,287 records, so no position or speed was recorded during the drive. The cause was that no GNSS antenna had been connected to the board, not a fault in the receiver; only the network-based position (about 550\,m accuracy) was available. R4 is therefore untested on the vehicle rather than failed.
 
 \outstanding{time to first fix with assisted GNSS, and the speed field against a known speed on the vehicle.}
 
@@ -167,7 +167,7 @@ On 19 October the whole system was mounted on the vehicle and checked in the lab
 Raspberry Pi~5, dashboard & 4.0 & 8 & Measured 2.2 to 3.0\,W on the rails, plus input conversion and USB \\ \hline
 10.1\,in display, full backlight & 5.0 & 6 & Estimate; to measure \\ \hline
 Raspberry Pi~4 with camera, fan and three ToF sensors, detector running & 6.8 & 8 & Estimate from published full-load figures (about 6.4\,W) plus the camera, fan and sensors \\ \hline
-ESP32-S3, A7670 modem, GNSS antenna and two IMUs & 1.0 & 9 & Estimate; the modem's transmit bursts of up to about 2\,A are the peak, and the cause of the brown-out in Section~\ref{sec:inv-power} \\ \hline
+ESP32-S3, A7670 modem (with GNSS) and two IMUs & 1.0 & 9 & Estimate; the modem's transmit bursts of up to about 2\,A are the peak, and the cause of the brown-out in Section~\ref{sec:inv-power} \\ \hline
 SEN55 (planned) & 0.4 & 0.5 & Datasheet \\ \hline
 \textbf{Total at 5\,V} & \textbf{17} & \textbf{31} & \\ \hline
 \textbf{From the 72\,V pack} & \textbf{20 (0.27\,A)} & \textbf{35 (0.5\,A)} & At 88\,\% converter efficiency \\ \hline

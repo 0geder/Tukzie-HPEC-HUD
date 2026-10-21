@@ -244,3 +244,6 @@ committed to git because of their size, kept on OneDrive).
 - Note: opening COM10 from the laptop resets the ESP32 (USB serial). After that reset IMU1 ran at 200 Hz with 0 drops,
   but IMU2 (IO17/18) was not detected ("not ready / not connected"). Before the reset the DASH line showed both IMUs
   with large drop counts rising (about 167/s and 46/s); cause not found, cleared by the reset. IMU2 wiring to check.
+- Correction (student, 21 Oct): no GNSS antenna has ever been connected to the ESP32 board. That is why there was no
+  fix on the 19 Oct road test, not a receiver fault. The position in the DASH line is the cell-network estimate
+  (about 550 m). For the second run: fit the GNSS antenna to the board's GPS antenna connector with a sky view.
