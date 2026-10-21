@@ -238,3 +238,9 @@ committed to git because of their size, kept on OneDrive).
 - Wiring: ESP32 IO41 -> Pi pin 10 (GPIO15 RXD); ESP32 IO42 <- Pi pin 8 (GPIO14 TXD); ESP32 GND -> Pi GND (pin 6 or 9).
   Both sides are 3.3 V logic, so no level shifter. No 5 V or 3.3 V wire between them: the ESP32 stays on its own battery.
 - After the reboot nothing answered on the Pi 4's I2C bus (rear ToF board disconnected or unpowered at the time).
+- Flashed v0.7.4.1 over the laptop USB (COM10, hash verified). First wiring attempt: Pi UART rx 0 bytes, so IO41 was
+  not reaching pin 10. After rewiring: 35 DASH lines, 0 bad, rx 12,555 bytes; later 216 lines, 0 bad, one line a second.
+  Pi 4 throttled 0x0. Rear ToF reading again (left 314, ahead 272, right 86 mm).
+- Note: opening COM10 from the laptop resets the ESP32 (USB serial). After that reset IMU1 ran at 200 Hz with 0 drops,
+  but IMU2 (IO17/18) was not detected ("not ready / not connected"). Before the reset the DASH line showed both IMUs
+  with large drop counts rising (about 167/s and 46/s); cause not found, cleared by the reset. IMU2 wiring to check.
