@@ -18,7 +18,7 @@ architecture and folder map. The repository name predates the title change.
   origin main after each completed piece of work. Never push other teams'
   repos.
 - Writing everywhere: no em dashes, no unnecessary bold.
-- The report never mentions the ethics application or its approval.
+- Ethics: D20 lifted by the student on 21 Oct 2026. The approval letter (EBE/03305/2026) is Appendix H and the report has an ethics and safety section (Methodology, sec:ethics).
 - Verify every claim against a source or a measurement; say when
   something is unverified. No invented results, numbers or references.
 - The student runs commands on the Raspberry Pi 4 (`pi4-camera`) and the

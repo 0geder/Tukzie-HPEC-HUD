@@ -788,7 +788,7 @@ Follow-up: "Who approved this?" See G9.
 Evidence: Report 3.7.2 and 3.8.3; report-review.md GA10 suggestion (POPIA).
 
 G9. Was there ethics approval, and why is it not in the report?
-Answer: Answer truthfully if asked. The first application said no ML in version one; a revised application covering the camera detector was approved with conditions on 23 September (only the approved object categories, no frames stored, the five logged fields), before the detector processed live frames on 28 September. The report currently does not include the letter; the course asks for it as an appendix, and whether to include it is an open item with my supervisor.
+Answer: Answer truthfully if asked. The first application said no ML in version one; a revised application covering the camera detector was approved with conditions on 23 September (only the approved object categories, no frames stored, the five logged fields), before the detector processed live frames on 28 September. The letter is now Appendix H, and the report has an ethics and safety section (Methodology). The letter of 6 October does not mention ML, so which approval covers the detector is marked to be confirmed.
 Follow-up: "The ride tests on the vehicle?" Test safety is in the plan: a second person when the 72 V system is energised, rated stands and chocks, removable mounting only.
 Evidence: PROJECT_LOG D16, D20, F22; Planning/REMAINING_WORK 2.5; Lecture 2 slide 7 (ethics letter appendix); Report 3.13. Note: D20 is the student's own rule about the report; deciding what to say orally is the student's call.
 

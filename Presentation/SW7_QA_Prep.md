@@ -462,7 +462,7 @@ You say "low-cost". How low?
 The bill of materials has not been totalled, so there is no number yet. The parts are commodity boards and sensors. [Student: total the BOM before the talk if possible.]
 
 What about the ethics of a camera on a public road?
-Frames are processed in memory and never stored; each alert keeps five fields only (class, distance band, confidence, time, status); there is no face or plate recognition. Whether an ethics appendix is required is with the supervisor. Adding the pothole class should be checked against the approval ("road obstacles") before field use.
+Frames are processed in memory and never stored; each alert keeps five fields only (class, distance band, confidence, time, status); there is no face or plate recognition. The approval letter (EBE/03305/2026) is Appendix H of the report, with the conditions and how they are handled in the Methodology's ethics and safety section. Adding the pothole class should be checked against the approval ("road obstacles") before field use.
 
 The dashboard runs over a phone hotspot on the bench. Is that acceptable on the vehicle?
 No, and it is no longer used on the vehicle. Since 15 October a dedicated Ethernet cable joins the Pi 5 and the Pi 4 (10.20.0.1 and 10.20.0.2, 1000 Mb/s, 0.22 to 0.25 ms round trip), so the driver's display does not depend on a phone or on coverage. It came loose twice during mounting on 19 October, so it must be tied down.

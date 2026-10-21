@@ -30,7 +30,7 @@ Student = needs Samson (hardware, purchases, people); Claude = the main session.
 | 2.2 | Road-test results into Results and Discussion, answer RQ1 to RQ4 explicitly | Claude | after 14 Oct | Waiting on the test |
 | 2.3 | Database sync and latency results (Deliverable 3) | Claude | after 1.9 and the test | Waiting |
 | 2.4 | Pothole held-out test score (Colab cell 5b or the agent's script) | Student (Colab) | 1.4 brief | Open |
-| 2.5 | Ethics appendix decision with Prof. Winberg (course requires it; the student's rule D20 says leave it out) | Student | Planning/report-review.md | Open |
+| 2.5 | Ethics appendix decision with Prof. Winberg (course requires it; the student's rule D20 says leave it out) | Student | Planning/report-review.md | Done 21 Oct: D20 lifted, letter in Appendix H, Methodology sec:ethics; conditions and ML coverage marked outstanding |
 | 2.6 | Configuration table (versions, pins, bus speeds, priorities, queues, partitions) | Agent (2.1) | report-cut-plan.md | Done (Appendix E.1, firmware v0.7.3) |
 | 2.7 | Final format checks (font, spacing, word count line, AI prompt examples, GA 10) | Agent (2.1) then Claude | Planning/brief-compliance.md | In progress |
 | 2.9 | Appendix F (enclosures and mounts) and Appendix G (dashboard interface design) | Claude | Report/appendixf.tex, appendixg.tex | Done 12 to 13 Oct; G to get the three-planes screenshots after deploy |
