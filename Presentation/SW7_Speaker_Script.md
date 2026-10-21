@@ -262,18 +262,18 @@ Careful: Only the rear box and a first IMU pod have been printed; say "checked i
 
 ## Slide 13: First road session, 19 October (0:49, running 8:33)
 
-Key number: 108.6 min recorded, about 19.5 min driving; 200 Hz with no drops.
+Key number: 108.6 min recorded, about 16 min driving; 200 Hz with no drops, but a third of records lost on USB.
 
 Script:
 On the nineteenth of October the whole system was mounted and the first road session run. A recorder on the Pi 5
-captured all four sources for 108.6 minutes, about 19.5 of them driving, with no laptop on board. Both IMUs held 200
-hertz with no drops, so R1 is met on the vehicle. The battery link held under load: up to 46.9 amps, the pack falling
+ran for 108.6 minutes, about 16 of them driving, with no laptop on board. Both IMUs held 200
+hertz with no drops and one short stall, but a third of the per-second records were lost on the USB link, now replaced by wires, so R1 is only partly met on the vehicle. The battery link held under load: up to 46.9 amps, the pack falling
 from 74.6 to 72.8 volts. The cameras raised 1,342 front and 741 rear alerts, not yet checked against video. But GNSS
 had no fix, and there were no raw samples or run markers, so RQ1 and RQ4 are not answered yet. A second, shorter
 session is planned.
 
 If short on time (about 35 s):
-On 19 October the whole system was mounted and driven: 108.6 minutes recorded on the Pi 5, about 19.5 of driving. The
+On 19 October the whole system was mounted and driven: 108.6 minutes recorded on the Pi 5, about 16 of driving. The
 IMUs held 200 hertz and the battery link held at up to 46.9 amps. No GNSS fix, raw samples or run markers, so RQ1 and
 RQ4 wait for a second session.
 

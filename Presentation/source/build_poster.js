@@ -162,14 +162,14 @@ yR += h5 + GAP;
 const h6 = BOTTOM - yR;
 b = panel(6, "First road session (19 Oct)", XR, yR, h6);
 bullets([
-  "Recorded on the vehicle for 108.6" + NB + "min, about 19.5" + NB + "min of driving, with no laptop on board.",
-  "Both IMUs held 200" + NB + "Hz with no drops (R1 met on the vehicle). Battery link held under load: up to 46.9" + NB + "A, 74.6 to 72.8" + NB + "V.",
+  "Recorded on the vehicle for 108.6" + NB + "min, about 16" + NB + "min of driving, with no laptop on board.",
+  "Both IMUs held 200" + NB + "Hz with no drops and one 2" + NB + "s stall, but a third of the one-second records were lost on the USB link, now wired (R1 partly met). Battery link held under load: up to 46.9" + NB + "A, 74.6 to 72.8" + NB + "V.",
   "1,342 front and 741 rear camera alerts, not yet checked against video.",
 ], b, 3.6, 30);
 const oy = b.y + 3.7;
 s.addText([
-  ["Open: ", "no GNSS fix (R4 not met on the vehicle); no raw samples or run markers, so RQ1 and RQ4 are not yet answered; glance time (RQ2) not measured."],
-  ["Next: ", "a second, shorter session with the raw stream and GNSS, the real approach test, and a separate supply for the telemetry unit."],
+  ["Open: ", "no GNSS fix, as no antenna was fitted (R4 untested on the vehicle); no raw samples or run markers, so RQ1 and RQ4 are not yet answered; glance time (RQ2) not measured."],
+  ["Next: ", "a second, shorter session with the raw stream and GNSS, the real approach test, and a regulated supply for the telemetry unit."],
 ].flatMap(([k, t], i, a) => [
   { text: k, options: { bold: true, color: C.accent, bullet: { indent: 32 } } },
   { text: t, options: { breakLine: i < a.length - 1, paraSpaceAfter: 14 } },

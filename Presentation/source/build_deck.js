@@ -468,16 +468,16 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 {
   const s = content("First road session, 19 October",
     "On the nineteenth of October the whole system was mounted and the first road session run. " +
-    "A recorder on the Pi 5 captured all four sources for 108.6 minutes, about 19.5 of them driving, with no laptop on board. " +
-    "Both IMUs held 200 hertz with no drops, so R1 is met on the vehicle. " +
+    "A recorder on the Pi 5 ran for 108.6 minutes, about 16 of them driving, with no laptop on board. " +
+    "Both IMUs held 200 hertz with no drops and one short stall, but a third of the per-second records were lost on the USB link, now replaced by wires, so R1 is only partly met on the vehicle. " +
     "The battery link held under load: up to 46.9 amps, the pack falling from 74.6 to 72.8 volts. " +
     "The cameras raised 1,342 front and 741 rear alerts, not yet checked against video. " +
-    "But GNSS had no fix, and there were no raw samples or run markers, so RQ1 and RQ4 are not answered yet. A second, shorter session is planned.");
+    "But GNSS had no fix, as no antenna was fitted, and there were no raw samples or run markers, so RQ1 and RQ4 are not answered yet. A second, shorter session is planned.");
   const lw = 7.4, top = 1.4, g = 0.25, tw = (lw - g) / 2, th = 2.2;
   const tiles = [
-    ["108.6 min", "recorded on the vehicle by the Pi 5, about 19.5 min of it driving"],
-    ["200 Hz", "both IMUs, no drops in 10,287 records: R1 met on the vehicle"],
-    ["46.9 A", "peak battery current; 74.6 to 72.8 V, 60 to 58 %: R5 met except the meter check"],
+    ["108.6 min", "recorded on the vehicle by the Pi 5, about 16 min of it driving"],
+    ["200 Hz", "both IMUs, no drops, one 2 s stall; 38 % of records lost on USB: R1 partly met"],
+    ["46.9 A", "peak battery current; 74.6 to 72.8 V, 60 to 58 %: R5 partly met (no meter check)"],
     ["1,342 / 741", "front and rear camera alerts, not yet checked against video"],
   ];
   tiles.forEach(([big, small], i) => {
@@ -486,13 +486,13 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
     txt(s, big, { x: x + 0.3, y: y + 0.15, w: tw - 0.6, h: 0.85, fontSize: 36, bold: true, color: C.navy, valign: "middle" });
     txt(s, small, { x: x + 0.3, y: y + 1.05, w: tw - 0.6, h: th - 1.15, fontSize: 14, valign: "top" });
   });
-  caption(s, "Parked and driving separate clearly: one-second vibration median 0.031 parked; 95th percentile 2.0, maximum 5.09 while driving.",
+  caption(s, "Parked and driving separate clearly: one-second vibration median 0.03 parked; while driving median 1.39, 95th percentile 3.1, maximum 5.09.",
     M, top + 2 * th + g + 0.1, lw, 0.6);
   const rx = M + lw + 0.35, rw = W - M - rx;
   dashedCard(s, rx, top, rw, 5.35);
   txt(s, "Not captured, so still open", { x: rx + 0.3, y: top + 0.15, w: rw - 0.6, h: 0.4, fontSize: 18, bold: true, color: C.accent });
   bullets(s, [
-    "No GNSS fix in any record: R4 not met on the vehicle, and no speed",
+    "No GNSS fix in any record (no antenna fitted): R4 untested on the vehicle, and no speed",
     "No raw 200 Hz samples (v0.7.4) and no run markers: RQ1 and RQ4 not answered yet",
     "LTE upload down: no latency",
     "Driving found afterwards from battery current and vibration; no gear or speed signal",

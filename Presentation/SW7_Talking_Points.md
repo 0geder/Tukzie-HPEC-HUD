@@ -2,7 +2,7 @@
 
 Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here. The timed version with cuts is SW7_Speaker_Script.md.
 
-14 slides, 10 minutes plus questions. 1275 words in total, about 9.1 minutes at 140 words a minute.
+14 slides, 10 minutes plus questions. 1300 words in total, about 9.3 minutes at 140 words a minute.
 
 ## Slide 1: Title (56 words)
 
@@ -52,9 +52,9 @@ This is where RQ2 lands, on the dashboard the team already runs. The Surrounding
 
 The enclosures were modelled from scripts in SOLIDWORKS, each checked for interference, fasteners and thin walls: a display mount, a front pod for the Pi 5 and its AI HAT, and a screwless IMU pod. After the Pi 4 reached 76.9 degrees in its closed box, both lids gained an exhaust grille under a rain hood. The power budget is about 20 watts, 0.27 amps from the 72 volt pack, under one percent of the motor's rated input. Only the Pi 5 is measured; the rest are estimates.
 
-## Slide 13: First road session, 19 October (114 words)
+## Slide 13: First road session, 19 October (139 words)
 
-On the nineteenth of October the whole system was mounted and the first road session run. A recorder on the Pi 5 captured all four sources for 108.6 minutes, about 19.5 of them driving, with no laptop on board. Both IMUs held 200 hertz with no drops, so R1 is met on the vehicle. The battery link held under load: up to 46.9 amps, the pack falling from 74.6 to 72.8 volts. The cameras raised 1,342 front and 741 rear alerts, not yet checked against video. But GNSS had no fix, and there were no raw samples or run markers, so RQ1 and RQ4 are not answered yet. A second, shorter session is planned.
+On the nineteenth of October the whole system was mounted and the first road session run. A recorder on the Pi 5 ran for 108.6 minutes, about 16 of them driving, with no laptop on board. Both IMUs held 200 hertz with no drops and one short stall, but a third of the per-second records were lost on the USB link, now replaced by wires, so R1 is only partly met on the vehicle. The battery link held under load: up to 46.9 amps, the pack falling from 74.6 to 72.8 volts. The cameras raised 1,342 front and 741 rear alerts, not yet checked against video. But GNSS had no fix, as no antenna was fitted, and there were no raw samples or run markers, so RQ1 and RQ4 are not answered yet. A second, shorter session is planned.
 
 ## Slide 14: Conclusions and next steps (81 words)
 

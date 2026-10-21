@@ -180,11 +180,11 @@ committed to git because of their size, kept on OneDrive).
 - Main recording 17:15:34 to 19:04:10 (108.6 min, 51,489 records, no damaged lines). The Pi 5 did not restart during
   the drive (its restarts were at 19:04 and 19:10, after it); two short recordings follow from those restarts.
 - Driving, found from battery current and vibration: 16 active segments between 18:15 and 18:49, 19.5 min of motor
-  current or high vibration in total, plus short ones at 17:58 and 18:04 (possibly the stationary runs).
+  current or high vibration in total [corrected 21 Oct: counted from duplicated polls; about 16 min, see below], plus short ones at 17:58 and 18:04 (possibly the stationary runs).
 - Coverage during the drive: front sensors and alerts throughout; rear and ESP32 throughout the drive (the only rear
   gap, 409 s from 18:06:34, was before it).
 - Captured:
-  - IMUs: 200 Hz in all but 2 of 10,287 records, no drops (R1 on the vehicle).
+  - IMUs: 200 Hz in all but 2 of 10,287 records, no drops (R1 on the vehicle). [Corrected 21 Oct, see below.]
   - Battery under load: current up to 46.9 A (discharge, logged as negative), pack from 74.6 down to 72.8 V under load,
     charge 60 to 58 % (R5).
   - Vibration (one number per second): median 0.031 parked, 95th percentile 2.0, maximum 5.09 while driving.
@@ -258,3 +258,21 @@ committed to git because of their size, kept on OneDrive).
   ESP32 back: up 10 min, both IMUs 200 Hz, 0 drops, UART 2,489 lines, 0 bad. Modem still silent (csq empty, no cell
   position, no GNSS) since about 07:10. Pi 5 still unreachable (eth0 no carrier). The bridge's UDP beacon failed
   1,774 times with "network unreachable" (Wi-Fi dropped for a while).
+
+### Correction to the 20 Oct road-test analysis (report review, 21 Oct)
+- The recorder polled the rear bridge twice a second and the bridge repeats its last record until a new DASH line
+  arrives, so the 10,287 rear replies hold only 3,464 distinct ESP32 records (by sequence number, 4549 to 10105).
+  Over that 5,557 s span 2,093 seconds (38 %) have no record; 67 % of seconds have one in 18:15 to 18:49. Cause: DASH
+  lines lost on the USB link (same loss as the 9.3 % on the bench), 27 records with damaged fields.
+- Counted once per record: queue drops 0 throughout. Off 200 Hz: five records at 18:03 to 18:05 (197 to 204.5 Hz,
+  window split) and one at 18:29:16 while driving with IMU1 at 2.0 Hz (4 samples in a 2 s window, a stall the drop
+  count does not show; cause unknown).
+- Driving (current over 1 A or vib over 0.3, segments under 10 s apart joined): 26 segments after 18:15, about 16 min
+  (965 s), of which 586 seconds have a record. Vibration: parked median 0.03 (2,832 s); driving median 1.39,
+  95th percentile 3.1, maximum 5.09 (605 s). The earlier 95th percentile of 2.0 came from the duplicated rows.
+- The rear unit stopped answering the recorder at 18:49:13 (1,785 failed polls to 19:04), while the Pi 4's own
+  alert log ran to 19:02. Rear alerts by class: person 514 (183 approaching), car 201 (36), truck 19, bus 4,
+  motorcycle 3. Front: person 815 (366 approaching), car 513 (261).
+- Unchanged: current to 46.9 A, 74.58 to 72.82 V, SOC 60 to 58 %, no GNSS fix (no antenna fitted).
+- Report corrected accordingly (Results R1, R4, R5, R6, R10, R13 and summary table; abstract; Methodology overview,
+  BMS pack, road session; Introduction scope; Discussion; Conclusions; evidence table).

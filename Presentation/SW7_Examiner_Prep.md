@@ -764,7 +764,7 @@ Answer: Correct. Only time-domain features are implemented, and the firmware sto
 Evidence: Report Recommendation 7; main.cpp commands (no raw IMU logging command); critical review questions.
 
 G4. You have no vehicle data. Isn't this just a bench project?
-Answer: Most results are bench results and I label them so. The first road session (19 October) gave vehicle data: 108.6 minutes recorded, about 19.5 minutes of driving, both IMUs at 200 Hz with no drops (R1 met on the vehicle), the battery link held under load up to 46.9 A (R5 met except the meter check). It did not give GNSS, raw samples or run markers, so RQ1 and RQ4 are not answered on the vehicle yet; a second, shorter session is planned (see K4).
+Answer: Most results are bench results and I label them so. The first road session (19 October) gave vehicle data: 108.6 minutes recorded, about 16 minutes of driving, both IMUs at 200 Hz with no drops and one 2 s stall but a third of the per-second records lost on the USB link (R1 partly met on the vehicle), and the battery link held under load up to 46.9 A (R5 partly met (no meter check)). It did not give GNSS, raw samples or run markers, so RQ1 and RQ4 are not answered on the vehicle yet; a second, shorter session is planned (see K4).
 Follow-up: "Why so late?" Vehicle access depended on lab scheduling, and I chose to verify each interface before mounting. In hindsight I should have pushed for a stationary powertrain run much earlier (see G16).
 Evidence: Report 3.13; PROJECT_LOG "Waiting on someone".
 
@@ -945,18 +945,18 @@ Follow-up: "Did it work on the road?" The front detector marked 261 car alerts a
 Evidence: Report Methodology "Approaching objects: time to contact", Results (approaching-object row; road alerts), Discussion "Hazard sensing"; lab notebook 19 Oct "Camera focal-length calibration".
 
 K3. Why was there no GNSS fix on the road?
-Answer: I do not know the cause yet, and the report says so. The receiver reported no fix in any of 10,287 records, so there is no position or speed for the drive and R4 is not met on the vehicle. On the bench the same receiver gave a fix 105 s after a cold start and 2.7 m median agreement with a phone, so the receiver and parser worked. What changed is the installation: the antenna's connection and its placement on the vehicle (the telemetry unit now sits at the rear near the battery) are being checked. The drive lasted about 35 minutes outdoors, far longer than the bench cold-start time, so waiting time is an unlikely explanation.
+Answer: No GNSS antenna had been connected to the board, so the receiver could not see any satellites. That was an installation omission, not a receiver fault: on the bench the same receiver gave a fix 105 s after a cold start and a 2.7 m median against a phone. There is no position or speed for that drive, so R4 is untested on the vehicle rather than failed. The antenna is now fitted for the second session.
 Follow-up: "What will you do?" Check the antenna connector and give the patch a clear view of the sky with no metal above it, confirm a fix outdoors before driving (it is on the checklist), and log the raw GNSS replies so a missing fix can be diagnosed.
 Follow-up: "What did losing it cost?" Speed (needed for the speed-normalised index and the speed dependence in RQ4), GNSS time for aligning the logs and video, and the latency measurement. Driving was identified instead from battery current and vibration.
 Evidence: Report Results "Position (R4)"; lab notebook 20 Oct "Not captured".
 
-K4. Why is RQ4 not answered yet, when you drove for 19.5 minutes?
+K4. Why is RQ4 not answered yet, when you drove for about 16 minutes?
 Answer: Separating powertrain from road vibration needs three things the first session did not have: the raw 200 Hz samples for spectra (firmware v0.7.4 stores one-second features, and the live record carries only one vibration number a second), a speed reference (no GNSS fix, and the Hall tap is not fitted), and marked runs, including the stationary powertrain baseline on stands (only the "drive session starting" marker was written). What the session does show is that parked and driving separate clearly: one-second vibration median 0.031 parked against a 95th percentile of 2.0 and a maximum of 5.09 while driving, together with battery current up to 46.9 A. The same gaps stop RQ1's repeatability over repeated traversals.
 Follow-up: "So what next?" A second, shorter session with the raw stream (firmware v0.7.5, being bench-tested so that the IMU timing is unchanged), a working GNSS antenna, timed runs written as markers, and the stationary baseline at each motor setting.
 Evidence: Report Results R3 and Discussion "Ride characterisation"; lab notebook 19 Oct 17:55 and 20 Oct.
 
 K5. Is R1 really met on the vehicle?
-Answer: For rate and loss, yes: both IMUs held 200 Hz in all but 2 of 10,287 one-second records over 108.6 minutes, with no dropped samples. The gap distribution on the moving vehicle is not shown, because that needs the raw sample stream (v0.7.5).
+Answer: Partly. No samples were dropped, and the rate held in all but six of 3,437 readable records; one, while driving, shows IMU1 stalled for about 2 s. But the recorder received only 3,464 distinct one-second records over a 5,557 s span: a third of the seconds were lost on the USB link, which is why the unit now uses a wired serial link. The gap distribution on the moving vehicle is not shown, because that needs the raw sample stream (v0.7.5).
 Evidence: Report Results R1 and the summary table.
 
 K6. Power: what is the budget, and what caused the brown-outs?
@@ -1063,12 +1063,12 @@ Evidence: Report Methodology "Vehicle tests"; Results "Integration and power"; l
 | On the vehicle (19 Oct, lab check) | front 17.5 to 22.0 fps, 53 to 102 ms; rear 14.4 to 14.5 fps, 126 to 151 ms (Pi 4 throttled) | Report Results "Integration and power" |
 | Ethernet link | 1000 Mb/s; 0.22 ms (15 Oct), 0.25 ms (19 Oct) round trip; 10.20.0.1 and 10.20.0.2 | Methodology "Two-sided layout"; Results |
 | Time to contact | tau = w / (dw/dt); Theil-Sen over 0.6 s; at least 5 frames over 0.25 s, 75 percent agreement, 5 percent growth; warning under 4 s, immediate under 2 s; 40 synthetic tests within 2 percent; 0.27 ms per frame | Methodology; Results |
-| Road session (19 Oct) | 17:15:34 to 19:04:10, 108.6 min, 51,489 records; about 19.5 min driving (18:15 to 18:49) | Results; lab notebook 20 Oct |
-| Road: IMUs | 200 Hz in all but 2 of 10,287 records, 0 dropped | Results R1 |
+| Road session (19 Oct) | 17:15:34 to 19:04:10, 108.6 min, 51,489 records; about 16 min driving (18:15 to 18:49); 3,464 distinct ESP32 records, 38 % of seconds missing | Results; lab notebook 20 Oct |
+| Road: IMUs | 0 dropped; 200 Hz in 3,431 of 3,437 readable records, one 2 s IMU1 stall | Results R1 |
 | Road: battery | up to 46.9 A; 74.6 to 72.8 V under load; 60 to 58 percent | Results R5 |
-| Road: vibration | median 0.031 parked; p95 2.0, max 5.09 driving | Results R3 |
+| Road: vibration | median 0.03 parked; driving median 1.39, p95 3.1, max 5.09 (each record counted once) | Results R3 |
 | Road: alerts | front 1,342 (person 815, car 513, 261 car approaching); rear 741 (car 201, 36 approaching); not checked against video | Results hazard sensing |
-| Road: GNSS | no fix in any of 10,287 records | Results R4 |
+| Road: GNSS | no fix in any of 3,464 records (no antenna fitted) | Results R4 |
 | Power budget | 17 W typical, 31 W peak at 5 V; 20 W (0.27 A) typical, 35 W (0.5 A) peak from 72 V at 88 percent; about 0.8 percent of 2.5 kW; Pi 5 measured 2.2 to 3.0 W | Results power-budget table |
 | Pack | DB24SA01L24S150ABU: 24 cells, 150 A BMS; 74.7 V at 60 percent (3.11 V per cell), about 60 to 88 V | Results R5 |
 | Closed box (16 Oct) | Pi 4 68.6 to 76.9 C over about 70 min; flags 0xD0000, brown-out restart at 0x50005; lost dashboard lines 2 to 10 percent | Methodology Pi 4 investigation |
