@@ -226,3 +226,15 @@ committed to git because of their size, kept on OneDrive).
 - No data link to the ESP32 at the time: no USB serial device on the Pi 4, so the bridge has no ESP32 record. Options:
   a USB data-only (VBUS-blocking) adapter, or the UART wires (Pi pins 8 and 10 plus GND) with a firmware change.
 - The board charges its battery from USB, so a plain USB cable to the Pi would put the load back on the Pi.
+
+### UART link between the ESP32 and the Pi 4 (set up, wires and flash pending)
+- Firmware v0.7.4.1 (commit 8fb5f5e): every DASH line also goes out on UART2 at 460800 baud, IO41 TX and IO42 RX
+  (both free; modem uses 4/5/47/48, IMUs 8/9/17/18, sync 15). A line is dropped, and counted in "!status", rather than
+  blocking the task if the 2 kB TX buffer is full. Local "!" commands are also accepted from the Pi on that UART.
+- Pi 4: Bluetooth (unused here) given up so the full PL011 UART is on GPIO14/15: dtoverlay=disable-bt in config.txt,
+  console=serial0 removed from cmdline.txt, serial getty masked. Backups saved as *.bak-uart. After reboot
+  /dev/serial0 -> ttyAMA0, throttled 0x0.
+- telemetry-bridge now opens /dev/serial0 at 460800 (was /dev/ttyACM0).
+- Wiring: ESP32 IO41 -> Pi pin 10 (GPIO15 RXD); ESP32 IO42 <- Pi pin 8 (GPIO14 TXD); ESP32 GND -> Pi GND (pin 6 or 9).
+  Both sides are 3.3 V logic, so no level shifter. No 5 V or 3.3 V wire between them: the ESP32 stays on its own battery.
+- After the reboot nothing answered on the Pi 4's I2C bus (rear ToF board disconnected or unpowered at the time).
