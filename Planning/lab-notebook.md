@@ -276,3 +276,8 @@ committed to git because of their size, kept on OneDrive).
 - Unchanged: current to 46.9 A, 74.58 to 72.82 V, SOC 60 to 58 %, no GNSS fix (no antenna fitted).
 - Report corrected accordingly (Results R1, R4, R5, R6, R10, R13 and summary table; abstract; Methodology overview,
   BMS pack, road session; Introduction scope; Discussion; Conclusions; evidence table).
+
+## 22 October 2026
+
+### Road session of 19 Oct: driver
+- The student confirmed that Yusuf drove the TUKZIE on 19 October (the student did not drive). Added to the report (Methodology, vehicle tests and ethics).
