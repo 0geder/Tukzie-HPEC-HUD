@@ -253,3 +253,8 @@ committed to git because of their size, kept on OneDrive).
   too weak for the modem's transmit bursts (brown-out). To check: battery voltage during modem start.
   The UART link itself had no bad lines (1,910 lines). Pi 5 unreachable from 07:23 (Pi 4 eth0 no carrier): off or
   cable out.
+- 12:37: Pi 4 up 6 h 42 min, flags 0x0, 34 C. I2C bus: 0x30, 0x31, 0x32 (the three ToF sensors after address
+  assignment), no 0x69, so the SEN55 is not answering yet. ToF ahead 648, right 237 mm, left out of range.
+  ESP32 back: up 10 min, both IMUs 200 Hz, 0 drops, UART 2,489 lines, 0 bad. Modem still silent (csq empty, no cell
+  position, no GNSS) since about 07:10. Pi 5 still unreachable (eth0 no carrier). The bridge's UDP beacon failed
+  1,774 times with "network unreachable" (Wi-Fi dropped for a while).
