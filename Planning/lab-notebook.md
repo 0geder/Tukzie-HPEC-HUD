@@ -201,3 +201,21 @@ committed to git because of their size, kept on OneDrive).
 - Report updated with the first road session (commit 91f9598): Results R1, R4, R5, ride states, camera alerts on the
   road and recorder coverage; Discussion (what the session supports and cannot yet answer); Methodology (session
   run); Conclusions note; requirements table rows R1, R4 and R5.
+
+## 21 October 2026
+
+### Vehicle speed and motor data from the vac-work (checked)
+- The vac-work DAQ team designed a CAN FD bus (500 kbit/s, 2 Mbit/s data, 11-bit IDs) with three STM32 G474RE nodes and a
+  Raspberry Pi decoder (MCP2518FD HAT, SocketCAN can0, tools/pi/can_listen.py; decoder in docs/can_data_reference.md).
+- Catalogue messages relevant to SW-7: power_wheel_speed 0x325 (wheel rpm and counts, 100 Hz), power_phase_current 0x322,
+  power_dc_bus 0x323 (pack voltage, current, power), dash_dynamics 0x363 (throttle), rear_brake 0x343, rear_discrete 0x545
+  (handbrake, torque lever), rear_radar 0x446 (reverse distance).
+- Status in their handover: the power-node sensors (wheel speed, phase current, DC bus, thermal) are "in the catalogue,
+  not implemented"; throttle, brake, handbrake/torque lever and the two IMUs work; all bench-tested in July, not on the
+  vehicle. No interface to the motor controller itself was found in the vac-work.
+- So there is no ready source of vehicle speed or motor data today.
+
+### Melo's broker with her CA certificate
+- ca.crt: self-signed CA "tukzie-local-dev-ca", valid to 2036. Topics must start with "tukzie/".
+- From the laptop (phone uplink) the broker host did not accept a TCP connection on 18883 or 8883, with or without TLS
+  (timeouts). The CA's name ("local-dev") suggests the broker may only be reachable on a particular network.
