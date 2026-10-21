@@ -124,7 +124,7 @@ When the VL53L5CX arrives it is to be validated on the bench before use: (1) con
 
 \subsection*{Raspberry Pi~4 discovery}
 
-The dashboard's resolver (\texttt{DashboardIntegration/sw7\_endpoints.py}) tries, in order: localhost, an explicit override, a fixed address on a planned Ethernet link (10.20.0.1 and 10.20.0.2), the source of a UDP beacon sent by the bridge every 2\,s on port 50808 (ignored if older than 10\,s), \texttt{pi4-camera.local} through mDNS, and the last address that worked (Figure~\ref{fig:pi4-discovery}). A candidate is accepted when it answers with valid JSON within 3\,s; three failed polls start a new search, with the wait doubling to 30\,s. The offscreen tests pass; the wired link has a setup script but its use on the vehicle is not recorded.
+The dashboard's resolver (\texttt{DashboardIntegration/sw7\_endpoints.py}) tries, in order: localhost, an explicit override, a fixed address on the Ethernet link (10.20.0.1 and 10.20.0.2, in use since 15 October), the source of a UDP beacon sent by the bridge every 2\,s on port 50808 (ignored if older than 10\,s), \texttt{pi4-camera.local} through mDNS, and the last address that worked (Figure~\ref{fig:pi4-discovery}). A candidate is accepted when it answers with valid JSON within 3\,s; three failed polls start a new search, with the wait doubling to 30\,s. The offscreen tests pass; the wired link has been in use since 15 October and carried the rear data on the road session of 19 October.
 
 \begin{figure}[htbp]
 \centering

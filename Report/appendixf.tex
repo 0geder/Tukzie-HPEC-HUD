@@ -1,7 +1,7 @@
 \chapter{Enclosure and Mount Design}
 \label{app:mechanical}
 
-This appendix records the mechanical design of three printed assemblies that put the system on the vehicle: the dashboard display mount, the front sensor pod, and the two IMU pods. It gives the measurements each design rests on, the choices made and why, the checks run on the three-dimensional geometry, and the print plan. All three were modelled in SOLIDWORKS 2025 and sliced for the Prusa MINI. \emph{As of 12 October none has been printed or tested on the vehicle}; every result below is a check on the CAD geometry, not on a physical part.
+This appendix records the mechanical design of the printed assemblies that put the system on the vehicle: the dashboard display mount, the two sensor pods (rear for the Raspberry Pi~4 and the telemetry unit, front for the Raspberry Pi~5), and the two IMU pods. It gives the measurements each design rests on, the choices made and why, the checks run on the three-dimensional geometry, and the print plan. All were modelled in SOLIDWORKS 2025, or edited as meshes, and sliced for the Prusa MINI. On 12 October none had been printed; the pods were printed and mounted on the vehicle for the road session of 19 October, and the display mount is being redesigned. The checks below are on the CAD geometry, not on physical parts.
 
 The parts were built by Python scripts that drive SOLIDWORKS through its API (\texttt{CAD/*/build/} in the repository). Every size comes from one parameter list, so a new measurement is one number and a rebuild. The scripts are the source of truth: most sketches are not dimensioned inside SOLIDWORKS, so editing a dimension in SOLIDWORKS does not drive the model.
 
@@ -114,8 +114,10 @@ Clamp cap & 40 by 52 by 16 & 1 & Lower clamp half, 4.9\,mm under the bore, 1.5\,
 \end{tabular}
 \end{table}
 
-\section{Front sensor pod}
+\section{Rear sensor pod (Raspberry Pi~4 and telemetry unit)}
 \label{sec:mech-pod}
+It was designed as the front pod before the two-sided layout of 15 October (Section~\ref{sec:two-sided}) and now serves the rear, beside the battery.
+
 
 The pod (Figures~\ref{fig:mech-pod-assembly} and~\ref{fig:mech-pod-parts}) has a sensor head and an electronics box, bolted together by four M3 flange screws.
 \begin{itemize}
@@ -131,7 +133,7 @@ The two lower flange bolts sit under the Pi~4, so the head must be bolted on bef
 \subfigure[Assembly on the dummy bar.]{\includegraphics[width=0.48\textwidth]{figures/cad/pod_assembly_iso.png}}
 \subfigure[Side view: head (right), box, rail plate and clamp.]{\includegraphics[width=0.48\textwidth]{figures/cad/pod_assembly_side.png}}
 \subfigure[From above, with the view cones of the three ToF sensors (25$^\circ$) and the camera (53.5$^\circ$) shown as reference bodies; no cone meets a wall.]{\includegraphics[width=0.6\textwidth]{figures/cad/pod_assembly_cones.png}}
-\caption{Front sensor pod assembly (revision 2).}
+\caption{Rear sensor pod assembly (revision 2).}
 \label{fig:mech-pod-assembly}
 \end{figure}
 
@@ -140,13 +142,13 @@ The two lower flange bolts sit under the Pi~4, so the head must be bolted on bef
 \subfigure[Head upper shell: brow, windows with hoods, flange bosses.]{\includegraphics[width=0.31\textwidth]{figures/cad/pod_head_upper.png}}
 \subfigure[Head tray: board pillars, ribbon guide, jumper channel.]{\includegraphics[width=0.31\textwidth]{figures/cad/pod_head_tray.png}}
 \subfigure[Electronics box base: Pi~4 and ESP32 bays, vents, hatch.]{\includegraphics[width=0.31\textwidth]{figures/cad/pod_box_base.png}}
-\caption{Main printed parts of the front sensor pod.}
+\caption{Main printed parts of the rear sensor pod.}
 \label{fig:mech-pod-parts}
 \end{figure}
 
 \begin{table}[htbp]
 \centering
-\caption{Front sensor pod: printed parts.}
+\caption{Rear sensor pod: printed parts.}
 \label{tab:mech-pod-parts}
 \small
 \begin{tabular}{|p{3.6cm}|p{2.8cm}|p{8.0cm}|}

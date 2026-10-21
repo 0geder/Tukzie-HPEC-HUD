@@ -127,11 +127,12 @@ Battery management system & Bluetooth Low Energy, no wire & board within about 1
 \begin{tabular}{|p{3.6cm}|p{4.4cm}|p{4.6cm}|}
 \hline
 \textbf{Part} & \textbf{Connection} & \textbf{Notes} \\ \hline
-Camera (OV5647 NoIR) & 15\,cm ribbon to the Pi~4 ``CAMERA'' connector & contacts face the HDMI ports; longer ribbons pick up noise \\ \hline
+Rear camera (OV5647 NoIR) & 15\,cm ribbon to the Pi~4 ``CAMERA'' connector & contacts face the HDMI ports; longer ribbons pick up noise \\ \hline
 Raspberry Pi 4 power & USB-C, 5.1\,V 3\,A supply & a weaker supply or a long thin cable gives under-voltage \\ \hline
 Raspberry Pi 4 cooling & fan on 5\,V and GND & needed: 81\,\textdegree C without it, 48\,\textdegree C with it (10 Oct 2026) \\ \hline
-Raspberry Pi 5 (dashboard) & the vehicle's existing dashboard computer and display, unchanged & reaches the Pi~4 over Wi-Fi, found by its beacon \\ \hline
-Network & both Raspberry Pis on one Wi-Fi network (laptop or phone hotspot on 2.4\,GHz) & \\ \hline
+Front camera (second OV5647) & ribbon to a camera connector on the Pi~5 & since 15 October \\ \hline
+Raspberry Pi 5 (dashboard, front unit) & the vehicle's existing dashboard computer and display; front camera, detector and time-of-flight board added on 15 October & reaches the Pi~4 over the Ethernet cable \\ \hline
+Network & dedicated Ethernet cable between the two Pis, fixed addresses 10.20.0.1 and 10.20.0.2; Wi-Fi only for the internet route. Until 15 October both Pis were on one 2.4\,GHz hotspot & \\ \hline
 \end{tabular}
 \end{table}
 
