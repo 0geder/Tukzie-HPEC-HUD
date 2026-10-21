@@ -1,0 +1,72 @@
+% Project timeline as run, 3 August to 21 October 2026. One unit on x is one day from 3 August.
+% Sources: git log (commit dates), PROJECT_LOG.md section 3, CHANGELOG.md, Planning/lab-notebook.md,
+% Report/appendixc.tex (evidence index dates). Bars span the first and last dated record of each activity.
+\begin{tikzpicture}[x=0.12cm, y=1cm]
+  \def\rowh{0.62}
+  % ---- week grid and labels (weeks start on Monday) ----
+  \foreach \d/\day/\mon in {0/3/Aug, 7/10/Aug, 14/17/Aug, 21/24/Aug, 28/31/Aug, 35/7/Sep, 42/14/Sep, 49/21/Sep, 56/28/Sep, 63/5/Oct, 70/12/Oct, 77/19/Oct} {
+    \draw[swGrey!40, line width=0.3pt] (\d,0.35) -- (\d,-9.0);
+    \node[font=\swfont, text=swInk, anchor=south, align=center, inner sep=1pt] at (\d+3.5,0.35) {\day\\\mon};
+  }
+  \draw[swGrey!40, line width=0.3pt] (80,0.35) -- (80,-9.0);
+  % ---- rows: label, then bars (start day, end day) ----
+  \newcommand{\swrow}[2]{\node[font=\swfont, text=swInk, anchor=east, align=right] at (-1,-#1*\rowh) {#2};}
+  \newcommand{\swbar}[4][swBlue]{\fill[#1!35, draw=#1, line width=0.4pt] (#3,-#2*\rowh-0.17) rectangle (#4+1,-#2*\rowh+0.17);}
+  \newcommand{\swmile}[3]{\node[draw=swAmber, fill=swAmberFill, diamond, inner sep=1.6pt] at (#2+0.5,-#1*\rowh) {};
+    \node[font=\swfont, text=swInk, anchor=west, inner sep=1pt] at (#2+1.6,-#1*\rowh) {#3};}
+
+  \swrow{0}{1. Literature review and research search}
+  \swbar{0}{3}{12}  % papers 6 to 15 Aug
+  \swbar{0}{47}{47} % automated search and gap ledger, 19 Sep
+  \swbar{0}{65}{65} % review aligned with the dashboard scope, 7 Oct
+
+  \swrow{1}{Planning, components, vehicle access}
+  \swbar{1}{28}{36} % 31 Aug to 8 Sep (PROJECT_LOG)
+
+  \swrow{2}{2. Test procedures and criteria}
+  \swbar{2}{57}{58} % TEST_PROCEDURES.md, 29 to 30 Sep
+  \swbar{2}{69}{69} % T15 added, 11 Oct
+  \swbar{2}{73}{73} % C11 added, 15 Oct
+
+  \swrow{3}{3. Telemetry firmware}
+  \swbar{3}{24}{24} % baseline 27 Aug
+  \swbar{3}{44}{79} % dual-IMU FreeRTOS 16 Sep to v0.7.4.1 21 Oct
+
+  \swrow{4}{3. Camera units, detector, ToF fusion}
+  \swbar{4}{44}{44} % MVP 16 Sep
+  \swbar{4}{56}{73} % first live run 28 Sep to time to contact 15 Oct
+
+  \swrow{5}{3. Pothole model (Colab)}
+  \swbar{5}{60}{69} % runs 2 and 6 Oct, C10 11 Oct
+
+  \swrow{6}{3. Dashboard integration}
+  \swbar{6}{56}{73} % camera page 28 Sep to two-sided Surroundings 15 Oct
+
+  \swrow{7}{3. Enclosures and mounts}
+  \swbar{7}{47}{47} % OpenSCAD camera mount 19 Sep
+  \swbar{7}{70}{77} % SolidWorks 12 Oct to printing on 19 Oct
+
+  \swrow{8}{4. Start-up checks and fault diagnosis}
+  \swbar[swGreen]{8}{53}{74} % boot loop 25 Sep to housing recurrence 16 Oct
+
+  \swrow{9}{5. Bench integration and acceptance tests}
+  \swbar[swGreen]{9}{53}{73} % T1 25 Sep to Pi 5 detector 15 Oct
+  \swbar[swGreen]{9}{79}{79} % wired UART check 21 Oct
+
+  \swrow{10}{6. Vehicle work}
+  \swbar[swAmber]{10}{58}{59} % BMS frames on the vehicle, 30 Sep to 1 Oct
+  \swbar[swAmber]{10}{77}{79} % mounting, road session 19 Oct, data check 20 Oct, 21 Oct
+
+  \swrow{11}{Analysis and report}
+  \swbar[swGrey]{11}{4}{4}   % Introduction started 7 Aug
+  \swbar[swGrey]{11}{53}{79} % report written with the work from 25 Sep
+
+  % ---- milestones, one row each so that the labels do not overlap ----
+  \swrow{12}{Milestones}
+  \swmile{12}{59}{}
+  \node[font=\swfont, text=swInk, anchor=east, inner sep=1pt] at (58,-12*\rowh) {1 Oct: dashboard replaces the HUD};
+  \swmile{13}{73}{}
+  \node[font=\swfont, text=swInk, anchor=east, inner sep=1pt] at (72,-13*\rowh) {15 Oct: two-sided layout};
+  \swmile{14}{77}{}
+  \node[font=\swfont, text=swInk, anchor=east, inner sep=1pt] at (76,-14*\rowh) {19 Oct: first road session};
+\end{tikzpicture}

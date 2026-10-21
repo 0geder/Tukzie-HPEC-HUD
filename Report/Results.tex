@@ -3,9 +3,11 @@
 
 This chapter gives the measured results against the requirements of Table~\ref{tab:requirements-mapping}. Bench results were measured on the target board and the two Raspberry Pis between 25 September and 15 October 2026; results from the vehicle (19 to 21 October) are marked as such in the text and in Table~\ref{tab:results-summary}. The raw evidence is indexed in Appendix~\ref{app:evidence}, and results still to be obtained are marked as outstanding where they will go.
 
+The results come from the experiments of Section~\ref{sec:experiments}, collected and analysed as described in Sections~\ref{sec:data-collection} and~\ref{sec:data-analysis}, on the design of Chapter~\ref{chap:design}. The chapter is structured by requirement: acquisition, calibration and ride features (R1 to R3, Sections~\ref{sec:dual-imu-architecture} and~\ref{sec:ride-characterisation}), position (R4), battery telemetry (R5), hazard sensing (R6 to R8, Section~\ref{sec:camera-subsystem}), telemetry and recovery (R9, R10, Section~\ref{sec:mqtt-networking}) and the driver display (R11, R12, Section~\ref{sec:dashboard-page}). Within each section the earlier results come first and those of the first road session, where there are any, last. Integration and power follow, and Section~\ref{sec:res-summary} closes with a summary table against every requirement.
+
 \section{Inertial acquisition (R1)}\label{sec:res-acq}
 
-Table~\ref{tab:res-acquisition} summarises the acquisition results. Both IMUs held 200\,Hz with no dropped samples in every bench session, including with all subsystems running together on the target board. The only timing fault was the pause at each flash write. With a write every 10\,s (v0.5.0) both IMUs showed a 33 to 40\,ms gap at every write, twelve in two minutes; with logging switched off for the next two minutes the worst gap was 5.9\,ms. With buffered logging (v0.6.0), in a 330\,s run with five flushes, all ten gaps over 10\,ms (37 to 40\,ms, both IMUs at each flush) fell within 3.5\,s after a flush, and the worst gap elsewhere was again 5.9\,ms. Each flush occupied the modem task for 71 to 202\,ms, which does not affect acquisition. With v0.7.4 and its 94\,Hz filter the rate and drop count were unchanged (T15). ``No dropped samples'' does not mean even spacing: in the 25 September session the shortest interval fell to 0.8 to 1.0\,ms in each window with a write gap, as \texttt{vTaskDelayUntil} caught up, and jerk, computed with a fixed $\Delta t$, is distorted there. R1 is met on the bench as defined. The drop counter counts samples lost because the queue was full; a read that fails on the bus is not detected and would pass as a sample, so the loss figures cover the processing path, not the bus.
+Table~\ref{tab:res-acquisition} summarises the acquisition results. Both IMUs held 200\,Hz with no dropped samples in every bench session, including with all subsystems running together on the target board. The only timing fault was the pause at each flash write. With a write every 10\,s (v0.5.0) both IMUs showed a 33 to 40\,ms gap at every write, twelve in two minutes; with logging switched off for the next two minutes the worst gap was 5.9\,ms. With buffered logging (v0.6.0), in a 330\,s run with five flushes, all ten gaps over 10\,ms (37 to 40\,ms, both IMUs at each flush) fell in the first statistics window reported after a flush, 0.2 to 1.05\,s after it (Figure~\ref{fig:res-imu-gaps}), and the worst gap elsewhere was again 5.9\,ms. Each flush occupied the modem task for 71 to 202\,ms, which does not affect acquisition. With v0.7.4 and its 94\,Hz filter the rate and drop count were unchanged (T15). ``No dropped samples'' does not mean even spacing: in the 25 September session the shortest interval fell to 0.8 to 1.0\,ms in each window with a write gap, as \texttt{vTaskDelayUntil} caught up, and jerk, computed with a fixed $\Delta t$, is distorted there. R1 is met on the bench as defined. The drop counter counts samples lost because the queue was full; a read that fails on the bus is not detected and would pass as a sample, so the loss figures cover the processing path, not the bus.
 
 \begin{table}[htbp]
 \centering
@@ -19,12 +21,21 @@ Dropped samples (queue full) & 0 in every bench session \\ \hline
 Longest gap, logging off & 5.9\,ms; none over 10\,ms \\ \hline
 Gap at each flash write, 25 Sep session & 24.8 to 29.9\,ms every 12\,s; shortest interval 0.8 to 1.0\,ms in the same windows (catch-up) \\ \hline
 Gap at each flash write, v0.5.0 & 33 to 40\,ms, every 10\,s \\ \hline
-Gap at each flash write, v0.6.0 (buffered) & 37 to 40\,ms, about once a minute, all within 3.5\,s of a flush \\ \hline
+Gap at each flash write, v0.6.0 (buffered) & 37 to 40\,ms, about once a minute, each in the first window after a flush \\ \hline
 v0.7.4, 94\,Hz filter, 12-minute T15 run & 200.0 to 200.5\,Hz, 0 dropped in 736 windows; 36 to 44\,ms at each flush, none added by the replay \\ \hline
 All subsystems together (IMUs, BLE, modem) & 400 to 401 samples per 2\,s window on each IMU, 0 dropped \\ \hline
 Dashboard line added (v0.7.0) & 200\,Hz on both IMUs, 0 dropped \\ \hline
 \end{tabular}
 \end{table}
+
+Figure~\ref{fig:res-imu-gaps} shows the longest sample interval in each 2\,s window. With v0.5.0 (29 September), 30 of the 151 logging-on windows per IMU had a maximum interval of 33.0 to 40.0\,ms, one about every 10\,s, and in the 59 windows with flash logging off the worst interval was 5.9\,ms. With buffered writes in v0.6.0 (1 October) only 5 of 173 windows per IMU exceeded 10\,ms (37.3 to 40.1\,ms), each in the first window reported after one of the five flushes, and the worst interval elsewhere was 5.9\,ms; no sample was dropped in either run.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/results/imu_write_gaps.pdf}
+\caption{Longest interval between consecutive IMU samples in each 2\,s statistics window, on the bench. (a) Firmware v0.5.0, 29 September, writing to flash every 10\,s; the grey band is the period with flash logging switched off (219.7 to 340.8\,s). (b) Firmware v0.6.0, 1 October, buffered logging; dashed lines mark the five flushes as logged by the firmware (71 to 202\,ms each). The firmware reports only the minimum, mean and maximum interval per window, so each point is one window maximum (212 windows per IMU in (a), 173 in (b)); times are when the host received the line. The dotted line is the nominal 5\,ms interval at 200\,Hz. No samples were dropped in either run.}
+\label{fig:res-imu-gaps}
+\end{figure}
 
 On the first road session (19 October; Section~\ref{sec:field-test-design}), which included about 16 minutes of driving, the drop count stayed at zero on both IMUs throughout. The unit sends one record a second, but the recorder polled twice a second and the bridge repeated its last record until a new line arrived, so the 10,287 rear replies hold 3,464 distinct records. Over the 5,557\,s from the first to the last (17:16:37 to 18:49:13), 2,093 seconds (38\,\%) have no record, and in the driving period (18:15 to 18:49) 67\,\% of seconds have one. The missing seconds are lines lost between the unit and the Raspberry Pi~4 over USB, the loss already seen on the bench (R10 below), and 27 of the records that arrived had damaged fields. Of the 3,437 readable records, 3,431 show both IMUs at 200.0 to 200.5\,Hz; five, at 18:03 to 18:05, show 197 to 204.5\,Hz, an uneven split of samples between two-second windows; and one, at 18:29:16 while driving, shows IMU1 with 4 samples in a 2\,s window instead of 400, a stall of nearly 2\,s that the drop count does not show and whose cause is not known. On the vehicle R1 is therefore partly met: no samples were dropped and the rate held except for that stall, but a third of the per-second records did not reach the recorder.
 
@@ -50,6 +61,15 @@ The feature self-test passed at every boot: RMS, peak-to-peak and crest factor o
 \end{figure}
 
 On the road session the per-second vibration value separated the states clearly. Counting each record once, and labelling a second as driving when the battery current exceeded 1\,A or the value exceeded 0.3, it had a median of 0.03 in the 2,832 parked seconds and, in the 605 driving seconds, a median of 1.39, a 95th percentile of 3.1 and a maximum of 5.09, with battery current of up to 46.9\,A. The full 1\,s features were stored only in the unit's 10\,s log, no raw samples were kept, and the runs were not marked, so the per-run analysis below is outstanding.
+
+Figure~\ref{fig:res-road} shows the 19 October session from the rear unit's telemetry. After removing repeats there were 3464 records between sequence numbers 4549 and 10105, so 2093 of 5557 (37.7\,\%) were not received: 407 in one gap from 18:06:34 to 18:13:23, the rest in short gaps of at most 8 records. Vibration stayed near 0.03\,m/s$^2$ (median 0.030) while parked and had a median of 1.39\,m/s$^2$ (maximum 5.09) in the 607 records flagged as driving (605 of them with every field readable), and the battery current reached $-46.9$\,A with a median of $-6.3$\,A over the 307 records above 1\,A.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/results/road_session_1019.pdf}
+\caption{Road session on 19 October 2026, 17:15 to 18:50 local time (UTC+2), as recorded by the Raspberry Pi~5 from the rear unit (file \texttt{2026-10-19\_171534\_roadtest.jsonl}). Top: vibration value (standard deviation of the fused acceleration magnitude per 1\,s window). Bottom: battery current from the BMS, negative for discharge. The recorder polled twice a second and the bridge repeats the latest record, so the 10\,287 rear rows carrying a telemetry record were reduced to 3464 by keeping the first row for each sequence number. Lines break wherever a sequence number is missing (2093 of 5557, 37.7\,\%, including one gap of 407 records from 18:06:34 to 18:13:23). Green shading marks records with $|i|>1$\,A or vibration above 0.3\,m/s$^2$ (607 records); the dashed line is the drive marker added from the laptop at 17:58:41.}
+\label{fig:res-road}
+\end{figure}
 
 \outstanding{ride features, speed-normalised index and disagreement on the vehicle: stationary powertrain baseline at each motor setting, repeated traversals of the same road sections, and speed dependence (RQ1, RQ4).}
 
@@ -113,6 +133,15 @@ Whole system & 14.6--14.7 & 55--58 / - & - & 51--52 / - & - & 118--122 / 146--14
 \end{tabular}
 \end{table}
 
+Figure~\ref{fig:res-latency} compares the per-frame time from sensor readout to detection result. On the Pi~4 with four inference threads the median was 102\,ms (95th percentile 120\,ms, 1161 frames) and 105\,ms with the live view open (127\,ms, 1031 frames); with one thread it rose to 186\,ms (207\,ms, 419 frames) as inference went from 36 to 126\,ms. The Pi~5 on 15 October had a median of 53\,ms and a 95th percentile of 62\,ms over 1151 frames, with inference at 28\,ms and queue wait at 18\,ms against 52\,ms on the Pi~4. The 11 October whole-system log on the Pi~4 (bridge, fusion and preview running) recorded only per-interval summaries, median 118 to 122\,ms and 95th percentile 146 to 148\,ms, so it is not plotted.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/results/detector_latency.pdf}
+\caption{Detector latency from camera readout to detection result, per frame, for 60\,s runs of the TensorFlow Lite detector (\texttt{detect.tflite}, 300$\times$300 input, 640$\times$480 camera stream). (a) Cumulative distribution; (b) box plots with the box at the quartiles, whiskers at the 5th and 95th percentiles and dots beyond them. Pi~4 runs on 30 September: four threads (1161 frames, 19.5 frames/s), four threads with the live view open in the Pi's browser (1031 frames, 17.3 frames/s), one thread (419 frames, 7.0 frames/s). Pi~5 run on 15 October: four threads with the live-view server running (1151 frames, 19.3 frames/s). Data from the detector's per-frame timing CSV files.}
+\label{fig:res-latency}
+\end{figure}
+
 The time-of-flight stand-ins answered and each responded to a fingertip in the right order (centre 267 to 300\,mm and right 24 to 38\,mm on the bench; left 8190, the code for no target), so the first part of R8 is met; their accuracy against a tape and the fusion validation (test C9) have not been run, so the rest of R8 is outstanding. The first live fused hazard shows the matching working and how far the uncalibrated camera distance can be wrong at close range. The fusion's sensor directions and the camera's focal length are still defaults.
 
 On the road session (17:15 to 19:10) the front detector raised 1,342 alerts: people 815, of which 366 were marked approaching, and cars 513, of which 261 were approaching. The rear detector raised 741, from its own log: people 514 (183 approaching), cars 201 (36 approaching) and 26 other vehicles. Whether each alert was correct has not been checked against video.
@@ -141,6 +170,15 @@ IMUs during the test & 200.0 to 200.5\,Hz, 0 dropped \\ \hline
 End-to-end latency & Not measured (no GNSS time indoors) \\ \hline
 \end{tabular}
 \end{table}
+
+Figure~\ref{fig:res-t15} shows the backlog during T15. With the radio off for 600\,s the backlog grew by one record every 10\,s to 60 records, MQTT reconnected 5.2\,s after the radio was switched back on, and the backlog was cleared 37.9\,s later. On the server side the 60 replayed records arrived over 37.3\,s (1.6 records/s), and the database held all 112 records expected for the boot (sequence 65 to 176) with no duplicates and none missing.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/results/t15_outage_backlog.pdf}
+\caption{Store-and-forward outage test T15 on the bench, 11 October, firmware v0.7.4. The radio was turned off with \texttt{AT+CFUN=4} at 63.4\,s and back on with \texttt{AT+CFUN=1} at 663.7\,s (grey band); the board was not reset. Points are the device's own counters from the 21 \texttt{!sync} status lines in the capture: records stored on the device and not yet acknowledged (backlog), and records replayed and acknowledged since the outage began. Dashed lines mark the MQTT reconnection (669.0\,s) and the firmware's ``backlog cleared'' message (706.9\,s). The server's per-record receive times were not exported for this run, so the figure uses the device counters; the server-side totals are in the text.}
+\label{fig:res-t15}
+\end{figure}
 
 The dashboard line (v0.7.0) delivered 40 lines in 40\,s with no gap in the sequence numbers, every line valid JSON and at most 272 bytes, with both IMUs at 200\,Hz and no drops. Through the bridge on the Raspberry Pi~4 the record reached a laptop, not yet the Raspberry Pi~5, 0.37\,s old with no malformed lines, and opening the port did not reset the telemetry unit; the pre-test check on 4 October found the record 0.5\,s old and the telemetry answering in 18\,ms. In a longer bench run (12 to 13 October, 4.7 hours, v0.7.4 with the modem and the database sync active) the bridge counted 858 unusable dashboard lines among 9,229 lines read (9.3\,\%); the cause has not been found. On 16 October it fell to about 2\,\% (1.9 to 2.8\,\%), then rose to 10 to 11\,\% once the battery-management link was active, with the Raspberry Pi~4 under-voltage at the same time (Section~\ref{sec:inv-power}). A skipped line delays the dashboard by a second; the unit's own log and the uplink are not affected. On the road session a third of the per-second records did not reach the recorder for the same reason (Section~\ref{sec:res-acq}). Since 21 October the record travels over a wired UART instead of USB (Section~\ref{sec:inv-power}); none of the first 2,489 lines was bad, but a long run has not been done. R10 is met only in the 40-line test and is partly met overall.
 
@@ -183,6 +221,7 @@ On the road session the recorder on the Raspberry Pi~5 ran for 108.6 minutes wit
 \outstanding{full-system test on the vehicle over a defined route, with the telemetry unit on its own supply; inline current measurements of the display, the Raspberry Pi~4 and the telemetry unit to replace the estimates in Table~\ref{tab:power-budget}; the pack's capacity and chemistry from the vehicle team.}
 
 \section{Summary against the requirements}
+\label{sec:res-summary}
 
 \begin{table}[htbp]
 \centering

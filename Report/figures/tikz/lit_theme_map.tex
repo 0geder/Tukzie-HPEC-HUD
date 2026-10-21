@@ -1,0 +1,47 @@
+% Map of the literature review's themes (Chapter 2 sections) onto the research questions RQ1 to RQ4
+% (Introduction.tex). Each arrow means the section supplies a method, a limit or a test for that question.
+\begin{tikzpicture}[x=1cm, y=1cm]
+  \def\tw{6.4cm}
+  \def\rw{5.0cm}
+  % ---- themes of the review ----
+  \node[swbox, text width=\tw] (sig)  at (3.3,0)     {Signal processing and vibration separation\\ Section~\ref{sec:lit-signal-processing}};
+  \node[swbox, text width=\tw] (rough) at (3.3,-1.15) {Road roughness and ride response\\ Section~\ref{sec:lit-roughness}};
+  \node[swbox, text width=\tw] (edge) at (3.3,-2.3)  {Edge computing and real-time telemetry\\ Section~\ref{sec:lit-edge}};
+  \node[swbox, text width=\tw] (plat) at (3.3,-3.45) {Platform options for acquisition and detection\\ Section~\ref{sec:lit-platforms}};
+  \node[swbox, text width=\tw] (sync) at (3.3,-4.6)  {Cellular synchronisation and data integrity\\ Section~\ref{sec:lit-sync}};
+  \node[swbox, text width=\tw] (disp) at (3.3,-5.75) {Driver-display design\\ Section~\ref{sec:lit-display}};
+  \node[swbox, text width=\tw] (det)  at (3.3,-6.9)  {Lightweight detection and monocular ranging\\ Section~\ref{sec:lit-detection}};
+  \node[swbox, text width=\tw] (prox) at (3.3,-8.05) {Proximity sensing on low-speed vehicles\\ Section~\ref{sec:lit-proximity}};
+  % ---- research questions ----
+  \node[swbox, text width=\rw] (rq4) at (12.0,0)    {RQ4: features that separate road from powertrain vibration};
+  \node[swbox, text width=\rw] (rq1) at (12.0,-1.7) {RQ1: accuracy and repeatability of real-time ride characterisation};
+  \node[swbox, text width=\rw] (rq3) at (12.0,-3.9) {RQ3: latency, loss and recovery from sensor to LTE};
+  \node[swbox, text width=\rw] (rq2) at (12.0,-6.9) {RQ2: dashboard hierarchy, layout and update strategy for telemetry and alerts};
+  % ---- synthesis ----
+  \node[swbox, fill=white, text width=14.0cm] (syn) at (7.5,-9.75) {Synthesis and research gap, Section~\ref{sec:lit-synthesis}: methods carried forward into Chapter~\ref{chap:method}};
+
+  % ---- lanes (drawn behind) ----
+  \begin{scope}[on background layer]
+    \node[swlane, fit=(sig)(rough)(edge)(plat)(sync)(disp)(det)(prox)] (lt) {};
+    \node[swlane, fit=(rq4)(rq1)(rq3)(rq2)] (lr) {};
+  \end{scope}
+  \node[swlanetitle] at (lt.north west) {Themes of the review};
+  \node[swlanetitle] at (lr.north west) {Research questions (Chapter~\ref{chap:intro})};
+
+  % ---- theme to question links ----
+  \draw[swflow] (sig.east) -- (rq4);
+  \draw[swflow] (sig.east) -- (rq1);
+  \draw[swflow] (rough.east) -- (rq1);
+  \draw[swflow] (edge.east) -- (rq1);
+  \draw[swflow] (edge.east) -- (rq3);
+  \draw[swflow] (plat.east) -- (rq1);
+  \draw[swflow] (plat.east) -- (rq3);
+  \draw[swflow] (sync.east) -- (rq3);
+  \draw[swflow] (disp.east) -- (rq2);
+  \draw[swflow] (det.east) -- (rq2);
+  \draw[swflow] (prox.east) -- (rq2);
+
+  % ---- into the synthesis ----
+  \draw[swlink] (lt.south) -- (lt.south |- syn.north);
+  \draw[swlink] (lr.south) -- (lr.south |- syn.north);
+\end{tikzpicture}

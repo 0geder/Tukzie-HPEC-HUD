@@ -1,12 +1,12 @@
 """Body word count as the declaration defines it. Usage, from Report/: python wordcount.py
 
-Chapters 1 to 7, text only: tables, figures, TikZ pictures and listings are removed before counting, and
+Chapters 1 to 8, text only: tables, figures, TikZ pictures and listings are removed before counting, and
 TeXcount's "Words in text" already leaves out headings and captions. Course rule (Planning/brief-compliance.md,
 H6): 10 000 to 15 000 words "plus tables, diagrams and appendices"; H4: at most 50 content pages."""
 import io, os, re, subprocess, tempfile
 
 REPORT = os.path.dirname(os.path.abspath(__file__))
-CHAPTERS = ["Introduction", "Literature", "Methodology", "Results", "Discussion", "Conclusions", "Recommendations"]
+CHAPTERS = ["Introduction", "Literature", "Method", "Methodology", "Results", "Discussion", "Conclusions", "Recommendations"]
 ENV = re.compile(r"\\begin\{(table\*?|tabular\*?|longtable|figure\*?|tikzpicture|lstlisting|verbatim)\}.*?\\end\{\1\}", re.S)
 
 

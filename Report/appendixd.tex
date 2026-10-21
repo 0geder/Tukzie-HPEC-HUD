@@ -1,7 +1,7 @@
 \chapter{Wiring and Connections}
 \label{app:wiring}
 
-This appendix records how every part of the system is connected, so that it can be rebuilt or checked from this document alone. Each table gives both ends of each wire by connector, pin number and signal. The pin assignments come from the firmware (\texttt{TelemetryUnit/src/main.cpp}), the time-of-flight reader (\texttt{CameraDetection/tof\_reader.py}) and the bench procedures (\texttt{BenchTest/TEST\_PROCEDURES.md}), and the pin positions from the manufacturers' documents reproduced in the figures. Connections not yet made on the hardware are marked as planned.
+This appendix records how every part of the system is connected, so that it can be rebuilt or checked from this document alone. Each table gives both ends of each wire by connector, pin number and signal. The pin assignments come from the firmware (\texttt{TelemetryUnit/src/main.cpp}), the time-of-flight reader (\texttt{CameraDetection/tof\_reader.py}) and the bench procedures (\texttt{BenchTest/TEST\_PROCEDURES.md}), and the pin positions from the manufacturers' documents reproduced in the figures. Connections not yet made on the hardware are marked as planned. Tables~\ref{tab:wiring-tof} to~\ref{tab:wiring-other} give, in turn, the Raspberry Pi~4 to the time-of-flight board (Table~\ref{tab:wiring-tof}), the telemetry unit to the Raspberry Pi~4 (Table~\ref{tab:wiring-esp-pi}), the IMUs (Table~\ref{tab:wiring-imu}), the telemetry unit's other connections (Table~\ref{tab:wiring-esp-other}), the planned SEN55 (Table~\ref{tab:wiring-sen55}) and the camera, displays and power (Table~\ref{tab:wiring-other}).
 
 \section{Pin references}
 
@@ -67,7 +67,7 @@ Ground for the pulse & J5 pin 12, GND & pin 9, Ground \\ \hline
 \end{tabular}
 \end{table}
 
-The powered hub is required: with the board powered from the Pi's own USB port, the LTE modem's transmit current caused repeated under-voltage on the Raspberry Pi~4 (Section~\ref{sec:pi5-default} and Chapter~\ref{chap:method}). The two boards' 3.3\,V logic levels match, so the pulse wire connects directly.
+The powered hub is required: with the board powered from the Pi's own USB port, the LTE modem's transmit current caused repeated under-voltage on the Raspberry Pi~4 (Section~\ref{sec:pi5-default} and Chapter~\ref{chap:design}). The two boards' 3.3\,V logic levels match, so the pulse wire connects directly.
 
 \section{Telemetry unit sensors and antennas}
 

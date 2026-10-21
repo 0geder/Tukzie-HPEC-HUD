@@ -1,0 +1,176 @@
+\chapter{Methodology}
+\label{chap:method}
+
+Chapter~\ref{chap:lit} ended with a bounded gap (Section~\ref{sec:lit-synthesis}, Table~\ref{tab:gap}). No reported system combines fixed-rate dual-IMU acquisition with measured jitter and loss, on-board ride features, camera detection fused with ranging, cellular telemetry with local logging and replay, and presentation on the vehicle's own dashboard, for a light electric cargo trike. The review also found that edge architectures are usually reported by accuracy or mean latency, without jitter, queue behaviour or outage recovery, and that response-based ride measures depend on the vehicle, speed and mounting. This chapter sets out how the project answers RQ1 to RQ4 under those findings: the research approach and its phases, the sites, the experiments, how data were collected and analysed, and the ethics and safety conditions. It describes what was done to obtain the evidence. What was built is described in Chapter~\ref{chap:design}.
+
+\section{Research approach}
+\label{sec:approach}
+
+The project is engineering design research. A prototype is built and then measured against criteria set before each test, and the measurements answer the research questions. The four questions are answered through the thirteen engineering requirements of Table~\ref{tab:requirements-mapping}, each with an acceptance criterion and a test identifier.
+
+The work follows a V-model (Figure~\ref{fig:vmodel}). The left arm defines the system: the problem and research questions, then the requirements and their criteria, then the design. The right arm checks it at the same levels, from the bottom up: unit and start-up checks confirm each interface, bench tests check each requirement against its criterion, and vehicle tests check what only the vehicle can show. The approach was chosen for three reasons. First, the gap is about measured behaviour (timing, loss, recovery), so each design stage needs a matching test that produces a number. Second, faults in a system of this kind often appear only when parts are combined, so each interface is checked before the next is added, and a fault can be traced to one change. Third, the target is a prototype demonstrated on the vehicle, Technology Readiness Level 6 \cite{kimmel2020}, which requires bench validation of each part before testing in the relevant environment. The criteria come from the literature where it gives one: the 80\,Hz upper limit of the ISO~2631-1 band for the sampling rate \cite{iso2631}, the 2\,s single-glance limit for the display \cite{nhtsa2013}, and the completeness, duplicate and recovery measures of Section~\ref{sec:lit-sync} for synchronisation.
+
+\begin{figure}[htbp]
+\centering
+\input{figures/tikz/vmodel}
+\caption{Research approach as a V-model. Phases 1 to 3 define and build the system; phases 4 to 6 check it at the matching level (dashed links). Phases 3 to 5 were repeated for each subsystem as it was added. The dates of each phase are in Table~\ref{tab:phases} and Figure~\ref{fig:timeline}.}
+\label{fig:vmodel}
+\end{figure}
+
+\section{Phases as run}
+\label{sec:phases}
+
+Table~\ref{tab:phases} gives the six phases of Figure~\ref{fig:vmodel} as they were actually run, with dates from the repository's commit history, the project log, the change log and the lab notebook. Figure~\ref{fig:timeline} (Appendix~\ref{app:devrecord}) draws the same record as a timeline. The phases overlapped. Phases 3 to 5 ran as a loop for each subsystem in turn: for example, the rooftop GNSS test of 29 to 30 September (phase 5) exposed a reply layout other than the one assumed, which sent the parser back to design (phase 3) for firmware v0.5.1 to v0.5.3 and a retest. Two scope changes also fed back into phases 2 and 3: the windshield HUD was replaced by integration with the existing dashboard on 1 October, and the hardware was rearranged into front and rear units on 15 October.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{The phases of Figure~\ref{fig:vmodel} as run. Dates are from the git history, \texttt{PROJECT\_LOG.md}, \texttt{CHANGELOG.md} and \texttt{Planning/lab-notebook.md}.}
+\label{tab:phases}
+\begin{tabular}{|p{2.6cm}|p{6.6cm}|p{2.6cm}|p{2.0cm}|}
+\hline
+\textbf{Phase} & \textbf{What was done} & \textbf{Dates (2026)} & \textbf{Reported in} \\ \hline
+1. Review and research questions & Papers collected; automated search of OpenAlex, arXiv and Crossref and the gap ledger (19 September); review aligned with the dashboard scope (7 October) & 3 Aug to 7 Oct & Chapters~\ref{chap:intro} and~\ref{chap:lit} \\ \hline
+2. Requirements and criteria & Test procedures and pass criteria written (\texttt{BenchTest/TEST\_PROCEDURES.md}, 29 to 30 September); tests added as subsystems were added (T15 on 11 October, C11 on 15 October) & 29 Sep to 15 Oct & Table~\ref{tab:requirements-mapping} \\ \hline
+3. Design and implementation & Firmware baseline (27 August); dual-IMU FreeRTOS firmware (16 September) to v0.7.4.1 (21 October); camera detector (16 September); dashboard integration (from 28 September); enclosures (12 to 19 October) & 27 Aug to 21 Oct & Chapter~\ref{chap:design} \\ \hline
+4. Unit and start-up checks & Each interface checked on the target board and the Raspberry Pis; faults diagnosed one change at a time (boot loop, 25 September, to the time-of-flight hang, 10 October, and the enclosed Raspberry Pi~4, 16 October) & 25 Sep to 16 Oct & Table~\ref{tab:startup-checks}, Section~\ref{sec:investigations} \\ \hline
+5. Bench integration and acceptance tests & T1 (25 September) to the Raspberry Pi~5 detector run (15 October); T15 outage test (11 October); wired serial link check (21 October) & 25 Sep to 21 Oct & Chapter~\ref{chap:results} \\ \hline
+6. Vehicle tests & First battery frames on the vehicle (30 September to 1 October); whole system mounted and first road session (19 October); data check (20 October) & 30 Sep to 20 Oct & Section~\ref{sec:field-test-design}, Chapter~\ref{chap:results} \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Site selection}
+\label{sec:site-selection}
+
+The bench was the laboratory at UCT, where the telemetry unit, both Raspberry Pis and the dashboard were set up together (Figure~\ref{fig:bench-setup}). Most tests were run there because the bench allows one change at a time, repeated runs and a laptop beside the hardware, which the vehicle does not. Two tests needed other places: the GNSS fix needs open sky, so it was tested on a rooftop (test T3), and the battery link needs the vehicle's own pack, so it was first tested on the vehicle (test T7). The vehicle is the TUKZIE Rev~0, the programme's only testbed, so the vehicle tests use one vehicle and one set of hardware (Chapter~\ref{chap:intro}). It was in the laboratory, on the ground and raised on request. Stationary tests use rated stands with the drive wheel raised, and tests on the ground use a road. The first road session was run on 19 October 2026 (Section~\ref{sec:field-test-design}); its venue, route and conditions are still to be recorded there. No person takes part as a subject, so no participants were selected (Section~\ref{sec:ethics}).
+
+\section{Experiments}
+\label{sec:verification}
+\label{sec:experiments}
+
+The experiments are of four kinds, matching phases 4 to 6 of Figure~\ref{fig:vmodel}, and the checks in turn triggered fault investigations.
+
+\begin{itemize}
+\item \emph{Unit and start-up checks} (phase 4): pass or fail checks of each interface, consolidated below.
+\item \emph{Bench acceptance tests} (phase 5): one or more tests per requirement, identified in the last column of Table~\ref{tab:requirements-mapping}. Their procedures and pass criteria are in \texttt{BenchTest/TEST\_PROCEDURES.md}: T1 to T15 for the telemetry unit, C1 to C11 for the camera units and B1 to B5 for the bench tools and the dashboard. Each run's raw output is indexed in Appendix~\ref{app:evidence}. Not every test has been run: T14 on the Raspberry Pis, C5 (begun on 19 October), C8, the tape measurements of C9 and C11 are planned or incomplete, and Chapter~\ref{chap:results} marks them as outstanding.
+\item \emph{Integration tests} (phase 5): the whole chain run together on the bench, described below.
+\item \emph{Vehicle tests} (phase 6): the stationary and ground phases of the vehicle integration and test plan, described below.
+\item \emph{Fault investigations}: where more than one cause could explain a fault, a deciding test was designed to separate them, changing one thing at a time (Section~\ref{sec:investigations}, Table~\ref{tab:investigations}).
+\end{itemize}
+
+\subsection{Start-up and interface checks}
+
+The routine checks that establish each interface before the higher-level tests are consolidated in Table~\ref{tab:startup-checks}. They are pass or fail, and all passed; the faults they exposed are in Table~\ref{tab:faults}. The acceptance tests of Table~\ref{tab:requirements-mapping} are reported in Chapter~\ref{chap:results}.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Start-up and interface checks (bench).}
+\label{tab:startup-checks}
+\begin{tabular}{|p{3.4cm}|p{6.2cm}|p{4.4cm}|}
+\hline
+\textbf{Check} & \textbf{Evidence required} & \textbf{Result} \\ \hline
+Processor boot & Versioned banner, continuous status, no reset loop; bounded wait for a USB host & Pass \\ \hline
+Flash configuration & 16\,MB flash in DIO mode with the 16\,MB partition table; LittleFS mounts & Pass after the DIO fix \\ \hline
+Serial routing & Application output on the target board's native USB port & Pass after the routing fix \\ \hline
+Modem power-up & Modem answers \texttt{AT} without the button; key pulsed only if silent & Pass (v0.5.2) \\ \hline
+UART, SIM, signal & \texttt{OK} to \texttt{AT}; \texttt{+CPIN: READY}; valid \texttt{AT+CSQ} & Pass; CSQ 22 to 30 \\ \hline
+LTE registration & \texttt{AT+CEREG?} and \texttt{AT+CPSI?} registered, \texttt{LTE,Online} & Pass; intermittent indoors \\ \hline
+GNSS interface & Correctly framed \texttt{+CGNSSINFO} after warm-up & Pass \\ \hline
+Manual bridge & Commands and replies passed both ways & Pass \\ \hline
+I\textsuperscript{2}C levels & Idle bus at about 3.3\,V (inputs not 5\,V tolerant) & Pass, 3.3\,V \\ \hline
+Both IMUs on target board & Found, configured, calibrated, 400 to 401 samples per 2\,s & Pass, 0 dropped \\ \hline
+Raspberry Pi~4 & Same OS release as the Pi~5; camera identified (OV5647); network and ssh reachable & Pass \\ \hline
+Pre-test check & \texttt{BenchTest/sw7\_check.py} reports every link before a session & 16 offline tests pass; READY on 4 Oct except the Pi~4 supply \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Integration and power}
+\label{sec:full-system-integration}
+
+All telemetry-unit subsystems were first run together on the target board, and then the whole chain from the telemetry unit through the Raspberry Pi~4 to the dashboard on the Raspberry Pi~5. This exposed the Raspberry Pi~4's under-voltage, traced to the telemetry unit's modem (Section~\ref{sec:inv-power}); the unit needs its own supply, and the Pi~4 now has a fan (Appendix~\ref{app:wiring}).
+
+\subsection{Vehicle tests}
+\label{sec:field-test-design}
+
+The vehicle integration and test plan (SW7-VIT-001) divides the vehicle work into a stationary phase with the drive wheel raised and a phase with the vehicle on the ground. The stationary phase covers mounting, calibration in the mounted position, acquisition timing, synchronisation, the Hall tap and pole-pair count, a powertrain vibration baseline with the motor run at low, medium and high settings for about 60\,s each, BMS voltage against a meter, GNSS and LTE static tests and an induced outage. The ground phase covers repeatability over repeated traversals, speed dependence, surface discrimination, sensor placement, coast-down separation of the powertrain, and payload. Sessions with the 72\,V system energised require a second person, rated stands and chocks; the plan requires removable mounting, with no drilling or permanent modification, and a return to standard in about 20 minutes (R13), to be checked when the system is installed. \emph{Recording on the vehicle.} A recorder runs on the Raspberry Pi~5 as a service that starts at boot (\texttt{BenchTest/road\_logger.py}, \texttt{sw7-roadlog}). Twice a second it saves every reply of the four sources to one file per session: the front time-of-flight and fusion and the front alerts, read locally, and the rear unit's record (telemetry unit, rear time-of-flight, fusion) and rear alerts, over the Ethernet cable. So no laptop has to ride along. Runs are marked by lines in a marker file or by times on the run sheet (\texttt{Planning/road-test-2026-10-16-checklist.md}). Without internet on the road the computer's clock is not reliable after a restart, so GNSS time in the unit's record is the reference for aligning the logs and the video.
+
+\emph{Vehicle state.} No signal gives the gear or the direction of travel. Each second is labelled afterwards from three recorded signals: battery current (the motor is working), the vibration features (running or moving) and GNSS speed (moving, which separates driving from running on the stands). Reversing runs are identified from the markers and video. A direct gear signal would need the reverse switch tapped through an optocoupler into the telemetry unit, which touches the 72\,V vehicle wiring and so needs the supervisor's approval.
+
+A first road session was run on 19 October with the whole system mounted. It followed the checklist in \texttt{Planning/road-test-2026-10-16-checklist.md} and was recorded on the vehicle from 17:15 to 19:04, with about 16 minutes of driving in 26 segments between 18:15 and 18:49. Driving was identified from the battery current and vibration: a second counts as driving when the current exceeds 1\,A or the vibration value 0.3, and segments less than 10\,s apart are joined. Because the recorder polls twice a second and the bridge repeats its last record, the analysis counts each record once, by its sequence number.
+
+\outstanding{road sessions: venue, route, conditions, mounting positions, the runs completed, and the second session.}
+
+\section{Data collection}
+\label{sec:data-collection}
+
+Data collection was designed into the system so that each test leaves a record that can be checked later, on the bench or on the vehicle, without a separate measurement pass. The sources are as follows.
+
+\begin{itemize}
+\item \emph{Inertial samples.} Each sample carries a sensor identifier, a per-sensor sequence number and a microsecond timestamp from a monotonic clock. A full queue drops and counts the new sample rather than block. Every 2\,s a statistics task reports, per sensor, the achieved rate, the minimum, mean and maximum interval and the drop count (Section~\ref{sec:dual-imu-architecture}). Raw 200\,Hz samples are not kept by firmware up to v0.7.4.1, only the 1\,s features (Section~\ref{sec:ride-characterisation}).
+\item \emph{Serial logs.} On the bench the unit's serial output is saved on the laptop by the bench console or a test script (Section~\ref{sec:bench-tools}), under \texttt{BenchTest/logs/}.
+\item \emph{Local log.} Every record is written to the unit's flash whether or not there is coverage, and read back in full with an indexed, length-checked dump that repeats until every record has arrived intact (Sections~\ref{sec:local-logging} and~\ref{sec:inv-json}).
+\item \emph{Database.} Each record carries a boot counter, a sequence number and, with a fix, UTC time. The ingest program stores it once per device, boot and sequence number, and can backfill from a copy of the local log (Section~\ref{sec:db-sync}).
+\item \emph{Camera timing and alerts.} Every frame's latency is measured from its sensor timestamp and reported every 5\,s as median, 95th percentile and maximum, optionally per frame (Section~\ref{sec:hazard-detection}). Each alert is logged with its class, band, confidence, time and status, and with the side, time to contact and track number where they apply (Section~\ref{sec:ethics}).
+\item \emph{Synchronisation pulse.} The ESP32 logs the microsecond time of each 500\,ms edge, and the Raspberry Pi~4 logs its arrival from the kernel on the camera's clock (Section~\ref{sec:sync-pulse}).
+\item \emph{Fusion log.} Distances and bearings are logged only for a validation session, and then hold numbers only (Section~\ref{sec:camera-tof-fusion}).
+\item \emph{Power and temperature.} A logger on the Raspberry Pi~4 records its power and temperature flags, I\textsuperscript{2}C addresses and USB devices every 2\,s, and one on the Raspberry Pi~5 its supply, flags and temperature every 5\,s (Section~\ref{sec:inv-power}).
+\item \emph{Road recorder.} On the vehicle, the recorder on the Raspberry Pi~5 saves every reply of the four sources twice a second, with a marker file for runs (Section~\ref{sec:field-test-design}).
+\end{itemize}
+
+Every record is kept unedited, under \texttt{Report/evidence/} or \texttt{BenchTest/logs/}, and indexed by date and test in Appendix~\ref{app:evidence}; each day's lab actions are also recorded in \texttt{Planning/lab-notebook.md}. The road-session files are too large for git and are kept on the project's cloud storage (\texttt{Planning/\allowbreak lab-notebook.md}, 20 October).
+
+\section{Data analysis}
+\label{sec:data-analysis}
+
+The analysis turns each record into a figure that can be compared with the acceptance criterion of Table~\ref{tab:requirements-mapping}, fixed before the test. Each requirement is then given a status in Table~\ref{tab:results-summary}: met, partly met or outstanding, with the place of the test (bench or vehicle) stated. Results that were not measured are marked as outstanding rather than estimated.
+
+\begin{itemize}
+\item \emph{Timing distributions.} Latency and interval distributions are skewed, and an alert is limited by its slow cases, so they are summarised by the median, the 95th percentile and the maximum rather than the mean. This also answers the review's finding that edge systems are usually reported by accuracy or mean latency, without jitter (Section~\ref{sec:lit-synthesis}). Acquisition is judged by the rate, the drop count and the number of gaps over 10\,ms, each placed relative to the flash writes (R1).
+\item \emph{Position.} Each fix is compared with a phone's position and summarised as the median, 95th percentile and maximum distance (R4).
+\item \emph{Synchronisation pulse.} Intervals between logged edges are summarised by their median and range against 500 $\pm$ 20\,ms (R6).
+\item \emph{Store-and-forward.} Records are counted by device, boot and sequence number, giving missing records, duplicates, replays and the time to clear the backlog (\texttt{Server/sync\_report.py}); the database is compared with the read-back of the unit's log (R9).
+\item \emph{Road session.} The bridge repeats its last record until a new one arrives and the recorder polls twice a second, so records are first reduced to one per sequence number. Counting replies instead gave 19.5 rather than about 16 minutes of driving, and a 95th percentile of the driving vibration value of 2.0 rather than 3.1 (\texttt{Planning/lab-notebook.md}, 21 October). Each second is then labelled driving when the battery current exceeds 1\,A or the vibration value 0.3, with segments less than 10\,s apart joined, and parked otherwise. Medians, 95th percentiles and maxima are reported per state.
+\item \emph{Fault investigations.} Each candidate cause is accepted or ruled out by its deciding test (Table~\ref{tab:investigations}).
+\end{itemize}
+
+RQ1 and RQ4 need analysis beyond this. Repeatability needs repeated traversals of the same road, and separating road from powertrain vibration needs frequency-domain features (Section~\ref{sec:lit-signal-processing}) computed from raw samples, together with the motor speed. The first road session kept neither raw samples nor a GNSS fix, and the Hall tap is not wired, so these analyses have not yet been possible (Chapter~\ref{chap:results}).
+
+\section{Ethics and safety}
+\label{sec:ethics}
+
+The study was approved with conditions by the Engineering and Built Environment Research Ethics Committee on 6 October 2026, reference EBE/03305/2026, under the project's original title, which named the windshield head-up display (Appendix~\ref{app:ethics}). The approval rests on the study involving no human subjects and lapses on 31 December 2026. Its conditions are that a full proposal is given to the supervisor and that a physical risk assessment is completed to the satisfaction of the laboratory owner. Both were met: the full proposal was given to the supervisor, and the risk assessment was signed by the laboratory owner before the vehicle was driven for the road session of 19 October.
+
+No person takes part as a subject: nobody is asked to do anything, and no glance or driver measurement has been made. The cameras do see people on and beside the road, so what is kept was limited by design. Frames are processed in memory and never stored, and the live view is streamed only on the vehicle's own network. Each alert keeps its object class, distance band, confidence, time and status, with the side, the time to contact and a tracking number that restarts at every start-up. There is no face or number-plate recognition, the detector controls nothing on the vehicle and its warnings are advisory. Frames kept for calibration and as evidence show only the author.
+
+The topic's ethics notes said that machine learning was not planned for the first version and that a revised application would be submitted before it was used. The application that was approved stated in its abstract that machine learning might be used once the baseline system was working, and the approval was granted on that application, so it covers this use. The detector is a pretrained neural network, and a second network was trained on public pothole datasets (Section~\ref{sec:hazard-detection}); the project collects no training data of its own, and the limits above on what is kept apply to both.
+
+During bench tests the telemetry records, including the unit's position on campus, went to a public test broker that anyone can read (Section~\ref{sec:mqtt-networking}). Before the vehicle is driven with a position fix, the position is to be left out of the published record or a private broker with authentication used. On the vehicle, sessions with the 72\,V system energised require a second person, rated stands and chocks, and the mounting is removable, with no drilling (Section~\ref{sec:field-test-design}).
+
+\outstanding{position removed from the published record, or a private broker, before a drive with a position fix.}
+
+\section{Summary of methods}
+\label{sec:methods-summary}
+
+Table~\ref{tab:methods} summarises the methods for each research question and its group of requirements.
+
+{\small
+\begin{longtable}{|>{\raggedright\arraybackslash}p{2.4cm}|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}p{3.3cm}|>{\raggedright\arraybackslash}p{1.9cm}|}
+\caption{Summary of methods per research question and requirement group.}
+\label{tab:methods}\\
+\hline
+\textbf{Research question / sub-problem} & \textbf{Site / participant selection} & \textbf{Data collection methods} & \textbf{Data analysis methods} & \textbf{Appendix reference} \\ \hline
+\endfirsthead
+\hline
+\textbf{Research question / sub-problem} & \textbf{Site / participant selection} & \textbf{Data collection methods} & \textbf{Data analysis methods} & \textbf{Appendix reference} \\ \hline
+\endhead
+RQ1: ride response, with R1 to R4 and R6 (T1 to T4, T9, C6) & Bench at UCT; rooftop for GNSS; vehicle on stands and road; no participants & Per-sample sequence numbers and timestamps, 2\,s statistics, 1\,s features, local log, sync-pulse edges, GNSS replies & Rate, drops and gaps over 10\,ms; resting magnitude; self-tests; distance to a phone (median, 95th percentile); pulse interval median and range & \ref{app:evidence}, \ref{app:wiring}, \ref{app:devrecord} (Table~\ref{tab:config}) \\ \hline
+RQ2: driver display and alerts, with R7, R8, R11, R12 (C1, C2, C7 to C9, B2, B3) & Bench, dashboard offscreen on a laptop and on the Raspberry Pi~5; vehicle; no participants (no glance study yet) & Per-frame latency, alert logs, time-of-flight readings, offscreen screenshots, touch-controller readings & Frame rate; latency median, 95th percentile and maximum; alert onset; distance against a tape (planned); pass or fail of the display rules & \ref{app:evidence}, \ref{app:interface}, \ref{app:wiring} \\ \hline
+RQ3: latency, loss and recovery, with R1, R4, R5, R7, R9, R10 (T5 to T7, T10 to T12, T15) & Bench, with induced outages; vehicle for the battery link and the road session & Publish results, local log read-back, database records by boot and sequence number, dashboard lines, road recorder & Missing and duplicate records, drain time, reconnection time; lost lines; record age; records deduplicated by sequence number & \ref{app:evidence}, \ref{app:devrecord} \\ \hline
+RQ4: road against powertrain vibration, with R3 & Vehicle: stationary powertrain baseline and repeated traversals (planned) & 1\,s features and disagreement; raw samples and motor speed needed (not yet collected) & Features per driving or parked second; frequency-domain features (planned) & \ref{app:evidence} \\ \hline
+All: installation and power, R13 & Vehicle, 19 October & Mounting record, power and temperature logs & Return to standard timed (outstanding); power budget against the pack & \ref{app:mechanical}, \ref{app:wiring} \\ \hline
+Ethics and safety & No human subjects & Five alert fields; no frames stored & Not applicable & \ref{app:ethics} \\ \hline
+\end{longtable}
+}
+
+The next chapter describes the design that these methods test: the system architecture, the hardware and software of each unit, their integration, the testing infrastructure and the provision for maintenance, each linked to the requirements it serves.
