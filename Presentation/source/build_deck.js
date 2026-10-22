@@ -486,7 +486,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
     txt(s, big, { x: x + 0.3, y: y + 0.15, w: tw - 0.6, h: 0.85, fontSize: 36, bold: true, color: C.navy, valign: "middle" });
     txt(s, small, { x: x + 0.3, y: y + 1.05, w: tw - 0.6, h: th - 1.15, fontSize: 14, valign: "top" });
   });
-  caption(s, "Parked and driving separate clearly: one-second vibration median 0.03 parked; while driving median 1.39, 95th percentile 3.1, maximum 5.09.",
+  caption(s, "Parked and driving separate clearly: one-second vibration median 0.03 parked; while driving median 1.39, 95th percentile 3.2, maximum 5.09.",
     M, top + 2 * th + g + 0.1, lw, 0.6);
   const rx = M + lw + 0.35, rw = W - M - rx;
   dashedCard(s, rx, top, rw, 5.35);

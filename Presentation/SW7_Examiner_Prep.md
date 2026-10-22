@@ -1066,7 +1066,7 @@ Evidence: Report Methodology "Vehicle tests"; Results "Integration and power"; l
 | Road session (19 Oct) | 17:15:34 to 19:04:10, 108.6 min, 51,489 records; about 16 min driving (18:15 to 18:49); 3,464 distinct ESP32 records, 38 % of seconds missing | Results; lab notebook 20 Oct |
 | Road: IMUs | 0 dropped; 200 Hz in 3,431 of 3,437 readable records, one 2 s IMU1 stall | Results R1 |
 | Road: battery | up to 46.9 A; 74.6 to 72.8 V under load; 60 to 58 percent | Results R5 |
-| Road: vibration | median 0.03 parked; driving median 1.39, p95 3.1, max 5.09 (each record counted once) | Results R3 |
+| Road: vibration | median 0.03 parked; driving median 1.39, p95 3.2, max 5.09 (each record counted once) | Results R3 |
 | Road: alerts | front 1,342 (person 815, car 513, 261 car approaching); rear 741 (car 201, 36 approaching); not checked against video | Results hazard sensing |
 | Road: GNSS | no fix in any of 3,464 records (no antenna fitted) | Results R4 |
 | Power budget | 17 W typical, 31 W peak at 5 V; 20 W (0.27 A) typical, 35 W (0.5 A) peak from 72 V at 88 percent; about 0.8 percent of 2.5 kW; Pi 5 measured 2.2 to 3.0 W | Results power-budget table |

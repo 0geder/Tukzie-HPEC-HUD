@@ -268,8 +268,8 @@ committed to git because of their size, kept on OneDrive).
   window split) and one at 18:29:16 while driving with IMU1 at 2.0 Hz (4 samples in a 2 s window, a stall the drop
   count does not show; cause unknown).
 - Driving (current over 1 A or vib over 0.3, segments under 10 s apart joined): 26 segments after 18:15, about 16 min
-  (965 s), of which 586 seconds have a record. Vibration: parked median 0.03 (2,832 s); driving median 1.39,
-  95th percentile 3.1, maximum 5.09 (605 s). The earlier 95th percentile of 2.0 came from the duplicated rows.
+  (965 s); 586 of the records flagged as driving fall after 18:15. [Corrected 22 Oct: earlier worded as seconds with a record.] Vibration: parked median 0.03 (2,832 s); driving median 1.39,
+  95th percentile 3.2 (3.174; first written 3.1, corrected 22 Oct), maximum 5.09 (605 s). The earlier 95th percentile of 2.0 came from the duplicated rows.
 - The rear unit stopped answering the recorder at 18:49:13 (1,785 failed polls to 19:04), while the Pi 4's own
   alert log ran to 19:02. Rear alerts by class: person 514 (183 approaching), car 201 (36), truck 19, bus 4,
   motorcycle 3. Front: person 815 (366 approaching), car 513 (261).
