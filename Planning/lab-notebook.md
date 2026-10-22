@@ -310,3 +310,13 @@ committed to git because of their size, kept on OneDrive).
 - Raw stream check at 115200 baud: 5,110 samples in 20 s decoded, 0 missing by seq, but the line was 85 % full
   (9.8 kB/s of 11.5). Console raised to 921600 baud on the front node (CONSOLE_BAUD build flag; raw_capture service
   --baud 921600). Re-check over 30 s: 6,800 samples, 0 missing, 0 bad lines, 69 sync edges, rawdrop 0.
+
+### Front node on the Pi 5 (12:20)
+- Pi 5 now at 192.168.137.128 (hostname Pirate5) on the hotspot; flags 0x0. Ethernet to the Pi 4: no carrier.
+- Front ESP32 on the Pi 5's USB: /dev/ttyACM0 (CH343, by-id usb-1a86_USB_Single_Serial_5C38191239). Read through the
+  Pi at 921600 baud: 200 Hz, 0 drops, RAW and RAWS lines arriving.
+- sw7-front-node.service installed and running (raw_capture.py): front_raw_2026-10-22_122340.txt in
+  /home/piadam/roadtest/raw_front/, 0 bad CRC, HTTP :8083. road_logger.py updated (fifth source front_node; old copy
+  kept as road_logger.py.bak-1022) and sw7-roadlog restarted: front_node 12 of 12 polls OK in the first 6 s.
+- Sync wire: the ESP32 toggles GPIO15 every 500 ms (RAWS lines), but no Pi 5 header GPIO toggles (all free GPIOs,
+  plus 2, 3, 14, 15 sampled), so the sync wire is not connected to the header yet or is on the wrong ESP32 pin.
