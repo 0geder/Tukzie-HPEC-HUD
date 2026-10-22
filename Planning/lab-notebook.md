@@ -377,3 +377,16 @@ committed to git because of their size, kept on OneDrive).
   (about 22 ms per read) point to its old rear wiring. Rear IMU1 had 1 read failure and 35 stuck readings in the
   first minutes after the board was moved onto its battery, none after. Bridge with raw capture deployed on the
   Pi 4 (rear_raw_*.txt in /home/ogeder/rawlog, 0 bad CRC).
+
+### Rear IMU1 rewired with short wires; unplanned bus-failure test of v0.7.6 (13:40 to 13:48)
+- First soak (13:28) abandoned: the rear board was plugged into the laptop and out again, and IMU1's wires were
+  replaced with shorter ones while it ran. Stuck readings rose 35 to 51 with the board being handled.
+- While IMU1's wires were off: rdfail 17,080 and late 8,508, but drops stayed [0, 0], consumer ages 2 to 29 ms and both
+  cores idle: v0.7.6 rode through a real bus failure without the consumer stall. After reconnection the MPU6050 came
+  back in sleep mode (power-on default) and returned the same reading every time (stuck rising 200/s, vib 0.0); the
+  firmware re-initialises a sensor only at boot. !recal from the Pi did not arrive (the Pi-to-ESP32 wire, Pi pin 8 to
+  IO42, is apparently not connected); the student pressed RST.
+- After RST on the short wires: 200 Hz, rdfail 0, stuck 0, vib 0.026, BMS 57 %.
+- Second soak started 13:48 (soak_v076b_20261022_134823.jsonl on the Pi 4), 62 min.
+- Firmware to add (v0.7.7): automatic IMU re-initialisation after about 1 s of continuous read failures or stuck
+  readings; rear build with IMU2 disabled.
