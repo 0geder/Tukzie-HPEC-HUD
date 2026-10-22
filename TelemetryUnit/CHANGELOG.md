@@ -2,6 +2,38 @@
 
 Firmware changes, newest first. The repository-wide record is CHANGELOG.md at the root; this file holds the firmware detail and the bench test for each version.
 
+## v0.7.8, 22 Oct 2026 (built, host-tested, not flashed)
+
+Field finding of 22 Oct 2026: '!' commands sent from the Pi over the UART link (Serial2, RX IO42) reached the rear unit but were acted on only about 20 to 25 s later. Cause: the rear unit read its commands (Pi UART and USB) in ModemTask's loop, which also runs the MQTT reconnect. With the modem attached but without network (AT+CSQ 99,99), each reconnect step (CMQTTDISC 5 s, CMQTTREL 3 s, CMQTTSTOP 5 s, CMQTTSTART 12 s, CMQTTCONNECT 30 s) waits for its timeout, and AGPS (30 s) and cell position (25 s) do the same, so the loop did not get back to its input for many seconds.
+
+### Changes
+
+- New CommandTask on both nodes (core 0, priority 1, polls every 10 ms; the front node already had one). It reads USB serial and the Pi UART, assembles the lines and runs at once every command that does not use the modem or the state ModemTask writes. Line assembly and the run-now or defer decision are in the new include/cmd_link.h (pure C++, host-tested). Line rules are the same as v0.7.7: on the Pi UART a line of 2 or more characters starting with '!'; on the rear USB console a '!' at the start of a line, everything else goes to the modem; up to 64 characters kept.
+- Run at once in CommandTask: !help, !status, !sync (status print), !raw on/off, !dash on/off, !log on, !gnssraw, and unknown commands (reply only). These only read state for printing or set one flag (volatile bool, one write), which is what other tasks already do. !status and !sync print counters that ModemTask may be updating; a print can mix values from just before and just after an update, nothing is written.
+- Queued for ModemTask (4-deep queue, a reply "queued for the modem task" at once): !modem off/on (Serial1, power key), !mqtt (mqttConnected and the reconnect timer, which the reconnect also writes), !agps and !cellpos (timers ModemTask rewrites after each attempt), !log off, !log flush, !log dump and !recal (flushLocalLog: the RAM log buffer and the ledger save, written by ModemTask without a lock; !log dump is also a long paced print), !log clear and !sync drop (sync ledger and replay offset). Kept in ModemTask so no lock is needed; a fifth command while 4 wait is refused with a message and counted.
+- ModemTask runs the queue at the top of every pass and after each step that can wait on the modem (reconnect, GNSS poll, AGPS, cell position, the 10 s publish). The MQTT reconnect (teardown and connect), AGPS and cell position waits now stop as soon as a command is queued (checked every 1 to 5 ms in mqttSendCommand, mqttAwaitResult and readModemUntil, only while ModemTask has set modemYieldToCommands around those calls). A stopped reconnect is not counted as a failure: the backoff is kept and the attempt is made again on the next pass, after the command. A stopped AGPS or cell-position request is retried on its normal schedule. Publishes, the GNSS poll (2 s) and the signal poll (1 s) are not stopped, so a queued command waits at most a few seconds; during the modem's boot sequence (up to about 40 s with the power-key wait) queued commands wait until it ends, while run-at-once commands work from the start. A reply the modem sends after a wait was stopped is printed by the pass-through as usual.
+- AT pass-through on the rear USB console: CommandTask passes the non-'!' bytes to ModemTask through a 256-byte queue and ModemTask writes them to Serial1 (only ModemTask writes Serial1). When the queue is full CommandTask stops reading, so bytes wait in the USB buffer as before. Same behaviour as v0.7.7, including during a reconnect (bytes reach the modem when the loop next passes).
+- Counters: DASH "cmd":[rx,now,queued,done] appended as the last field (lines received, run at once, queued, queued ones run; queued minus done = waiting). Front node: queued and done stay 0. !status has a "commands:" line with the same counts plus refused. DASH_LINE_MAX and RAW_DASH_RESERVE 768 to 832 (52 bytes more in the worst case, about 20 in practice). RAW_STREAM.md and tools/raw_stream_decode.py list the field. DashboardIntegration/TELEMETRY_LINK.md still gives an older maximum (the bridge accepts 4096).
+- IMU tasks, their core, priority and pacing unchanged. Version string v0.7.8.
+
+### Verification on the laptop
+
+- test_host/run.py: all PASS. New test_cmd_link PASS (49 checks: link and console line assembly, CRLF, split reads, over-long lines, '!' mid-line forwarded, lone '!', normalize, every deferred and run-at-once command classified); test_sync_ledger, test_raw_stream, test_imu_pacing (254), test_imu_recovery (1201) and raw_stream_decode.py selftest PASS.
+- pio run (rear): SUCCESS, RAM 16.2 % (53172 bytes, +96), flash 16.1 % (1058293 bytes, +1904). The new task stack (4 KB) and the two queues (about 0.6 KB) come from the heap at boot.
+- pio run -e front_node: SUCCESS, RAM 7.5 % (24452 bytes, +72), flash 10.0 % (335881 bytes, +212).
+- Not flashed. The timing (acted on within about 20 ms) follows from the 10 ms poll and has not been measured on hardware.
+
+### Bench test (rear unit, modem without network, Pi bridge running)
+
+Setup: flash v0.7.8, check the banner "Firmware v0.7.8". Leave the modem attached without network (no SIM, or antenna off: AT+CSQ gives 99,99) so the monitor shows "[MQTT] Reconnecting..." attempts. On the Pi, watch the raw line rate on the bridge (or count lines starting with RAW per second on /dev/serial0).
+
+1. During a reconnect attempt (just after "[MQTT] Reconnecting..." appears), send from the Pi: stty -F /dev/serial0 460800 raw, then python3 -c "import os; fd=os.open('/dev/serial0', os.O_WRONLY | os.O_NOCTTY); os.write(fd, b'!raw off\n')" (with the bridge running it already holds the port at 460800 baud; skip stty then). Pass: the raw line rate on the bridge drops to 0 within 1 s; DASH lines continue; the next DASH "cmd" has rx and now each +1.
+2. Send "!raw on" the same way. Pass: the raw rate is back to normal (about 2 x 200 samples per second in batches) within 1 s; "cmd" rx and now +1.
+3. Repeat 1 and 2 five times at random moments over a few minutes. Pass: every time within 1 s.
+4. Queued command: send "!mqtt" from the Pi during a reconnect attempt. Pass: the monitor shows "'!mqtt' queued for the modem task" at once, then within about 3 s "[MQTT] Reconnect stopped to run a queued command" and "[CMD] MQTT reconnect requested"; DASH "cmd" queued and done +1 each.
+5. USB console: type AT+CSQ in the monitor. Pass: the modem reply appears as before. Type !status: the reply appears at once, with the "commands:" line.
+6. Front node: send !raw off and !raw on on its USB serial. Pass: the raw stream stops and resumes within 1 s; DASH "cmd" counts rx and now.
+
 ## v0.7.7, 22 Oct 2026 (built, host-tested, not flashed)
 
 Bench finding of 22 Oct 2026 on v0.7.6: with an MPU6050's wires pulled and refitted while running, v0.7.6 counted the read failures (rdfail) and skipped slots (late) without stalling, but after the refit the sensor was back in its power-on sleep state and returned the same reading every time (stuck rising 200 per second, vib 0.0) until the board was reset. The firmware configured each sensor only once, at boot.

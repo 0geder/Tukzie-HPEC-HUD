@@ -4,7 +4,8 @@ test_sync_ledger.cpp (store-and-forward ledger) and test_raw_stream.cpp
 position scrub; v0.7.5) and test_imu_pacing.cpp (IMU task pacing and
 consumer-health helpers; v0.7.6) and test_imu_recovery.cpp (IMU re-init decisions:
 bad-run thresholds, back-off, bus restart, a simulated sensor pulled and
-refitted; v0.7.7). The raw stream test writes a simulated capture,
+refitted; v0.7.7) and test_cmd_link.cpp (command line assembly and
+run-now or defer decision; v0.7.8). The raw stream test writes a simulated capture,
 which the Python reference decoder tools/raw_stream_decode.py must then
 decode to the same samples.
 
@@ -19,7 +20,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 UNIT = os.path.dirname(HERE)
-TESTS = ("test_sync_ledger", "test_raw_stream", "test_imu_pacing", "test_imu_recovery")
+TESTS = ("test_sync_ledger", "test_raw_stream", "test_imu_pacing", "test_imu_recovery", "test_cmd_link")
 
 env = dict(os.environ)
 if shutil.which("g++") is None and os.path.isdir("C:/msys64/ucrt64/bin"):

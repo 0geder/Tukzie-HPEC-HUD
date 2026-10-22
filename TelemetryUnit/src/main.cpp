@@ -32,9 +32,10 @@
 #include "raw_stream.h"
 #include "imu_pacing.h"
 #include "imu_recovery.h"
+#include "cmd_link.h"
 #include "esp_freertos_hooks.h"
 
-#define FIRMWARE_VERSION "v0.7.7"
+#define FIRMWARE_VERSION "v0.7.8"
 
 #if NODE_FRONT
 #define NODE_ID "front"
@@ -146,7 +147,7 @@ static const uint8_t BMS_QUERY_COMMAND[] = {0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 
 #define RAW_MAX_AGE_US 100000LL
 // Room kept free in a port's TX buffer for the DASH line: a RAW line is only
 // written when it leaves this much space, so DASH always fits behind it.
-#define RAW_DASH_RESERVE 768  // >= DASH_LINE_MAX (768 since v0.7.7)
+#define RAW_DASH_RESERVE 832  // >= DASH_LINE_MAX (832 since v0.7.8)
 // How long the sender waits for room on a port before giving a line up
 // (its samples are then counted in rawDropped too).
 #define RAW_PORT_WAIT_MS 50
@@ -748,6 +749,44 @@ RawQueue rawQueue = {nullptr};
 QueueHandle_t rawSyncQueue;          // sync edges for the sender, see SyncTask
 TaskHandle_t RawSenderTaskHandle;
 volatile bool rawEnabled = true;     // "!raw off" / "!raw on"
+
+// Local '!' commands (v0.7.8, include/cmd_link.h). CommandTask reads them on
+// both nodes and runs most at once; on the rear unit the ones that use the
+// modem, MQTT, the flash log or the sync ledger go on cmdDeferQueue for
+// ModemTask. Counters (DASH "cmd":[rx,now,queued,done], and !status), each
+// written by one task: rx, now, queued and full by CommandTask, done by
+// ModemTask.
+volatile uint32_t cmdRxCount = 0;        // command lines received (USB and Pi UART)
+volatile uint32_t cmdNowCount = 0;       // run at once in CommandTask
+volatile uint32_t cmdQueuedCount = 0;    // put on the queue for ModemTask
+volatile uint32_t cmdDoneCount = 0;      // queued commands ModemTask has run
+volatile uint32_t cmdQueueFullCount = 0; // refused because the queue was full
+#if !NODE_FRONT
+struct CmdItem {
+  char text[CMD_LINE_MAX + 1];
+};
+#define CMD_DEFER_QUEUE_LENGTH 4
+QueueHandle_t cmdDeferQueue = nullptr;
+// USB bytes for the modem (AT pass-through): CommandTask owns USB serial
+// input, and only ModemTask writes Serial1, so the bytes go through here.
+#define MODEM_TX_QUEUE_LENGTH 256
+QueueHandle_t modemTxQueue = nullptr;
+// Set by ModemTask around the long modem waits it may abandon (MQTT
+// reconnect, AGPS, cell position): while set, a queued command stops the
+// wait at once (modemWaitAborted) so the loop can run it.
+volatile bool modemYieldToCommands = false;
+volatile bool modemWaitAborted = false;
+static inline bool cmdDeferredPending() {
+  return cmdDeferQueue != nullptr && uxQueueMessagesWaiting(cmdDeferQueue) > 0;
+}
+static inline bool modemWaitShouldStop() {
+  if (modemYieldToCommands && cmdDeferredPending()) {
+    modemWaitAborted = true;
+    return true;
+  }
+  return false;
+}
+#endif
 // Samples produced but never sent, per IMU (DASH "rawdrop" is the sum):
 // queue full, the sender fell behind (counted by the IMU task), and lines no
 // port took (counted by the sender). Two counters so each has one writer.
@@ -2035,6 +2074,7 @@ bool readModemUntil(String& response, const char* tag, unsigned long timeoutMs) 
     int t = response.indexOf(tag);
     if (t >= 0 && response.indexOf('\n', t) >= 0) break;
     if (response.indexOf("ERROR") >= 0) break;
+    if (modemWaitShouldStop()) break;  // v0.7.8: a queued command is waiting
     vTaskDelay(pdMS_TO_TICKS(5));
   }
   if (response.indexOf("+CMQTTCONNLOST") >= 0 || response.indexOf("+CMQTTNONET") >= 0) {
@@ -2053,7 +2093,8 @@ bool requestAgps() {
   bool got = readModemUntil(r, "+AGPS:", 30000);
   agpsOk = got && r.indexOf("success") >= 0;
   Serial.printf("[AGPS] %s after %lu ms (attempt %u)\n",
-                agpsOk ? "assistance data loaded" : (got ? "server refused" : "no reply"),
+                agpsOk ? "assistance data loaded"
+                       : (got ? "server refused" : (modemWaitAborted ? "wait stopped for a queued command" : "no reply")),
                 millis() - t0, (unsigned)agpsAttempts);
   return agpsOk;
 }
@@ -2066,7 +2107,8 @@ bool pollCellLocation() {
   Serial1.println("AT+CLBS=4");
   String r;
   if (!readModemUntil(r, "+CLBS:", 25000)) {
-    Serial.printf("[CELLPOS] no reply after %lu ms\n", millis() - t0);
+    Serial.printf("[CELLPOS] %s after %lu ms\n", modemWaitAborted ? "wait stopped for a queued command" : "no reply",
+                  millis() - t0);
     return false;
   }
   int s = r.indexOf("+CLBS:") + 6;
@@ -2220,6 +2262,7 @@ bool mqttSendCommand(const String& command, const char* expectSubstring, unsigne
     if (response.indexOf("ERROR") >= 0) {
       break;
     }
+    if (modemWaitShouldStop()) break;  // v0.7.8: a queued command is waiting
     vTaskDelay(pdMS_TO_TICKS(1));
   }
 
@@ -2258,6 +2301,7 @@ bool mqttAwaitResult(const String& command, const char* resultPrefix, unsigned l
     } else if (response.indexOf("ERROR") >= 0) {
       break;
     }
+    if (modemWaitShouldStop()) break;  // v0.7.8: a queued command is waiting
     vTaskDelay(pdMS_TO_TICKS(1));
   }
   if (outResponse != nullptr) *outResponse = response;
@@ -2271,9 +2315,11 @@ bool mqttAwaitResult(const String& command, const char* resultPrefix, unsigned l
 void mqttTeardown() {
   int err = 0;
   String resp;
+  // v0.7.8: the remaining steps are skipped once a wait has been stopped for
+  // a queued command; the next reconnect runs the whole teardown again.
   mqttAwaitResult(String("AT+CMQTTDISC=") + MQTT_CLIENT_INDEX + ",60", "+CMQTTDISC: ", 5000, &err, &resp);
-  mqttSendCommand(String("AT+CMQTTREL=") + MQTT_CLIENT_INDEX, "OK", 3000, &resp);
-  mqttAwaitResult("AT+CMQTTSTOP", "+CMQTTSTOP: ", 5000, &err, &resp);
+  if (!modemWaitAborted) mqttSendCommand(String("AT+CMQTTREL=") + MQTT_CLIENT_INDEX, "OK", 3000, &resp);
+  if (!modemWaitAborted) mqttAwaitResult("AT+CMQTTSTOP", "+CMQTTSTOP: ", 5000, &err, &resp);
   mqttConnected = false;
 }
 
@@ -2288,6 +2334,7 @@ bool mqttConnect() {
   // Per the manual, ERROR here means the service was already started,
   // which is fine; a +CMQTTSTART line with a non-zero code is a failure.
   bool gotStart = mqttAwaitResult("AT+CMQTTSTART", "+CMQTTSTART: ", 12000, &err, &resp);
+  if (modemWaitAborted) return false;  // stopped for a queued command (v0.7.8)
   if (gotStart && err != 0) {
     Serial.printf("[MQTT] CMQTTSTART failed, code %d\n", err);
     return false;
@@ -2300,6 +2347,7 @@ bool mqttConnect() {
 
   String acqCmd = String("AT+CMQTTACCQ=") + MQTT_CLIENT_INDEX + ",\"" + MQTT_CLIENT_ID + "\"";
   if (!mqttSendCommand(acqCmd, "OK", 5000, &resp)) {
+    if (modemWaitAborted) return false;
     Serial.print("[MQTT] CMQTTACCQ failed: ");
     Serial.println(resp);
     return false;
@@ -2312,6 +2360,7 @@ bool mqttConnect() {
     connCmd += String(",\"") + MQTT_USERNAME + "\",\"" + MQTT_PASSWORD + "\"";
   }
   if (!mqttAwaitResult(connCmd, "+CMQTTCONNECT: ", 30000, &err, &resp)) {
+    if (modemWaitAborted) return false;
     Serial.print("[MQTT] CMQTTCONNECT gave no result: ");
     Serial.println(resp);
     return false;
@@ -2923,8 +2972,9 @@ String buildTelemetryJson(uint32_t seq) {
 // (about 60 bytes more in practice; the bridge accepts lines up to 4096);
 // 704 since v0.7.6 for cons_age_ms, qmax, late and idle (about 100 bytes more
 // in the worst case, about 90 in practice); 768 since v0.7.7 for reinit and
-// imu_up (53 bytes in the worst case, 33 in practice).
-#define DASH_LINE_MAX 768
+// imu_up (53 bytes in the worst case, 33 in practice); 832 since v0.7.8 for
+// cmd (52 bytes in the worst case, about 20 in practice).
+#define DASH_LINE_MAX 832
 static_assert(RAW_DASH_RESERVE >= DASH_LINE_MAX, "the raw stream must leave room for a whole DASH line");
 
 // Runtime switch (serial command "!dash off" / "!dash on"), default on.
@@ -3002,15 +3052,23 @@ void DashTask(void* pvParameters) {
     //           found after being absent at boot).
     //   imu_up  1 configured and read, 0 down (missing, or its re-init is
     //           failing and being retried), -1 not enabled in this build.
-    char recov[96];
+    char recov[160];
 #if NODE_FRONT
-    snprintf(recov, sizeof(recov), "\"reinit\":[%lu],\"imu_up\":[%d]", (unsigned long)imuRecovery[0].reinits,
-             imuUpState(0));
+    int rl = snprintf(recov, sizeof(recov), "\"reinit\":[%lu],\"imu_up\":[%d]",
+                      (unsigned long)imuRecovery[0].reinits, imuUpState(0));
 #else
-    snprintf(recov, sizeof(recov), "\"reinit\":[%lu,%lu],\"imu_up\":[%d,%d]",
-             (unsigned long)imuRecovery[0].reinits, (unsigned long)imuRecovery[1].reinits, imuUpState(0),
-             imuUpState(1));
+    int rl = snprintf(recov, sizeof(recov), "\"reinit\":[%lu,%lu],\"imu_up\":[%d,%d]",
+                      (unsigned long)imuRecovery[0].reinits, (unsigned long)imuRecovery[1].reinits,
+                      imuUpState(0), imuUpState(1));
 #endif
+    // Local commands (v0.7.8), the last field: "cmd":[rx,now,queued,done]
+    // lines received (USB and Pi UART), run at once by CommandTask, queued
+    // for ModemTask, and queued ones ModemTask has run (queued - done =
+    // waiting). The front node runs every command at once (queued 0).
+    if (rl > 0 && rl < (int)sizeof(recov)) {
+      snprintf(recov + rl, sizeof(recov) - rl, ",\"cmd\":[%lu,%lu,%lu,%lu]", (unsigned long)cmdRxCount,
+               (unsigned long)cmdNowCount, (unsigned long)cmdQueuedCount, (unsigned long)cmdDoneCount);
+    }
 
 #if !NODE_FRONT
     // BMS: parseBmsData() only runs for a frame that passed the checksum, so
@@ -3188,6 +3246,9 @@ static void printRawStatus() {
                   (unsigned)imuBusRestarts[i]);
   }
   Serial.printf("[CMD] sync edges=%u, events dropped=%u\n", (unsigned)syncEdgeCount, (unsigned)rawSyncDropped);
+  Serial.printf("[CMD] commands: %u received, %u run at once, %u queued for the modem task, %u of those run, "
+                "%u refused (queue full)\n", (unsigned)cmdRxCount, (unsigned)cmdNowCount,
+                (unsigned)cmdQueuedCount, (unsigned)cmdDoneCount, (unsigned)cmdQueueFullCount);
   const int64_t nowUs = esp_timer_get_time();
   Serial.printf("[CMD] consumers: stats %ld ms, ride1 %ld ms, ride2 %ld ms ago; imu late=[%u,%u] qmax=[%u,%u]\n",
                 (long)consumerAgeMs(nowUs, consumerBeatUs[0]), (long)consumerAgeMs(nowUs, consumerBeatUs[1]),
@@ -3241,34 +3302,6 @@ void handleLocalCommand(String line) {
   }
 }
 
-// The front node has no modem task, so this small task reads '!' commands
-// from USB serial (and from the UART when it is enabled).
-void CommandTask(void* pvParameters) {
-  String usbCmd, uartCmd;
-  for (;;) {
-    while (Serial.available()) {
-      char c = static_cast<char>(Serial.read());
-      if (c == '\n' || c == '\r') {
-        if (usbCmd.length() > 1 && usbCmd[0] == '!') handleLocalCommand(usbCmd);
-        usbCmd = "";
-      } else if (usbCmd.length() < 64) {
-        usbCmd += c;
-      }
-    }
-#if LINK_UART_ENABLE
-    while (Serial2.available()) {
-      char c = static_cast<char>(Serial2.read());
-      if (c == '\n' || c == '\r') {
-        if (uartCmd.length() > 1 && uartCmd[0] == '!') handleLocalCommand(uartCmd);
-        uartCmd = "";
-      } else if (uartCmd.length() < 64) {
-        uartCmd += c;
-      }
-    }
-#endif
-    vTaskDelay(pdMS_TO_TICKS(20));
-  }
-}
 #else
 static bool modemResponds(int tries);
 void handleLocalCommand(String line) {
@@ -3429,6 +3462,15 @@ static bool modemResponds(int tries) {
   return false;
 }
 
+// Runs the commands CommandTask queued for this task (v0.7.8), oldest first.
+static void runDeferredCommands() {
+  CmdItem it;
+  while (xQueueReceive(cmdDeferQueue, &it, 0) == pdTRUE) {
+    handleLocalCommand(String(it.text));
+    cmdDoneCount++;
+  }
+}
+
 void ModemTask(void* pvParameters) {
   Serial1.begin(MODEM_BAUD, SERIAL_8N1, A7670X_RX_PIN, A7670X_TX_PIN);
 
@@ -3481,7 +3523,14 @@ void ModemTask(void* pvParameters) {
   Serial.println("GNSS engine enabled; waiting for navigation data.");
 
   Serial.println("---> Connecting MQTT...");
-  if (!mqttConnect()) {
+  modemWaitAborted = false;
+  modemYieldToCommands = true;  // v0.7.8: a queued command stops the wait
+  const bool firstOk = mqttConnect();
+  modemYieldToCommands = false;
+  if (!firstOk && modemWaitAborted) {
+    mqttNextAttemptMs = millis();
+    Serial.println("[MQTT] Initial connect stopped to run a queued command, retrying next pass.");
+  } else if (!firstOk) {
     mqttNextAttemptMs = millis() + mqttRetryDelayMs;
     Serial.printf("[MQTT] Initial connect failed, retrying in %lu s.\n", mqttRetryDelayMs / 1000);
   }
@@ -3492,60 +3541,62 @@ void ModemTask(void* pvParameters) {
 
   unsigned long lastGnssPoll = millis() - 3000;
   unsigned long lastMqttPublish = millis() - MQTT_PUBLISH_INTERVAL_MS;
-  String localCmd;          // a '!' line being typed
-  bool forwardingLine = false;  // mid-way through a line going to the modem
   String modemLine;         // modem output, scanned for connection-lost URCs
-  String uartCmd;           // a '!' line arriving from the Pi on the UART link
+  // v0.7.8: USB and Pi UART input is read by CommandTask, which runs most
+  // '!' commands itself. This loop writes the AT pass-through bytes it hands
+  // over to the modem, and runs the queued commands (modem, MQTT, flash log,
+  // sync ledger) at the top of each pass and after each step that can wait
+  // on the modem. The long waits (MQTT reconnect, AGPS, cell position) stop
+  // as soon as a command is queued, so a queued command waits at most for
+  // the current GNSS poll, signal poll or publish (a few seconds).
   for (;;) {
-    while (Serial.available()) {
-      char c = static_cast<char>(Serial.read());
-      if (!forwardingLine && localCmd.length() == 0 && c == '!') {
-        localCmd = "!";
-        continue;
-      }
-      if (localCmd.length() > 0) {
-        if (c == '\n' || c == '\r') {
-          handleLocalCommand(localCmd);
-          localCmd = "";
-        } else if (localCmd.length() < 64) {
-          localCmd += c;
-        }
-        continue;
-      }
-      Serial1.write(static_cast<uint8_t>(c));
-      forwardingLine = !(c == '\n' || c == '\r');
-    }
-    // Local '!' commands from the Pi over the UART link (no AT pass-through here).
-    while (Serial2.available()) {
-      char c = static_cast<char>(Serial2.read());
-      if (c == '\n' || c == '\r') {
-        if (uartCmd.length() > 1 && uartCmd[0] == '!') handleLocalCommand(uartCmd);
-        uartCmd = "";
-      } else if (uartCmd.length() < 64) {
-        uartCmd += c;
-      }
+    runDeferredCommands();
+    uint8_t txByte;
+    while (xQueueReceive(modemTxQueue, &txByte, 0) == pdTRUE) {
+      Serial1.write(txByte);
     }
     if (!mqttConnected && (long)(millis() - mqttNextAttemptMs) >= 0) {
       Serial.println("[MQTT] Reconnecting...");
+      modemWaitAborted = false;
+      modemYieldToCommands = true;
       mqttTeardown();
-      if (mqttConnect()) {
+      const bool ok = !modemWaitAborted && mqttConnect();
+      modemYieldToCommands = false;
+      if (ok) {
         mqttRetryDelayMs = MQTT_RETRY_MIN_MS;
+      } else if (modemWaitAborted) {
+        // Not a failure: the backoff is unchanged and the attempt is made
+        // again on the next pass, after the queued command has run.
+        mqttNextAttemptMs = millis();
+        Serial.println("[MQTT] Reconnect stopped to run a queued command, retrying next pass.");
       } else {
         mqttNextAttemptMs = millis() + mqttRetryDelayMs;
         Serial.printf("[MQTT] Reconnect failed, next attempt in %lu s.\n", mqttRetryDelayMs / 1000);
         mqttRetryDelayMs = min(mqttRetryDelayMs * 2, MQTT_RETRY_MAX_MS);
       }
+      runDeferredCommands();
     }
     if (millis() - lastGnssPoll >= 3000) {
       lastGnssPoll = millis();
       pollAndParseGnss();
+      runDeferredCommands();
     }
     if ((long)(millis() - agpsNextMs) >= 0) {
-      agpsNextMs = millis() + (requestAgps() ? AGPS_REFRESH_MS : AGPS_RETRY_MS);
+      modemWaitAborted = false;
+      modemYieldToCommands = true;
+      const bool agpsDone = requestAgps();
+      modemYieldToCommands = false;
+      // A stopped download is retried after AGPS_RETRY_MS, like a failed one.
+      agpsNextMs = millis() + (agpsDone ? AGPS_REFRESH_MS : AGPS_RETRY_MS);
+      runDeferredCommands();
     }
     if (!latestGnssFix.valid && (long)(millis() - cellLocNextMs) >= 0) {
+      modemWaitAborted = false;
+      modemYieldToCommands = true;
       pollCellLocation();
+      modemYieldToCommands = false;
       cellLocNextMs = millis() + CELL_LOC_INTERVAL_MS;
+      runDeferredCommands();
     }
     if (millis() - lastMqttPublish >= MQTT_PUBLISH_INTERVAL_MS) {
       lastMqttPublish = millis();
@@ -3567,6 +3618,7 @@ void ModemTask(void* pvParameters) {
       } else if (!stored) {
         ledgerUnstoredLost(syncLedger, seq);  // neither sent nor kept: can never be replayed
       }
+      runDeferredCommands();
     }
     // Backlog replay after an outage: at most one record per pass.
     syncReplayStep();
@@ -3603,6 +3655,78 @@ void ModemTask(void* pvParameters) {
 }
 
 #endif  // !NODE_FRONT
+
+// ============================================================
+// Command input (v0.7.8, both nodes)
+// ============================================================
+// Runs one assembled command line at once, or (rear unit) queues it for
+// ModemTask when it uses the modem, MQTT, the flash log or the sync ledger
+// (cmdIsDeferred in include/cmd_link.h has the list and the reasons).
+static void dispatchCommand(char* text) {
+  cmdNormalize(text);
+  cmdRxCount++;
+#if !NODE_FRONT
+  if (cmdIsDeferred(text)) {
+    CmdItem it;
+    snprintf(it.text, sizeof(it.text), "%s", text);
+    if (xQueueSend(cmdDeferQueue, &it, 0) == pdTRUE) {
+      cmdQueuedCount++;
+      Serial.printf("[CMD] '%s' queued for the modem task\n", text);
+    } else {
+      cmdQueueFullCount++;
+      Serial.printf("[CMD] '%s' refused: %d commands already waiting for the modem task\n", text,
+                    CMD_DEFER_QUEUE_LENGTH);
+    }
+    return;
+  }
+#endif
+  cmdNowCount++;
+  handleLocalCommand(String(text));
+}
+
+// Reads '!' commands from USB serial and from the Pi UART link, every 10 ms,
+// so a command is acted on within about 10 to 20 ms whatever the modem is
+// doing (v0.7.7 read the rear unit's input in ModemTask, between modem
+// waits of up to 30 s). Rear unit: USB serial is also the AT console, so the
+// bytes that are not a '!' line go to ModemTask through modemTxQueue; when
+// that queue is full, reading stops and the bytes wait in the USB buffer.
+// The Pi link has no AT pass-through (as before).
+void CommandTask(void* pvParameters) {
+  CmdLineAssembler usb, link;
+  cmdAssemblerInit(usb);
+  cmdAssemblerInit(link);
+  for (;;) {
+#if NODE_FRONT
+    while (Serial.available()) {
+      if (cmdFeedLink(usb, static_cast<char>(Serial.read())) == CMD_FEED_LINE) {
+        dispatchCommand(usb.buf);
+        cmdAssemblerClear(usb);
+      }
+    }
+#else
+    while (uxQueueSpacesAvailable(modemTxQueue) > 0 && Serial.available()) {
+      const char c = static_cast<char>(Serial.read());
+      const CmdFeed r = cmdFeedConsole(usb, c);
+      if (r == CMD_FEED_LINE) {
+        dispatchCommand(usb.buf);
+        cmdAssemblerClear(usb);
+      } else if (r == CMD_FEED_FORWARD) {
+        const uint8_t b = static_cast<uint8_t>(c);
+        xQueueSend(modemTxQueue, &b, 0);
+      }
+    }
+#endif
+#if LINK_UART_ENABLE
+    while (Serial2.available()) {
+      if (cmdFeedLink(link, static_cast<char>(Serial2.read())) == CMD_FEED_LINE) {
+        dispatchCommand(link.buf);
+        cmdAssemblerClear(link);
+      }
+    }
+#endif
+    vTaskDelay(pdMS_TO_TICKS(10));
+  }
+}
 
 // ============================================================
 // Setup / loop
@@ -3699,9 +3823,14 @@ void setup() {
   selfTestRideFeatures();
   selfTestRideFusion();
 
-#if NODE_FRONT
+#if !NODE_FRONT
+  // v0.7.8: queues before CommandTask and ModemTask start.
+  cmdDeferQueue = xQueueCreate(CMD_DEFER_QUEUE_LENGTH, sizeof(CmdItem));
+  modemTxQueue = xQueueCreate(MODEM_TX_QUEUE_LENGTH, sizeof(uint8_t));
+#endif
+  // Both nodes since v0.7.8 (front node only before): core 0, priority 1.
   xTaskCreatePinnedToCore(CommandTask, "CommandTask", 4096, nullptr, 1, nullptr, 0);
-#else
+#if !NODE_FRONT
   xTaskCreatePinnedToCore(ModemTask, "ModemTask", 4096, nullptr, 1, &ModemTaskHandle, 0);
 #endif
 

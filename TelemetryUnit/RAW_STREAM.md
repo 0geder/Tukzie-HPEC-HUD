@@ -38,6 +38,7 @@ RAWS 2 <node> <edge> <level> <t_us> <crc>
 | `"rawdrop":[a,b]` | samples never sent on the raw stream: the queue to the sender was full, or no port took the line |
 | `"reinit":[a,b]` | v0.7.7: re-inits that worked (sensor woken and configured again after 1 s of failed or identical reads, or found after being absent at boot). Not in RAWH, whose field count the readers check. |
 | `"imu_up":[a,b]` | v0.7.7: 1 read, 0 down (missing, re-init retried every 1 s, then 5 s), -1 not enabled in this build |
+| `"cmd":[rx,now,queued,done]` | v0.7.8, the last field: local '!' command lines received (USB and Pi UART), run at once, queued for the modem task (rear unit only), and queued ones already run. Not per IMU. |
 
 The front node's arrays have one element. The rear unit's keep two with IMU2 off, the second 0 (imu_up -1). Over a whole capture, for each IMU: missing seq numbers = rdfail + rawdrop + slots spent down.
 
@@ -58,7 +59,7 @@ The front node's arrays have one element. The rear unit's keep two with IMU2 off
 
 ## How it stays out of the IMU timing
 
-The IMU tasks put each sample on a 200-deep queue with no wait; a full queue drops and counts the sample. A sender task at the lowest priority on core 0 (the IMU tasks are on core 1) batches and writes each line with one write call, and only when the port's 8 KB TX buffer keeps 768 bytes free after it (640 in v0.7.5), so the DASH line always fits. If a port stays full for 50 ms the line is given up and its samples are counted in rawdrop.
+The IMU tasks put each sample on a 200-deep queue with no wait; a full queue drops and counts the sample. A sender task at the lowest priority on core 0 (the IMU tasks are on core 1) batches and writes each line with one write call, and only when the port's 8 KB TX buffer keeps 832 bytes free after it (640 in v0.7.5, 768 in v0.7.7), so the DASH line always fits. If a port stays full for 50 ms the line is given up and its samples are counted in rawdrop.
 
 ## Bench test after flashing (not yet run)
 

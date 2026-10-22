@@ -186,7 +186,7 @@ def summary(res):
     if res["dash"]:
         last = res["dash"][-1]
         out.append("last DASH: " + ", ".join("%s=%s" % (k, last.get(k)) for k in
-                                              ("node", "imu_hz", "drops", "rdfail", "stuck", "rawdrop", "reinit", "imu_up")))
+                                              ("node", "imu_hz", "drops", "rdfail", "stuck", "rawdrop", "reinit", "imu_up", "cmd")))
     return "\n".join(out)
 
 
