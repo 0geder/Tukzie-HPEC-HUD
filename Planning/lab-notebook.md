@@ -371,3 +371,9 @@ committed to git because of their size, kept on OneDrive).
   the load on core 1. To check: IMU2 wires and connector.
 - Modem answers AT but AT+CSQ gives 99,99 (no network), where it gave 23 to 30 in the lab before: check that the LTE
   antenna is still on its socket after the GNSS antenna was fitted.
+- Correction (student, 13:40): IMU2 is not missing. The student moved that sensor from the rear unit (IO17/18) to
+  the front node, so the rear now has IMU1 only, by design. The same sensor at the front, on short wires, shows
+  200 Hz, 0 read failures and 0 stuck readings, so the sensor is sound; the slow IMU2 reads behind the stall fault
+  (about 22 ms per read) point to its old rear wiring. Rear IMU1 had 1 read failure and 35 stuck readings in the
+  first minutes after the board was moved onto its battery, none after. Bridge with raw capture deployed on the
+  Pi 4 (rear_raw_*.txt in /home/ogeder/rawlog, 0 bad CRC).
