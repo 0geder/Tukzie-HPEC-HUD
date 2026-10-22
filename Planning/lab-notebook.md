@@ -304,3 +304,9 @@ committed to git because of their size, kept on OneDrive).
   28:84:85:50:a6:c4; the bare dev board used in September. front_node env set to UART0 Serial and COM11.
 - Flashed v0.7.5 front_node (hash verified). Boots as "node front": self-tests pass, sync pin toggles every 500 ms
   (RAWS lines), DASH every second. "IMU1 not found": no IMU wired yet. Next: MPU6050 on SDA 8 / SCL 9.
+- MPU6050 wired to the front node (SDA 8, SCL 9): "IMU1 found and configured"; first-boot calibration stored
+  (mean 9.7718 m/s^2, scale 1.0036, board assumed still; redo with !recal once mounted). 200.0 Hz, dropped 0,
+  rdfail 0, stuck 0, rawdrop 0.
+- Raw stream check at 115200 baud: 5,110 samples in 20 s decoded, 0 missing by seq, but the line was 85 % full
+  (9.8 kB/s of 11.5). Console raised to 921600 baud on the front node (CONSOLE_BAUD build flag; raw_capture service
+  --baud 921600). Re-check over 30 s: 6,800 samples, 0 missing, 0 bad lines, 69 sync edges, rawdrop 0.

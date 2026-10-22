@@ -27,7 +27,7 @@ Type=simple
 User=piadam
 WorkingDirectory=/home/piadam
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 /home/piadam/raw_capture.py --port auto --out /home/piadam/roadtest/raw_front --host 0.0.0.0 --http-port 8083
+ExecStart=/usr/bin/python3 /home/piadam/raw_capture.py --port auto --baud 921600 --out /home/piadam/roadtest/raw_front --host 0.0.0.0 --http-port 8083
 Restart=always
 RestartSec=3
 KillSignal=SIGTERM

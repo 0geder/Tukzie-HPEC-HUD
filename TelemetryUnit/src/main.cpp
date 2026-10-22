@@ -3261,7 +3261,10 @@ void setup() {
   // set before begin().
   Serial.setTxBufferSize(LINK_TX_BUFFER_BYTES);
 #endif
-  Serial.begin(115200);
+#ifndef CONSOLE_BAUD
+#define CONSOLE_BAUD 115200  // USB CDC ignores it; on a USB-UART bridge (front node) it sets the line rate
+#endif
+  Serial.begin(CONSOLE_BAUD);
 #if LINK_UART_ENABLE
   // UART link to the Raspberry Pi 4 (see LINK_UART_*): DASH lines and the raw
   // stream go out here. 8 KB TX buffer since v0.7.5 (2 KB before): about
