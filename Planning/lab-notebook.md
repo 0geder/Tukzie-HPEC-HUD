@@ -298,3 +298,9 @@ committed to git because of their size, kept on OneDrive).
 - Still to do on hardware (bench gate): regulated supply for the ESP32; read out run 1's flash log; flash v0.7.5
   and run its bench test; deploy the Pi-side capture; chrony; front sync wire (front ESP32 GPIO15 to Pi 5 pin 11);
   tap test of both nodes.
+
+### Front node ESP32 connected and flashed
+- Board on the laptop's COM11 (CH343 USB-UART): ESP32-S3 QFN56 rev v0.2, 16 MB quad flash, 8 MB PSRAM, MAC
+  28:84:85:50:a6:c4; the bare dev board used in September. front_node env set to UART0 Serial and COM11.
+- Flashed v0.7.5 front_node (hash verified). Boots as "node front": self-tests pass, sync pin toggles every 500 ms
+  (RAWS lines), DASH every second. "IMU1 not found": no IMU wired yet. Next: MPU6050 on SDA 8 / SCL 9.
