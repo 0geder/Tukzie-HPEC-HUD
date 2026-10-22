@@ -1,7 +1,8 @@
 """Build and run the host-side firmware tests with g++ (no ESP32 needed):
 test_sync_ledger.cpp (store-and-forward ledger) and test_raw_stream.cpp
 (raw IMU stream encoder, decoder, drop and read-health counters, MQTT
-position scrub; v0.7.5). The raw stream test writes a simulated capture,
+position scrub; v0.7.5) and test_imu_pacing.cpp (IMU task pacing and
+consumer-health helpers; v0.7.6). The raw stream test writes a simulated capture,
 which the Python reference decoder tools/raw_stream_decode.py must then
 decode to the same samples.
 
@@ -16,7 +17,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 UNIT = os.path.dirname(HERE)
-TESTS = ("test_sync_ledger", "test_raw_stream")
+TESTS = ("test_sync_ledger", "test_raw_stream", "test_imu_pacing")
 
 env = dict(os.environ)
 if shutil.which("g++") is None and os.path.isdir("C:/msys64/ucrt64/bin"):

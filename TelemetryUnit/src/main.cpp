@@ -30,8 +30,10 @@
 #endif
 
 #include "raw_stream.h"
+#include "imu_pacing.h"
+#include "esp_freertos_hooks.h"
 
-#define FIRMWARE_VERSION "v0.7.5"
+#define FIRMWARE_VERSION "v0.7.6"
 
 #if NODE_FRONT
 #define NODE_ID "front"
@@ -142,7 +144,7 @@ static const uint8_t BMS_QUERY_COMMAND[] = {0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 
 #define RAW_MAX_AGE_US 100000LL
 // Room kept free in a port's TX buffer for the DASH line: a RAW line is only
 // written when it leaves this much space, so DASH always fits behind it.
-#define RAW_DASH_RESERVE 640
+#define RAW_DASH_RESERVE 704  // >= DASH_LINE_MAX (640 in v0.7.5)
 // How long the sender waits for room on a port before giving a line up
 // (its samples are then counted in rawDropped too).
 #define RAW_PORT_WAIT_MS 50
@@ -155,6 +157,22 @@ static const uint8_t BMS_QUERY_COMMAND[] = {0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 
 #define IMU_SAMPLE_RATE_HZ 200
 #define IMU_SAMPLE_PERIOD_TICKS pdMS_TO_TICKS(1000 / IMU_SAMPLE_RATE_HZ)
 #define IMU_QUEUE_LENGTH 100
+// Task layout (v0.7.6). Core 1 runs only the two IMU tasks (priority 3) and
+// SyncTask (2). The IMU consumers (StatsTask and the two ride tasks) run on
+// core 0 at priority 2, above every other task of this firmware there
+// (modem, BLE BMS, DASH, raw sender, Hall, command: all priority 1). Up to
+// v0.7.5 the consumers sat on core 1 under the IMU tasks, so anything that
+// kept the IMU tasks busy starved them (fault of 21 and 22 Oct 2026, see
+// include/imu_pacing.h). The queues work across cores, so the consumers'
+// logic is unchanged.
+#define IMU_CORE 1
+#define IMU_TASK_PRIORITY 3
+#define CONSUMER_CORE 0
+#define CONSUMER_PRIORITY 2
+// An IMU task more than this many periods (100 ms) behind its schedule gives
+// up the missed slots instead of running them back to back (imuPacerSkip()).
+// Above the 33 to 40 ms flash-write pause, so normal catch-up is unchanged.
+#define IMU_MAX_LAG_PERIODS 20
 #define I2C_CLOCK_HZ 400000
 // Sensor ranges set in initImu(), and the counts per unit for them (MPU-6050
 // datasheet; the same numbers the Adafruit driver uses).
@@ -630,6 +648,22 @@ volatile uint32_t imu2CharDropped = 0;
 volatile float imu1RateHz = 0.0f;
 volatile float imu2RateHz = 0.0f;
 
+// Consumer health (v0.7.6), in DASH as "cons_age_ms", "qmax", "late", "idle".
+// Heartbeat of each consumer (esp_timer us), written every loop pass:
+// [0] StatsTask, [1] ride task IMU1, [2] ride task IMU2.
+volatile int64_t consumerBeatUs[3] = {0, 0, 0};
+// Highest fill of imu1Queue/imu2Queue seen by the IMU task before each send
+// (IMU_QUEUE_LENGTH = full: the consumer is IMU_QUEUE_LENGTH * 5 ms behind).
+volatile uint32_t imuQueueMax[2] = {0, 0};
+// Slots given up by imuPacerSkip() per IMU (task too far behind schedule).
+volatile uint32_t imuLateSlots[2] = {0, 0};
+// Idle-hook calls per core. The idle task runs this hook each time the core
+// has nothing else to do, so a count that stops rising means that core is
+// saturated by tasks or interrupts.
+volatile uint32_t idleHookCalls[2] = {0, 0};
+static bool idleHookCore0() { idleHookCalls[0]++; return true; }
+static bool idleHookCore1() { idleHookCalls[1]++; return true; }
+
 QueueHandle_t imu1CharQueue;
 QueueHandle_t imu2CharQueue;
 volatile RideFeatures latestRideFeatures1 = {};
@@ -739,6 +773,25 @@ static bool readImuRaw(TwoWire* wire, int16_t out[7]) {
   return true;
 }
 
+// Waits for the next sample slot. vTaskDelayUntil measures the period from
+// the *target* wake time, not from when this iteration happened to finish -
+// this is what keeps long-run sample timing from drifting under load.
+// v0.7.6: first, if the task is more than IMU_MAX_LAG_PERIODS behind, the
+// missed slots are given up (slot number advanced, counted in imuLateSlots)
+// so the task sleeps instead of running them back to back and holding the
+// core (include/imu_pacing.h). Below that limit nothing changes.
+static inline void imuWaitNextSlot(uint8_t sensorId, TickType_t* lastWake, uint32_t* seq) {
+  uint32_t lw = (uint32_t)*lastWake;
+  const uint32_t skipped = imuPacerSkip(&lw, (uint32_t)xTaskGetTickCount(), IMU_SAMPLE_PERIOD_TICKS,
+                                        IMU_MAX_LAG_PERIODS);
+  if (skipped > 0) {
+    *lastWake = (TickType_t)lw;
+    *seq += skipped;
+    imuLateSlots[sensorId] += skipped;
+  }
+  vTaskDelayUntil(lastWake, IMU_SAMPLE_PERIOD_TICKS);
+}
+
 void ImuTask(void* pvParameters) {
   ImuTaskConfig* cfg = static_cast<ImuTaskConfig*>(pvParameters);
   uint32_t seq = 0;
@@ -753,7 +806,7 @@ void ImuTask(void* pvParameters) {
       const int16_t motion[6] = {raw[0], raw[1], raw[2], raw[4], raw[5], raw[6]};
       const bool stuck = imuHealthNote(health, ok, motion);
       if (!ok) {
-        vTaskDelayUntil(&lastWake, IMU_SAMPLE_PERIOD_TICKS);
+        imuWaitNextSlot(cfg->sensor_id, &lastWake, &seq);
         continue;
       }
 
@@ -780,6 +833,7 @@ void ImuTask(void* pvParameters) {
         rawOffer(rawQueue, it, &rawQueueDropped[cfg->sensor_id]);
       }
 
+      noteHighWater(&imuQueueMax[cfg->sensor_id], (uint32_t)uxQueueMessagesWaiting(cfg->queue));
       if (xQueueSend(cfg->queue, &sample, 0) != pdTRUE) {
         // Queue full: the consumer is falling behind. Count and drop
         // rather than block, so acquisition timing is never held
@@ -804,10 +858,7 @@ void ImuTask(void* pvParameters) {
       }
     }
 
-    // vTaskDelayUntil measures the period from the *target* wake time,
-    // not from when this iteration happened to finish - this is what
-    // keeps long-run sample timing from drifting under load.
-    vTaskDelayUntil(&lastWake, IMU_SAMPLE_PERIOD_TICKS);
+    imuWaitNextSlot(cfg->sensor_id, &lastWake, &seq);
   }
 }
 
@@ -830,6 +881,7 @@ void StatsTask(void* pvParameters) {
   for (;;) {
     ImuSample sample;
     GnssFix fix;
+    consumerBeatUs[0] = esp_timer_get_time();
 
     // GNSS polls at ~1/3s, far below IMU rate - draining here (rather
     // than a dedicated task) is enough. Without this the queue fills
@@ -868,8 +920,11 @@ void StatsTask(void* pvParameters) {
     }
 
     if (xTaskGetTickCount() - lastReport >= reportInterval) {
-      lastReport = xTaskGetTickCount();
-      float elapsed_s = reportInterval / 1000.0f;
+      // Rates over the real elapsed time (v0.7.6; was the nominal 2 s), so a
+      // late report shows the rate it actually measured.
+      const TickType_t nowTick = xTaskGetTickCount();
+      float elapsed_s = (float)(nowTick - lastReport) / (float)configTICK_RATE_HZ;
+      lastReport = nowTick;
       imu1RateHz = imu1Count / elapsed_s;
       imu2RateHz = imu2Count / elapsed_s;
 
@@ -898,6 +953,10 @@ void StatsTask(void* pvParameters) {
                     (unsigned long)imuHealth[0].stuck, (unsigned long)imuHealth[1].stuck,
                     (unsigned long)rawDropped(0), (unsigned long)rawDropped(1),
                     (unsigned long)rawLinesSent);
+      Serial.printf("IMU pacing: late=[%lu,%lu] qmax=[%lu,%lu] idle_calls=[%lu,%lu]\n",
+                    (unsigned long)imuLateSlots[0], (unsigned long)imuLateSlots[1],
+                    (unsigned long)imuQueueMax[0], (unsigned long)imuQueueMax[1],
+                    (unsigned long)idleHookCalls[0], (unsigned long)idleHookCalls[1]);
 #if !NODE_FRONT
       Serial.printf("GNSS: %lu polls, %lu with a fix\n",
                     (unsigned long)gnssCount, (unsigned long)gnssValidCount);
@@ -924,9 +983,9 @@ void StatsTask(void* pvParameters) {
 // pattern as ImuTask/BmsTask). Fills a fixed-size window from its own
 // dedicated queue, computes time-domain features once the window is full,
 // and stores the result for the (separate) networking task to publish.
-// Lower priority than ImuTask so this never competes with acquisition
-// timing - falling behind here drops characterisation windows, which is
-// far preferable to perturbing the 200 Hz sample clock.
+// Since v0.7.6 on core 0 (CONSUMER_CORE), so it never competes with the
+// IMU tasks for core 1 and cannot be starved by them; falling behind here
+// still only drops characterisation windows.
 // ============================================================
 // Field-by-field copy out of a volatile struct (whole-struct assignment from a
 // volatile source does not compile). Callers hold rideMux.
@@ -984,6 +1043,7 @@ void RideCharacterizationTask(void* pvParameters) {
 
   for (;;) {
     ImuSample sample;
+    consumerBeatUs[1 + cfg->sensor_id] = esp_timer_get_time();
     if (xQueueReceive(cfg->queue, &sample, pdMS_TO_TICKS(50)) == pdTRUE) {
       window[count++] = cfg->mag_scale *
           sqrtf(sample.ax * sample.ax + sample.ay * sample.ay + sample.az * sample.az);
@@ -2656,8 +2716,11 @@ String buildTelemetryJson(uint32_t seq) {
 #define DASH_PERIOD_MS 1000
 // Bytes including "DASH " and the newline: 480 up to v0.7.4.1 (400 until
 // v0.7.3); 576 since v0.7.5 for the node, rdfail, stuck and rawdrop fields
-// (about 60 bytes more in practice; the bridge accepts lines up to 4096).
-#define DASH_LINE_MAX 576
+// (about 60 bytes more in practice; the bridge accepts lines up to 4096);
+// 704 since v0.7.6 for cons_age_ms, qmax, late and idle (about 100 bytes more
+// in the worst case, about 90 in practice).
+#define DASH_LINE_MAX 704
+static_assert(RAW_DASH_RESERVE >= DASH_LINE_MAX, "the raw stream must leave room for a whole DASH line");
 
 // Runtime switch (serial command "!dash off" / "!dash on"), default on.
 volatile bool dashEnabled = true;
@@ -2696,6 +2759,36 @@ void DashTask(void* pvParameters) {
              (unsigned long)imuHealth[0].rdfail, (unsigned long)imuHealth[1].rdfail,
              (unsigned long)imuHealth[0].stuck, (unsigned long)imuHealth[1].stuck,
              (unsigned long)rawDropped(0), (unsigned long)rawDropped(1));
+#endif
+
+    // Consumer health (v0.7.6), after the v0.7.5 fields:
+    //   cons_age_ms  ms since StatsTask and each ride task last ran (normally
+    //                under 10 and 50; -1 = never ran). A consumer that stops
+    //                shows here at once, whereas imu_hz keeps its last value.
+    //   qmax         highest IMU queue fill seen since boot (100 = full).
+    //   late         IMU slots given up because the task was over 100 ms behind.
+    //   idle         idle-hook calls per core in the last DASH period; 0 means
+    //                that core never went idle (saturated).
+    static uint32_t prevIdle[2] = {0, 0};
+    const uint32_t idle0 = idleHookCalls[0], idle1 = idleHookCalls[1];
+    const uint32_t dIdle0 = idle0 - prevIdle[0], dIdle1 = idle1 - prevIdle[1];
+    prevIdle[0] = idle0;
+    prevIdle[1] = idle1;
+    char pace[160];
+#if NODE_FRONT
+    snprintf(pace, sizeof(pace),
+             "\"cons_age_ms\":[%ld,%ld],\"qmax\":[%lu],\"late\":[%lu],\"idle\":[%lu,%lu]",
+             (long)consumerAgeMs(nowUs, consumerBeatUs[0]), (long)consumerAgeMs(nowUs, consumerBeatUs[1]),
+             (unsigned long)imuQueueMax[0], (unsigned long)imuLateSlots[0],
+             (unsigned long)dIdle0, (unsigned long)dIdle1);
+#else
+    snprintf(pace, sizeof(pace),
+             "\"cons_age_ms\":[%ld,%ld,%ld],\"qmax\":[%lu,%lu],\"late\":[%lu,%lu],\"idle\":[%lu,%lu]",
+             (long)consumerAgeMs(nowUs, consumerBeatUs[0]), (long)consumerAgeMs(nowUs, consumerBeatUs[1]),
+             (long)consumerAgeMs(nowUs, consumerBeatUs[2]),
+             (unsigned long)imuQueueMax[0], (unsigned long)imuQueueMax[1],
+             (unsigned long)imuLateSlots[0], (unsigned long)imuLateSlots[1],
+             (unsigned long)dIdle0, (unsigned long)dIdle1);
 #endif
 
 #if !NODE_FRONT
@@ -2778,9 +2871,9 @@ void DashTask(void* pvParameters) {
     (void)vibDis;
     int len = snprintf(line, sizeof(line),
                        "DASH {\"seq\":%lu,\"up_ms\":%lld,\"fw\":\"%s\",\"vib\":%s,"
-                       "\"imu_hz\":[%.1f],\"drops\":[%lu],%s}\n",
+                       "\"imu_hz\":[%.1f],\"drops\":[%lu],%s,%s}\n",
                        (unsigned long)seq, (long long)(nowUs / 1000), fw, vib, (float)imu1RateHz,
-                       (unsigned long)imu1Dropped, health);
+                       (unsigned long)imu1Dropped, health, pace);
 #else
     int len = snprintf(line, sizeof(line),
                        "DASH {\"seq\":%lu,\"up_ms\":%lld,\"fw\":\"%s\","
@@ -2789,14 +2882,14 @@ void DashTask(void* pvParameters) {
                        "\"vib\":%s,\"vib_dis\":%s,\"imu_hz\":[%.1f,%.1f],\"drops\":[%lu,%lu],"
                        "\"rpm\":%s,\"csq\":%s,\"mqtt\":%s,"
                        "\"cell_lat\":%s,\"cell_lon\":%s,\"cell_acc_m\":%s,\"cell_age_s\":%s,\"agps\":%s,"
-                       "%s}\n",
+                       "%s,%s}\n",
                        (unsigned long)seq, (long long)(nowUs / 1000), fw,
                        soc, v, cur, bmsAge,
                        fix ? "true" : "false", lat, lon, spd, crs, alt,
                        vib, vibDis, (float)imu1RateHz, (float)imu2RateHz,
                        (unsigned long)imu1Dropped, (unsigned long)imu2Dropped,
                        rpm, csq, mqttConnected ? "true" : "false",
-                       cLat, cLon, cAcc, cAge, agpsOk ? "true" : "false", health);
+                       cLat, cLon, cAcc, cAge, agpsOk ? "true" : "false", health, pace);
 #endif
     if (len < 0 || len >= (int)sizeof(line)) {
       // A cut line would be invalid JSON; skip it rather than send half.
@@ -2843,6 +2936,9 @@ void DashTask(void* pvParameters) {
 //   !sync drop   give up the whole backlog (counted as lost), for tests
 //   !raw off     stop the raw IMU stream to the Pi (v0.7.5)
 //   !raw on      start it again (default on)
+//   !modem off   power the modem down (AT+CPOF), to bench-test the modem-silent
+//                state of 21 and 22 Oct 2026 (v0.7.6)
+//   !modem on    pulse the power key if the modem does not answer (v0.7.6)
 // The front node has !help, !status, !dash, !raw and !recal only.
 // ============================================================
 
@@ -2858,6 +2954,11 @@ static void printRawStatus() {
                   (unsigned)rawQueueDropped[i], (unsigned)rawPortDropped[i]);
   }
   Serial.printf("[CMD] sync edges=%u, events dropped=%u\n", (unsigned)syncEdgeCount, (unsigned)rawSyncDropped);
+  const int64_t nowUs = esp_timer_get_time();
+  Serial.printf("[CMD] consumers: stats %ld ms, ride1 %ld ms, ride2 %ld ms ago; imu late=[%u,%u] qmax=[%u,%u]\n",
+                (long)consumerAgeMs(nowUs, consumerBeatUs[0]), (long)consumerAgeMs(nowUs, consumerBeatUs[1]),
+                (long)consumerAgeMs(nowUs, consumerBeatUs[2]), (unsigned)imuLateSlots[0], (unsigned)imuLateSlots[1],
+                (unsigned)imuQueueMax[0], (unsigned)imuQueueMax[1]);
 }
 
 // Commands both nodes share. True if the line was one of them.
@@ -2935,12 +3036,29 @@ void CommandTask(void* pvParameters) {
   }
 }
 #else
+static bool modemResponds(int tries);
 void handleLocalCommand(String line) {
   line.trim();
   line.toLowerCase();
   if (handleCommonCommand(line)) return;
   if (line == "!help") {
-    Serial.println("[CMD] !status  !sync  !sync drop  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !dash off  !dash on  !raw off  !raw on  !recal  !agps  !cellpos");
+    Serial.println("[CMD] !status  !sync  !sync drop  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !dash off  !dash on  !raw off  !raw on  !recal  !agps  !cellpos  !modem off  !modem on");
+  } else if (line == "!modem off") {
+    // Bench test of the modem-silent state (v0.7.6): AT+CPOF powers the
+    // A7670 down, so every later AT command goes unanswered, as in the
+    // field on 21 and 22 Oct 2026. The modem stays off until "!modem on"
+    // or a reset (ModemTask pulses the power key at boot when it gets no reply).
+    Serial1.println("AT+CPOF");
+    Serial.println("[CMD] modem power-down sent (AT+CPOF); !modem on to start it again");
+  } else if (line == "!modem on") {
+    if (modemResponds(2)) {
+      Serial.println("[CMD] modem already answering, power key not pulsed");
+    } else {
+      digitalWrite(A7670X_PWRKEY_PIN, HIGH);
+      vTaskDelay(pdMS_TO_TICKS(3000));
+      digitalWrite(A7670X_PWRKEY_PIN, LOW);
+      Serial.println("[CMD] power key pulsed; the modem takes about 10 to 20 s to answer");
+    }
   } else if (line == "!sync") {
     printSyncStatus();
   } else if (line == "!sync drop") {
@@ -3353,10 +3471,15 @@ void setup() {
   xTaskCreatePinnedToCore(ModemTask, "ModemTask", 4096, nullptr, 1, &ModemTaskHandle, 0);
 #endif
 
-  xTaskCreatePinnedToCore(ImuTask, "Imu1Task", 4096, &imu1Config, 3, &Imu1TaskHandle, 1);
-  xTaskCreatePinnedToCore(ImuTask, "Imu2Task", 4096, &imu2Config, 3, &Imu2TaskHandle, 1);
-  xTaskCreatePinnedToCore(StatsTask, "StatsTask", 4096, nullptr, 2, &StatsTaskHandle, 1);
-  xTaskCreatePinnedToCore(SyncTask, "SyncTask", 2048, nullptr, 2, &SyncTaskHandle, 1);
+  // Idle hooks for the "idle" DASH field (v0.7.6): a core that stops idling is saturated.
+  esp_register_freertos_idle_hook_for_cpu(idleHookCore0, 0);
+  esp_register_freertos_idle_hook_for_cpu(idleHookCore1, 1);
+
+  xTaskCreatePinnedToCore(ImuTask, "Imu1Task", 4096, &imu1Config, IMU_TASK_PRIORITY, &Imu1TaskHandle, IMU_CORE);
+  xTaskCreatePinnedToCore(ImuTask, "Imu2Task", 4096, &imu2Config, IMU_TASK_PRIORITY, &Imu2TaskHandle, IMU_CORE);
+  // v0.7.6: the consumer on core 0 above all other user tasks there (was core 1, priority 2).
+  xTaskCreatePinnedToCore(StatsTask, "StatsTask", 4096, nullptr, CONSUMER_PRIORITY, &StatsTaskHandle, CONSUMER_CORE);
+  xTaskCreatePinnedToCore(SyncTask, "SyncTask", 2048, nullptr, 2, &SyncTaskHandle, IMU_CORE);
   xTaskCreatePinnedToCore(RawSenderTask, "RawSender", 4096, nullptr, 1, &RawSenderTaskHandle, 0);
 #if !NODE_FRONT
   // After SyncTask has set its pin as an output, so that in loopback the
@@ -3373,9 +3496,12 @@ void setup() {
   xTaskCreatePinnedToCore(BmsTask, "BmsTask", 8192, nullptr, 1, &BmsTaskHandle, 0);
 #endif
   xTaskCreatePinnedToCore(DashTask, "DashTask", 4096, nullptr, 1, &DashTaskHandle, 0);
-  xTaskCreatePinnedToCore(RideCharacterizationTask, "RideChar1Task", 4096, &rideChar1Config, 1, &RideChar1TaskHandle, 1);
+  // v0.7.6: core 0, priority 2 (was core 1, priority 1), see CONSUMER_CORE.
+  xTaskCreatePinnedToCore(RideCharacterizationTask, "RideChar1Task", 4096, &rideChar1Config, CONSUMER_PRIORITY,
+                          &RideChar1TaskHandle, CONSUMER_CORE);
 #if ENABLE_IMU2
-  xTaskCreatePinnedToCore(RideCharacterizationTask, "RideChar2Task", 4096, &rideChar2Config, 1, &RideChar2TaskHandle, 1);
+  xTaskCreatePinnedToCore(RideCharacterizationTask, "RideChar2Task", 4096, &rideChar2Config, CONSUMER_PRIORITY,
+                          &RideChar2TaskHandle, CONSUMER_CORE);
 #endif
 }
 

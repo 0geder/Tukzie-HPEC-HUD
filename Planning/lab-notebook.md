@@ -332,3 +332,19 @@ committed to git because of their size, kept on OneDrive).
 - FAULT again: rear drop counters rising at about 168/s (IMU1) and 46/s (IMU2), the same rates as on 21 Oct, with
   imu_hz still 200 and vib null. No USB host attached (so USB console stalls are ruled out). Modem unresponsive in
   both episodes. Root-cause investigation started before v0.7.5 is flashed to the rear unit.
+
+### Rear drop fault: root cause from the code, fix in v0.7.6 (not yet flashed)
+- The frozen imu_hz [200, 200] is the clue: it is written only by StatsTask at the end of each 2 s report, so
+  StatsTask had stopped; vib null means both ride tasks had stopped too. All three ran on core 1 below the IMU tasks
+  (priority 3). With the consumers stopped, the drop rate equals each IMU task's own rate (about 168 Hz and 46 Hz,
+  i.e. both IMU tasks were running behind schedule and core 1 had no time left below priority 3).
+- Ruled out by reading the code: modem and BLE busy-waits (they run on core 0 and all waits yield), shared locks,
+  heap. What loaded core 1 is not proven; candidates are interrupt load from the Pi UART RX line floating while the
+  Pi reboots, and the IMU2 I2C bus.
+- v0.7.6: StatsTask and both ride tasks moved to core 0 at priority 2 (above the modem and BLE tasks); bounded IMU
+  catch-up (more than 100 ms behind: skip and count "late"); rates from real elapsed time; new DASH health fields
+  cons_age_ms, qmax, late, idle; !modem off / !modem on for the bench test. Host tests pass (incl. 254 pacing
+  checks); both builds succeed.
+- Bench gate before run 2: reproduce on v0.7.4.1 (modem off, 60 min, one trigger factor at a time), then 60 min on
+  v0.7.6 with pass criteria drops [0,0], vib present, cons_age_ms < 200, late 0, idle > 0 (procedure in
+  TelemetryUnit/CHANGELOG.md).
