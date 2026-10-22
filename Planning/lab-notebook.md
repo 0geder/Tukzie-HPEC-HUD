@@ -417,3 +417,12 @@ committed to git because of their size, kept on OneDrive).
   Pis is the record.
 - Verdict: the consumer-stall fault is fixed in v0.7.6 (no drops, no stall, vib throughout for an hour).
   Log: BenchTest/logs/soak_2026-10-22/soak_v076_rear_60min.jsonl; evaluator BenchTest/soak_eval.py.
+
+### v0.7.8 on both nodes; recovery test passed (15:00 to 15:25)
+- v0.7.8 flashed to the rear unit (laptop COM10) and the front node (from the Pi 5, esptool --no-stub). Both boot,
+  200 Hz, 0 drops; rear IMU2 disabled in the build (imu_up [1,-1]); !status over USB acted on at once (cmd "1 received,
+  1 run at once"). Front sync log continued through the reflash (3,365 edges, 499.8 to 500.1 ms).
+- Recovery test (rear, v0.7.8, IMU1 supply wire pulled for several seconds and refitted, four times): each time the
+  sensor was marked down, drops stayed 0, consumer ages under 50 ms, and the unit re-initialised it by itself after
+  refitting (reinit 1 to 4), back to 200 Hz with vib returning. No reset needed. Log:
+  BenchTest/logs/recovery_2026-10-22/rear_recovery_console_2.txt (the first 2-minute recording had no pull).
