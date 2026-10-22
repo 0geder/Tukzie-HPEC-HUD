@@ -4,16 +4,40 @@
 #include <Wire.h>
 #include <esp_timer.h>
 #include <math.h>
+#include <Preferences.h>
+
+// ---- Which node this build is (v0.7.5) ----
+// NODE_FRONT 0: the rear unit (Makerfabs A7670X board): two IMUs, modem,
+// GNSS, MQTT, BLE BMS, flash log, Hall counter. This is the default
+// environment in platformio.ini.
+// NODE_FRONT 1: the front IMU node (env:front_node): the same source built
+// for a plain ESP32-S3 dev board with one IMU and nothing else: no modem,
+// no BLE, no GNSS, no MQTT, no flash log. It sends the DASH line (fewer
+// fields) and the raw stream on USB serial, and on a UART if enabled.
+#ifndef NODE_FRONT
+#define NODE_FRONT 0
+#endif
+
+#if !NODE_FRONT
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
-#include <Preferences.h>
 #include <LittleFS.h>
 
+#include "payload_privacy.h"
 #include "sync_ledger.h"
+#endif
 
-#define FIRMWARE_VERSION "v0.7.4.1"
+#include "raw_stream.h"
+
+#define FIRMWARE_VERSION "v0.7.5"
+
+#if NODE_FRONT
+#define NODE_ID "front"
+#else
+#define NODE_ID "rear"
+#endif
 
 // ============================================================
 // SW-7 ESP32-S3 Firmware (version: FIRMWARE_VERSION above)
@@ -28,8 +52,15 @@
 #define MODEM_BAUD 115200
 
 // ---- IMU 1: existing wiring, confirmed working on v0.3.0 ----
+// The pins can be set from platformio.ini (-D IMU1_SDA_PIN=..), for the
+// front node's board. 8 and 9 are also the default I2C pins of a generic
+// ESP32-S3 dev board (ESP32-S3-DevKitC-1).
+#ifndef IMU1_SDA_PIN
 #define IMU1_SDA_PIN 8
+#endif
+#ifndef IMU1_SCL_PIN
 #define IMU1_SCL_PIN 9
+#endif
 
 // ---- IMU 2: second I2C bus ----
 // Confirmed against the Makerfabs ESP32-S3 4G LTE CAT1 A7670X schematic
@@ -37,7 +68,13 @@
 // silkscreened IO17/I2C_SDA and IO18/I2C_SCL respectively.
 #define IMU2_SDA_PIN 17
 #define IMU2_SCL_PIN 18
+#ifndef ENABLE_IMU2
+#if NODE_FRONT
+#define ENABLE_IMU2 0
+#else
 #define ENABLE_IMU2 1
+#endif
+#endif
 
 // ---- JBD/Jiabaida BMS over BLE ----
 // MAC and characteristic UUIDs as identified against a JBD-protocol pack in
@@ -61,7 +98,11 @@ static const uint8_t BMS_QUERY_COMMAND[] = {0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 
 // instead: J5 pin 5, a plain GPIO with no strapping/alt-function role,
 // sitting on the same connector as IMU2's I2C pins (J5 pins 7-8) for a
 // single compact wiring loom to the Pi.
+// The front node also drives a sync output (pin set by build flag), so the Pi
+// can align the front node's clock the same way on a second GPIO input.
+#ifndef SYNC_PULSE_PIN
 #define SYNC_PULSE_PIN 15
+#endif
 
 // ---- Serial link to the Raspberry Pi 4 (v0.7.4.1, 21 Oct 2026) ----
 // On the vehicle the unit runs from its own LiPo: powered from the Pi's USB it
@@ -70,9 +111,42 @@ static const uint8_t BMS_QUERY_COMMAND[] = {0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 
 // IO41 (TX) to Pi pin 10 (GPIO15, RXD), IO42 (RX) from Pi pin 8 (GPIO14, TXD),
 // and a common ground (already shared through the sync wire's GND on Pi pin 9).
 // Both sides are 3.3 V logic. USB serial keeps working for flashing and debug.
+// The front node leaves the UART off unless built with -D LINK_UART_ENABLE=1
+// (pins and baud can then be set by build flags too).
+#ifndef LINK_UART_ENABLE
+#define LINK_UART_ENABLE (!NODE_FRONT)
+#endif
+#ifndef LINK_UART_TX_PIN
 #define LINK_UART_TX_PIN 41
+#endif
+#ifndef LINK_UART_RX_PIN
 #define LINK_UART_RX_PIN 42
+#endif
+#ifndef LINK_UART_BAUD
 #define LINK_UART_BAUD 460800
+#endif
+
+// ---- Raw IMU stream (v0.7.5), format in include/raw_stream.h ----
+// Every IMU sample also goes to the Pi as RAW lines. Rear unit: on the UART
+// link only (the USB console would be flooded). Front node: on USB serial,
+// and on the UART too when LINK_UART_ENABLE is 1.
+#ifndef RAW_ON_USB
+#define RAW_ON_USB NODE_FRONT
+#endif
+#define RAW_ON_UART LINK_UART_ENABLE
+// Queue from the IMU tasks to the sender task: 0.5 s of both IMUs at 200 Hz.
+// The IMU tasks never wait on it; a sample that does not fit is dropped and
+// counted in rawDropped (the DASH "rawdrop" field).
+#define RAW_QUEUE_LENGTH 200
+// A batch is written once its first sample is this old, even if not full.
+#define RAW_MAX_AGE_US 100000LL
+// Room kept free in a port's TX buffer for the DASH line: a RAW line is only
+// written when it leaves this much space, so DASH always fits behind it.
+#define RAW_DASH_RESERVE 640
+// How long the sender waits for room on a port before giving a line up
+// (its samples are then counted in rawDropped too).
+#define RAW_PORT_WAIT_MS 50
+#define LINK_TX_BUFFER_BYTES 8192
 
 // ---- Acquisition parameters ----
 // ISO 2631-1 weights whole-body vibration up to 80 Hz, so Nyquist alone
@@ -82,6 +156,13 @@ static const uint8_t BMS_QUERY_COMMAND[] = {0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 
 #define IMU_SAMPLE_PERIOD_TICKS pdMS_TO_TICKS(1000 / IMU_SAMPLE_RATE_HZ)
 #define IMU_QUEUE_LENGTH 100
 #define I2C_CLOCK_HZ 400000
+// Sensor ranges set in initImu(), and the counts per unit for them (MPU-6050
+// datasheet; the same numbers the Adafruit driver uses).
+#define MPU_ADDR 0x68
+#define MPU_ACCEL_OUT_REG 0x3B
+#define IMU_ACCEL_COUNTS_PER_G 4096   // +-8 g
+#define IMU_GYRO_COUNTS_PER_DPS 65.5f // +-500 deg/s
+#define IMU_DLPF_HZ 94
 
 // ============================================================
 // Data structures
@@ -100,6 +181,7 @@ struct ImuTaskConfig {
   QueueHandle_t char_queue;  // second, independent feed for ride characterisation
   Adafruit_MPU6050* sensor;
   bool* ready_flag;
+  TwoWire* wire;             // the sensor's I2C bus, read directly since v0.7.5
 };
 
 // Time-domain ride-characterisation features, computed per window from the
@@ -480,6 +562,7 @@ QueueHandle_t bmsQueue;
 // for every connect/reconnect - the original implementation called
 // BLEDevice::createClient() on every cycle, leaking a client object every
 // ~10 s of runtime.
+#if !NODE_FRONT
 static BLEClient* bmsClient = nullptr;
 static BLERemoteCharacteristic* bmsNotifyChar = nullptr;
 static BLERemoteCharacteristic* bmsWriteChar = nullptr;
@@ -495,6 +578,7 @@ volatile uint32_t bmsChecksumFailures = 0;
 volatile uint32_t bmsDisconnectCount = 0;
 volatile uint32_t bmsReconnectCount = 0;
 volatile uint32_t bmsDropped = 0;
+#endif
 volatile BmsSample latestBmsSample = {};
 volatile GnssFix latestGnssFix = {};
 
@@ -560,6 +644,37 @@ static RideCharTaskConfig rideChar2Config;
 TaskHandle_t RideChar1TaskHandle;
 TaskHandle_t RideChar2TaskHandle;
 
+// ---- Raw stream and read-health state (v0.7.5) ----
+// Thin wrapper so rawOffer() (include/raw_stream.h) can be host-tested with a
+// plain ring in place of the FreeRTOS queue.
+struct RawQueue {
+  QueueHandle_t h;
+  bool trySend(const RawItem& it) { return xQueueSend(h, &it, 0) == pdTRUE; }
+};
+RawQueue rawQueue = {nullptr};
+QueueHandle_t rawSyncQueue;          // sync edges for the sender, see SyncTask
+TaskHandle_t RawSenderTaskHandle;
+volatile bool rawEnabled = true;     // "!raw off" / "!raw on"
+// Samples produced but never sent, per IMU (DASH "rawdrop" is the sum):
+// queue full, the sender fell behind (counted by the IMU task), and lines no
+// port took (counted by the sender). Two counters so each has one writer.
+volatile uint32_t rawQueueDropped[2] = {0, 0};
+volatile uint32_t rawPortDropped[2] = {0, 0};
+static inline uint32_t rawDropped(int imu) { return rawQueueDropped[imu] + rawPortDropped[imu]; }
+volatile uint32_t rawLinesSent = 0;
+volatile uint32_t rawSyncDropped = 0;
+// Read failures and stuck samples per IMU (DASH "rdfail" and "stuck").
+// Written only by that IMU's task.
+ImuHealth imuHealth[2] = {};
+// Sync pulse state, written by SyncTask, read by the IMU tasks for the flag bit.
+volatile uint8_t syncLevel = 0;
+volatile uint32_t syncEdgeCount = 0;
+struct RawSyncEvent {
+  uint32_t edge;
+  uint8_t level;
+  int64_t t_us;
+};
+
 // ============================================================
 // IMU initialisation
 // ============================================================
@@ -595,27 +710,75 @@ bool initImu(Adafruit_MPU6050* sensor, TwoWire* wire, int sda, int scl) {
 // config struct, so the 200 Hz timing path is written and tested once.
 // No Serial I/O in this task - blocking on USB CDC output would eat
 // directly into the sample period and defeat the point of measuring it.
+//
+// v0.7.5: the sensor is read with one 14-byte I2C burst (accel, temperature,
+// gyro) instead of the Adafruit getEvent(). getEvent() always returns true,
+// even when the bus read failed (it then converts whatever was in its
+// buffer), and it reads the two range registers again on every call (three
+// transactions per sample). The direct read checks the bus result, gives
+// the raw counts for the raw stream, and converts them with the same
+// arithmetic as the driver, so the float values are unchanged. A failed read
+// sends nothing (the slot number still advances, so the gap is visible) and
+// is counted; a read identical to the previous one is counted as stuck.
 // ============================================================
+
+// Reads ax ay az, temperature, gx gy gz as counts. False if the bus did not
+// acknowledge or returned fewer than 14 bytes.
+static bool readImuRaw(TwoWire* wire, int16_t out[7]) {
+  wire->beginTransmission(MPU_ADDR);
+  wire->write(MPU_ACCEL_OUT_REG);
+  if (wire->endTransmission(false) != 0) return false;
+  if (wire->requestFrom((uint8_t)MPU_ADDR, (uint8_t)14) != 14) return false;
+  uint8_t b[14];
+  for (int i = 0; i < 14; i++) {
+    const int c = wire->read();
+    if (c < 0) return false;
+    b[i] = (uint8_t)c;
+  }
+  for (int i = 0; i < 7; i++) out[i] = (int16_t)((b[2 * i] << 8) | b[2 * i + 1]);
+  return true;
+}
+
 void ImuTask(void* pvParameters) {
   ImuTaskConfig* cfg = static_cast<ImuTaskConfig*>(pvParameters);
   uint32_t seq = 0;
   TickType_t lastWake = xTaskGetTickCount();
+  ImuHealth& health = imuHealth[cfg->sensor_id];
 
   for (;;) {
     if (*(cfg->ready_flag)) {
-      sensors_event_t accel, gyro, temp;
-      cfg->sensor->getEvent(&accel, &gyro, &temp);
+      int16_t raw[7];
+      const bool ok = readImuRaw(cfg->wire, raw);
+      const uint32_t slot = seq++;
+      const int16_t motion[6] = {raw[0], raw[1], raw[2], raw[4], raw[5], raw[6]};
+      const bool stuck = imuHealthNote(health, ok, motion);
+      if (!ok) {
+        vTaskDelayUntil(&lastWake, IMU_SAMPLE_PERIOD_TICKS);
+        continue;
+      }
 
       ImuSample sample;
       sample.sensor_id = cfg->sensor_id;
-      sample.sequence = seq++;
+      sample.sequence = slot;
       sample.timestamp_us = esp_timer_get_time();
-      sample.ax = accel.acceleration.x;
-      sample.ay = accel.acceleration.y;
-      sample.az = accel.acceleration.z;
-      sample.gx = gyro.gyro.x;
-      sample.gy = gyro.gyro.y;
-      sample.gz = gyro.gyro.z;
+      // As Adafruit_MPU6050::_read() and fillAccelEvent()/fillGyroEvent().
+      sample.ax = ((float)motion[0] / (float)IMU_ACCEL_COUNTS_PER_G) * SENSORS_GRAVITY_STANDARD;
+      sample.ay = ((float)motion[1] / (float)IMU_ACCEL_COUNTS_PER_G) * SENSORS_GRAVITY_STANDARD;
+      sample.az = ((float)motion[2] / (float)IMU_ACCEL_COUNTS_PER_G) * SENSORS_GRAVITY_STANDARD;
+      sample.gx = ((float)motion[3] / IMU_GYRO_COUNTS_PER_DPS) * SENSORS_DPS_TO_RADS;
+      sample.gy = ((float)motion[4] / IMU_GYRO_COUNTS_PER_DPS) * SENSORS_DPS_TO_RADS;
+      sample.gz = ((float)motion[5] / IMU_GYRO_COUNTS_PER_DPS) * SENSORS_DPS_TO_RADS;
+
+      // Raw stream: one try on its own queue, never waiting (see RawSenderTask).
+      if (rawEnabled && rawQueue.h != nullptr) {
+        RawItem it;
+        it.imu = cfg->sensor_id;
+        it.s.seq = slot;
+        it.s.t_us = sample.timestamp_us;
+        it.s.flags = (syncLevel ? RAW_FLAG_SYNC : 0) | (stuck ? RAW_FLAG_STUCK : 0);
+        for (int a = 0; a < 6; a++) it.s.v[a] = motion[a];
+        rawOffer(rawQueue, it, &rawQueueDropped[cfg->sensor_id]);
+      }
 
       if (xQueueSend(cfg->queue, &sample, 0) != pdTRUE) {
         // Queue full: the consumer is falling behind. Count and drop
@@ -729,6 +892,13 @@ void StatsTask(void* pvParameters) {
       } else {
         Serial.println("IMU2: no samples (not ready / not connected)");
       }
+      // Read health and raw stream (v0.7.5), totals since boot.
+      Serial.printf("IMU health: rdfail=[%lu,%lu] stuck=[%lu,%lu] rawdrop=[%lu,%lu] raw_lines=%lu\n",
+                    (unsigned long)imuHealth[0].rdfail, (unsigned long)imuHealth[1].rdfail,
+                    (unsigned long)imuHealth[0].stuck, (unsigned long)imuHealth[1].stuck,
+                    (unsigned long)rawDropped(0), (unsigned long)rawDropped(1),
+                    (unsigned long)rawLinesSent);
+#if !NODE_FRONT
       Serial.printf("GNSS: %lu polls, %lu with a fix\n",
                     (unsigned long)gnssCount, (unsigned long)gnssValidCount);
       Serial.printf("BMS: connected=%s valid=%lu checksum_fail=%lu "
@@ -736,6 +906,7 @@ void StatsTask(void* pvParameters) {
                     bmsConnected ? "yes" : "no", (unsigned long)bmsValidFrames,
                     (unsigned long)bmsChecksumFailures, (unsigned long)bmsDisconnectCount,
                     (unsigned long)bmsReconnectCount, (unsigned long)bmsDropped);
+#endif
       Serial.printf("Free heap: %u bytes\n\n", ESP.getFreeHeap());
 
       imu1Count = 0; imu2Count = 0;
@@ -887,13 +1058,129 @@ void SyncTask(void* pvParameters) {
   for (;;) {
     state = !state;
     digitalWrite(SYNC_PULSE_PIN, state);
+    // Edge time taken right after the write (v0.7.5), for the RAWS line.
+    const int64_t edgeUs = esp_timer_get_time();
+    syncLevel = state ? 1 : 0;
+    const uint32_t edge = ++syncEdgeCount;
+    if (rawSyncQueue != nullptr) {
+      RawSyncEvent ev = {edge, (uint8_t)(state ? 1 : 0), edgeUs};
+      if (xQueueSend(rawSyncQueue, &ev, 0) != pdTRUE) rawSyncDropped++;
+    }
     // Logged so the ESP32-side edge time can be cross-checked against
     // whatever the Pi records for the same transition.
-    Serial.printf("[SYNC] pin=%s  t=%lld us\n", state ? "HIGH" : "LOW",
-                  (long long)esp_timer_get_time());
+    Serial.printf("[SYNC] pin=%s  t=%lld us\n", state ? "HIGH" : "LOW", (long long)edgeUs);
     vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(500));
   }
 }
+
+// ============================================================
+// Raw stream sender (v0.7.5). Format in include/raw_stream.h and
+// RAW_STREAM.md.
+//
+// The IMU tasks put each sample on rawQueue with no wait (a full queue drops
+// and counts the sample, see ImuTask). This task, at the lowest priority on
+// core 0 (away from the IMU tasks on core 1), groups consecutive samples of
+// one IMU into lines of up to RAW_BATCH and writes each line with a single
+// write call, so no other task's output lands inside it. A line is written
+// only when the port's TX buffer keeps RAW_DASH_RESERVE bytes free after it,
+// so the 1 Hz DASH line always fits; if a port stays full for
+// RAW_PORT_WAIT_MS the line is given up there, and if no port took it its
+// samples are counted in rawDropped as well.
+//
+// Link budget at 460800 baud, 8N1: 46080 bytes/s. A full line of 10 samples
+// is about 363 bytes on the rear unit, so 2 IMUs at 200 Hz need about
+// 14.5 kB/s, plus RAWH (about 30 B/s), RAWS (about 80 B/s) and DASH
+// (under 0.6 kB/s): about 15.2 kB/s, a third of the link.
+// ============================================================
+static Print* rawPorts[2] = {nullptr, nullptr};
+static bool rawPortIsUsb[2] = {false, false};
+static uint8_t rawPortCount = 0;
+
+// Writes one line to every raw port. Returns true if at least one port took it.
+static bool rawWriteLine(const char* line, size_t len) {
+  bool any = false;
+  for (uint8_t i = 0; i < rawPortCount; i++) {
+    Print* port = rawPorts[i];
+    // USB serial with no host attached: skip at once rather than wait.
+    if (rawPortIsUsb[i] && !Serial) continue;
+    bool room = false;
+    for (int waited = 0; waited <= RAW_PORT_WAIT_MS; waited += 2) {
+      if (port->availableForWrite() >= (int)(len + RAW_DASH_RESERVE)) {
+        room = true;
+        break;
+      }
+      vTaskDelay(pdMS_TO_TICKS(2));
+    }
+    if (!room) continue;
+    port->write(reinterpret_cast<const uint8_t*>(line), len);
+    any = true;
+  }
+  return any;
+}
+
+static void rawFlushBatch(RawBatch& b, uint8_t imu) {
+  static char line[RAW_LINE_MAX];
+  if (b.n == 0) return;
+  const size_t len = rawEncodeLine(line, sizeof(line), NODE_ID, (uint8_t)(imu + 1), b.s, b.n);
+  if (len > 0 && rawWriteLine(line, len)) {
+    rawLinesSent++;
+  } else {
+    rawPortDropped[imu] += b.n;
+  }
+  b.n = 0;
+}
+
+void RawSenderTask(void* pvParameters) {
+  static RawBatch batches[2];
+  static char small[RAW_SMALL_LINE_MAX];
+  int64_t nextHeaderUs = 0;
+  const char* fw = FIRMWARE_VERSION;
+  if (fw[0] == 'v') fw++;
+
+  for (;;) {
+    // Sync edges first: small and the reason the Pi can align clocks.
+    RawSyncEvent ev;
+    while (xQueueReceive(rawSyncQueue, &ev, 0) == pdTRUE) {
+      const size_t len = rawEncodeSync(small, sizeof(small), NODE_ID, ev.edge, ev.level, ev.t_us);
+      if (len > 0) rawWriteLine(small, len);
+    }
+
+    RawItem it;
+    if (xQueueReceive(rawQueue.h, &it, pdMS_TO_TICKS(10)) == pdTRUE && it.imu < 2) {
+      RawBatch& b = batches[it.imu];
+      if (!rawBatchAdd(b, it.s)) {
+        rawFlushBatch(b, it.imu);
+        rawBatchAdd(b, it.s);
+      }
+      if (b.n >= RAW_BATCH) rawFlushBatch(b, it.imu);
+    }
+
+    const int64_t nowUs = esp_timer_get_time();
+    for (uint8_t imu = 0; imu < 2; imu++) {
+      if (batches[imu].n > 0 && nowUs - batches[imu].s[0].t_us > RAW_MAX_AGE_US) rawFlushBatch(batches[imu], imu);
+    }
+
+    // Scale header per IMU at start and every RAW_HEADER_PERIOD_MS.
+    if (rawEnabled && nowUs >= nextHeaderUs) {
+      nextHeaderUs = nowUs + (int64_t)RAW_HEADER_PERIOD_MS * 1000;
+      for (uint8_t imu = 0; imu < 2; imu++) {
+        if (!(imu == 0 ? imu1Ready : imu2Ready)) continue;
+        const size_t len = rawEncodeHeader(small, sizeof(small), NODE_ID, (uint8_t)(imu + 1),
+                                           IMU_ACCEL_COUNTS_PER_G, IMU_GYRO_COUNTS_PER_DPS,
+                                           IMU_SAMPLE_RATE_HZ, IMU_DLPF_HZ, fw, rawDropped(imu),
+                                           imuHealth[imu].rdfail, imuHealth[imu].stuck);
+        if (len > 0) rawWriteLine(small, len);
+      }
+    }
+  }
+}
+
+// ============================================================
+// Everything from here to the DASH line is the rear unit only: BLE BMS,
+// modem, GNSS, MQTT, flash log, store-and-forward sync, Hall counter and the
+// MQTT record. The front node (NODE_FRONT 1) is built without it.
+// ============================================================
+#if !NODE_FRONT
 
 // ============================================================
 // JBD BMS: frame validation and parsing
@@ -1621,6 +1908,14 @@ void sendGnssCommand(const char* command) {
 #endif
 #define MQTT_KEEPALIVE_S 60
 #define MQTT_PUBLISH_INTERVAL_MS 10000
+// Position in the published record (v0.7.5): off by default, since the
+// default broker is public. mqttPublish() removes "lat", "lon" and "acc_m"
+// from every payload (include/payload_privacy.h); the local log and the DASH
+// line keep them. Set to 1 (build flag, or in mqtt_secrets.h) only for a
+// private broker.
+#ifndef MQTT_INCLUDE_POSITION
+#define MQTT_INCLUDE_POSITION 0
+#endif
 
 volatile bool mqttConnected = false;
 volatile uint32_t mqttPublishCount = 0;
@@ -1772,8 +2067,19 @@ bool mqttConnect() {
 // expects the raw bytes to follow the command, not as a quoted argument -
 // this is the standard SIMCom CMQTT pattern, distinct from the simple
 // single-line AT commands used elsewhere in this file.
-bool mqttPublish(const String& payload) {
+bool mqttPublish(const String& record) {
   if (!mqttConnected) return false;
+#if MQTT_INCLUDE_POSITION
+  const String& payload = record;
+#else
+  // Static: only ModemTask publishes, and its stack is 4 KB.
+  static char scrubbed[1280];
+  if (scrubPositionJson(record.c_str(), scrubbed, sizeof(scrubbed)) == 0) {
+    Serial.println("[MQTT] record too long to clean of position, not published");
+    return false;
+  }
+  const String payload(scrubbed);
+#endif
 
   String resp;
   String topicCmd = String("AT+CMQTTTOPIC=") + MQTT_CLIENT_INDEX + "," + String(strlen(MQTT_TOPIC));
@@ -2329,6 +2635,8 @@ String buildTelemetryJson(uint32_t seq) {
   return json;
 }
 
+#endif  // !NODE_FRONT
+
 // ============================================================
 // Dashboard line (v0.7.0, crs and alt added in v0.7.1), section 1 of DashboardIntegration/TELEMETRY_LINK.md.
 // Once a second, one line "DASH {json}\n" on the USB serial console, read by
@@ -2346,7 +2654,10 @@ String buildTelemetryJson(uint32_t seq) {
 // fused ride result under rideMux, everything else as plain volatile reads.
 // ============================================================
 #define DASH_PERIOD_MS 1000
-#define DASH_LINE_MAX 480  // bytes including "DASH " and the newline, per the contract (400 until v0.7.3)
+// Bytes including "DASH " and the newline: 480 up to v0.7.4.1 (400 until
+// v0.7.3); 576 since v0.7.5 for the node, rdfail, stuck and rawdrop fields
+// (about 60 bytes more in practice; the bridge accepts lines up to 4096).
+#define DASH_LINE_MAX 576
 
 // Runtime switch (serial command "!dash off" / "!dash on"), default on.
 volatile bool dashEnabled = true;
@@ -2372,6 +2683,22 @@ void DashTask(void* pvParameters) {
 
     const int64_t nowUs = esp_timer_get_time();
 
+    // Read health and raw stream counters (v0.7.5), totals since boot, added
+    // at the end of the line so every older field keeps its place.
+    char health[160];
+#if NODE_FRONT
+    snprintf(health, sizeof(health), "\"node\":\"%s\",\"rdfail\":[%lu],\"stuck\":[%lu],\"rawdrop\":[%lu]",
+             NODE_ID, (unsigned long)imuHealth[0].rdfail, (unsigned long)imuHealth[0].stuck,
+             (unsigned long)rawDropped(0));
+#else
+    snprintf(health, sizeof(health),
+             "\"node\":\"%s\",\"rdfail\":[%lu,%lu],\"stuck\":[%lu,%lu],\"rawdrop\":[%lu,%lu]", NODE_ID,
+             (unsigned long)imuHealth[0].rdfail, (unsigned long)imuHealth[1].rdfail,
+             (unsigned long)imuHealth[0].stuck, (unsigned long)imuHealth[1].stuck,
+             (unsigned long)rawDropped(0), (unsigned long)rawDropped(1));
+#endif
+
+#if !NODE_FRONT
     // BMS: parseBmsData() only runs for a frame that passed the checksum, so
     // a non-zero timestamp means at least one valid frame has arrived.
     const int64_t bmsTs = latestBmsSample.timestamp_us;
@@ -2415,6 +2742,8 @@ void DashTask(void* pvParameters) {
     dashNum(cAge, sizeof(cAge), "%.0f",
             cellShown ? (float)((nowUs - latestCellLoc.timestamp_us) / 1000000LL) : NAN);
 
+#endif  // !NODE_FRONT
+
     // Fused vibration: null until the first fused window, or once the last
     // one is older than the fusion stale limit (both IMUs stopped).
     int64_t fzTs;
@@ -2429,6 +2758,7 @@ void DashTask(void* pvParameters) {
     dashNum(vib, sizeof(vib), "%.3f", fzFresh ? fzStd : NAN);
     dashNum(vibDis, sizeof(vibDis), "%.3f", fzFresh ? fzDis : NAN);
 
+#if !NODE_FRONT
     char rpm[16];
     dashNum(rpm, sizeof(rpm), "%.1f", hallRpm());
 
@@ -2438,36 +2768,52 @@ void DashTask(void* pvParameters) {
     if (csqRaw < 0 || csqRaw > 31) snprintf(csq, sizeof(csq), "null");
     else snprintf(csq, sizeof(csq), "%d", csqRaw);
 
+#endif  // !NODE_FRONT
+
     const char* fw = FIRMWARE_VERSION;
     if (fw[0] == 'v') fw++;  // the contract carries the bare number, e.g. "0.7.1"
 
+#if NODE_FRONT
+    // Front node: the fields it has, same names and types as the rear unit's.
+    (void)vibDis;
+    int len = snprintf(line, sizeof(line),
+                       "DASH {\"seq\":%lu,\"up_ms\":%lld,\"fw\":\"%s\",\"vib\":%s,"
+                       "\"imu_hz\":[%.1f],\"drops\":[%lu],%s}\n",
+                       (unsigned long)seq, (long long)(nowUs / 1000), fw, vib, (float)imu1RateHz,
+                       (unsigned long)imu1Dropped, health);
+#else
     int len = snprintf(line, sizeof(line),
                        "DASH {\"seq\":%lu,\"up_ms\":%lld,\"fw\":\"%s\","
                        "\"soc\":%s,\"v\":%s,\"i\":%s,\"bms_age_s\":%s,"
                        "\"fix\":%s,\"lat\":%s,\"lon\":%s,\"spd_raw\":%s,\"crs\":%s,\"alt\":%s,"
                        "\"vib\":%s,\"vib_dis\":%s,\"imu_hz\":[%.1f,%.1f],\"drops\":[%lu,%lu],"
                        "\"rpm\":%s,\"csq\":%s,\"mqtt\":%s,"
-                       "\"cell_lat\":%s,\"cell_lon\":%s,\"cell_acc_m\":%s,\"cell_age_s\":%s,\"agps\":%s}\n",
+                       "\"cell_lat\":%s,\"cell_lon\":%s,\"cell_acc_m\":%s,\"cell_age_s\":%s,\"agps\":%s,"
+                       "%s}\n",
                        (unsigned long)seq, (long long)(nowUs / 1000), fw,
                        soc, v, cur, bmsAge,
                        fix ? "true" : "false", lat, lon, spd, crs, alt,
                        vib, vibDis, (float)imu1RateHz, (float)imu2RateHz,
                        (unsigned long)imu1Dropped, (unsigned long)imu2Dropped,
                        rpm, csq, mqttConnected ? "true" : "false",
-                       cLat, cLon, cAcc, cAge, agpsOk ? "true" : "false");
+                       cLat, cLon, cAcc, cAge, agpsOk ? "true" : "false", health);
+#endif
     if (len < 0 || len >= (int)sizeof(line)) {
       // A cut line would be invalid JSON; skip it rather than send half.
       dashTruncatedCount++;
       continue;
     }
     Serial.write(reinterpret_cast<const uint8_t*>(line), (size_t)len);
-    // Same line on the UART to the Pi. The TX buffer (2 KB, set in setup) holds
-    // several lines, so a stalled reader cannot hold up this task for long.
+#if LINK_UART_ENABLE
+    // Same line on the UART to the Pi. The TX buffer (8 KB since v0.7.5, set in
+    // setup) holds several lines, and the raw stream always leaves
+    // RAW_DASH_RESERVE bytes of it free, so this line fits.
     if (Serial2.availableForWrite() >= len) {
       Serial2.write(reinterpret_cast<const uint8_t*>(line), (size_t)len);
     } else {
       dashUartSkipped++;
     }
+#endif
     seq++;
     dashLineCount++;
   }
@@ -2495,12 +2841,106 @@ void DashTask(void* pvParameters) {
 //   !sync        store-and-forward status: boot, seq, acked, backlog, replayed,
 //                lost (one key=value line, read by tests), and device UTC
 //   !sync drop   give up the whole backlog (counted as lost), for tests
+//   !raw off     stop the raw IMU stream to the Pi (v0.7.5)
+//   !raw on      start it again (default on)
+// The front node has !help, !status, !dash, !raw and !recal only.
 // ============================================================
+
+// Read health and raw stream, for !status on both nodes (v0.7.5).
+static void printRawStatus() {
+  Serial.printf("[CMD] node %s, raw stream %s, %u lines sent, ports:%s%s\n", NODE_ID,
+                rawEnabled ? "on" : "OFF", (unsigned)rawLinesSent, RAW_ON_USB ? " usb" : "",
+                RAW_ON_UART ? " uart" : "");
+  for (int i = 0; i < 2; i++) {
+    if (!(i == 0 ? imu1Ready : imu2Ready)) continue;
+    Serial.printf("[CMD] imu%d: rdfail=%u stuck=%u rawdrop=%u (queue %u, port %u)\n", i + 1,
+                  (unsigned)imuHealth[i].rdfail, (unsigned)imuHealth[i].stuck, (unsigned)rawDropped(i),
+                  (unsigned)rawQueueDropped[i], (unsigned)rawPortDropped[i]);
+  }
+  Serial.printf("[CMD] sync edges=%u, events dropped=%u\n", (unsigned)syncEdgeCount, (unsigned)rawSyncDropped);
+}
+
+// Commands both nodes share. True if the line was one of them.
+static bool handleCommonCommand(const String& line) {
+  if (line == "!dash off") {
+    dashEnabled = false;
+    Serial.println("[CMD] DASH line OFF");
+  } else if (line == "!dash on") {
+    dashEnabled = true;
+    Serial.println("[CMD] DASH line on");
+  } else if (line == "!raw off") {
+    rawEnabled = false;
+    Serial.println("[CMD] raw IMU stream OFF");
+  } else if (line == "!raw on") {
+    rawEnabled = true;
+    Serial.println("[CMD] raw IMU stream on");
+  } else {
+    return false;
+  }
+  return true;
+}
+
+#if NODE_FRONT
 void handleLocalCommand(String line) {
   line.trim();
   line.toLowerCase();
+  if (handleCommonCommand(line)) return;
   if (line == "!help") {
-    Serial.println("[CMD] !status  !sync  !sync drop  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !dash off  !dash on  !recal  !agps  !cellpos");
+    Serial.println("[CMD] !status  !dash off  !dash on  !raw off  !raw on  !recal");
+  } else if (line == "!status") {
+    Serial.printf("[CMD] firmware %s (front node)\n", FIRMWARE_VERSION);
+    Serial.printf("[CMD] IMU scale factor: imu1=%.4f\n", rideChar1Config.mag_scale);
+    Serial.printf("[CMD] dash line: %s, %u lines sent, %u skipped as too long\n", dashEnabled ? "on" : "OFF",
+                  (unsigned)dashLineCount, (unsigned)dashTruncatedCount);
+    printRawStatus();
+  } else if (line == "!recal") {
+    imuCalPrefs.begin("imucal", false);
+    imuCalPrefs.remove("imu1");
+    imuCalPrefs.end();
+    Serial.println("[CMD] Stored IMU calibration erased. Keep the board STILL: restarting to recalibrate...");
+    Serial.flush();
+    delay(500);
+    ESP.restart();
+  } else {
+    Serial.printf("[CMD] unknown command '%s', try !help\n", line.c_str());
+  }
+}
+
+// The front node has no modem task, so this small task reads '!' commands
+// from USB serial (and from the UART when it is enabled).
+void CommandTask(void* pvParameters) {
+  String usbCmd, uartCmd;
+  for (;;) {
+    while (Serial.available()) {
+      char c = static_cast<char>(Serial.read());
+      if (c == '\n' || c == '\r') {
+        if (usbCmd.length() > 1 && usbCmd[0] == '!') handleLocalCommand(usbCmd);
+        usbCmd = "";
+      } else if (usbCmd.length() < 64) {
+        usbCmd += c;
+      }
+    }
+#if LINK_UART_ENABLE
+    while (Serial2.available()) {
+      char c = static_cast<char>(Serial2.read());
+      if (c == '\n' || c == '\r') {
+        if (uartCmd.length() > 1 && uartCmd[0] == '!') handleLocalCommand(uartCmd);
+        uartCmd = "";
+      } else if (uartCmd.length() < 64) {
+        uartCmd += c;
+      }
+    }
+#endif
+    vTaskDelay(pdMS_TO_TICKS(20));
+  }
+}
+#else
+void handleLocalCommand(String line) {
+  line.trim();
+  line.toLowerCase();
+  if (handleCommonCommand(line)) return;
+  if (line == "!help") {
+    Serial.println("[CMD] !status  !sync  !sync drop  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !dash off  !dash on  !raw off  !raw on  !recal  !agps  !cellpos");
   } else if (line == "!sync") {
     printSyncStatus();
   } else if (line == "!sync drop") {
@@ -2546,6 +2986,9 @@ void handleLocalCommand(String line) {
     Serial.printf("[CMD] dash line: %s, %u lines sent, %u skipped as too long, %u not sent on the Pi UART (busy)\n",
                   dashEnabled ? "on" : "OFF", (unsigned)dashLineCount,
                   (unsigned)dashTruncatedCount, (unsigned)dashUartSkipped);
+    Serial.printf("[CMD] mqtt position: %s\n", MQTT_INCLUDE_POSITION ? "published (private broker build)"
+                                                                     : "removed from the published record");
+    printRawStatus();
     printSyncStatus();
   } else if (line == "!log off") {
     flushLocalLog();
@@ -2595,12 +3038,6 @@ void handleLocalCommand(String line) {
   } else if (line == "!log on") {
     localLogEnabled = true;
     Serial.println("[CMD] local flash logging on");
-  } else if (line == "!dash off") {
-    dashEnabled = false;
-    Serial.println("[CMD] DASH line OFF");
-  } else if (line == "!dash on") {
-    dashEnabled = true;
-    Serial.println("[CMD] DASH line on");
   } else if (line == "!gnssraw") {
     gnssPrintRaw = !gnssPrintRaw;
     Serial.printf("[CMD] raw GNSS replies %s\n", gnssPrintRaw ? "on" : "off");
@@ -2813,14 +3250,25 @@ void ModemTask(void* pvParameters) {
   }
 }
 
+#endif  // !NODE_FRONT
+
 // ============================================================
 // Setup / loop
 // ============================================================
 void setup() {
+#if RAW_ON_USB
+  // Room for the raw stream on USB serial (the default is 256 bytes); must be
+  // set before begin().
+  Serial.setTxBufferSize(LINK_TX_BUFFER_BYTES);
+#endif
   Serial.begin(115200);
-  // UART link to the Raspberry Pi 4 (see LINK_UART_*): DASH lines go out here too.
-  Serial2.setTxBufferSize(2048);
+#if LINK_UART_ENABLE
+  // UART link to the Raspberry Pi 4 (see LINK_UART_*): DASH lines and the raw
+  // stream go out here. 8 KB TX buffer since v0.7.5 (2 KB before): about
+  // 0.18 s of the link at 460800 baud.
+  Serial2.setTxBufferSize(LINK_TX_BUFFER_BYTES);
   Serial2.begin(LINK_UART_BAUD, SERIAL_8N1, LINK_UART_RX_PIN, LINK_UART_TX_PIN);
+#endif
 
   const unsigned long serialWaitStart = millis();
   while (!Serial && millis() - serialWaitStart < 3000) {
@@ -2832,7 +3280,7 @@ void setup() {
                 (unsigned)ESP.getFreePsram());
   Serial.printf("[BOOT] Flash: size=%u bytes\n", (unsigned)ESP.getFlashChipSize());
 
-  Serial.printf("\nSW-7 ESP32-S3 Firmware %s\n", FIRMWARE_VERSION);
+  Serial.printf("\nSW-7 ESP32-S3 Firmware %s, node %s\n", FIRMWARE_VERSION, NODE_ID);
   Serial.println("==================================");
   Serial.println("System booted: ESP32-S3");
   Serial.println("Status: ONLINE\n");
@@ -2843,8 +3291,10 @@ void setup() {
   Serial.printf("Free PSRAM:        %u bytes\n", ESP.getFreePsram());
   Serial.println();
 
+#if !NODE_FRONT
   localLogReady = initLocalLog();
   initSync();
+#endif
 
   imu1Ready = initImu(&mpu1, &Wire, IMU1_SDA_PIN, IMU1_SCL_PIN);
   Serial.println(imu1Ready ? "IMU1 found and configured (stem/chassis - confirm on bracket)."
@@ -2860,7 +3310,11 @@ void setup() {
   Serial.println();
 
   float imu1MagScale = loadOrCalibrateMagScale("imu1", &mpu1, imu1Ready);
+#if ENABLE_IMU2
   float imu2MagScale = loadOrCalibrateMagScale("imu2", &mpu2, imu2Ready);
+#else
+  float imu2MagScale = 1.0f;
+#endif
   Serial.println();
 
   imu1Queue = xQueueCreate(IMU_QUEUE_LENGTH, sizeof(ImuSample));
@@ -2870,20 +3324,38 @@ void setup() {
   imu1CharQueue = xQueueCreate(RIDE_CHAR_QUEUE_LENGTH, sizeof(ImuSample));
   imu2CharQueue = xQueueCreate(RIDE_CHAR_QUEUE_LENGTH, sizeof(ImuSample));
 
-  imu1Config = {0, imu1Queue, imu1CharQueue, &mpu1, &imu1Ready};
-  imu2Config = {1, imu2Queue, imu2CharQueue, &mpu2, &imu2Ready};
+  imu1Config = {0, imu1Queue, imu1CharQueue, &mpu1, &imu1Ready, &Wire};
+  imu2Config = {1, imu2Queue, imu2CharQueue, &mpu2, &imu2Ready, &Wire1};
+
+  // Raw stream (v0.7.5): queues before the IMU and sync tasks start.
+  rawQueue.h = xQueueCreate(RAW_QUEUE_LENGTH, sizeof(RawItem));
+  rawSyncQueue = xQueueCreate(8, sizeof(RawSyncEvent));
+#if RAW_ON_UART
+  rawPortIsUsb[rawPortCount] = false;
+  rawPorts[rawPortCount++] = &Serial2;
+#endif
+#if RAW_ON_USB
+  rawPortIsUsb[rawPortCount] = true;
+  rawPorts[rawPortCount++] = &Serial;
+#endif
   rideChar1Config = {0, imu1CharQueue, &latestRideFeatures1, imu1MagScale};
   rideChar2Config = {1, imu2CharQueue, &latestRideFeatures2, imu2MagScale};
 
   selfTestRideFeatures();
   selfTestRideFusion();
 
+#if NODE_FRONT
+  xTaskCreatePinnedToCore(CommandTask, "CommandTask", 4096, nullptr, 1, nullptr, 0);
+#else
   xTaskCreatePinnedToCore(ModemTask, "ModemTask", 4096, nullptr, 1, &ModemTaskHandle, 0);
+#endif
 
   xTaskCreatePinnedToCore(ImuTask, "Imu1Task", 4096, &imu1Config, 3, &Imu1TaskHandle, 1);
   xTaskCreatePinnedToCore(ImuTask, "Imu2Task", 4096, &imu2Config, 3, &Imu2TaskHandle, 1);
   xTaskCreatePinnedToCore(StatsTask, "StatsTask", 4096, nullptr, 2, &StatsTaskHandle, 1);
   xTaskCreatePinnedToCore(SyncTask, "SyncTask", 2048, nullptr, 2, &SyncTaskHandle, 1);
+  xTaskCreatePinnedToCore(RawSenderTask, "RawSender", 4096, nullptr, 1, &RawSenderTaskHandle, 0);
+#if !NODE_FRONT
   // After SyncTask has set its pin as an output, so that in loopback the
   // counter's input setup keeps the output enabled (see initHallCounter).
   vTaskDelay(pdMS_TO_TICKS(50));
@@ -2896,9 +3368,12 @@ void setup() {
     Serial.println("[HALL] pulse counter setup failed");
   }
   xTaskCreatePinnedToCore(BmsTask, "BmsTask", 8192, nullptr, 1, &BmsTaskHandle, 0);
+#endif
   xTaskCreatePinnedToCore(DashTask, "DashTask", 4096, nullptr, 1, &DashTaskHandle, 0);
   xTaskCreatePinnedToCore(RideCharacterizationTask, "RideChar1Task", 4096, &rideChar1Config, 1, &RideChar1TaskHandle, 1);
+#if ENABLE_IMU2
   xTaskCreatePinnedToCore(RideCharacterizationTask, "RideChar2Task", 4096, &rideChar2Config, 1, &RideChar2TaskHandle, 1);
+#endif
 }
 
 void loop() {

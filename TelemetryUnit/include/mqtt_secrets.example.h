@@ -7,3 +7,6 @@
 #define MQTT_USERNAME "your-username"
 #define MQTT_PASSWORD "your-password"
 #define MQTT_TOPIC "your/topic"
+// Firmware v0.7.5: the published record leaves out lat, lon and the cell
+// position unless this is 1. Set it to 1 only if this broker is private.
+// #define MQTT_INCLUDE_POSITION 1
