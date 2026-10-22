@@ -1,7 +1,12 @@
 \chapter{Recommendations}
 \label{chap:recs}
 
-The recommendations are in order of priority, the first being those on which the validity of the vehicle data depends.
+The recommendations come in four parts: the next steps for this system, in order of priority (Section~\ref{sec:recs-next}); a staged path from this warning system towards autonomous operation, which is the programme's stated aim (Section~\ref{sec:recs-autonomy}); the wider value of the work beyond this vehicle (Section~\ref{sec:recs-bigger}); and what the next person needs to carry it on (Section~\ref{sec:recs-handover}).
+
+\section{Next steps for this system}
+\label{sec:recs-next}
+
+These are in order of priority, the first being those on which the validity of the vehicle data depends.
 
 \begin{enumerate}
 \item Acquisition integrity. Remove the flash-write pause rather than reduce it: move logging off the acquisition processor (to the Raspberry Pi or separate storage), or place the acquisition code in instruction RAM, or read the IMUs through their hardware FIFOs so that a pause is absorbed. The 94\,Hz filter of v0.7.4 kept 200\,Hz with no drops in T15; check it against the vehicle's measured vibration, or sample faster and decimate in software, compute jerk from the measured sample times, and flag samples at the $\pm 8\,g$ limit so that clipped windows are marked. Set the range from the peaks recorded on the vehicle.
@@ -16,3 +21,35 @@ The recommendations are in order of priority, the first being those on which the
 \item Enclosures. Measure the temperature of both computers in the vented boxes over a full session, and the share of lost dashboard lines with the telemetry unit on its own supply.
 \item Obstacle detection. The detector recognises only its trained classes and cannot report unexpected debris; a method from the road-obstacle and anomaly literature (Section~\ref{sec:lit-detection}) would have to be measured on the Raspberry Pi before use. Until then the time-of-flight sensors' unclassified obstacles cover close range, and the pothole model should be validated on its held-out test set and on the vehicle's camera before it raises any alert.
 \end{enumerate}
+
+
+\section{Towards autonomous operation}
+\label{sec:recs-autonomy}
+
+The TUKZIE Flagship Programme aims at an autonomy-ready platform (Chapter~\ref{chap:intro}). By the SAE taxonomy \cite{saej3016}, the system built here is at level 0: it warns the driver and controls nothing. That is the right starting point, because the same parts an automated vehicle needs are already present in a first form: perception from two cameras with ranging at both ends, a time-to-contact estimate, inertial and battery state, time-stamped logging, on-board processors and a wired network between them. The steps below would take it further, each one building the evidence the next needs. None should be skipped, and none involves controlling the vehicle until the last.
+
+\begin{enumerate}
+\item Validated driver assistance (still level 0). Measure what the warnings are worth before building on them: label a sample of alerts against video of a road session and report their precision and the rate of false alerts per kilometre, run the time-to-contact test (C11), and add a test that an approaching object is actually on a collision course, so that parked cars ahead do not raise warnings. Replace the 1.2\,m stand-in sensors with longer-range ranging (the planned multi-zone sensor, then radar or lidar) so that warnings at road speed do not rest on the camera alone.
+\item Knowing where the vehicle is and how it moves. Automated driving needs position, heading and speed it can trust. Add the wheel-speed sensor (Section~\ref{sec:hall-tap}), fuse it with the IMUs and GNSS into one estimate of position and motion in the vehicle's own axes, and synchronise the clocks of all units over the Ethernet link so that every sensor shares one time base.
+\item A dataset from the vehicle. The detector was trained elsewhere and missed South African road features (Section~\ref{sec:lit-detection}). Recording synchronised camera, inertial, position and battery data on the TUKZIE's routes would give the programme training and test data for its own conditions. This project stores no frames by design, so it needs a revised ethics application covering images of public roads, with faces and number plates removed before storage.
+\item Control in a closed area. Only then should any control be attempted, and first at low speed in a closed area such as a depot yard, which defines a narrow operating domain in the sense of the taxonomy \cite{saej3016}. The vacation-work teams' CAN bus design already carries throttle and brake messages for sensing; actuating them would need a drive-by-wire interface, an emergency stop independent of the computers, and a safety case built to the functional-safety standard for road vehicles \cite{iso26262} and to the standard on the safety of the intended function, which covers hazards from limited perception rather than from faults \cite{iso21448}. The split already used here, deterministic tasks on a microcontroller and perception on separate computers, is the pattern such a design would keep, with the control path on the deterministic side.
+\end{enumerate}
+
+\section{The bigger picture}
+\label{sec:recs-bigger}
+
+The work matters beyond one vehicle in four ways.
+
+\begin{itemize}
+\item Fleet operation. The same record, from many vehicles, would let an operator follow battery health and use, spot faults from abnormal current or vibration, and plan maintenance from data instead of breakdowns. The store-and-forward link with its database (Section~\ref{sec:db-sync}) is the part that scales to a fleet, once it moves to an authenticated broker.
+\item Roads. Vibration and pothole detections tagged with position, from vehicles that drive the same streets every day, would map road condition across a city at little extra cost. Other projects in the programme already publish to a shared broker, so the TUKZIE's data can join theirs.
+\item Vehicle design. Measured vibration, loads and battery current on real routes are the inputs the next revision of the vehicle needs for its chassis, suspension and pack sizing.
+\item Cost and reuse. The system is built from low-cost parts that can be bought locally and runs on open software. The architecture is not specific to this trike and could serve other light electric vehicles in the same cities.
+\end{itemize}
+
+Two cautions go with this. Data from vehicles on public roads includes their position and what their cameras see, so privacy has to be designed in from the start (Section~\ref{sec:ethics}), and none of the claims above can be made before the repeatability that RQ1 asks about has been shown on the road.
+
+\section{Handing the project on}
+\label{sec:recs-handover}
+
+To let the next student or the programme's team continue without starting again, keep with the repository: a short guide to its folders and services; the wiring tables (Appendix~\ref{app:wiring}); the deploy and set-up scripts and the order in which to run them (Section~\ref{sec:maintenance}); the road-test checklist and run sheet; the list of known faults and their status; and where every recording is kept. Each recommendation above should be linked to the result in Chapter~\ref{chap:results} that motivates it.
