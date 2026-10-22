@@ -390,3 +390,14 @@ committed to git because of their size, kept on OneDrive).
 - Second soak started 13:48 (soak_v076b_20261022_134823.jsonl on the Pi 4), 62 min.
 - Firmware to add (v0.7.7): automatic IMU re-initialisation after about 1 s of continuous read failures or stuck
   readings; rear build with IMU2 disabled.
+
+### Time base, sync loggers and database copy (14:40)
+- chrony over the wired link: Pi 5 serves (local stratum when offline), Pi 4 follows 10.20.0.2: offset 0.5 us,
+  error bound +/- 79 us (chronyc tracking and sources).
+- Sync loggers as services: Pi 5 sw7-front-sync (GPIO17, front ESP32 GPIO5) and Pi 4 sw7-rear-sync (GPIO17, rear
+  ESP32 IO15), edges about every 500 ms (499.7 to 500.3 ms) into front_sync_*.csv and rear_sync_*.csv.
+- IO42 command wire: works, but commands acted on 20 to 25 s late while MQTT reconnects block the loop (fixed in
+  v0.7.8, not yet flashed).
+- Database: /home/piadam/sw7_server/sw7_telemetry.db on the Pi 5 (464 telemetry rows, unchanged since T15 on 11 Oct,
+  the modem has had no network since). Consistent copy in BenchTest/logs/database/sw7_telemetry_2026-10-22.db.
+- Run 2 confirmed for Friday 23 Oct afternoon (Yusuf bringing the trike); report due Friday 23 Oct.

@@ -1,6 +1,6 @@
 # SW-7 front node sync-edge logger on the Pi 5 (CameraDetection/sync_logger.py).
 # ONLY after the sync wire is fitted (TELEMETRY_LINK.md section 6.3):
-#   front ESP32 GPIO15 (SYNC_PULSE_PIN in platformio.ini env front_node)
+#   front ESP32 GPIO5 (SYNC_PULSE_PIN in platformio.ini env front_node; GPIO15 until 22 Oct)
 #   -> Pi 5 physical pin 11 (GPIO17), plus a ground wire (Pi 5 pin 9 to ESP32 GND).
 # Both are 3.3 V logic. GPIO17 is free on the Pi 5: the front ToF sensors use
 # I2C (pins 3, 5) and XSHUT on GPIO22, 23, 24 (pins 15, 16, 18).

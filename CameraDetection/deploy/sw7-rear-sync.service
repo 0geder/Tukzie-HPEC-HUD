@@ -1,0 +1,25 @@
+# SW-7 rear unit sync-edge logger on the Pi 4 (CameraDetection/sync_logger.py).
+# Wire: rear ESP32 IO15 (sync pulse, 500 ms) -> Pi 4 physical pin 11 (GPIO17),
+# common ground. Logs every edge with the Pi's kernel timestamp and wall clock
+# to /home/ogeder/rawlog/rear_sync_YYYY-MM-DD_HHMMSS.csv (new file each start),
+# to be paired with the RAWS lines in the rear_raw_*.txt files.
+#
+# Install (on the Pi 4, sync_logger.py copied to /home/ogeder/hazard_detector/):
+#   sudo cp sw7-rear-sync.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now sw7-rear-sync.service
+[Unit]
+Description=SW-7 rear unit sync edges on Pi 4 GPIO17
+
+[Service]
+Type=simple
+User=ogeder
+WorkingDirectory=/home/ogeder/hazard_detector
+Environment=PYTHONUNBUFFERED=1
+ExecStartPre=/bin/mkdir -p /home/ogeder/rawlog
+ExecStart=/bin/sh -c 'exec /home/ogeder/hazard_detector/venv/bin/python /home/ogeder/hazard_detector/sync_logger.py --chip gpiochip0 --line 17 --duration 0 --out /home/ogeder/rawlog/rear_sync_$$(date +%%Y-%%m-%%d_%%H%%M%%S).csv'
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
