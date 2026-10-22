@@ -401,3 +401,6 @@ committed to git because of their size, kept on OneDrive).
 - Database: /home/piadam/sw7_server/sw7_telemetry.db on the Pi 5 (464 telemetry rows, unchanged since T15 on 11 Oct,
   the modem has had no network since). Consistent copy in BenchTest/logs/database/sw7_telemetry_2026-10-22.db.
 - Run 2 confirmed for Friday 23 Oct afternoon (Yusuf bringing the trike); report due Friday 23 Oct.
+- Melo's broker (31.87.115.21) retested 14:45: no answer from the laptop or the Pi 5 on TCP 18883, 8883, 1883, 443
+  or 8884, no ping reply, trace lost after hop 6; normal internet works (Google 200). Server down, or it only accepts
+  listed addresses. Questions sent via the student to Melo.
