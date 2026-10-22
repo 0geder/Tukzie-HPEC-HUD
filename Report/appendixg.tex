@@ -1,7 +1,7 @@
 \chapter{Dashboard Interface Design}
 \label{app:interface}
 
-This appendix records how the driver's dashboard on the Raspberry Pi~5 was redesigned between 11 and 12 October: the steps, the rules the design follows, and how each step was checked. The data path behind the pages is described in Section~\ref{sec:dashboard-page}. The refinement was deployed to the Pi~5 on 12 October (commit \texttt{5baa5f2}) and the three-planes version on 13 October (commit \texttt{864ce27}). \emph{It has not yet been used on the vehicle, and glance times have not been measured.}
+This appendix records how the driver's dashboard on the Raspberry Pi~5 was redesigned between 11 and 12 October: the steps, the rules the design follows, and how each step was checked. The data path behind the pages is described in Section~\ref{sec:dashboard-page}. The refinement was deployed to the Pi~5 on 12 October (commit \texttt{5baa5f2}) and the three-planes version on 13 October (commit \texttt{864ce27}). The dashboard ran on the vehicle during the road session of 19 October, but its pages were not measured there, and glance times have not been measured.
 
 \section{Starting point and constraints}
 
@@ -157,4 +157,4 @@ Two of the checks caught faults during the redesign:
 \item a test-cleanup step had been deleting the shared copy of the team's source between runs.
 \end{itemize}
 
-\outstanding{on the Raspberry Pi~5: paint times, touch response and the fonts on the panel; the 2\,s glance measurement on the vehicle; daylight contrast.}
+Not measured, and so limitations of this design: paint times and the fonts on the Raspberry Pi~5's panel (the touch panel's own delay was measured, Chapter~\ref{chap:results}); contrast and legibility in daylight; and glance durations on the vehicle, which need a participant and so an ethics amendment. Each is a recommendation in Chapter~\ref{chap:recs}.

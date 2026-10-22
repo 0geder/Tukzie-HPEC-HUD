@@ -12,7 +12,7 @@ This appendix holds the firmware configuration, the record of development faults
 
 \section{Firmware configuration}
 
-Table~\ref{tab:config} gives the telemetry unit's configuration as committed for firmware v0.7.4, flashed on 11 October 2026 and used for test T15 and the road test. It is taken from \texttt{TelemetryUnit/platformio.ini} and \texttt{TelemetryUnit/src/main.cpp}; installed package versions are those in the PlatformIO folders on the development laptop, since \texttt{platformio.ini} does not pin them. Against v0.7.3, used for the bench results before 11 October, v0.7.4 changes the IMU low-pass filter from 260 to 94\,Hz and adds the record identity and the store-and-forward ledger (rows marked v0.7.4); tasks and queues are unchanged.
+Table~\ref{tab:config} gives the telemetry unit's configuration as committed for firmware v0.7.4, flashed on 11 October 2026 and used for test T15 and the first road session; Table~\ref{tab:fw-versions} gives the later changes. It is taken from \texttt{TelemetryUnit/platformio.ini} and \texttt{TelemetryUnit/src/main.cpp}; installed package versions are those in the PlatformIO folders on the development laptop, since \texttt{platformio.ini} does not pin them. Against v0.7.3, used for the bench results before 11 October, v0.7.4 changes the IMU low-pass filter from 260 to 94\,Hz and adds the record identity and the store-and-forward ledger (rows marked v0.7.4); tasks and queues are unchanged.
 
 \begin{longtable}{|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{9.8cm}|}
 \caption{Telemetry unit configuration (firmware v0.7.4).}
@@ -55,9 +55,29 @@ Modem, BMS, dashboard, Hall & ModemTask: core 0, priority 1, 4096; BmsTask: core
 Queues & imu1Queue, imu2Queue: 100 samples each; imu1CharQueue, imu2CharQueue: 400 each; gnssQueue: 20; bmsQueue: 20 \\ \hline
 \end{longtable}
 
+Table~\ref{tab:fw-versions} gives the changes after v0.7.4, from \texttt{TelemetryUnit/CHANGELOG.md} and the lab notebook.
+
+{\small
+\begin{longtable}{|>{\raggedright\arraybackslash}p{1.5cm}|>{\raggedright\arraybackslash}p{8.6cm}|>{\raggedright\arraybackslash}p{3.6cm}|}
+\caption{Firmware changes after v0.7.4 and their status on 22 October 2026.}
+\label{tab:fw-versions}\\
+\hline
+\textbf{Version} & \textbf{Change} & \textbf{Status} \\ \hline
+\endfirsthead
+\hline
+\textbf{Version} & \textbf{Change} & \textbf{Status} \\ \hline
+\endhead
+v0.7.4.1 & Every dashboard line also on UART2 (IO41 TX, IO42 RX, 460\,800\,baud); a line is dropped and counted if the 2\,KB buffer is full; local commands accepted from the Pi & Flashed 21 Oct; 2,489 lines, 0 bad \\ \hline
+v0.7.5 & Raw 200\,Hz stream (\texttt{RAW}, \texttt{RAWH}, \texttt{RAWS} lines with CRC-16); read-failure and stuck counters; \texttt{front\_node} build (one IMU, no modem, BLE or GNSS); no position in the published record & Front node flashed 22 Oct; host tests 2,326 raw-stream checks \\ \hline
+v0.7.6 & Statistics and ride tasks on core~0 at priority~2; IMU catch-up bounded at 20 periods (late count); rates over real elapsed time; dashboard fields \texttt{cons\_age\_ms}, \texttt{qmax}, \texttt{late}, \texttt{idle}; \texttt{!modem off} and \texttt{!modem on}; front sync on GPIO5 (build flag) & Both nodes flashed 22 Oct; host test 254 pacing checks \\ \hline
+v0.7.7 & Automatic IMU re-initialisation after 1\,s of failed or stuck reads, back-off 1\,s then 5\,s; I\textsuperscript{2}C timeout 10\,ms and bus restart; fields \texttt{reinit}, \texttt{imu\_up}; IMU2 off in the rear build & Built, host-tested; flashed to both nodes 22 Oct \\ \hline
+v0.7.8 & Command task: commands not using the modem, MQTT, flash log or ledger run at once, the rest queued for the modem task, which cuts its long waits short; field \texttt{cmd} & Built, host-tested; flashed to both nodes 22 Oct \\ \hline
+\end{longtable}
+}
+
 \section{Development faults}
 
-Table~\ref{tab:faults} lists every fault found during development, with its cause and fix. Seven of them, which needed a diagnosis, are described step by step in Section~\ref{sec:investigations}.
+Table~\ref{tab:faults} lists every fault found during development, with its cause and fix. Eight of them, which needed a diagnosis, are described step by step in Section~\ref{sec:investigations}.
 
 \begin{longtable}{|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{5.0cm}|>{\raggedright\arraybackslash}p{4.9cm}|}
 \caption{Development faults, causes and fixes.}
@@ -100,7 +120,105 @@ Team's dashboard started after a reboot & Desktop auto-start is not read on the 
 All three distances null & Start-up stopped at the first sensor that did not answer & Skip, log and re-probe; 0.5\,s I/O timeout \\ \hline
 Pi~4 under-voltage, throttling, failure to boot & LTE modem powered from the Pi's USB port (2\,s power-flag log) & Separate supply for the telemetry unit; fan for temperature \\ \hline
 Touch felt slow & Panel reports contact with the first position; buttons act on release (25 taps read directly) & Act on press and hide the pointer (next step) \\ \hline
+Rear drop counts rising at about 168 and 46 a second, \texttt{imu\_hz} frozen at 200, vibration null & Statistics and ride tasks starved on the IMU core (Section~\ref{sec:inv-stall}) & v0.7.6 moves them to core~0; health fields in the dashboard line \\ \hline
+IMU repeats one reading after its wires are refitted & Sensor back in its power-on sleep state; configured only at boot (bus-failure test, 22 Oct) & v0.7.7 re-initialises after 1\,s of failed or stuck reads (flashed 22 Oct) \\ \hline
+Raw stream filled 85\,\% of the front node's 115\,200\,baud line & Hex text at 36 bytes a sample & Console at 921\,600\,baud \\ \hline
+Front sync pulse not seen on the Raspberry Pi~5 & No header pin toggled while the node drove GPIO15: wire not connected or on another pin (not settled) & Jumper moved to GPIO5 and firmware built for GPIO5; pin~11 toggles every 500\,ms \\ \hline
+Commands from the Pi acted on 20 to 25\,s late & Read in the modem task, which waits on MQTT timeouts without network & v0.7.8 command task (flashed 22 Oct) \\ \hline
 \end{longtable}
+
+\section{Fault investigations}
+\label{sec:investigations}
+
+These are the eight faults of Table~\ref{tab:faults} that needed a diagnosis, because more than one cause could explain what was seen; Table~\ref{tab:investigations} in Chapter~\ref{chap:design} summarises them. Each is told as symptom, candidate causes, deciding test, cause and fix, and consequence.
+
+\subsection{Boot loop after enabling the full flash}
+\label{sec:inv-flash}
+
+\emph{Symptom.} The build tool treated the board as an 8\,MB part without PSRAM, although the module has 16\,MB of flash and 8\,MB of PSRAM. Setting the flash size to 16\,MB with a matching partition table made the processor reset about once a second, always at the same program counter.
+
+\emph{Candidate causes and tests.} The PSRAM setting, the flash override, the code or the hardware. One setting was changed at a time. Adding a PSRAM type (\texttt{qio\_opi}) left the same loop at the same program counter, so PSRAM was not the cause on its own. Removing every override restored normal running, which cleared the code and the hardware. Two independent readings then pointed to the flash access mode: the upload tool's chip detection confirmed 8\,MB of PSRAM, and the ROM boot banner reported the flash in dual-I/O (DIO) mode, while the setting tried asked for quad-I/O.
+
+\emph{Fix and consequence.} The firmware used about 9\% of the default partition, so the stock configuration was kept until local logging needed the 16\,MB table. Then 16\,MB with DIO mode, set together with the table, booted and mounted the logging partition, confirming the diagnosis. Size, mode and table must be set together.
+
+\subsection{Modem power key, GNSS warm-up and reply layout}
+\label{sec:inv-gnss}
+
+\emph{Symptoms.} Three problems overlapped. Indoors every GNSS poll had the wrong number of fields; for 60 to 90\,s after the GNSS was switched on, polls got no reply; on a rooftop the first fix was reported near latitude and longitude zero (0.25 and 0.10 degrees); and a later five-minute capture got no reply to any of its 69 polls.
+
+\emph{Candidate causes and tests.} A reply layout other than the 13 fields assumed, a normal receiver start-up delay, or a modem that was not running. Because the parser logged the raw reply, the real layout was visible: nine empty fields indoors and, with a fix, 17 fields (18 while settling) in decimal degrees, so the old mapping had read satellite counts as the position. A modem that had run for several minutes answered every poll, and during warm-up it answered other commands at once, so only the GNSS was waiting. The silent capture did not fit warm-up, as MQTT commands also went unanswered: the power key toggles the modem, which keeps its supply when only the processor restarts, so the pulse sent at every boot switched a running modem off after each reprogramming.
+
+\emph{Fixes and consequence.} Since v0.5.3 the parser anchors on the latitude hemisphere letter (Section~\ref{sec:gnss-parsing-validation}); since v0.5.2 the key is pulsed only if the modem does not answer \texttt{AT}. Tests must allow the warm-up, during which a zero poll count does not mean that polling has stopped.
+
+\subsection{Battery-management connection and checksum}
+\label{sec:inv-bms}
+
+\emph{Symptoms.} In turn: no BLE advertisements from any device; once the pack was powered, a link that dropped before any data; mostly failed connections; and on the vehicle three frames, all rejected on the checksum.
+
+\emph{Tests and causes.} Every advertiser was logged, so seeing no device at all in a room full of them showed that the scanner was idle: scanning depended on an address set only after the pack had been found. A teammate's independently written parser finds the characteristics directly, which showed that in the ESP32 library they are not under the assumed service; every service is now searched. A power cycle of the board did not change the failed connections, which ruled out a stuck BLE stack. The checksum formula came from community reverse engineering. The query frame the firmware itself sends, \texttt{DD A5 03 00 FF FD 77}, carries $\mathtt{0x10000} - (\mathtt{0x03} + \mathtt{0x00}) = \mathtt{0xFFFD}$, which leaves out the byte in the register position; the firmware included it, so every genuine reply failed by exactly three.
+
+\emph{Fix and consequence.} Firmware v0.5.4 corrects the sum and prints the bytes of any frame that still fails; 14 consecutive valid records followed on the vehicle. The protocol is confirmed, but the signal on the vehicle, $-88$ to $-93$\,dBm, is near the limit for a link, so the unit may have to be mounted near the pack.
+
+\subsection{Invalid JSON found only by reading the log back}
+\label{sec:inv-json}
+
+\emph{Symptom.} At the first read-back of the stored log, on 1 October, 5,545 of 6,020 records failed to parse as JSON. Earlier transfer attempts had lost characters.
+
+\emph{Candidate causes and test.} Damage in transfer, over a serial link that also carries other output, or records wrong as stored. The dump command prints each record with its index and length, and the laptop script (\texttt{BenchTest/log\_dump.py}) discards any record whose length does not match and repeats until every index has arrived intact. After four passes all 6,020 records were intact, so transfer was ruled out. Every failing record contained \texttt{nan}: a field with no value, such as the position before a fix, was printed as \texttt{nan}, which JSON does not allow.
+
+\emph{Fix and consequence.} The same text had been published over MQTT, and watching the live output had not shown it. Since v0.6.3 such fields are written as \texttt{null}, and all 6,020 records parse. A strict receiver would have rejected 92\% of the records; later link tests count the lines that fail to parse at the receiving end (Appendix~\ref{app:evidence}).
+
+\subsection{Camera colour cast}
+\label{sec:inv-colour}
+
+\emph{Symptom and candidate causes.} The live view looked reddish. A test was written for each of three causes: the detector's channel order, the camera itself, and the module's lack of an infrared-cut filter, which has its own tuning file.
+
+\emph{Tests and cause.} A still with the standard tuning showed a white wall strongly pink, as did the detector's frames; with the tuning for a module without the filter the wall was neutral. The cause was the module, not the channel order.
+
+\emph{Fix and consequence.} That tuning alone washed the colours out (a blue card at 120, 124 and 125 on red, green and blue); a saturation of 1.8 restored them (Table~\ref{tab:colour-cards}). Black objects then looked purple, since many black materials reflect infrared; greying near-black pixels took 84 to 171\,ms a frame, too slow for the detection loop, so it is done in the live view only. The colours must be checked again in daylight, where there is more infrared. Whether the cast lowered detection confidence was not measured.
+
+\subsection{Time-of-flight start-up hang}
+\label{sec:inv-tof}
+
+\emph{Symptoms.} On 6 October every distance from the three sensors was null; after a first fix, on 10 October the reader froze.
+
+\emph{Tests and causes.} A scan of the I\textsuperscript{2}C bus showed only the left sensor, at its new address, and nothing when the ahead sensor was woken. One sensor was not answering, but the start-up, which gives each sensor its address in turn, stopped at the first failure and lost all three. The reader was changed to skip and log such a sensor, and the bridge to look for it again every 60\,s. That relies on an error being raised, and on 10 October none was: the driver's I/O timeout defaults to zero, which means wait for ever, so one stuck sensor froze all three.
+
+\emph{Fix and result.} Each sensor now has a 0.5\,s I/O timeout. With it, the reader no longer froze but logged all three sensors as timing out, while a device stayed at the shared start-up address 0x29 throughout, even with every shutdown line held low: one sensor was not under the control of its shutdown line. After the sensor board's wiring was re-seated, all three opened, and in a three-minute hand test the ahead and right sensors read 80 to 264 and 157 to 199\,mm with a hand about 20\,cm away (\texttt{BenchTest/logs/2026-10-10\_tof\_hand\_test.txt}).
+
+\emph{Consequence.} The loose wire was inferred from these symptoms, not seen. If a shutdown (XSHUT) wire comes off, its pull-up keeps that sensor on at the shared start-up address, where it collides with each sensor being woken, and none of the three starts (Appendix~\ref{app:wiring}). The timeout turns this into a logged failure, visible before a test, but cannot keep the other two running.
+
+\subsection{Raspberry Pi~4 under-voltage and reboots}
+\label{sec:inv-power}
+
+\emph{Symptoms.} Through much of the bench work the Raspberry Pi~4 reported under-voltage and throttled to 600\,MHz. On 4 October the detector ran at 6.1\,frames/s, against 14.6 later on a healthy Pi with the same services (\texttt{BenchTest/logs/2026-10-10\_bench\_observations.md}). On 6 October the Pi stopped booting until everything was disconnected.
+
+\emph{Candidate causes.} The Pi's own supply under the detector's load; the time-of-flight board on its I\textsuperscript{2}C bus; the telemetry unit on its USB port; or heat, since it had no cooling.
+
+\emph{Test.} A logger recorded every 2\,s the power and temperature flags, the I\textsuperscript{2}C addresses and the USB serial devices, so that each change in the flags could be matched to a device (\texttt{BenchTest/logs/2026-10-06\_pi4\_power\_watch.log}). With nothing attached and the detector running, the flags were clear, which cleared the supply. The time-of-flight board stayed disconnected. From 17:45 the soft temperature limit came and went (65 to 69\,\textdegree C) with no under-voltage. The telemetry unit was plugged in at 17:58:05; 14\,s later, when its modem came up, under-voltage and throttling began and recurred every few seconds, and the detector slowed from 14.3 to 12\,frames/s.
+
+\emph{Cause.} The modem's transmit current, drawn through the Pi's USB port, pulls the Pi's supply down; the current was not measured. On 10 October, with the unit on the Pi's USB port, the Pi restarted three times in about 20 minutes; after the unit was moved to the laptop (through a small hub without its own supply), there were none in 4 hours and the flags stayed clear. The boot failure of 6 October was probably the same fault but was not reproduced. Heat was separate: 81\,\textdegree C without cooling, 48 to 66\,\textdegree C with a fan.
+
+\emph{Fix and consequence.} The fault lay in how the parts were powered together, not in any one part. The telemetry unit needs its own supply, such as a powered hub, on the bench and on the vehicle. On a 3\,A supply the Raspberry Pi~5 limits its USB ports to 600\,mA in total (its supply on the vehicle is still to be confirmed), so the same applies there, and a measured power budget against the 72\,V source is still needed.
+
+\emph{Recurrence in the closed housing (16 October).} With the Raspberry Pi~4 in the printed box, still powering the telemetry unit from its USB port, its temperature rose from 68.6 to 73.5 and then 76.9\,\textdegree C over about 70 minutes with the detector running. The flags showed under-voltage, throttling and the soft temperature limit since boot (0xD0000). Later the same day it restarted while under-voltage was present at that moment (0x50005): a brown-out. In the same period the share of unreadable dashboard lines rose from about 2 to 10\,\% once the battery-management link became active. Two changes followed. The box had vents only in its floor and low in one wall, so both pods' lids gained an exhaust grille over the computer under a push-on rain hood (Appendix~\ref{app:mechanical}); and the telemetry unit must have its own supply, as found above. The temperature in the vented box and the line-loss figure with a separate supply have not yet been measured. The Raspberry Pi~5 also restarted four times during the mounting work on 19 October. A power logger recording its supply, flags and temperature every 5\,s showed normal values in the last reading before each restart (4.95 to 5.08\,V, flags clean, 57 to 59\,\textdegree C). The supply's lowest reading in the two minutes before each was 4.89 to 4.97\,V. Those were abrupt losses of power, from a loose connector, the source or the supply's overload protection, not a brown-out or overheating.
+
+\emph{Separate supply and a wired serial link (21 October).} During the road session the telemetry unit was still powered from the Raspberry Pi~4's USB port, which also carried its data. It was then given its own battery, and the Raspberry Pi~4 started with no under-voltage messages, against 11 to 16 per start before. USB could no longer be used for data, because the board charges its battery from that port and would load the Pi again. The data moved to three wires instead: the unit's spare pins IO41 and IO42 to the Pi's UART on header pins 10 and 8, and a common ground, with no supply wire between them. Firmware v0.7.4.1 sends every dashboard line on this link at 460\,800\,baud, drops and counts a line rather than wait if the link's buffer is full, and accepts the local commands from the Pi. On the Pi, Bluetooth, which nothing uses, was disabled so that the full UART rather than the clock-dependent mini UART is on those pins, and the serial console was removed from them. In the first check the bridge read 216 lines without a bad one, and 2,489 by midday, against 2 to 11\,\% lost on USB and a third of the per-second records missing on the road session (Section~\ref{sec:res-acq}); 27 records from that session also had damaged fields. Running on its own battery, however, the unit restarted by itself, after which its modem did not answer for the rest of the morning, which fits the battery sagging under the modem's transmit bursts. A battery alone is therefore not the answer: the unit needs a regulated supply from the vehicle.
+
+
+
+\subsection{Consumer stall on the rear unit}
+\label{sec:inv-stall}
+
+\emph{Symptom.} On 21 October, about 23 minutes after the telemetry unit was put on its own battery with its record on the wired link, both IMUs' drop counts began rising, by about 167 and 46 a second, until a reset; after one reset IMU2 was not detected. On 22 October, with no USB host attached, the same fault returned at about 168 and 46 a second (733,399 and 198,524 dropped by 12:58). In both episodes \texttt{imu\_hz} stayed at exactly 200 for both sensors, the vibration value was null and the modem did not answer.
+
+\emph{Candidate causes.} (a) Modem or BLE work taking processor time from the tasks that consume the samples, since the modem was silent both times; (b) a lock shared with those tasks, or the heap running out; (c) the USB console blocking, ruled out on 22 October because no host was attached; (d) the consumers themselves, the statistics task and the two ride tasks, having stopped.
+
+\emph{Deciding evidence.} Reading the code of v0.7.4.1 decided it. \texttt{imu\_hz} is written only by the statistics task at the end of each 2\,s report, so a value frozen at 200.0 while the drops climbed meant that task had stopped; a null vibration value meant both ride tasks had stopped too. The statistics task drains both queues in one pass, so a slow but running consumer would drop the same number from both 200\,Hz producers; unequal rates cannot come from the consumer side. With the consumer stopped, every sample sent is dropped, so the drop rates were the IMU tasks' own rates: both were behind their 5\,ms schedule, IMU2 at about 22\,ms a pass. A task behind schedule never sleeps, and all three consumers ran on core~1 below the IMU tasks (priority~3), so they got no time. The modem, MQTT, GNSS and BLE work all run on core~0 and every wait there yields; no lock is shared with the consumers and nothing on the sample path allocates. That ruled out (a) and (b). What loaded core~1 was not proven. The candidates were interrupt load from the Pi's UART receive line floating while the Pi rebooted, and IMU2's I\textsuperscript{2}C bus. The same IMU2 later ran on the front node, on short wires, at 200\,Hz with no read failures, which points to its long wiring on the rear unit.
+
+\emph{Fix.} Firmware v0.7.6 moved the statistics and ride tasks to core~0 at priority~2, above the modem, BLE and dashboard tasks, so that acquisition and processing no longer share a core. It also bounds the IMU catch-up at 20 periods, computes rates from the real elapsed time, adds the consumer ages, highest queue fill, late slots and idle counts per core to the dashboard line (Section~\ref{sec:imu-health}), and adds a command to switch the modem off for the bench test.
+
+\emph{Field evidence and consequence.} On 22 October, with v0.7.6 on the rear unit, IMU1's wires were taken off while it ran and replaced with shorter ones: an unplanned but real bus failure. The unit counted 17,080 read failures and 8,508 late slots, but drops stayed at 0, the consumers were 2 to 29\,ms old and both cores kept idling, so the stall did not recur. After reconnection the sensor came back in its power-on sleep state and returned the same reading every time (stuck count rising 200 a second, vibration 0.0) until the board was reset, because the firmware configured a sensor only at boot. That led to the automatic re-initialisation of v0.7.7 (Section~\ref{sec:imu-health}), which is host-tested but not yet flashed. The lessons are that processing must not share a core with acquisition and that a lost sensor must be recovered without a reset. The soak test of v0.7.6 is reported in Section~\ref{sec:res-acq}.
 
 \section{Diagnosis records}
 \label{sec:diagnoses}

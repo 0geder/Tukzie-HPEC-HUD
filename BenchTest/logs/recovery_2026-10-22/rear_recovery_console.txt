@@ -1,0 +1,1250 @@
+1792674264.889 [RIDE1] n=200 rms=9.751 std=0.030 p2p=0.164 crest=1.009 jerk=6.434 crossings=8 norm=n/a
+1792674264.890 [FUSED] src=1 only skew=0ms rms=9.751 std=0.030 p2p=0.164 jerk=6.434 dis=nan
+1792674264.890 [SYNC] pin=HIGH  t=110844207 us
+1792674264.890 =4626 avg=5012 max=5453]  dropped=0
+1792674264.890 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674264.890 IMU health: rdfail=[0,0] stuck=[2,0] rawdrop=[0,0] raw_lines=2200
+1792674264.890 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[119959,228722]
+1792674264.890 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674264.890 GNSS: 1 polls, 0 with a fix
+1792674264.890 BMS: connected=yes valid=32 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674264.890 Free heap: 127592 bytes
+1792674264.890 
+1792674264.890 DASH {"seq":109,"up_ms":110896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.030,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1099,2105],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674264.890 1792674265.503 [SYNC] pin=LOW  t=111344035 us
+1792674265.503 1792674265.805 [RIDE1] n=200 rms=9.752 std=0.033 p2p=0.191 crest=1.011 jerk=7.528 crossings=6 norm=n/a
+1792674265.805 [FUSED] src=1 only skew=0ms rms=9.752 std=0.033 p2p=0.191 jerk=7.528 dis=nan
+1792674265.805 [SYNC] pin=HIGH  t=111844203 us
+1792674265.805 DASH {"seq":110,"up_ms":111896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.033,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1102,2100],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674265.805 1792674266.117 [GNSS] no fix yet (mode=0)
+1792674266.117 1792674266.420 [SYNC] pin=LOW  t=112344018 us
+1792674266.420 1792674266.730 [RIDE1] n=200 rms=9.749 std=0.035 p2p=0.288 crest=1.015 jerk=7.531 crossings=3 norm=n/a
+1792674266.730 [FUSED] src=1 only skew=0ms rms=9.749 std=0.035 p2p=0.288 jerk=7.531 dis=nan
+1792674266.730 [SYNC] pin=HIGH  t=112844230 us
+1792674266.730 1792674267.035 IMU1: 400 samples (200.0 Hz)  dt_us[min= dropped=0
+1792674267.035 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674267.035 IMU health: rdfail=[0,0] stuc=[2,0] rawdrop=[0,0] raw_lines=2240
+1792674267.035 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[122161,232935]
+1792674267.035 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674267.035 GNSS: 1 polls, 0 with a fix
+1792674267.035 BMS: connected=yes valid=32 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674267.035 Free heap: 127592 bytes
+1792674267.035 
+1792674267.035 DASH {"seq":111,"up_ms":112896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.035,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1099,2112],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674267.035 1792674267.339 [BMS] V=74.60V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674267.339 [SYNC] pin=LOW  t=113344016 us
+1792674267.339 1792674267.954 [RIDE1] n=200 rms=9.750 std=0.027 p2p=0.152 crest=1.009 jerk=6.266 crossings=9 norm=n/a
+1792674267.954 [FUSED] src=1 only skew=0ms rms=9.750 std=0.027 p2p=0.152 jerk=6.266 dis=nan
+1792674267.954 [SYNC] pin=HIGH  t=113844233 us
+1792674267.954 DASH {"seq":112,"up_ms":113896,"fw":"0.7.8","soc":57,"v":74.60,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1094,2096],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674267.954 1792674268.259 [SYNC] pin=LOW  t=114344031 us
+1792674268.259 1792674268.873 [RIDE1] n=200 rms=9.750 std=0.050 p2p=0.462 crest=1.026 jerk=9.729 crossings=3 norm=n/a
+1792674268.873 [FUSED] src=1 only skew=0ms rms=9.750 std=0.050 p2p=0.462 jerk=9.729 dis=nan
+1792674268.873 [SYNC] pin=HIGH  t=114844213 us
+1792674268.873 --- Acquisition stats (2s window) ---
+1792674268.873 IMU1: 400 samples (200.0 Hz)  dt_us[min=4718 avg dropped=0
+1792674268.873 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674268.873 IMU health: rdfail=[0,0] stuck=[2,0] rawdrop=[0,0] raw_lines=2280
+1792674268.873 IMU pacing: la[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674268.873 GNSS: 0 polls, 0 with a fix
+1792674268.873 BMS: connected=yes valid=33 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674268.873 Free heap: 127592 bytes
+1792674268.873 
+1792674268.873 DASH {"seq":113,"up_ms":114896,"fw":"0.7.8","soc":57,"v":74.60,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.050,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1103,2107],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674268.873 1792674269.474 [GNSS] no fix yet (mode=0)
+1792674269.474 [SYNC] pin=LOW  t=115344026 us
+1792674269.474 1792674269.784 [RIDE1] n=200 rms=9.752 std=0.052 p2p=0.456 crest=1.023 jerk=9.850 crossings=4 norm=n/a
+1792674269.784 [FUSED] src=1 only skew=0ms rms=9.752 std=0.052 p2p=0.456 jerk=9.850 dis=nan
+1792674269.784 [SYNC] pin=HIGH  t=115844229 us
+1792674269.784 DASH {"seq":114,"up_ms":115896,"fw":"0.7.8","soc":57,"v":74.60,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.052,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1101,2110],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674269.784 1792674270.392 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674270.392 [SYNC] pin=LOW  t=116344039 us
+1792674270.392 1792674270.998 [RIDE1] n=200 rms=9.749 std=0.034 p2p=0.176 crest=1.009 jerk=5.642 crossings=3 norm=n/a
+1792674270.998 [FUSED] src=1 only skew=0ms rms=9.749 std=0.034 p2p=0.176 jerk=5.642 dis=nan
+1792674270.998 [SYNC] pin=HIGH  t=116844211 us
+1792674270.998 -IMU1:s[min=4707 avg=5012 max=5263]  dropped=0
+1792674270.998 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674270.998 IMU health: rdfail=[0,0] stuck=[2,0] rawdrop=[0,0] raw_lines=2320
+1792674270.998 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[126558,241361]
+1792674270.998 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674270.998 GNSS: 1 polls, 0 with a fix
+1792674270.998 BMS: connected=yes valid=34 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674270.998 Free heap: 127592 bytes
+1792674270.998 
+1792674270.998 DASH {"seq":115,"up_ms":116896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.034,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1099,2112],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674270.998 1792674271.300 [SYNC] pin=LOW  t=117344032 us
+1792674271.300 1792674271.902 [RIDE1] n=200 rms=9.752 std=0.025 p2p=0.128 crest=1.006 jerk=5.161 crossings=3 norm=n/a
+1792674271.902 [FUSED] src=1 only skew=0ms rms=9.752 std=0.025 p2p=0.128 jerk=5.161 dis=nan
+1792674271.902 [SYNC] pin=HIGH  t=117844212 us
+1792674271.902 DASH {"seq":116,"up_ms":117896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1101,2096],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674271.902 1792674272.210 [GNSS] no fix yet (mode=0)
+1792674272.210 1792674272.520 [SYNC] pin=LOW  t=118344028 us
+1792674272.520 1792674272.827 [RIDE1] n=200 rms=9.752 std=0.028 p2p=0.171 crest=1.009 jerk=6.373 crossings=6 norm=n/a
+1792674272.827 [FUSED] src=1 only skew=0ms rms=9.752 std=0.028 p2p=0.171 jerk=6.373 dis=nan
+1792674272.827 [SYNC] pin=HIGH  t=118844228 us
+1792674272.827 IMU1: 400 samples (200.0 Hz)  dt_us[min=4703 avg=5012 max=5248]  dropped=0
+1792674272.827 IMU2: disabled in this buistuck=[2,0] rawdrop=[0,0] raw_lines=2360
+1792674272.827 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[128760init=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674272.827 GNSS: 1 polls, 0 with a fix
+1792674272.827 BMS: connected=yes valid=34 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674272.827 Free heap: 127592 bytes
+1792674272.827 
+1792674272.827 DASH {"seq":117,"up_ms":118896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1101,2110],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674272.827 1792674273.134 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674273.134 1792674273.437 [SYNC] pin=LOW  t=119344034 us
+1792674273.437 1792674273.752 [RIDE1] n=200 rms=9.749 std=0.024 p2p=0.158 crest=1.008 jerk=5.428 crossings=1 norm=n/a
+1792674273.752 [FUSED] src=1 only skew=0ms rms=9.749 std=0.024 p2p=0.158 jerk=5.428 dis=nan
+1792674273.752 [SYNC] pin=HIGH  t=119844205 us
+1792674273.752 1792674274.054 DASH {"seq":118,"up_ms":119896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.024,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1097,2098],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674274.054 1792674274.359 [SYNC] pin=LOW  t=120344029 us
+1792674274.359 1792674274.961 [RIDE1] n=200 rms=9.754 std=0.028 p2p=0.156 crest=1.009 jerk=5.658 crossings=7 norm=n/a
+1792674274.961 [FUSED] src=1 only skew=0ms rms=9.754 std=0.028 p2p=0.156 jerk=5.658 dis=nan
+1792674274.961 [SYNC] pin=HIGH  t=120844212 us
+1792674274.961 --- Acquisition stats (2s window) ---
+1792674274.961 IMU1: 400 samples (200.0 Hz)  dt_us[min=4723 avg=5012 max=5ed=0
+1792674274.961 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674274.961 IMU health: rdfail=[0,0] stuck=[2,0] rawdrop=[0,0] raw_lines=2400
+1792674274.961 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[130960,249773]
+1792674274.961 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674274.961 GNSS: 0 polls, 0 with a fix
+1792674274.961 BMS: connected=yes valid=35 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674274.961 Free heap: 127592 bytes
+1792674274.961 
+1792674274.961 DASH {"seq":119,"up_ms":120896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1104,2111],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674274.961 1792674275.270 [GNSS] no fix yet (mode=0)
+1792674275.270 [SYNC] pin=LOW  t=121344033 us
+1792674275.270 1792674275.871 [RIDE1] n=200 rms=9.752 std=0.026 p2p=0.135 crest=1.007 jerk=5.571 crossings=7 norm=n/a
+1792674275.871 [FUSED] src=1 only skew=0ms rms=9.752 std=0.026 p2p=0.135 jerk=5.571 dis=nan
+1792674275.871 [SYNC] pin=HIGH  t=121844228 us
+1792674275.871 DASH {"seq":120,"up_ms":121896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1101,2105],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674275.871 1792674276.183 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.5C t2=18.7C
+1792674276.183 1792674276.490 [SYNC] pin=LOW  t=122344035 us
+1792674276.490 1792674276.799 [RIDE1] n=200 rms=9.750 std=0.026 p2p=0.150 crest=1.007 jerk=5.963 crossings=6 norm=n/a
+1792674276.799 [FUSED] src=1 only skew=0ms rms=9.750 std=0.026 p2p=0.150 jerk=5.963 dis=nan
+1792674276.799 [SYNC] pin=HIGH  t=122844203 us
+1792674276.799 --- Acquisition stats 
+1792674276.799 IMU1: dt_usthis build (ENABLE_IMU2 = 0)
+1792674276.799 IMU health: rdfail=[0,0] stuck=[2,0] rawdrop=[0,0] raw_lines=2440
+1792674276.799 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[133161,253986]
+1792674276.799 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674276.799 GNSS: 1 polls, 0 with a fix
+1792674276.799 BMS: connected=yes valid=36 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674276.799 Free heap: 127592 bytes
+1792674276.799 
+1792674276.799 DASH {"seq":121,"up_ms":122896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1099,2106],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674276.799 1792674277.427 [SYNC] pin=LOW  t=123344027 us
+1792674277.427 1792674277.742 [RIDE1] n=200 rms=9.753 std=0.025 p2p=0.121 crest=1.006 jerk=5.766 crossings=5 norm=n/a
+1792674277.742 [FUSED] src=1 only skew=0ms rms=9.753 std=0.025 p2p=0.121 jerk=5.766 dis=nan
+1792674277.742 [SYNC] pin=HIGH  t=123844223 us
+1792674277.742 1792674278.048 DASH {"seq":122,"up_ms":123896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1099,2100],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674278.048 [GNSS] no fix yet (mode=0)
+1792674278.048 1792674278.354 [SYNC] pin=LOW  t=124344026 us
+1792674278.354 1792674278.962 [RIDE1] n=200 rms=9.746 std=0.029 p2p=0.142 crest=1.007 jerk=6.522 crossings=3 norm=n/a
+1792674278.962 [FUSED] src=1 only skew=0ms rms=9.746 std=0.029 p2p=0.142 jerk=6.522 dis=nan
+1792674278.962 [SYNC] pin=HIGH  t=124844229 us
+1792674278.962 --- Acquisition stats (2s window) ---
+1792674278.962 IMU1: 400 samples (199.9 Hz)  dt_us[min=4658 avg=5012 max=5254]  dropped=0
+1792674278.962 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674278.962 IMU health: rdfail=[0,0] stuck=[2,0] rawdrop=[0,0] raw_lines=2480
+1792674278.962 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[135362,258201]
+1792674278.962 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674278.962 GNSS: 1 polls, 0 with a fix
+1792674278.962 BMS: connected=yes valid=36 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674278.962 Free heap: 127592 bytes
+1792674278.962 
+1792674278.962 DASH {"seq":123,"up_ms":124896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1102,2111],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674278.962 1792674279.275 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674279.275 [SYNC] pin=LOW  t=125344035 us
+1792674279.275 1792674279.893 [RIDE1] n=200 rms=9.751 std=0.027 p2p=0.119 crest=1.006 jerk=5.439 crossings=3 norm=n/a
+1792674279.893 .439 dis=nan
+1792674279.893 [SYNC] pin=HIGH  t=125844205 us
+1792674279.893 DASH {"seq":124,"up_ms":125896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1099,2103],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674279.893 1792674280.510 [SYNC] pin=LOW  t=126344034 us
+1792674280.510 1792674280.813 [RIDE1] n=200 rms=9.750 std=0.028 p2p=0.174 crest=1.009 jerk=5.927 crossings=6 norm=n/a
+1792674280.813 [FUSED] src=1 only skew=0ms rms=9.750 std=0.028 p2p=0.174 jerk=5.927 dis=nan
+1792674280.813 [SYNC] pin=HIGH  t=126844218 us
+1792674280.813 --- Acquisition stats (2s window) ---
+1792674280.813 IMU1: 401 samples (200.3 Hz)  dt_us[min=4730 avg=5012 max=5317]  dropped=0
+1792674280.813 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674280.813 IMU health: rdfail=[0,0] stuck=[2,0] rawdrop=[0,0] raw_lines=2520
+1792674280.813 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[137566,262417]
+1792674280.813 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674280.813 GNSS: 0 polls, 0 with a fix
+1792674280.813 BMS: connected=yes valid=37 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674280.813 Free heap: 127592 bytes
+1792674280.813 
+1792674280.813 DASH {"seq":125,"up_ms":126896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.3,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1102,2110],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674280.813 1792674281.121 [GNSS] no fix yet (mode=0)
+1792674281.121 1792674281.435 [SYNC] pin=LOW  t=127344025 us
+1792674281.435 1792674281.745 [RIDE1] n=200 rms=9.750 std=0.030 p2p=0.169 crest=1.008 jerk=6.065 crossings=4 norm=n/a
+1792674281.745 [FUSED] src=1 only skew=0ms rms=9.750 std=0.030 p2p=0.169 jerk=6.065 dis=nan
+1792674281.745 [SYNC] pin=HIGH  t=127844227 us
+1792674281.745 1792674282.052 DASH {"seq":126,"up_ms":127896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.030,"vib_dis":null,"imu_hz":[200.3,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1098,2102],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674282.052 1792674282.354 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674282.354 [SYNC] pin=LOW  t=128344051 us
+1792674282.354 1792674282.963 [RIDE1] n=200 rms=9.750 std=0.028 p2p=0.161 crest=1.008 jerk=5.590 crossings=3 norm=n/a
+1792674282.963 [FUSED] src=1 only skew=0ms rms=9.750 std=0.028 p2p=0.161 jerk=5.590 dis=nan
+1792674282.963 [SYNC] pin=HIGH  t=128844200 us
+1792674282.963 --- Acquisition s
+1792674282.963 IMU1: 400 samples (200.0 Hz)  dt_us[min=4735 avg=5012 max=5268]  dropped=0
+1792674282.963 IMU2: disablek=[2,0] rawdrop=[0,0] raw_lines=2560
+1792674282.963 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[139765,266631]
+1792674282.963 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_x
+1792674282.963 BMS: connected=yes valid=38 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674282.963 Free heap: 127592 bytes
+1792674282.963 
+1792674282.963 DASH {"seq":127,"up_ms":128896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1102,2110],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674282.963 1792674283.264 [SYNC] pin=LOW  t=129344028 us
+1792674283.264 1792674283.882 [RIDE1] n=200 rms=9.754 std=0.026 p2p=0.138 crest=1.008 jerk=5.511 crossings=5 norm=n/a
+1792674283.882 [FUSED] src=1 only skew=0ms rms=9.754 std=0.026 p2p=0.138 jerk=5.511 dis=nan
+1792674283.882 [SYNC] pin=HIGH  t=129844210 us
+1792674283.882 DASH {"seq":128,"up_ms":129896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1100,2096],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674283.882 1792674284.196 [GNSS] no fix yet (mode=0)
+1792674284.196 1792674284.503 [SYNC] pin=LOW  t=130344022 us
+1792674284.503 1792674284.816 [RIDE1] n=200 rms=9.749 std=0.026 p2p=0.124 crest=1.007 jerk=5.757 crossings=3 norm=n/a
+1792674284.816 [FUSED] src=1 only skew=0ms rms=9.749 std=0.026 p2p=0.124 jerk=5.757 dis=nan
+1792674284.816 [SYNC] pin=HIGH  t=130844233 us
+1792674284.816 IMU1: 400 samples (199.9 Hz)  dt_us[min=4680 avg=5012 max=5252]  dropped=0
+1792674284.816 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674284.816 IMU health: rdfail=[0,0] stuck=[2,0] rawdrop=[0,0] raw_lines=2600
+1792674284.816 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[141969,270840]
+1792674284.816 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674284.816 GNSS: 1 polls, 0 with a fix
+1792674284.816 BMS: connected=yes valid=38 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674284.816 Free heap: 127592 bytes
+1792674284.816 
+1792674284.816 DASH {"seq":129,"up_ms":130896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1102,2114],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674284.816 1792674285.120 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.5C t2=18.7C
+1792674285.120 1792674285.425 [SYNC] pin=LOW  t=131344037 us
+1792674285.425 1792674285.737 [RIDE1] n=200 rms=9.754 std=0.026 p2p=0.134 crest=1.008 jerk=6.092 crossings0.134 jerk=6.092 dis=nan
+1792674285.737 [SYNC] pin=HIGH  t=131844203 us
+1792674285.737 1792674286.054 DASH {"seq":130,"up_ms":131896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1099,2099],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674286.054 1792674286.369 [SYNC] pin=LOW  t=132344025 us
+1792674286.369 1792674286.976 [RIDE1] n=200 rms=9.751 std=0.027 p2p=0.136 crest=1.007 jerk=5.499 crossings=4 norm=n/a
+1792674286.976 [FUSED] src=1 only skew=0ms rms=9.751 std=0.027 p2p=0.136 jerk=5.499 dis=nan
+1792674286.976 [SYNC] pin=HIGH  t=132844208 us
+1792674286.976 IMU1: 400 samples (200.0 Hz)  dt_us[min=4727 avg=5012 max=5315]  dropped=0
+1792674286.976 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674286.976 IMU health: rdfail=[0,0] stuck=[2,0] rawdrop=[0,0] raw_lines=2640
+1792674286.976 IMU pacing: late=[0,0] qmax=[4,0] idle_calls=[144170,275053]
+1792674286.976 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674286.976 GNSS: 0 polls, 0 with a fix
+1792674286.976 BMS: connected=yes valid=39 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674286.976 Free heap: 127592 bytes
+1792674286.976 
+1792674286.976 DASH {"seq":131,"up_ms":132896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[2,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[4,0],"late":[0,0],"idle":[1103,2113],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674286.976 1792674287.287 [MQTT] Reconnecting...
+1792674287.287 [MQTT] CMQTTSTART failed, code 1
+1792674287.287 [MQTT] Reconnect failed, next attempt in 120 s.
+1792674287.287 [GNSS] no fix yet (mode=0)
+1792674287.287 [LOG] flushed 7 lines, 3784 bytes in 113.6 ms
+1792674287.287 [SYNC] pin=LOW  t=133344049 us
+1792674287.287 1792674287.893 [RIDE1] n=200 rms=9.751 std=0.027 p2p=0.147 crest=1.008 jerk=5.269 crossings=4 norm=n/a
+1792674287.894 [FUSED] src=1 only skew=0ms rms=9.751 std=0.027 p2p=0.147 jerk=5.269 dis=nan
+1792674287.894 [SYNC] pin=HIGH  t=133844215 us
+1792674287.894 DASH {"seq":132,"up_ms":133896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[999,2112],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674287.894 1792674288.502 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.5C t2=18.7C
+1792674288.502 [SYNC] pin=LOW  t=134344033 us
+1792674288.502 1792674288.804 [RIDE1] n=200 rms=9.751 std=0.027 p2p=0.183 crest=1.009 jerk=5.539 crossings=4 norm=n/a
+1792674288.804 [FUSED] src=1 only skew=0ms rms=9.751 std=0.027 p2p=0.183 jerk=5.539 dis=nan
+1792674288.804 [SYNC] pin=HIGH  t=134844193 us
+1792674288.804  dropped=0
+1792674288.804 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674288.804 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=2680
+1792674288.804 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[146268,279273]
+1792674288.804 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674288.804 GNSS: 1 polls, 0 with a fix
+1792674288.804 BMS: connected=yes valid=40 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674288.804 Free heap: 127592 bytes
+1792674288.804 
+1792674288.804 DASH {"seq":133,"up_ms":134896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2109],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674288.804 1792674289.430 [AGPS] server refused after 11 ms (attempt 3)
+1792674289.430 [SYNC] pin=LOW  t=135344043 us
+1792674289.430 1792674289.743 [RIDE1] n=200 rms=9.756 std=0.027 p2p=0.147 crest=1.008 jerk=6.072 crossings=8 norm=n/a
+1792674289.743 [FUSED] src=1 only skew=0ms rms=9.756 std=0.027 p2p=0.147 jerk=6.072 dis=nan
+1792674289.743 [SYNC] pin=HIGH  t=135844221 us
+1792674289.743 1792674290.046 DASH {"seq":134,"up_ms":135896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2096],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674290.046 1792674290.352 [GNSS] no fix yet (mode=0)
+1792674290.352 [SYNC] pin=LOW  t=136344052 us
+1792674290.352 1792674290.961 [RIDE1] n=200 rms=9.753 std=0.029 p2p=0.150 crest=1.008 jerk=6.907 crossings=4 norm=n/a
+1792674290.961 [FUSEew=0ms rms=9.753 std=0.029 p2p=0.150 jerk=6.907 dis=nan
+1792674290.961 [SYNC] pin=HIGH  t=136844223 us
+1792674290.961 --- Ac dropped=0
+1792674290.961 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674290.961 IMU halth: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=2720
+1792674290.961 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[148473,283485]
+1792674290.961 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674290.961 GNSS: 1 polls, 0 with a fix
+1792674290.961 BMS: connected=yes valid=40 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674290.961 Free heap: 127592 bytes
+1792674290.961 
+1792674290.961 DASH {"seq":135,"up_ms":136896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1104,2115],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674290.961 1792674291.268 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674291.268 [SYNC] pin=LOW  t=137344039 us
+1792674291.268 1792674291.885 [RIDE1] n=200 rms=9.753 std=0.025 p2p=0.142 crest=1.008 jerk=5.569 crossings=4 norm=n/a
+1792674291.885 [FUSED] src=1 only skew=0ms rms=9.753 std=0.025 p2p=0.142 jerk=5.569 dis=nan
+1792674291.885 [SYNC] pin=HIGH  t=137844199 us
+1792674291.885 DASH {"seq":136,"up_ms":137896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2101],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674291.885 1792674292.500 [SYNC] pin=LOW  t=138344030 us
+1792674292.500 1792674292.808 [RIDE1] n=200 rms=9.751 std=0.030 p2p=0.167 crest=1.009 jerk=6.501 crossings=5 norm=n/a
+1792674292.808 [FUSED] src=1 only skew=0ms rms=9.751 std=0.030 p2p=0.167 jerk=6.501 dis=nan
+1792674292.808 [SYNC] pin=HIGH  t=138844208 us
+1792674292.808 IMU1: 400 samples  dropped=0
+1792674292.808 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674292.808 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=2760
+1792674292.808 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[150674,287696]
+1792674292.808 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674292.808 GNSS: 0 polls, 0 with a fix
+1792674292.808 BMS: connected=yes valid=41 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674292.808 Free heap: 127592 bytes
+1792674292.808 
+1792674292.808 DASH {"seq":137,"up_ms":138896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.030,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2111],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674292.808 1792674293.120 [GNSS] no fix yet (mode=0)
+1792674293.120 1792674293.433 [SYNC] pin=LOW  t=139344037 us
+1792674293.433 1792674293.747 [RIDE1] n=200 rms=9.752 std=0.029 p2p=0.147 crest=1.008 jerk=5.519 crossings=4 norm=n/a
+1792674293.747 [FUSED] src=1 only skew=0ms rms=9.752 std=0.029 p2p=0.147 jerk=5.519 dis=nan
+1792674293.747 [SYNC] pin=HIGH  t=139844222 us
+1792674293.747 1792674294.051 DASH {"seq":138,"up_msi":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2101],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674294.051 [CELLPOS] not available (9) after 11 ms
+1792674294.051 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674294.051 1792674294.353 [SYNC] pin=LOW  t=140344037 us
+1792674294.353 1792674294.968 [RIDE1] n=200 rms=9.756 std=0.028 p2p=0.141 crest=1.008 jerk=5.916 crossings=6 norm=n/a
+1792674294.968 [FUSED] src=1 only skew=0ms rms=9.756 std=0.028 p2p=0.141 jerk=5.916 dis=nan
+1792674294.968 [SYNC] pin=HIGH  t=140844196 us
+1792674294.968 --- Acquisition s
+1792674294.968 IMU1: 400 samples (200.0 Hz)  dt_us[min=4733 avg=5012 max=5323]  dropped=0build (ENABLE_IMU2 = 0)
+1792674294.968 IMU heawdrop=[0,0] raw_lines=2800
+1792674294.968 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[152882,291912]
+1792674294.968 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674294.968 GNSS: 1 polls, 0 with a fix
+1792674294.968 BMS: connected=yes valid=42 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674294.968 Free heap: 127592 bytes
+1792674294.968 
+1792674294.968 DASH {"seq":139,"up_ms":140896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1105,2113],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674294.968 1792674295.270 [SYNC] pin=LOW  t=141344043 us
+1792674295.270 1792674295.881 [RIDE1] n=200 rms=9.749 std=0.028 p2p=0.145 crest=1.007 jerk=6.759 crossings=7 norm=n/a
+1792674295.881 [FUSED] src=1 only skew=0ms rms=9.749 std=0.028 p2p=0.145 jerk=6.759 dis=nan
+1792674295.881 [SYNC] pin=HIGH  t=141844206 us
+1792674295.881 DASH {"seq":140,"up_ms":141896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2100],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674295.881 1792674296.199 [GNSS] no fix yet (mode=0)
+1792674296.199 1792674296.507 [SYNC] pin=LOW  t=142344053 us
+1792674296.507 1792674296.816 [RIDE1] n=200 rms=9.753 std=0.043 p2p=0.200 crest=1.011 jerk=7.851 crossings=5 norm=n/a
+1792674296.816 [FUSED] src=1 only skew=0ms rms=9.753 std=0.043 p2p=0.200 jerk=7.851 dis=nan
+1792674296.816 [SYNC] pin=HIGH  t=142844224 us
+1792674296.816 --- Acquisition st
+1792674296.816 IMU1: 400 samples (200.0 Hz) dropped=0
+1792674296.816 IMU2: disstuck=[5,0] rawdrop=[0,0] raw_lines=2840
+1792674296.816 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[155088,296129]
+1792674296.816 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674296.816 GNSS: 1 polls, 0 with a fix
+1792674296.816 BMS: connected=yes valid=42 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674296.816 Free heap: 127592 bytes
+1792674296.816 
+1792674296.816 DASH {"seq":141,"up_ms":142896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.043,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2118],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674296.816 1792674297.429 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674297.429 [SYNC] pin=LOW  t=143344055 us
+1792674297.429 1792674297.742 [RIDE1] n=200 rms=9.751 std=0.058 p2p=0.433 crest=1.021 jerk=7.644 crossings=4 norm=n/a
+1792674297.742 [FUSED] src=1 only skew=0ms rms=9.751 std=0.058 p2p=0.433 jerk=7.644 dis=nan
+1792674297.742 [SYNC] pin=HIGH  t=143844209 us
+1792674297.742 1792674298.045 i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.058,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1100,2090],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674298.045 1792674298.351 [SYNC] pin=LOW  t=144344041 us
+1792674298.351 1792674298.958 [RIDE1] n=200 rms=9.753 std=0.051 p2p=0.329 crest=1.020 jerk=6.861 crossings=6 norm=n/a
+1792674298.958 [FUSED] src=1 only skew=0ms rms=9.753 std=0.051 p2p=0.329 jerk=6.861 dis=nan
+1792674298.958 [SYNC] pin=HIGH  t=144844205 us
+1792674298.958 IMU1: 400 samples (200.0 Hz)  dt_us[min=4712 avg=5012 max=5339]  dropped=0
+1792674298.958 IMU2: disabled in this build (EN rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=2880
+1792674298.958 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[157291,300331]
+1792674298.958 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674298.958 GNSS: 0 polls, 0 with a fix
+1792674298.958 BMS: connected=yes valid=43 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674298.958 Free heap: 127592 bytes
+1792674298.958 
+1792674298.958 DASH {"seq":143,"up_ms":144896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.051,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1104,2115],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674298.958 1792674299.267 [GNSS] no fix yet (mode=0)
+1792674299.267 [SYNC] pin=LOW  t=145344055 us
+1792674299.267 1792674299.881 [RIDE1] n=200 rms=9.750 std=0.030 p2p=0.155 crest=1.008 jerk=6.645 crossings=3 norm=n/a
+1792674299.881 [FUSED] src=1 only skew=0ms rms=9.750 std=0.030 p2p=0.155 jerk=6.645 dis=nan
+1792674299.881 [SYNC] pin=HIGH  t=145844223 us
+1792674299.881 DASH {"seq":144,"up_ms":145896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.030,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1104,2099],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674299.881 1792674300.493 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.5C t2=18.7C
+1792674300.493 [SYNC] pin=LOW  t=146344037 us
+1792674300.493 1792674300.793 [RIDE1] n=200 rms=9.751 std=0.029 p2p=0.167 crest=1.008 jerk=6.002 crossings=5 norm=n/a
+1792674300.793 [FUSED] src=1 only skew=0ms rms=9.751 std=0.029 p2p=0.167 jerk=6.002 dis=nan
+1792674300.793 [SYNC] pin=HIGH  t=146844196 us
+1792674300.793 --- Acquisition sta
+1792674300.793 IMU1: 401 samples dt_us[min=4558 avg=5012 max=5456]  dropped=0
+1792674300.793 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674300.793 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=2920
+1792674300.793 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[159501,304549]
+1792674300.793 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674300.793 GNSS: 1 polls, 0 with a fix
+1792674300.793 BMS: connected=yes valid=44 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674300.793 Free heap: 127592 bytes
+1792674300.793 
+1792674300.793 DASH {"seq":145,"up_ms":146896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[200.1,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2107],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674300.793 1792674301.401 [SYNC] pin=LOW  t=147344038 us
+1792674301.401 1792674301.713 [RIDE1] n=200 rms=9.751 std=0.028 p2p=0.180 crest=1.012 je1792674302.027 rk=5.625 crossings=7 norm=n/a
+1792674302.027 [FUSED] src=1 only skew=0ms rms=9.751 std=0.028 p2p=0.180 jerk=5.625 dis=nan
+1792674302.027 [SYNC] pin=HIGH  t=147844205 us
+1792674302.027 i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.1,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2100],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674302.027 1792674302.338 [GNSS] no fix yet (mode=0)
+1792674302.338 [SYNC] pin=LOW  t=148344039 us
+1792674302.338 1792674302.951 [RIDE1] n=200 rms=9.752 std=0.027 p2p=0.159 crest=1.009 jerk=5.552 crossings=6 norm=n/a
+1792674302.951 [FUSED] src=1 only skew=0ms rms=9.752 std=0.027 p2p=0.159 jerk=5.552 dis=nan
+1792674302.951 ) ---
+1792674302.951 IM dropped=0
+1792674302.951 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674302.951 IMU h0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=2960
+1792674302.951 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[161705,308764]
+1792674302.951 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674302.951 GNSS: 1 polls, 0 with a fix
+1792674302.951 BMS: connected=yes valid=44 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674302.951 Free heap: 127592 bytes
+1792674302.951 
+1792674302.951 DASH {"seq":147,"up_ms":148896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1102,2114],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674302.951 1792674303.258 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674303.258 [SYNC] pin=LOW  t=149344037 us
+1792674303.258 1792674303.865 [RIDE1] n=200 rms=9.752 std=0.026 p2p=0.145 crest=1.008 jerk=6.350 crossings=9 norm=n/a
+1792674303.865 [FUSED] src=1 only skew=0ms rms=9.752 std=0.026 p2p=0.145 jerk=6.350 dis=nan
+1792674303.865 [SYNC] pin=HIGH  t=149844199 us
+1792674303.865 DASH {"seq":148,"up_ms":149896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2100],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674303.865 1792674304.472 [SYNC] pin=LOW  t=150344032 us
+1792674304.472 1792674304.780 [RIDE1] n=200 rms=9.750 std=0.027 p2p=0.152 crest=1.008 jerk=5.728 crossings=4 norm=n/a
+1792674304.780 [FUSED] src=1 only skew=0ms rms=9.750 std=0.027 p2p=0.152 jerk=5.728 dis=nan
+1792674304.780 [SYNC] pin=HIGH  t=150844211 us
+1792674304.780 --- Acquisition stats (2s window) ---
+1792674304.780 IMU1: 400 samples (200 dropped=0
+1792674304.780 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674304.780 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3000
+1792674304.780 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[163903,312976]
+1792674304.780 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674304.780 GNSS: 0 polls, 0 with a fix
+1792674304.780 BMS: connected=yes valid=45 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674304.780 Free heap: 127592 bytes
+1792674304.780 
+1792674304.780 DASH {"seq":149,"up_ms":150896i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1100,2111],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674304.780 1792674305.082 [GNSS] no fix yet (mode=0)
+1792674305.082 1792674305.393 [SYNC] pin=LOW  t=151344044 us
+1792674305.393 1792674306.003 [RIDE1] n=200 rms=9.752 std=0.026 p2p=0.151 crest=1.007 jerk=5.656 crossings=5 norm=n/a
+1792674306.003 [FUSED] src=1 only skew=0ms rms=9.752 std=0.026 p2p=0.151 jerk=5.656 dis=nan
+1792674306.003 [SYNC] pin=HIGH  t=151844223 us
+1792674306.003 DASH {"seq":150,"up_ms":151896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2106],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674306.003 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.8C t1=18.6C t2=18.7C
+1792674306.003 1792674306.316 [SYNC] pin=LOW  t=152344037 us
+1792674306.316 1792674306.919 [RIDE1] n=200 rms=9.753 std=0.028 rossings=3 norm=n/a
+1792674306.919 [FUSED] src=1 only skew=0ms rms=9.753 std=0.028 p2p=0.183 jerk=5.711 dis=nan
+1792674306.919 [SYNC] pin=HIGH  t=152844199 us
+1792674306.919 --- Acquisition stats (2s wind
+1792674306.919 IMU1: 400 samples (200.0 Hz)  dt_us[min=4735 avg=5012 max=5292]  dropped=0
+1792674306.919 IMU2: disabled in this build (ENABLE_IMU2 = 0)k=[5,0] rawdrop=[0,0] raw_lines=3=[5,0] idle_calls=[166106,317192]
+1792674306.919 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674306.919 GNSS: 1 polls, 0 with a fix
+1792674306.919 BMS: connected=yes valid=46 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674306.919 Free heap: 127592 bytes
+1792674306.919 
+1792674306.919 DASH {"seq":151,"up_ms":152896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2112],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674306.919 1792674307.220 [SYNC] pin=LOW  t=153344047 us
+1792674307.220 1792674307.842 [RIDE1] n=200 rms=9.751 std=0.026 p2p=0.146 crest=1.008 jerk=5.875 crossings=6 norm=n/a
+1792674307.842 [FUSED] src=1 only skew=0ms rms=9.751 std=0.026 p2p=0.146 jerk=5.875 dis=nan
+1792674307.842 [SYNC] pin=HIGH  t=153844201 us
+1792674307.842 DASH {"seq":152,"up_ms":153896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1092,2094],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674307.842 1792674308.158 [GNSS] no fix yet (mode=0)
+1792674308.158 1792674308.467 [SYNC] pin=LOW  t=154344048 us
+1792674308.467 1792674308.768 [RIDE1] n=200 rms=9.750 std=0.028 p2p=0.148 crest=1.007 jerk=6.208 crossings=4 norm=n/a
+1792674308.768 [FUSED] src=1 only skew=0ms rms=9.750 std=0.028 p2p=0.148 jerk=6.208 dis=nan
+1792674308.768 [SYNC] pin=HIGH  t=154844208 us
+1792674308.768 --- Acquisition sta
+1792674308.768 IMU1: 400 samples (199.9 Hz)  dt_us[min=4690 avg=5012 max=5338] 
+1792674308.768 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674308.768 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3080
+1792674308.768 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[168302,321403]
+1792674308.768 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674308.768 GNSS: 1 polls, 0 with a fix
+1792674308.768 BMS: connected=yes valid=46 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674308.768 Free heap: 127592 bytes
+1792674308.768 
+1792674308.768 1792674309.072 DASH {"seq":153,"up_ms":154896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2116],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674309.072 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674309.072 1792674309.385 [SYNC] pin=LOW  t=155344037 us
+1792674309.385 1792674309.995 [RIDE1] n=200 rms=9.754 std=0.029 p2p=0.186 crest=1.009 jerk=5.874 crossings=4 norm=n/a
+1792674309.996 [FUSED] src=1 only skew=0ms rms=9.754 std=0.029 p2p=0.186 jerk=5.874 dis=nan
+1792674309.996 [SYNC] pin=HIGH  t=155844198 us
+1792674309.996 DASH {"seq":154,"up_ms":155896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1099,2105],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674309.996 1792674310.304 [SYNC] pin=LOW  t=156344045 us
+1792674310.304 1792674310.920 [RIDE1] n=200 rms=9.750 std=0.029 p2p=0.183 crest=1.010 jerk=6.162 crossings=6 norm=n/a
+1792674310.920 [FUSED] src=1 only skew=0ms rms=9.750 std=0.029 p2p=0.183 jerk=6.162 dis=nan
+1792674310.920 [SYNC] pin=HIGH  t=156844211 us
+1792674310.920 --- Ac69]  dropped=0
+1792674310.920 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674310.920 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3120
+1792674310.920 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[170509,325632]
+1792674310.920 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674310.920 GNSS: 0 polls, 0 with a fix
+1792674310.920 BMS: connected=yes valid=47 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674310.920 Free heap: 127592 bytes
+1792674310.920 
+1792674310.920 DASH {"seq":155,"up_ms":156896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[200.2,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2115],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674310.920 1792674311.223 [GNSS] no fix yet (mode=0)
+1792674311.223 [SYNC] pin=LOW  t=157344049 us
+1792674311.223 1792674311.827 [RIDE1] n=200 rms=9.751 std=0.029 p2p=0.131 crest=1.007 jerk=6.032 crossings=7 norm=n/a
+1792674311.827 [FUSED] src=1 only skew=0ms rms=9.751 std=0.029 p2p=0.131 jerk=6.032 dis=nan
+1792674311.827 [SYNC] pin=HIGH  t=157844222 us
+1792674311.827 DASH {"seq":156,"up_ms":157896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[200.2,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2100],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674311.827 1792674312.137 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674312.137 1792674312.437 [SYNC] pin=LOW  t=158344034 us
+1792674312.437 1792674312.750 [RIDE1] n=200 rms=9.748 std=0.030 p2p=0.168 crest=1.008 jerk=5.862 crossings=3 norm=n/a
+1792674312.750 [FUSED] src=1 only skew=0ms rms=9.748 std=0.030 p2p=0.168 jerk=5.862 dis=nan
+1792674312.750 [SYNC] pin=HIGH  t=158844194 us
+1792674312.750 --- Acquisition stat
+1792674312.750 199.9 Hz)  dt_us[min=4650 avg=5012 max=5459]  dropped=0
+1792674312.750 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674312.750 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3160
+1792674312.750 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[172709,329846]
+1792674312.750 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674312.750 GNSS: 1 polls, 0 with a fix
+1792674312.750 BMS: connected=yes valid=48 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674312.750 Free heap: 127592 bytes
+1792674312.750 
+1792674312.750 1792674313.052 DASH {"seq":157,"up_ms":158896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.030,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1097,2112],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674313.052 1792674313.363 [SYNC] pin=LOW  t=159344037 us
+1792674313.363 1792674313.975 [RIDE1] n=200 rms=9.753 std=0.037 p2p=0.217 crest=1.012 jerk=6.704 crossings=5 norm=n/a
+1792674313.975 [FUSED] src=1 only skew=0ms rms=9.753 std=0.037 p2p=0.217 jerk=6.704 dis=nan
+1792674313.975 [SYNC] pin=HIGH  t=159844207 us
+1792674313.975 DASH {"seq":158,"up_ms":159896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.037,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2101],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674313.975 1792674314.286 [GNSS] no fix yet (mode=0)
+1792674314.286 [SYNC] pin=LOW  t=160344043 us
+1792674314.286 1792674314.887 [RIDE1] n=200 rms=9.754 std=0.034 p2p=0.176 crest=1.011 jerk=5.762 crossings=3 norm=n/a
+1792674314.887 [FUSED] src=1 only skew=0ms rms=9.754 std=0.034 p2p=0.176 jerk=5.762 dis=nan
+1792674314.887 [SYNC] pin=HIGH  t=160844210 us
+1792674314.887 --- Acquisition stats (2s window) ---
+1792674314.887 IMU1: 400 samples (199.9 Hz)  dt_us[min=4716 avg=5012 max=5 dropped=0
+1792674314.887 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674314.887 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3200
+1792674314.887 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[174913,334063]
+1792674314.887 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674314.887 GNSS: 1 polls, 0 with a fix
+1792674314.887 BMS: connected=yes valid=48 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674314.887 Free heap: 127592 bytes
+1792674314.887 
+1792674314.887 DASH {"seq":159,"up_ms":160896,"fw":"0.7.8","soc":57,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.034,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1100,2115],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674314.887 1792674315.203 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674315.203 1792674315.511 [SYNC] pin=LOW  t=161344052 us
+1792674315.511 1792674315.811 [RIDE1] n=200 rms=9.753 std=0.033 p2p=0.188 crest=1.011 jerk=5.876 crossings=4 norm=n/a
+1792674315.811 [FUSED] src=1 only skew=0ms rms=9.753 std=0.033 p2p=0.188 jerk=5.876 dis=nan
+1792674315.811 [SYNC] pin=HIGH  t=161844209 us
+1792674315.811 DASH {"seq":160,"up_ms":161896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.033,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2103],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674315.811 1792674316.733 [SYNC] pin=LOW  t=162344047 us
+1792674316.733 [RIDE1] n=200 rms=9.753 std=0.031 p2p=0.145 crest=1.007 jerk=6.169 crossings=3 norm=n/a
+1792674316.733 [FUSED] src=1 only skew=0ms rms=9.753 std=0.031 p2p=0.145 jerk=6.169 dis=nan
+1792674316.733 [SYNC] pin=HIGH  t=162844217 us
+1792674316.733 1792674317.041 --- Acquisition s
+1792674317.041 IMU1:ax=5339]  dropped=0
+1792674317.041 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674317.041 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3240
+1792674317.041 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[177112,338277]
+1792674317.041 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674317.041 GNSS: 0 polls, 0 with a fix
+1792674317.041 BMS: connected=yes valid=49 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674317.041 Free heap: 127592 bytes
+1792674317.041 
+1792674317.041 DASH {"seq":161,"up_ms":162896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.031,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2112],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674317.041 [GNSS] no fix yet (mode=0)
+1792674317.041 1792674317.343 [SYNC] pin=LOW  t=163344065 us
+1792674317.343 1792674317.953 [RIDE1] n=200 rms=9.751 std=0.028 p2p=0.156 crest=1.009 jerk=5.859 crossings=5 norm=n/a
+1792674317.953 [FUSED] src=1 only skew=0ms rms=9.751 std=0.028 p2p=0.156 jerk=5.859 dis=nan
+1792674317.953 [SYNC] pin=HIGH  t=163844221 us
+1792674317.953 i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2088],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674317.953 1792674318.269 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674318.269 [SYNC] pin=LOW  t=164344046 us
+1792674318.269 1792674318.882 [RIDE1] n=200 rms=9.754 std=0.066 p2p=0.663 crest=1.032 jerk=7.946 crossings=7 norm=n/a
+1792674318.882 [FUSED] src=1 only skew=0ms rms=9.754 std=0.066 p2p=0.663 jerk=7.946 dis=nan
+1792674318.882 [SYNC] pin=HIGH  t=164844213 us
+1792674318.882 --- Acquisition stats (2s windo
+1792674318.882 IMU1: 400 samples (200.0 Hz)  dt_us[min=4684 avg=5012 max=5385]  dropped=0
+1792674318.882 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674318.882 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3280
+1792674318.882 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[179316,342467]
+1792674318.882 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674318.882 GNSS: 1 polls, 0 with a fix
+1792674318.882 BMS: connected=yes valid=50 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674318.882 Free heap: 127592 bytes
+1792674318.882 
+1792674318.882 DASH {"seq":163,"up_ms":164896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.066,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1102,2103],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674318.882 1792674319.501 [SYNC] pin=LOW  t=165344039 us
+1792674319.501 1792674319.807 [RIDE1] n=200 rms=9.750 std=0.129 p2p=1.046 crest=1.045 jerk=11.168 crossings=6 norm=n/a
+1792674319.807 [FUSED] src=1 only skew=0ms rms=9.750 std=0.129 p2p=1.046 jerk=11.168 dis=nan
+1792674319.807 [SYNC] pin=HIGH  t=165844207 us
+1792674319.807 DASH {"seq":164,"up_ms":165896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.129,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2098],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674319.807 1792674320.416 [GNSS] no fix yet (mode=0)
+1792674320.416 [SYNC] pin=LOW  t=166344064 us
+1792674320.416 1792674320.718 [RIDE1] n=200 rms=9.750 std=0.027 p2p=0.140 crest=1.007 jerk=5.593 crossings=3 norm=n/a
+1792674320.718 [FUSED] src=1 only skew=0ms rms=9.750 std=0.027 p2p=0.140 jerk=5.593 dis=nan
+1792674320.718 [SYNC] pin=HIGH  t=166844229 us
+1792674320.718 1792674321.019 --- Acquisition stats (2s window) ---
+1792674321.019 IMU1: 400 samples (199.9 H]  dropped=0
+1792674321.019 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674321.019 IMU health: rdfail=[0,0] stuck=[5MU pacing: late=[0,0] qmax=[5,0] idle_calls=[181521,346682]
+1792674321.019 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674321.019 GNSS: 1 polls, 0 with a fix
+1792674321.019 BMS: connected=yes valid=50 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674321.019 Free heap: 127592 bytes
+1792674321.019 
+1792674321.019 DASH {"seq":165,"up_ms":166896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[3,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1105,2109],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674321.019 1792674321.320 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674321.320 [SYNC] pin=LOW  t=167344060 us
+1792674321.320 1792674321.927 [RIDE1] n=200 rms=9.752 std=0.028 p2p=0.159 crest=1.009 jerk=5.637 crossings=5 norm=n/a
+1792674321.927 [FUSED] src=1 only skew=0ms rms=9.752 std=0.028 p2p=0.159 jerk=5.637 dis=nan
+1792674321.927 [SYNC] pin=HIGH  t=167844202 us
+1792674321.927 DASH {"seq":166,"up_ms":167896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1094,2094],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674321.927 1792674322.230 [SYNC] pin=LOW  t=168344041 us
+1792674322.230 1792674322.845 [RIDE1] n=200 rms=9.750 std=0.025 p2p=0.163 crest=1.006 jerk=5.481 crossings=4 norm=n/a
+1792674322.845 [FUSED] src=1 only skew=0ms rms=9.750 std=0.025 p2p=0.163 jerk=5.481 dis=nan
+1792674322.845 [SYNC] pin=HIGH  t=168844206 us
+1792674322.845 --IMU1: 401 samples (200.3 Hz)  dt_us[min=4544 avg=5012 max=5537]  dropped=0
+1792674322.845 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674322.845 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3360
+1792674322.845 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[183714,350887]
+1792674322.845 IMU recovery: up=[1,-1] estarts=[0,0]
+1792674322.845 GNSS: 0 polls, 0 with a fix
+1792674322.845 BMS:ects=1 dropped=0
+1792674322.845 Free heap: 127592 bytes
+1792674322.845 
+1792674322.845 i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[200.3,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1097,2110],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674322.845 1792674323.457 [GNSS] no fix yet (mode=0)
+1792674323.457 [SYNC] pin=LOW  t=169344060 us
+1792674323.457 1792674323.765 [RIDE1] n=200 rms=9.751 std=0.023 p2p=0.166 crest=1.008 jerk=5.353 crossings=12 norm=n/a
+1792674323.765 [FUSED] src=1 only skew=0ms rms=9.751 std=0.023 p2p=0.166 jerk=5.353 dis=nan
+1792674323.765 [SYNC] pin=HIGH  t=169844227 us
+1792674323.765 1792674324.079 DASH {"seq":168,"up_ms":169896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.023,"vib_dis":null,"imu_hz":[200.3,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1097,2097],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674324.079 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.5C t2=18.7C
+1792674324.079 1792674324.385 [SYNC] pin=LOW  t=170344058 us
+1792674324.385 1792674324.996 [RIDE1] n=200 rms=9.753 std=0.026 p2p=0.176 crest=1.011 jerk=5.946 crossings=3 norm=n/a
+1792674324.996 [FUSED] src=1 only skew=0ms rms=9.753 std=0.026 p2p=0.176 jerk=5.946 dis=nan
+1792674324.996 [SYNC] pin=HIGH  t=170844215 us
+1792674324.996 --- Acquisition stats (2s window) ---
+1792674324.996 IMU1: 400 samples (199.9 Hz)  dt_us[min=4686 avg=5012 max=5254]  dropped=0
+1792674324.996 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674324.996 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3400
+1792674324.996 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[185908,355098]
+1792674324.996 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674324.996 GNSS: 1 polls, 0 with a fix
+1792674324.996 BMS: cdisconnects=0 reconnects=1 dropped=0
+1792674324.996 Free heap: 127592 bytes
+1792674324.996 
+1792674324.996 DASH {"seq":169,"up_ms":170896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1097,2112],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674324.996 1792674325.307 [SYNC] pin=LOW  t=171344062 us
+1792674325.307 1792674325.909 [RIDE1] n=200 rms=9.753 std=0.028 p2p=0.135 crest=1.007 jerk=5.727 crossings=5 norm=n/a
+1792674325.909 [FUSED] src=1 only skew=0ms rms=9.753 std=0.028 p2p=0.135 jerk=5.727 dis=nan
+1792674325.909 [SYNC] pin=HIGH  t=171844208 us
+1792674325.909 DASH {"seq":170,"up_ms":171896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1104,2101],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674325.909 1792674326.213 [GNSS] no fix yet (mode=0)
+1792674326.213 1792674326.516 [SYNC] pin=LOW  t=172344064 us
+1792674326.516 1792674326.818 [RIDE1] n=200 rms=9.753 std=0.027 p2p=0.144 crest=1.008 jerk=5.543 crossings=6 norm=n/a
+1792674326.818 [FUSED] src=1 only skew=0ms rms=9.753 std=0.027 p2p=0.144 jerk=5.543 dis=nan
+1792674326.818 [SYNC] pin=HIGH  t=172844218 us
+1792674326.818 --- Acquisition stats
+1792674326.818 IMU1: 400 samples (199.9 Hz)  dt_us[min=4685 avg=5012 max=5245]  dropped=0
+1792674326.818 IMU2: disabled in this build (ENABLE_IMU2 )
+1792674326.818 IMU healt3440
+1792674326.818 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[188117,359311]
+1792674326.818 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674326.818 GNSS: 1 polls, 0 with a fix
+1792674326.818 BMS: connected=yes valid=52 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674326.818 Free heap: 127592 bytes
+1792674326.818 
+1792674326.818 i":0.00,"bms_age_s":2.8,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2112],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674326.818 1792674327.129 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674327.129 1792674327.756 [SYNC] pin=LOW  t=173344062 us
+1792674327.756 [RIDE1] n=200 rms=9.754 std=0.025 p2p=0.134 crest=1.007 jerk=5.503 crossings=5 norm=n/a
+1792674327.756 [FUSED] src=1 only skew=0ms rms=9.754 std=0.025 p2p=0.134 jerk=5.503 dis=nan
+1792674327.756 [SYNC] pin=HIGH  t=173844219 us
+1792674327.756 1792674328.059 DASH {"seq":172,"up_ms":173896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1092,2098],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674328.059 1792674328.368 [SYNC] pin=LOW  t=174344062 us
+1792674328.368 1792674328.987 [RIDE1] n=200 rms=9.750 std=0.025 p2p=0.147 crest=1.007 jerk=5.756 crossings=6 norm=n/a
+1792674328.987 [FUSED] src=1 only skew=0ms rms=9.750 std=0.025 p2p=0.147 jerk=5.756 dis=nan
+1792674328.987 [SYNC] pin=HIGH  t=174844211 us
+1792674328.987 --- Acquisition stats (2s wind
+1792674328.987 IMU1: 400 samples 93 avg=5012 max=5352]  dropped=0
+1792674328.987 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674328.987 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3480
+1792674328.987 IMU pacing: la[190307,363522]
+1792674328.987 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674328.987 GNSS: 0 polls, 0 with a fix
+1792674328.987 BMS: connected=yes valid=53 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674328.987 Free heap: 127592 bytes
+1792674328.987 
+1792674328.987 DASH {"seq":173,"up_ms":174896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2112],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674328.987 1792674329.287 [GNSS] no fix yet (mode=0)
+1792674329.287 [SYNC] pin=LOW  t=175344058 us
+1792674329.287 1792674329.890 [RIDE1] n=200 rms=9.755 std=0.027 p2p=0.150 crest=1.008 jerk=6.304 crossings=4 norm=n/a
+1792674329.890 [FUSED] src=1 only skew=0ms rms=9.755 std=0.027 p2p=0.150 jerk=6.304 dis=nan
+1792674329.890 [SYNC] pin=HIGH  t=175844224 us
+1792674329.890 i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2102],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674329.890 1792674330.202 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674330.202 1792674330.509 [SYNC] pin=LOW  t=176344050 us
+1792674330.509 1792674330.811 [RIDE1] n=200 rms=9.748 std=0.025 p2p=0.130 crest=1.006 jerk=5.385 crossings=6 norm=n/a
+1792674330.811 [FUSED] src=1 only skew=0ms rms=9.748 std=0.025 p2p=0.130 jerk=5.385 dis=nan
+1792674330.811 [SYNC] pin=HIGH  t=176844215 us
+1792674330.811 --- Acquisition stats (2s window) ---
+1792674330.811 IMU1: 400 samples (200.0 Hz)  dt_us[min=4709 avg=5012 max=5251]  dropped=0
+1792674330.811 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674330.811 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3520
+1792674330.811 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[192510,367735]
+1792674330.811 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674330.811 GNSS: 1 polls, 0 with a fix
+1792674330.811 BMS: connected=yes valid=54 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674330.811 Free heap: 127592 bytes
+1792674330.811 
+1792674330.811 DASH {"seq":175,"up_ms":176896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[3,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1100,2116],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674330.811 1792674331.422 [SYNC] pin=LOW  t=177344037 us
+1792674331.422 1792674331.727 [RIDE1] n=200 rms=9.750 std=0.026 p2p=0.145 crest=1.007 jerk=6.002 crossings=4 norm=n/a
+1792674331.727 [FUSED] src=1 only skew=0ms rms=9.750 std=0.026 p2p=0.145 jerk=6.002 dis=nan
+1792674331.727 [SYNC] pin=HIGH  t=177844207 us
+1792674331.727 1792674332.028 DASH {"seq":176,"up_ms":177896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[3,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1088,2097],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674332.028 1792674332.334 [GNSS] no fix yet (mode=0)
+1792674332.334 [SYNC] pin=LOW  t=178344061 us
+1792674332.334 1792674332.944 [RIDE1] n=200 rms=9.752 std=0.027 p2p=0.152 crest=1.009 jerk=5.515 crossings=4 norm=n/a
+1792674332.944 [FUSED] src=1 only skew=0ms rms=9.752 std=0.027 p2p=0.152 jerk=5.515 dis=nan
+1792674332.944 [SYNC] pin=HIGH  t=178844228 us
+1792674332.944 --- Acquisition stats (2s window) ---
+1792674332.944 12 max=5247]  dropped=0
+1792674332.944 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674332.944 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3560
+1792674332.944 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[194694,371962]
+1792674332.944 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674332.944 GNSS: 1 polls, 0 with a fix
+1792674332.944 BMS: connected=yes valid=54 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674332.944 Free heap: 127592 bytes
+1792674332.944 
+1792674332.944 DASH {"seq":177,"up_ms":178896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.3,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[3,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1094,2118],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674332.944 1792674333.250 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674333.250 [SYNC] pin=LOW  t=179344050 us
+1792674333.250 1792674333.879 [RIDE1] n=200 rms=9.753 std=0.029 p2p=0.142 crest=1.007 jerk=5.877 crossings=3 norm=n/a
+1792674333.879 [FUSED] src=1 only skew=0ms rms=9.753 std=0.029 p2p=0.142 jerk=5.877 dis=nan
+1792674333.879 [SYNC] pin=HIGH  t=179844205 us
+1792674333.879 DASH {"seq":178,"up_ms":179896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[200.3,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1094,2093],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674333.879 1792674334.483 [SYNC] pin=LOW  t=180344033 us
+1792674334.483 1792674334.788 [RIDE1] n=200 rms=9.752 std=0.025 p2p=0.130 crest=1.007 jerk=4.829 crossings=6 norm=n/a
+1792674334.788 [FUSED] src=1 only skew=0ms rms=9.752 std=0.025 p2p=0.130 jerk=4.829 dis=nan
+1792674334.788 [SYNC] pin=HIGH  t=180844213 us
+1792674334.788 --- Acquisition stats 
+1792674334.788 in=4537 avg=5012 max=5406]  dropped=0
+1792674334.788 IMU2: disabled in this build (ENABLE_IMU2op=[0,0] raw_lines=3600
+1792674334.788 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[196888,376160]
+1792674334.788 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674334.788 GNSS: 0 polls, 0 with a fix
+1792674334.788 BMS: connected=yes valid=55 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674334.788 Free heap: 127592 bytes
+1792674334.788 
+1792674334.788 DASH {"seq":179,"up_ms":180896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1099,2104],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674334.788 1792674335.091 [GNSS] no fix yet (mode=0)
+1792674335.091 1792674335.404 [SYNC] pin=LOW  t=181344053 us
+1792674335.404 1792674335.714 [RIDE1] n=200 rms=9.753 std=0.027 p2p=0.163 crest=1.009 jerk=5.952 crossings=4 norm=n/a
+1792674335.714 [FUSED] src=1 only skew=0ms rms=9.753 std=0.027 p2p=0.163 jerk=5.952 dis=nan
+1792674335.714 1792674336.017 [SYNC] pin=HIGH  t=181844219 us
+1792674336.017 DASH {"seq":180,"up_ms":181896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2102],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674336.017 1792674336.321 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674336.321 [SYNC] pin=LOW  t=182344052 us
+1792674336.321 1792674336.944 [RIDE1] n=200 rms=9.753 std=0.025 p2p=0.130 crest=1.006 jerk=5.638 crossings=3 norm=n/a
+1792674336.944 [FUSED] src=1 only skew=0ms rms=9.753 std=0.025 p2p=0.130 jerk=5.638 dis=nan
+1792674336.944 [SYNC] pin=HIGH  t=182844209 us
+1792674336.944 --- Acquisition stats (2s window) ---
+1792674336.944 IMU1: 400 samples (200.0 Hz)  dt dropped=0
+1792674336.944 IMU2: disabled in this buil0
+1792674336.944 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[199089,380375]
+1792674336.944 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674336.944 GNSS: 1 polls, 0 with a fix
+1792674336.944 BMS: connected=yes valid=56 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674336.944 Free heap: 127592 bytes
+1792674336.944 
+1792674336.944 DASH {"seq":181,"up_ms":182896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2115],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674336.944 1792674337.246 [SYNC] pin=LOW  t=183344051 us
+1792674337.246 1792674337.850 [RIDE1] n=200 rms=9.751 std=0.026 p2p=0.150 crest=1.008 jerk=6.343 crossings=3 norm=n/a
+1792674337.850 [FUSED] src=1 only skew=0ms rms=9.751 std=0.026 p2p=0.150 jerk=6.343 dis=nan
+1792674337.850 [SYNC] pin=HIGH  t=183844222 us
+1792674337.850 DASH {"seq":182,"up_ms":183896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2097],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674337.850 1792674338.462 [GNSS] no fix yet (mode=0)
+1792674338.462 [SYNC] pin=LOW  t=184344056 us
+1792674338.462 1792674338.774 [RIDE1] n=200 rms=9.748 std=0.026 p2p=0.130 crest=1.007 jerk=5.851 crossings=5 norm=n/a
+1792674338.774 [FUSED] src=1 only skew=0ms rms=9.748 std=0.026 p2p=0.130 jerk=5.851 dis=nan
+1792674338.774 [SYNC] pin=HIGH  t=184844227 us
+1792674338.774 --- Acquisition stats (2s window) ---
+1792674338.774 IMU1: 400 samples (200.0 Hz)  dt_us[min=4720 aE_IMU2 = 0)
+1792674338.774 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] ra289,384583]
+1792674338.774 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674338.774 GNSS: 1 polls, 0 with a fix
+1792674338.774 BMS: connected=yes valid=56 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674338.774 Free heap: 127592 bytes
+1792674338.774 
+1792674338.774 DASH {"seq":183,"up_ms":184896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2110],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674338.774 1792674339.078 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.5C t2=18.7C
+1792674339.078 1792674339.380 [SYNC] pin=LOW  t=185344052 us
+1792674339.380 1792674339.985 [RIDE1] n=200 rms=9.747 std=0.027 p2p=0.130 crest=1.006 jerk=6.157 crossings=3 norm=n/a
+1792674339.985 [FUSED] src=1 only skew=0ms rms=9.747 std=0.027 p2p=0.130 jerk=6.157 dis=nan
+1792674339.985 [SYNC] pin=HIGH  t=185844209 us
+1792674339.985 DASH {"seq":184,"up_ms":185896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1097,2098],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674339.985 1792674340.289 [SYNC] pin=LOW  t=186344044 us
+1792674340.289 1792674340.915 [RIDE1] n=200 rms=9.755 std=0.026 p2p=0.140 crest=1.008 jerk=5.733 crossings=5 norm=n/a
+1792674340.915 [FUSED] src=1 only skew=0ms rms=9.755 std=0.026 p2p=0.140 jerk=5.733 dis=nan
+1792674340.915 [SYNC] pin=HIGH  t=186844204 us
+1792674340.915 --- Acquisition stats 
+1792674340.915 IMU1: 400 samples (199.9 Hz)  dt_us[min=4722 avg=5012 max=5262]  dropped=0
+1792674340.915 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674340.915 IMU health: rrawdrop=[0,0] raw_lines=3720
+1792674340.915 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[203491,388789]
+1792674340.915 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674340.915 GNSS: 0 polls, 0 with a fix
+1792674340.915 BMS: connected=yes valid=57 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674340.915 Free heap: 127592 bytes
+1792674340.915 
+1792674340.915 DASH {"seq":185,"up_ms":186896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2107],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674340.915 1792674341.219 [GNSS] no fix yet (mode=0)
+1792674341.219 [SYNC] pin=LOW  t=187344057 us
+1792674341.219 1792674341.837 [RIDE1] n=200 rms=9.750 std=0.026 p2p=0.118 crest=1.006 jerk=5.502 crossings=3 norm=n/a
+1792674341.837 [FUSED] src=1 only skew=0ms rms=9.750 std=0.026 p2p=0.118 jerk=5.502 dis=nan
+1792674341.837 [SYNC] pin=HIGH  t=187844229 us
+1792674341.837 DASH {"seq":186,"up_ms":187896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2100],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674341.837 1792674342.138 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.8C
+1792674342.138 1792674342.450 [SYNC] pin=LOW  t=188344052 us
+1792674342.450 1792674342.762 [RIDE1] n=200 rms=9.752 std=0.025 p2p=0.169 crest=1.007 jerk=6.343 crossings=5 norm=n/a
+1792674342.762 [FUSED] src=1 only skew=0ms rms=9.752 std=0.025 p2p=0.169 jerk=6.343 dis=nan
+1792674342.762 [SYNC] pin=HIGH  t=188844209 us
+1792674342.762 --- Acquisition stats (2s window) ---
+1792674342.762 IMU1 dropped=0
+1792674342.762 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674342.762 IMU health: rdfail0
+1792674342.762 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[205690,393000]
+1792674342.762 IMU recovery:=[0,0]
+1792674342.762 GNSS: 1 polls, 0 with a fix
+1792674342.762 BMS: connected=yes valid=58 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674342.762 Free heap: 127592 bytes
+1792674342.762 
+1792674342.762 1792674343.077 DASH {"seq":187,"up_ms":188896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2111],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674343.077 1792674343.388 [SYNC] pin=LOW  t=189344028 us
+1792674343.388 1792674343.993 [RIDE1] n=200 rms=9.751 std=0.027 p2p=0.142 crest=1.007 jerk=5.827 crossings=3 norm=n/a
+1792674343.993 [FUSED] src=1 only skew=0ms rms=9.751 std=0.027 p2p=0.142 jerk=5.827 dis=nan
+1792674343.993 [SYNC] pin=HIGH  t=189844212 us
+1792674343.993 DASH {"seq":188,"up_ms":189896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1097,2098],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674343.993 1792674344.300 [GNSS] no fix yet (mode=0)
+1792674344.300 [SYNC] pin=LOW  t=190344053 us
+1792674344.300 1792674344.923 [RIDE1] n=200 rms=9.751 std=0.026 p2p=0.133 crest=1.007 jerk=5.909 crossings=4 norm=n/a
+1792674344.923 [FUSED] src=1 only skew=0ms rms=9.751 std=0.026 p2p=0.133 jerk=5.909 dis=nan
+1792674344.923 [SYNC] pin=HIGH  t=190844217 us
+1792674344.923 --- Acquisition stats (2s window) ---
+1792674344.923 IMU1: 400 samples (200.0 Hz)717 avg=5012 max=ENABLE_IMU2 = 0)
+1792674344.923 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3800
+1792674344.923 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[207888,397213]
+1792674344.923 I] bus_restarts=[0,0]
+1792674344.923 GNSS: 1 polls, 0 with a fix
+1792674344.923 BMS: connected=yes valid=58 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674344.923 Free heap: 127592 bytes
+1792674344.923 
+1792674344.923 DASH {"seq":189,"up_ms":190896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2115],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674344.923 1792674345.225 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674345.225 [SYNC] pin=LOW  t=191344052 us
+1792674345.225 1792674345.844 [RIDE1] n=200 rms=9.750 std=0.027 p2p=0.167 crest=1.009 jerk=5.756 crossings=9 norm=n/a
+1792674345.844 [FUSED] src=1 only skew=0ms rms=9.750 std=0.027 p2p=0.167 jerk=5.756 dis=nan
+1792674345.844 [SYNC] pin=HIGH  t=191844209 us
+1792674345.844 DASH {"seq":190,"up_ms":191896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1099,2102],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674345.844 1792674346.458 [SYNC] pin=LOW  t=192344040 us
+1792674346.458 1792674346.774 [RIDE1] n=200 rms=9.754 std=0.026 p2p=0.142 crest=1.008 jerk=5.427 crossings=5 norm=n/a
+1792674346.774 [FUSED] src=1 only skew=0ms rms=9.754 std=0.026 p2p=0.142 jerk=5.427 dis=nan
+1792674346.774 [SYNC] pin=HIGH  t=192844218 us
+1792674346.774 --- Acquisition stats (2s wind
+1792674346.774 )  dt_us[min=4561 avg=5012 max=5449]  dropped=0
+1792674346.774 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674346.774 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3840
+1792674346.774 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[210086,401428]
+1792674346.774 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674346.774 GNSS: 0 polls, 0 with a fix
+1792674346.774 BMS: connected=yes valid=59 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674346.774 Free heap: 127592 bytes
+1792674346.774 
+1792674346.774 DASH {"seq":191,"up_ms":192896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1099,2113],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674346.774 1792674347.086 [GNSS] no fix yet (mode=0)
+1792674347.086 1792674347.395 [SYNC] pin=LOW  t=193344049 us
+1792674347.395 1792674348.021 [RIDE1] n=200 rms=9.751 std=0.029 p2p=0.157 crest=1.008 jerk=6.501 crossings=2 norm=n/a
+1792674348.021 [FUSED] src=1 only skew=0ms rms=9.751 std=0.029 p2p=0.157 jerk=6.501 dis=nan
+1792674348.021 [SYNC] pin=HIGH  t=193844220 us
+1792674348.021 DASH {"seq":192,"up_ms":193896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1099,2096],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674348.021 1792674348.327 [BMS] V=74.60V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674348.327 [SYNC] pin=LOW  t=194344052 us
+1792674348.327 1792674348.938 [RIDE1] n=200 rms=9.752 std=0.028 p2p=0.161 crest=1.010 jerk=6.520 cd=0.028 p2p=0.161 jerk=6.520 dis=nan
+1792674348.938 [SYNC] pin=HIGH  t=194844209 us
+1792674348.938 --- Acquisition stats (2s window) ---
+1792674348.938 IMU1: 400 samples (199.9 Hz)  dt_us[min=4696 avg=5012 max=5267]  dropped=0
+1792674348.938 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674348.938 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3880
+1792674348.938 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[212284,405633]
+1792674348.938 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674348.938 GNSS: 1 polls, 0 with a fix
+1792674348.938 BMS: connected=yes valid=60 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674348.938 Free heap: 127592 bytes
+1792674348.938 
+1792674348.938 DASH {"seq":193,"up_ms":194896,"fw":"0.7.8","soc":57,"v":74.60,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1099,2109],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674348.938 [AGPS] server refused after 11 ms (attempt 4)
+1792674348.938 1792674349.240 [SYNC] pin=LOW  t=195344056 us
+1792674349.240 1792674349.850 [RIDE1] n=200 rms=9.752 std=0.026 p2p=0.149 crest=1.008 jerk=6.334 crossings=5 norm=n/a
+1792674349.850 [FUSED] src=1 only skew=0ms rms=9.752 std=0.026 p2p=0.149 jerk=6.334 dis=nan
+1792674349.850 [SYNC] pin=HIGH  t=195844211 us
+1792674349.850 DASH {"seq":194,"up_ms":195896,"fw":"0.7.8","soc":57,"v":74.60,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2102],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674349.850 1792674350.154 [GNSS] no fix yet (mode=0)
+1792674350.154 1792674350.460 [SYNC] pin=LOW  t=196344056 us
+1792674350.460 1792674350.768 [RIDE1] n=200 rms=9.754 std=0.027 p2p=0.148 crest=1.007 jerk=5.484 crossings=4 norm=n/a
+1792674350.768 [FUSED] src=1 only skew=0ms rms=9.754 std=0.027 p2p=0.148 jerk=5.484 dis=nan
+1792674350.768 [SYNC] pin=HIGH  t=196844219 us
+1792674350.768 --- Acquisition stats (2s window) ---
+1792674350.768 IMU1: 400 samples (199.9 Hz)  dt_us[min=4715 avg=5 dropped=0
+1792674350.768 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674350.768 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3920
+1792674350.768 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[214496,409847]
+1792674350.768 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674350.768 GNSS: 1 polls, 0 with a fix
+1792674350.768 BMS: connected=yes valid=60 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674350.768 Free heap: 127592 bytes
+1792674350.768 
+1792674350.768 1792674351.071 DASH {"seq":195,"up_ms":196896,"fw":"0.7.8","soc":57,"v":74.60,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[3,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1107,2103],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674351.071 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674351.071 1792674351.374 [SYNC] pin=LOW  t=197344051 us
+1792674351.374 1792674351.993 [RIDE1] n=200 rms=9.750 std=0.027 p2p=0.162 crest=1.009 jerk=5.333 crossings=6 norm=n/a
+1792674351.993 [FUSED] src=1 only skew=0ms rms=9.750 std=0.027 p2p=0.162 jerk=5.333 dis=nan
+1792674351.993 [SYNC] pin=HIGH  t=197844211 us
+1792674351.993 DASH {"seq":196,"up_ms":197896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1093,2096],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674351.993 1792674352.304 [SYNC] pin=LOW  t=198344045 us
+1792674352.304 1792674352.906 [RIDE1] n=200 rms=9.753 std=0.026 p2p=0.141 crest=1.006 jerk=5.346 crossings=6 norm=n/a
+1792674352.906 [FUSED] src=1 only skew=0ms rms=9.753 std=0.026 p2p=0.141 jerk=5.346 dis=nan
+1792674352.906 [SYNC] pin=HIGH  t=198844217 us
+1792674352.906 --- Acquisition stats (2s window) ---
+1792674352.906  dropped=0
+1792674352.906 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674352.906 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=3960
+1792674352.906 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[216688,414049]
+1792674352.906 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674352.906 GNSS: 0 polls, 0 with a fix
+1792674352.906 BMS: connected=yes valid=61 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674352.906 Free heap: 127592 bytes
+1792674352.906 
+1792674352.906 DASH {"seq":197,"up_ms":198896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.2,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1095,2104],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674352.906 1792674353.222 [GNSS] no fix yet (mode=0)
+1792674353.222 [SYNC] pin=LOW  t=199344055 us
+1792674353.222 1792674353.834 [RIDE1] n=200 rms=9.754 std=0.027 p2p=0.175 crest=1.009 jerk=6.188 crossings=4 norm=n/a
+1792674353.834 [FUSED] src=1 only skew=0ms rms=9.754 std=0.027 p2p=0.175 jerk=6.188 dis=nan
+1792674353.834 [SYNC] pin=HIGH  t=199844232 us
+1792674353.834 DASH {"seq":198,"up_ms":199896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.2,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1092,2099],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674353.834 1792674354.148 [CELLPOS] not available (9) after 6 ms
+1792674354.148 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674354.148 1792674354.453 [SYNC] pin=LOW  t=200344051 us
+1792674354.453 1792674354.755 [RIDE1] n=200 rms=9.752 std=0.027 p2p=0.172 crest=1.006 jerk=5.512 crossings=2 norm=n/a
+1792674354.755 [FUSED] src=1 only skew=0ms rms=9.752 std=0.027 p2p=0.172 jerk=5.512 dis=nan
+1792674354.755 [SYNC] pin=HIGH  t=200844211 us
+1792674354.755 1792674355.066 --- Acquisition stats (2s window) ---
+1792674355.066 IMU1: 400 samples (200.0 Hz)  dt_us[min=4721 avg=5012 max=5 dropped=0
+1792674355.066 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674355.066 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=4000
+1792674355.066 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[218876,418254]
+1792674355.066 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674355.066 GNSS: 1 polls, 0 with a fix
+1792674355.066 BMS: connected=yes valid=62 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674355.066 Free heap: 127592 bytes
+1792674355.066 
+1792674355.066 DASH {"seq":199,"up_ms":200896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1097,2108],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674355.066 1792674355.371 [SYNC] pin=LOW  t=201344052 us
+1792674355.371 1792674355.983 [RIDE1] n=200 rms=9.753 std=0.027 p2p=0.144 crest=1.007 jerk=5.913 crossings=5 norm=n/a
+1792674355.983 [FUSED] src=1 only skew=0ms rms=9.753 std=0.027 p2p=0.144 jerk=5.913 dis=nan
+1792674355.983 [SYNC] pin=HIGH  t=201844211 us
+1792674355.983 DASH {"seq":200,"up_ms":201896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1100,2101],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674355.983 1792674356.283 [GNSS] no fix yet (mode=0)
+1792674356.284 [SYNC] pin=LOW  t=202344051 us
+1792674356.284 1792674356.898 [RIDE1] n=200 rms=9.751 std=0.027 p2p=0.134 crest=1.006 jerk=5.782 crossings=3 norm=n/a
+1792674356.898 [FUSED] src=1 only skew=0ms rms=9.751 std=0.027 p2p=0.134 jerk=5.782 dis=nan
+1792674356.898 [SYNC] pin=HIGH  t=202844228 us
+1792674356.898 --- Acquisition stats
+1792674356.898 IMU1: 400 samples (200.0 Hz)  dt_us[min=4715 avg=5012 max=5247]  dropped=0
+1792674356.898 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674356.898 IMU health: rdfail=[0,0] stuck=[5,0] rawdrop=[0,0] raw_lines=4040
+1792674356.898 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[221069,422465]
+1792674356.898 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674356.898 GNSS: 1 polls, 0 with a fix
+1792674356.898 BMS: connected=yes valid=62 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674356.898 Free heap: 127592 bytes
+1792674356.898 
+1792674356.898 DASH {"seq":201,"up_ms":202896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[5,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1094,2108],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674356.898 1792674357.204 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674357.204 [LOG] flushed 7 lines, 3787 bytes in 112.2 ms
+1792674357.204 1792674357.509 [SYNC] pin=LOW  t=203344037 us
+1792674357.509 1792674357.813 [RIDE1] n=200 rms=9.755 std=0.028 p2p=0.174 crest=1.008 jerk=5.836 crossings=6 norm=n/a
+1792674357.813 [FUSED] src=1 only skew=0ms rms=9.755 std=0.028 p2p=0.174 jerk=5.836 dis=nan
+1792674357.813 [SYNC] pin=HIGH  t=203844224 us
+1792674357.813 DASH {"seq":202,"up_ms":203896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[989,2103],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674357.813 1792674358.429 [SYNC] pin=LOW  t=204344044 us
+1792674358.429 1792674358.738 [RIDE1] n=200 rms=9.751 std=0.025 p2p=0.125 crest=1.007 jerk=5.621 crossings=6 norm=n/a
+1792674358.738 [FUSED] src=1 only skew=0ms rms=9.751 std=0.025 p2p=0.125 jerk=5.621 dis=nan
+1792674358.738 [SYNC] pin=HIGH  t=204844206 us
+1792674358.738 1792674359.040 --- Acquisition stats (2s win
+1792674359.040 IMU1: 401 samples (200 dropped=0
+1792674359.040 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674359.040 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[0,0] raw_lines=4081
+1792674359.040 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[223163,426687]
+1792674359.040 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674359.040 GNSS: 0 polls, 0 with a fix
+1792674359.040 BMS: connected=yes valid=63 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674359.040 Free heap: 127592 bytes
+1792674359.040 
+1792674359.040 DASH {"seq":203,"up_ms":204896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[200.1,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1099,2110],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674359.040 [GNSS] no fix yet (mode=0)
+1792674359.040 1792674359.355 [SYNC] pin=LOW  t=205344060 us
+1792674359.355 1792674359.974 [RIDE1] n=200 rms=9.750 std=0.027 p2p=0.149 crest=1.009 jerk=5.913 crossings=5 norm=n/a
+1792674359.974 [FUSED] src=1 only skew=0ms rms=9.750 std=0.027 p2p=0.149 jerk=5.913 dis=nan
+1792674359.974 [SYNC] pin=HIGH  t=205844223 us
+1792674359.974 DASH {"seq":204,"up_ms":205896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.1,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2107],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674359.974 1792674360.289 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674360.289 [SYNC] pin=LOW  t=206344052 us
+1792674360.289 1792674360.901 [RIDE1] n=200 rms=9.750 std=0.027 p2p=0.157 crest=1.009 jerk=5.608 crossings=5 norm=n/a
+1792674360.901 [FUSED] src=1 only skew=0ms rms=9.750 std=0.027 p2p=0.157 jerk=5.608 dis=nan
+1792674360.901 [SYNC] pin=HIGH  t=206844211 us
+1792674360.901 --- Acquisition stats (2s window) ---
+1792674360.901 IMU1: 400 sampl dropped=0
+1792674360.901 IMU2: disabled in this build (ENABLEawdrop=[0,0] raw_lines=4121
+1792674360.901 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[225365,430905]
+1792674360.901 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674360.901 GNSS: 1 polls, 0 with a fix
+1792674360.901 BMS: connected=yes valid=64 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674360.901 Free heap: 127592 bytes
+1792674360.901 
+1792674360.901 DASH {"seq":205,"up_ms":206896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2111],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674360.901 1792674361.508 [SYNC] pin=LOW  t=207344044 us
+1792674361.508 1792674361.812 [RIDE1] n=200 rms=9.751 std=0.028 p2p=0.142 crest=1.008 jerk=5.695 crossings=4 norm=n/a
+1792674361.812 [FUSED] src=1 only skew=0ms rms=9.751 std=0.028 p2p=0.142 jerk=5.695 dis=nan
+1792674361.812 [SYNC] pin=HIGH  t=207844206 us
+1792674361.812 DASH {"seq":206,"up_ms":207896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1100,2100],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674361.812 1792674362.126 [GNSS] no fix yet (mode=0)
+1792674362.126 1792674362.427 [SYNC] pin=LOW  t=208344056 us
+1792674362.427 1792674362.730 [RIDE1] n=200 rms=9.752 std=0.025 p2p=0.142 crest=1.007 jerk=5.892 crossings=5 norm=n/a
+1792674362.730 [FUSED] src=1 only skew=0ms rms=9.752 std=0.025 p2p=0.142 jerk=5.892 dis=nan
+1792674362.730 [SYNC] pin=HIGH  t=208844233 us
+1792674362.730 1792674363.040 --- Acquisition stats (2s window) ---
+1792674363.040 IMU1 dropped=0
+1792674363.040 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674363.040 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[0,0] raw_lines=4161
+1792674363.040 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[227567,435125]
+1792674363.040 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674363.040 GNSS: 1 polls, 0 with a fix
+1792674363.040 BMS: connected=yes valid=64 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674363.040 Free heap: 127592 bytes
+1792674363.040 
+1792674363.040 DASH {"seq":207,"up_ms":208896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2120],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674363.040 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674363.040 1792674363.343 [SYNC] pin=LOW  t=209344052 us
+1792674363.343 1792674363.960 [RIDE1] n=200 rms=9.753 std=0.027 p2p=0.129 crest=1.006 jerk=5.964 crossings=3 norm=n/a
+1792674363.960 [FUSED] src=1 only skew=0ms rms=9.753 std=0.027 p2p=0.129 jerk=5.964 dis=nan
+1792674363.960 [SYNC] pin=HIGH  t=209844209 us
+1792674363.960 DASH {"seq":208,"up_ms":209896,"fw":"0.7.8","i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1099,2096],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674363.960 1792674364.267 [SYNC] pin=LOW  t=210344058 us
+1792674364.267 1792674364.882 [RIDE1] n=200 rms=9.748 std=0.028 p2p=0.175 crest=1.009 jerk=5.617 crossings=4 norm=n/a
+1792674364.882 [FUSED] src=1 only skew=0ms rms=9.748 std=0.028 p2p=0.175 jerk=5.617 dis=nan
+1792674364.882 [SYNC] pin=HIGH  t=210844218 us
+1792674364.882 --- Acquisition stats (2s window) ---
+1792674364.882 IMU1: 400 samples (199.9 Hz)  dt_us[min=468 dropped=0
+1792674364.882 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674364.882 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[0,0] raw_lines=4201
+1792674364.882 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[229766,439338]
+1792674364.882 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674364.882 GNSS: 0 polls, 0 with a fix
+1792674364.882 BMS: connected=yes valid=65 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674364.882 Free heap: 127592 bytes
+1792674364.882 
+1792674364.882 DASH {"seq":209,"up_ms":210896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2117],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674364.882 1792674365.186 [GNSS] no fix yet (mode=0)
+1792674365.186 1792674365.487 [SYNC] pin=LOW  t=211344059 us
+1792674365.487 1792674365.798 [RIDE1] n=200 rms=9.749 std=0.025 p2p=0.140 crest=1.007 jerk=6.005 crossings=6 norm=n/a
+1792674365.798 [FUSED] src=1 only skew=0ms rms=9.749 std=0.025 p2p=0.140 jerk=6.005 dis=nan
+1792674365.798 [SYNC] pin=HIGH  t=211844227 us
+1792674365.798 DASH {"seq":210,"up_ms":211896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.025,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2109],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674365.798 1792674366.107 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674366.107 1792674366.409 [SYNC] pin=LOW  t=212344052 us
+1792674366.409 1792674366.723 [RIDE1] n=200 rms=9.749 std=0.028 p2p=0.136 crest=1.007 jerk=6.469 crossings=2 norm=n/a
+1792674366.723 [FUSED] src=1 only skew=0ms rms=9.749 std=0.028 p2p=0.136 jerk=6.469 dis=nan
+1792674366.723 [SYNC] pin=HIGH  t=212844203 us
+1792674366.723 1792674367.025 --- Acquisition stats (2s window) ---
+1792674367.025 IMU1: 400 samples (200.0 Hz)  dt_usabled in this build (ENABLE_IMU2 = 0)
+1792674367.025 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[0,0] raw_lines=4241
+1792674367.025 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[231970,443554]
+1792674367.025 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674367.025 GNSS: 1 polls, 0 with a fix
+1792674367.025 BMS: connected=yes valid=66 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674367.025 Free heap: 127592 bytes
+1792674367.025 
+1792674367.025 DASH {"seq":211,"up_ms":212896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[6,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1102,2111],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674367.025 1792674367.339 [SYNC] pin=LOW  t=213344058 us
+1792674367.339 1792674367.953 [RIDE1] n=200 rms=9.753 std=0.029 p2p=0.158 crest=1.008 jerk=6.614 crossings=7 norm=n/a
+1792674367.953 [FUSED] src=1 only skew=0ms rms=9.753 std=0.029 p2p=0.158 jerk=6.614 dis=nan
+1792674367.953 [SYNC] pin=HIGH  t=213844209 us
+1792674367.953 DASH {"seq":212,"up_ms":213896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[200.0,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1091,2101],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674367.953 1792674368.255 [GNSS] no fix yet (mode=0)
+1792674368.255 [SYNC] pin=LOW  t=214344059 us
+1792674368.255 1792674368.867 [RIDE1] n=200 rms=9.753 std=0.027 p2p=0.146 crest=1.007 jerk=5.999 crossings=1 norm=n/a
+1792674368.867 [FUSED] src=1 only skew=0ms rms=9.753 std=0.027 p2p=0.146 jerk=5.999 dis=nan
+1792674368.867 [SYNC] pin=HIGH  t=214844234 us
+1792674368.867 --- Acquisition stats (2s window) ---
+1792674368.867 IMU1: 400 samples (199.8 Hz)   dropped=0
+1792674368.867 IMU2: disabled in this build (ENABLIMU health: rdfail=[0,0] stuck=[10,0] acing: late=[0,0] qmax=[5,0] idle_calls=[234167,447778]
+1792674368.867 IMU reco: 1 polls, 0 with a fix
+1792674368.867 BMS: connected=yes valid=66 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674368.867 Free heap: 127592 bytes
+1792674368.867 
+1792674368.867 DASH {"seq":213,"up_ms":214896,"fw":"0.7.8","soc":5i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.8,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2109],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674368.867 1792674369.175 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674369.175 1792674369.485 [SYNC] pin=LOW  t=215344052 us
+1792674369.485 1792674369.787 [RIDE1] n=200 rms=9.754 std=0.027 p2p=0.154 crest=1.007 jerk=6.145 crossings=5 norm=n/a
+1792674369.787 [FUSED] src=1 only skew=0ms rms=9.754 std=0.027 p2p=0.154 jerk=6.145 dis=nan
+1792674369.787 [SYNC] pin=HIGH  t=215844203 us
+1792674369.787 DASH {"seq":214,"up_ms":215896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.8,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1096,2099],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674369.787 1792674370.394 [SYNC] pin=LOW  t=216344031 us
+1792674370.394 1792674371.012 [RIDE1] n=200 rms=9.755 std=0.033 p2p=0.249 crest=1.015 jerk=7.897 crossings=5 norm=n/a
+1792674371.012 [FUSED] src=1 only skew=0ms rms=9.755 std=0.033 p2p=0.249 jerk=7.897 dis=nan
+1792674371.012 [SYNC] pin=HIGH  t=216844214 us
+1792674371.012 --- A
+1792674371.012 IMU1: 401 samples (200.3 Hz)  dt_us[min=4534 avg=5012 max=54 dropped=0
+1792674371.012 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674371.012 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[_lines=4321
+1792674371.012 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[236372,451994]
+1792674371.012 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674371.012 GNSS: 0 polls, 0 with a fix
+1792674371.012 BMS: connected=yes valid=67 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674371.012 Free heap: 127592 bytes
+1792674371.012 
+1792674371.012 DASH {"seq":215,"up_ms":216896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.0ib_dis":null,"imu_hz":[200.3,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1105,2117],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674371.012 1792674371.314 [GNSS] no fix yet (mode=0)
+1792674371.314 [SYNC] pin=LOW  t=217344061 us
+1792674371.314 1792674371.925 [RIDE1] n=200 rms=9.753 std=0.039 p2p=0.335 crest=1.017 jerk=8.348 crossings=4 norm=n/a
+1792674371.925 [FUSED] src=1 only skew=0ms rms=9.753 std=0.039 p2p=0.335 jerk=8.348 dis=nan
+1792674371.925 [SYNC] pin=HIGH  t=217844218 us
+1792674371.925 DASH {"seq":216,"up_ms":217896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.039,"vib_dis":null,"imu_hz":[200.3,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1104,2097],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674371.925 1792674372.227 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674372.227 [SYNC] pin=LOW  t=218344051 us
+1792674372.227 1792674372.838 [RIDE1] n=200 rms=9.754 std=0.029 p2p=0.172 crest=1.00s rms=9.754 std=0.029 p2p=0.172 jerk=5.729 dis=nan
+1792674372.838 [SYNC] pin=HIGH  t=218844207 us
+1792674372.838 --- A
+1792674372.838 IMU1: 400 samples (199.8 Hz)  dt_us[min=4 dropped=0
+1792674372.838 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674372.838 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[0,0] raw_lines=4361
+1792674372.838 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[238574,456210]
+1792674372.838 IMU rey: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674372.838 GNSS: 1 polls, 0 with a fix
+1792674372.838 BMS: connected=yes valid=68 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674372.838 Free heap: 127592 bytes
+1792674372.838 
+1792674372.838 DASH {"seq":217,i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[199.8,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"raw1792674373.454 drop":[0,0],"cons_age_ms":[1,3,-1],"qmax":[5,0],"late":[0,0],"idle":[1096,2112],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674373.454 [SYNC] pin=LOW  t=219344045 us
+1792674373.454 1792674373.763 [RIDE1] n=200 rms=9.752 std=0.027 p2p=0.143 crest=1.007 jerk=5.784 crossings=6 norm=n/a
+1792674373.763 [FUSED] src=1 only skew=0ms rms=9.752 std=0.027 p2p=0.143 jerk=5.784 dis=nan
+1792674373.763 [SYNC] pin=HIGH  t=219844217 us
+1792674373.763 1792674374.076 DASH {"seq":218,"up_ms":219896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.8,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1096,2105],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674374.076 1792674374.381 [GNSS] no fix yet (mode=0)
+1792674374.381 [SYNC] pin=LOW  t=220344057 us
+1792674374.381 1792674374.993 [RIDE1] n=200 rms=9.754 std=0.028 p2p=0.144 crest=1.006 jerk=6.134 crossings=2 norm=n/a
+1792674374.993 [FUSED] src=1 only skew=0ms rms=9.754 std=0.028 p2p=0.144 jerk=6.134 dis=nan
+1792674374.993 [SYNC] pin=HIGH  t=220844231 us
+1792674374.993 DASH {"seq":219,"up_ms":220896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[199.8,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1103,2097],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674374.993 --- Acquisition stats (2s window) ---
+1792674374.993 IMU1: 400 samples (199.9 Hz)  dt_us[min=4631 avg=5012 max=5305]  dropped=0
+1792674374.993 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674374.993 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[0,0] raw_lines=4401
+1792674374.993 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[240777,460439]
+1792674374.993 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674374.993 GNSS: 1 polls, 0 with a fix
+1792674374.993 BMS: connected=yes valid=68 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674374.993 Free heap: 127592 bytes
+1792674374.993 
+1792674374.993 1792674375.302 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674375.302 [SYNC] pin=LOW  t=221344052 us
+1792674375.302 1792674375.914 [RIDE1] n=200 rms=9.753 std=0.029 p2p=0.140 crest=1.007 jerk=6.159 crossings=2 norm=n/a
+1792674375.914 [FUSED] src=1 only skew=0ms rms=9.753 std=0.029 p2p=0.140 jerk=6.159 dis=nan
+1792674375.914 [SYNC] pin=HIGH  t=221844207 us
+1792674375.914 DASH {"seq":220,"up_ms":221897,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2110],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674375.914 1792674376.224 [SYNC] pin=LOW  t=222344062 us
+1792674376.224 1792674376.836 [RIDE1] n=200 rms=9.753 std=0.026 p2p=0.136 crest=1.007 jerk=6.323 crossings=3 norm=n/a
+1792674376.836 [FUSED] src=1 only skew=0ms rms=9.753 std=0.026 p2p=0.136 jerk=6.323 dis=nan
+1792674376.836 [SYNC] pin=HIGH  t=222844206 us
+1792674376.836 DASH {"seq":221,"up_ms":222896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[0,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1096,2099],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674376.836 --- Acquisition stats (2s window) ---
+1792674376.836 IMU1: 401 samples (200.1 Hz)  dt_us[min=4745 avg=5012 max=5265]  dropped=0
+1792674376.836 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674376.836 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[0,0] raw_lines=4441
+1792674376.836 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[242975,464658]
+1792674376.836 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674376.836 GNSS: 0 polls, 0 with a fix
+1792674376.836 BMS: connected=yes valid=69 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674376.836 Free heap: 127592 bytes
+1792674376.836 
+1792674376.836 1792674377.138 [GNSS] no fix yet (mode=0)
+1792674377.138 1792674377.447 [SYNC] pin=LOW  t=223344053 us
+1792674377.447 1792674377.755 [RIDE1] n=200 rms=9.751 std=0.034 p2p=0.236 crest=1.011 jerk=7.472 crossings=5 norm=n/a
+1792674377.755 [FUSED] src=1 only skew=0ms rms=9.751 std=0.034 p2p=0.236 jerk=7.472 dis=nan
+1792674377.755 1792674378.068 [SYNC] pin=HIfw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.034,"vib_dis":null,"imu_hz":[200.1,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[3,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1098,2121],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674378.068 [BMS] V=74.60V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674378.068 1792674378.372 [SYNC] pin=LOW  t=224344022 us
+1792674378.372 1792674378.992 [RIDE1] n=200 rms=9.751 std=0.026 p2p=0.157 crest=1.010 jerk=5.412 crossings=6 norm=n/a
+1792674378.992 [FUSED] src=1 only skew=0ms rms=9.751 std=0.026 p2p=0.157 jerk=5.412 dis=nan
+1792674378.992 [SYNC] pin=HIGH  t=224844204 us
+1792674378.992 DASH {"seq":223,"up_ms":224896,"fw":"0.7.8","soc":57,"v":74.60,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.1,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[3,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1083,2094],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674378.992 --- Acquisition s
+1792674378.992 ax=5517]  dropped=0
+1792674378.992 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674378.992 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[0,0] raw_lines=4481
+1792674378.992 IMU pacing: late=[0,0] qmax=[5,0] i79]
+1792674378.992 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674378.992 GNSS: 1 polls, 0 with a fix
+1792674378.992 BMS: connected=yes valid=70 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674378.992 Free heap: 127592 bytes
+1792674378.992 
+1792674378.992 1792674379.298 [SYNC] pin=LOW  t=225344033 us
+1792674379.298 1792674379.921 [RIDE1] n=200 rms=9.749 std=0.027 p2p=0.181 crest=1.011 jerk=6.204 crossings=5 norm=n/a
+1792674379.921 [FUSED] src=1 only skew=0ms rms=9.749 std=0.027 p2p=0.181 jerk=6.204 dis=nan
+1792674379.921 [SYNC] pin=HIGH  t=225844207 us
+1792674379.921 DASH {"seq":224,"up_ms":225896,"fw":"0.7.8","soc":57,"v":74.60,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[200.3,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1102,2117],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674379.921 1792674380.221 [GNSS] no fix yet (mode=0)
+1792674380.221 [SYNC] pin=LOW  t=226344045 us
+1792674380.221 1792674380.830 [RIDE1] n=200 rms=9.751 std=0.026 p2p=0.159 crest=1.008 jerk=5.637 crossings=4 norm=n/a
+1792674380.830 [FUSED] src=1 only skew=0ms rms=9.751 std=0.026 p2p=0.159 jerk=5.637 dis=nan
+1792674380.830 [SYNC] pin=HIGH  t=226844214 us
+1792674380.830 DASH {"seq":225,"up_ms":226896,"fw":"0.7.8","soc":57,"v":74.60,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.026,"vib_dis":null,"imu_hz":[200.3,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[2,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1104,2105],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674380.830 --- Acquisition stats (2s window) ---
+1792674380.830 IMU1: 400 samples (199.9 Hz)  dt_us[min=4704 avg=5012 max=5239]  dropped=0
+1792674380.830 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674380.830 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[0,0] raw_lines=4521
+1792674380.830 IMU pacing: late=[0,0]alls=[247365,473101]
+1792674380.830 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674380.830 GNSS: 1 polls, 0 with a fix
+1792674380.830 BMS: connected=yes valid=70 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674380.830 Free heap: 127592 bytes
+1792674380.830 
+1792674380.830 1792674381.141 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674381.141 1792674381.444 [SYNC] pin=LOW  t=227344041 us
+1792674381.444 1792674381.746 [RIDE1] n=200 rms=9.752 std=0.028 p2p=0.164 crest=1.009 jerk=5.723 crossings=5 norm=n/a
+1792674381.746 [FUSED] src=1 only skew=0ms rms=9.752 std=0.028 p2p=0.164 jerk=5.723 dis=nan
+1792674381.746 [SYNC] pin=HIGH  t=227844213 us
+1792674381.746 1792674382.049 DASH {"seq":226,"up_ms":227896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":0.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.028,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1097,2102],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674382.049 1792674382.352 [SYNC] pin=LOW  t=228344047 us
+1792674382.352 1792674382.965 [RIDE1] n=200 rms=9.752 std=0.029 p2p=0.165 crest=1.010 jerk=5.497 crossings=5 norm=n/a
+1792674382.965 [FUSED] src=1 only skew=0ms rms=9.752 std=0.029 p2p=0.165 jerk=5.497 dis=nan
+1792674382.965 [SYNC] pin=HIGH  t=228844209 us
+1792674382.965 DASH {"seq":227,"up_ms":228896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":1.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.029,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[1,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1101,2099],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674382.965 IMU1: 400 samples (199.9 Hz)  dt_us[min=4596 avg=5012 max=5463]  dropped=0
+1792674382.965 IMU2: disabled in this build (ENABLE_IMU2 = 0)
+1792674382.965 IMU health: rdfail=[0,0] stuck=[10,0] rawdrop=[0,0] raw_lines=4561
+1792674382.965 IMU pacing: late=[0,0] qmax=[5,0] idle_calls=[249564,477295]
+1792674382.965 IMU recovery: up=[1,-1] reinit=[0,0] tries=[0,0] bus_restarts=[0,0]
+1792674382.965 GNSS: 0 polls, 0 with a fix
+1792674382.965 BMS: connected=yes valid=71 checksum_fail=0 disconnects=0 reconnects=1 dropped=0
+1792674382.965 Free heap: 127592 bytes
+1792674382.965 
+1792674382.965 1792674383.277 [GNSS] no fix yet (mode=0)
+1792674383.277 [SYNC] pin=LOW  t=229344069 us
+1792674383.277 1792674383.895 [RIDE1] n=200 rms=9.754 std=0.027 p2p=0.152 crest=1.007 jerk=5.614 crossings=2 norm=n/a
+1792674383.895 [FUSED] src=1 only skew=0ms rms=9.754 std=0.027 p2p=0.152 jerk=5.614 dis=nan
+1792674383.895 [SYNC] pin=HIGH  t=229844221 us
+1792674383.895 DASH {"seq":228,"up_ms":229896,"fw":"0.7.8","soc":57,"v":74.61,"i":0.00,"bms_age_s":2.7,"fix":false,"lat":null,"lon":null,"spd_raw":null,"crs":null,"alt":null,"vib":0.027,"vib_dis":null,"imu_hz":[199.9,0.0],"drops":[0,0],"rpm":null,"csq":null,"mqtt":false,"cell_lat":null,"cell_lon":null,"cell_acc_m":null,"cell_age_s":null,"agps":false,"node":"rear","rdfail":[0,0],"stuck":[10,0],"rawdrop":[0,0],"cons_age_ms":[4,2,-1],"qmax":[5,0],"late":[0,0],"idle":[1104,2117],"reinit":[0,0],"imu_up":[1,-1],"cmd":[0,0,0,0]}
+1792674383.895 1792674384.200 [BMS] V=74.61V I=0.00A SOC=57% cap=57.47/100.00Ah flags=0x0000 mos=19.7C t1=18.6C t2=18.7C
+1792674384.200 1792674384.502 [SYNC] pin=LOW  t=230344050 us
+1792674384.502 

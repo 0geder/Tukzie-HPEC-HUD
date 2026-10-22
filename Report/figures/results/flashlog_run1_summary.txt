@@ -1,0 +1,51 @@
+dump lines 2000, parsed 1998, unparsable 2
+  boot 109: fw 0.7.4, 1154 records, uptime 1.30 to 8.73 h
+  boot 114: fw 0.7.4, 19 records, uptime 0.01 to 0.08 h
+  boot 115: fw 0.7.4, 309 records, uptime 0.01 to 0.96 h
+  boot 116: fw 0.7.4, 7 records, uptime 0.01 to 0.04 h
+  boot 119: fw 0.7.4, 19 records, uptime 0.01 to 0.08 h
+  boot 125: fw 0.7.4.1, 141 records, uptime 0.00 to 0.42 h
+  boot 127: fw 0.7.4.1, 26 records, uptime 0.00 to 0.09 h
+  boot 133: fw 0.7.4.1, 44 records, uptime 0.00 to 0.19 h
+  boot 134: fw 0.7.4.1, 15 records, uptime 0.03 to 0.15 h
+  boot 136: fw 0.7.4.1, 42 records, uptime 0.03 to 0.35 h
+  boot 137: fw 0.7.4.1, 222 records, uptime 0.04 to 1.65 h
+boot 109: 1154 records, seq 32952 to 34119 (1168 expected, 14 not parsed or not read)
+record spacing (consecutive seq only): min 10.0 s, median 28.0 s, p95 58.1 s, max 58.1 s; nominal 10 s
+  spacing <= 10.5 s in 553 of 1139 intervals; mean 23.2 s
+uptime to epoch offset (median of 10287 recorder rows) 1792418444.2 s, spread p5..p95 -0.01..0.02 s
+boot 109 spans 19 Oct 17:18 to 20 Oct 00:44 local time
+recorder rear current min -46.89 A; flash log current min -48.03 A, max 0.00 A
+voltage 74.58 to 72.66 V; SOC 60 to 58 %
+driving records (|I|>1 A) 26, parked 1046, current missing 0
+  other (|I|<=1 A, fused std > 0.3): 82, of which 18 inside the drive period and 64 outside it
+  other outside the drive period: fused std median 1.07, max 4.99; times 18:04 to 00:43
+  records in the drive period 110 (44.0 min)
+  driving records between 18:10:13 and 18:54:12
+  driving current median -8.12 A
+
+per-IMU 1 s features, median [p95] (max): parked | driving
+  imu1 rms  : 10.035 [10.082] (10.564) | 10.291 [11.204] (11.379)  n=1046|26
+  imu1 std  : 0.029 [0.162] (0.305) | 2.188 [4.525] (4.877)  n=1046|26
+  imu1 p2p  : 0.162 [0.726] (2.760) | 13.924 [21.672] (25.851)  n=1046|26
+  imu1 crest: 1.008 [1.034] (1.158) | 1.623 [2.089] (2.324)  n=1046|26
+  imu1 jerk : 6.390 [35.198] (53.938) | 259.313 [439.356] (811.438)  n=1046|26
+  imu2 rms  : 10.342 [10.369] (10.855) | 10.598 [11.339] (11.351)  n=1046|26
+  imu2 std  : 0.031 [0.113] (0.417) | 2.023 [4.223] (4.362)  n=1046|26
+  imu2 p2p  : 0.175 [0.499] (6.879) | 11.464 [20.381] (24.804)  n=1046|26
+  imu2 crest: 1.009 [1.026] (1.399) | 1.513 [1.950] (2.289)  n=1046|26
+  imu2 jerk : 6.905 [23.377] (52.649) | 248.460 [382.385] (523.819)  n=1046|26
+  fused std  : 0.030 [0.131] (0.299) | 2.089 [4.396] (4.591)
+  fused dis  : 0.067 [0.825] (1.734) | 0.074 [0.241] (0.345)
+  fused p2p  : 0.167 [0.599] (3.550) | 12.303 [20.721] (25.328)
+  fused jerk : 6.607 [28.673] (43.488) | 243.923 [401.940] (667.628)
+  fused src values: {np.float64(3.0): np.int64(1154)}
+
+driving: IMU1/IMU2 std ratio median 1.06 (p5 0.91, p95 1.27); Pearson r 0.97 (log 0.98), n=26
+driving: IMU1 std > IMU2 std in 18 of 26 records
+other in drive period: IMU1/IMU2 std ratio median 0.98, r 0.98, n=18
+fused dis, other in drive period: median 0.077, p95 0.259
+parked: IMU1/IMU2 std ratio median 0.96
+parked rms (gravity reading): IMU1 median 10.035, IMU2 10.342 m/s^2
+parked 21:00 to 22:40: 235 records, sigma median IMU1 0.136, IMU2 0.078; IMU1 p5..p95 0.027..0.178, IMU2 0.031..0.137
+parked outside 21:00 to 22:40: sigma median IMU1 0.028, IMU2 0.030

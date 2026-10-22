@@ -1,7 +1,7 @@
 \chapter{Wiring and Connections}
 \label{app:wiring}
 
-This appendix records how every part of the system is connected, so that it can be rebuilt or checked from this document alone. Each table gives both ends of each wire by connector, pin number and signal. The pin assignments come from the firmware (\texttt{TelemetryUnit/src/main.cpp}), the time-of-flight reader (\texttt{CameraDetection/tof\_reader.py}) and the bench procedures (\texttt{BenchTest/TEST\_PROCEDURES.md}), and the pin positions from the manufacturers' documents reproduced in the figures. Connections not yet made on the hardware are marked as planned. Tables~\ref{tab:wiring-tof} to~\ref{tab:wiring-other} give, in turn, the Raspberry Pi~4 to the time-of-flight board (Table~\ref{tab:wiring-tof}), the telemetry unit to the Raspberry Pi~4 (Table~\ref{tab:wiring-esp-pi}), the IMUs (Table~\ref{tab:wiring-imu}), the telemetry unit's other connections (Table~\ref{tab:wiring-esp-other}), the planned SEN55 (Table~\ref{tab:wiring-sen55}) and the camera, displays and power (Table~\ref{tab:wiring-other}).
+This appendix records how every part of the system is connected, so that it can be rebuilt or checked from this document alone. Each table gives both ends of each wire by connector, pin number and signal. The pin assignments come from the firmware (\texttt{TelemetryUnit/src/main.cpp}), the time-of-flight reader (\texttt{CameraDetection/tof\_reader.py}) and the bench procedures (\texttt{BenchTest/TEST\_PROCEDURES.md}), and the pin positions from the manufacturers' documents reproduced in the figures. Connections not yet made on the hardware are marked as planned. Tables~\ref{tab:wiring-tof} to~\ref{tab:wiring-other} give, in turn, the Raspberry Pi~4 to the time-of-flight board (Table~\ref{tab:wiring-tof}), the telemetry unit to the Raspberry Pi~4 (Table~\ref{tab:wiring-esp-pi}), the IMUs (Table~\ref{tab:wiring-imu}), the telemetry unit's other connections (Table~\ref{tab:wiring-esp-other}), the SEN55 as first planned (Table~\ref{tab:wiring-sen55}) and the camera, displays and power (Table~\ref{tab:wiring-other}). The start-up and interface checks run on these connections are in Table~\ref{tab:startup-checks}.
 
 \section{Pin references}
 
@@ -56,24 +56,30 @@ If a cooling fan uses Pi pins 4 and 6, the sensor ground goes to pin 14. The sen
 
 \begin{table}[htbp]
 \centering
-\caption{ESP32-S3 board to Raspberry Pi 4.}
+\caption{ESP32-S3 board (rear node) to Raspberry Pi 4, from 21 October 2026.}
 \label{tab:wiring-esp-pi}
-\begin{tabular}{|p{3.2cm}|p{4.2cm}|p{4.2cm}|}
+\begin{tabular}{|p{3.6cm}|p{4.2cm}|p{4.2cm}|}
 \hline
 \textbf{Link} & \textbf{ESP32-S3 board} & \textbf{Raspberry Pi 4} \\ \hline
-Data and 5\,V (telemetry lines, \texttt{/dev/ttyACM0}) & ``ESP32-S3 USB native'' USB-C port & any USB port, through a powered USB hub \\ \hline
+UART, ESP32 to Pi (460\,800\,baud, \texttt{/dev/serial0}) & IO41, TX & pin 10, GPIO15 (RXD) \\ \hline
+UART, Pi to ESP32 (commands) & IO42, RX & pin 8, GPIO14 (TXD) \\ \hline
 Time-sync pulse (3.3\,V logic) & J5 pin 5, GPIO15 & pin 11, GPIO17 \\ \hline
-Ground for the pulse & J5 pin 12, GND & pin 9, Ground \\ \hline
+Ground & J5 pin 12, GND & pin 6 or 9, Ground \\ \hline
+Supply & its own LiPo battery & no 5\,V or 3.3\,V wire between the boards \\ \hline
 \end{tabular}
 \end{table}
 
-The powered hub is required: with the board powered from the Pi's own USB port, the LTE modem's transmit current caused repeated under-voltage on the Raspberry Pi~4 (Section~\ref{sec:pi5-default} and Chapter~\ref{chap:design}). The two boards' 3.3\,V logic levels match, so the pulse wire connects directly.
+Until 21 October the board was powered and read over USB from the Pi (\texttt{/dev/ttyACM0}). Its LTE modem, drawing through the Pi's USB port, caused repeated under-voltage on the Raspberry Pi~4 (Section~\ref{sec:inv-power}), and about a third of the per-second records were lost on that link on the road session of 19 October. For the UART the Pi's Bluetooth is disabled, so that its full PL011 UART is on GPIO14 and 15. Both sides use 3.3\,V logic, so no level shifter is needed. On its own LiPo the board browned out during modem transmit bursts on 21 October, so it still needs a regulated supply.
+
+\section{Front inertial node to the Raspberry Pi 5}
+
+From 22 October the second MPU6050 is on a separate ESP32-S3 board, the front node, wired to its GPIO8 (SDA) and GPIO9 (SCL) with short wires. The node connects to the Raspberry Pi~5 by USB at 921\,600\,baud, which also powers it, and its 500\,ms sync pulse goes from its GPIO5 to Pi~5 pin~11. The rear board then keeps IMU1 only.
 
 \section{Telemetry unit sensors and antennas}
 
 \begin{table}[htbp]
 \centering
-\caption{ESP32-S3 board to the two MPU6050 inertial sensors. Each sensor has its own I\textsuperscript{2}C bus, so both use address 0x68 (AD0 left low).}
+\caption{ESP32-S3 board to the two MPU6050 inertial sensors, as used up to 22 October 2026. Each sensor has its own I\textsuperscript{2}C bus, so both use address 0x68 (AD0 left low). From 22 October IMU2 is on the front node and the rear board has IMU1 only.}
 \label{tab:wiring-imu}
 \begin{tabular}{|l|l|l|}
 \hline
@@ -103,7 +109,7 @@ Battery management system & Bluetooth Low Energy, no wire & board within about 1
 
 \begin{table}[htbp]
 \centering
-\caption{Sensirion SEN55 to the ESP32-S3 board (planned, not yet connected or tested; Figure~\ref{fig:sen5x-pinout}). The sensor shares IMU2's bus; its address, 0x69, does not clash with the MPU6050 at 0x68.}
+\caption{Sensirion SEN55 to the ESP32-S3 board as first planned (Figure~\ref{fig:sen5x-pinout}); its address, 0x69, does not clash with the MPU6050 at 0x68. The sensor came without its cable and was instead to share the Raspberry Pi~4's I\textsuperscript{2}C bus through wires soldered to its test pads. The supply pad lifted, and the sensor never answered at 0x69, so it is future work (Chapter~\ref{chap:recs}).}
 \label{tab:wiring-sen55}
 \begin{tabular}{|l|l|l|}
 \hline
@@ -139,3 +145,30 @@ Network & dedicated Ethernet cable between the two Pis, fixed addresses 10.20.0.
 \section{Wiring checks}
 
 Before power is applied: every board is switched off and unplugged; each wire is checked end to end with a multimeter on continuity; 3.3\,V and ground are checked not to be shorted; and each bundle is tied and fixed close to the board, so that a pull on the cable is taken by the tie and not by the header pins, since loose jumpers came off twice during bench testing. After power-up, the pre-test check (\texttt{BenchTest/sw7\_check.py}) reports each link: telemetry from the ESP32, the three time-of-flight readings, the camera rate and the Raspberry Pi~4's power and temperature flags.
+
+\section{Start-up and interface checks}
+
+The routine checks that establish each interface before the higher-level tests are in Table~\ref{tab:startup-checks}. They are pass or fail, and all passed; the faults they exposed are in Table~\ref{tab:faults}.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Start-up and interface checks (bench).}
+\label{tab:startup-checks}
+\begin{tabular}{|p{3.4cm}|p{6.2cm}|p{4.4cm}|}
+\hline
+\textbf{Check} & \textbf{Evidence required} & \textbf{Result} \\ \hline
+Processor boot & Versioned banner, continuous status, no reset loop; bounded wait for a USB host & Pass \\ \hline
+Flash configuration & 16\,MB flash in DIO mode with the 16\,MB partition table; LittleFS mounts & Pass after the DIO fix \\ \hline
+Serial routing & Application output on the target board's native USB port & Pass after the routing fix \\ \hline
+Modem power-up & Modem answers \texttt{AT} without the button; key pulsed only if silent & Pass (v0.5.2) \\ \hline
+UART, SIM, signal & \texttt{OK} to \texttt{AT}; \texttt{+CPIN: READY}; valid \texttt{AT+CSQ} & Pass; CSQ 22 to 30 \\ \hline
+LTE registration & \texttt{AT+CEREG?} and \texttt{AT+CPSI?} registered, \texttt{LTE,Online} & Pass; intermittent indoors \\ \hline
+GNSS interface & Correctly framed \texttt{+CGNSSINFO} after warm-up & Pass \\ \hline
+Manual bridge & Commands and replies passed both ways & Pass \\ \hline
+I\textsuperscript{2}C levels & Idle bus at about 3.3\,V (inputs not 5\,V tolerant) & Pass, 3.3\,V \\ \hline
+Both IMUs on target board & Found, configured, calibrated, 400 to 401 samples per 2\,s & Pass, 0 dropped \\ \hline
+Raspberry Pi~4 & Same OS release as the Pi~5; camera identified (OV5647); network and ssh reachable & Pass \\ \hline
+Pre-test check & \texttt{BenchTest/sw7\_check.py} reports every link before a session & 16 offline tests pass; READY on 4 Oct except the Pi~4 supply \\ \hline
+\end{tabular}
+\end{table}

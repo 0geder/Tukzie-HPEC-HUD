@@ -8,7 +8,7 @@ The parts were built by Python scripts that drive SOLIDWORKS through its API (\t
 \section{Requirements and measurements}
 \label{sec:mech-requirements}
 
-Table~\ref{tab:mech-inputs} lists the inputs. Where a value was measured it was used; where it was not, it is marked as an estimate and listed as outstanding in Section~\ref{sec:mech-outstanding}. Figure~\ref{fig:mech-measurements} shows two of the measurement records.
+Table~\ref{tab:mech-inputs} lists the inputs. Where a value was measured it was used; where it was not, it is marked as an estimate and listed in Section~\ref{sec:mech-outstanding}. Figure~\ref{fig:mech-measurements} shows two of the measurement records.
 
 \begin{table}[htbp]
 \centering
@@ -348,11 +348,11 @@ Two IMU pods & 1 & 2\,h 28\,min & 27\,g \\ \hline
 \label{fig:mech-beds}
 \end{figure}
 
-\section{Outstanding}
+\section{Status and limitations}
 \label{sec:mech-outstanding}
 
-\outstanding{printing and fitting: the dovetail coupon, the clamp on the vehicle's bar, the display in its shell, the boards in the pod, and the physical tests of Section~\ref{sec:mech-verification}.}
+The sensor pods and IMU pods were printed and fitted to the vehicle for the road session of 19 October. Their retention after driving has not been checked against marks, and the physical tests of Section~\ref{sec:mech-verification} have not been run. The dovetail coupon, the bar clamp and the display shell were not printed; they are not needed for the measurements of this report and are future work (Chapter~\ref{chap:recs}).
 
-\outstanding{measurements: the display's long side, the bar diameter at the clamp, the ToF board's hole positions, the IMU board's hole spacing, the camera ribbon length, the ESP32 battery and GNSS patch sizes, and the 5\,V converter.}
+Several inputs remain estimates and were not measured with calipers: the display's long side, the bar diameter at the clamp, the ToF board's hole positions, the IMU board's hole spacing, the camera ribbon length, the ESP32 battery and GNSS patch sizes, and the 5\,V converter. The parts that were fitted were made to these values.
 
-\outstanding{decision on the side ToF sensors' direction: 90$^\circ$ as built, or 35$^\circ$ as the fusion configuration assumes. The pod and the configuration must agree.}
+The side ToF sensors face 90$^\circ$ to each side as built. The fusion configuration, which earlier assumed 35$^\circ$, was set to $\pm 90^\circ$ on 15 October to match the boards, so the pod and the configuration agree; the bearings have not been measured on the mounted pods (test C9).
