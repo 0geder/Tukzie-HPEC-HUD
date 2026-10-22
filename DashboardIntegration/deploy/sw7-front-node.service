@@ -1,0 +1,37 @@
+# SW-7 front IMU node capture on the Pi 5 (BenchTest/raw_capture.py).
+# Reads the front ESP32 (firmware 0.7.5, build env front_node) on the Pi 5's
+# USB serial, writes every line with the Pi's receive time to
+# /home/piadam/roadtest/raw_front/front_raw_YYYY-MM-DD_HHMMSS.txt (new file
+# at each start, every hour and at 100 MB; pauses below 1000 MB free disk),
+# and serves the latest DASH line on http://<pi5>:8083/telemetry for the road
+# recorder (source "front_node"). --port auto finds the ESP32 by
+# /dev/serial/by-id/*Espressif*, else /dev/ttyACM*, and keeps looking while
+# it is unplugged, so the service never needs a restart for that.
+#
+# piadam must be in the dialout group (groups piadam; else
+# sudo usermod -aG dialout piadam and reboot).
+#
+# Install (on the Pi 5, after copying raw_capture.py to /home/piadam/):
+#   sudo cp sw7-front-node.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now sw7-front-node.service
+#   curl -s http://127.0.0.1:8083/ ; journalctl -u sw7-front-node -n 20
+
+[Unit]
+Description=SW-7 front IMU node capture (USB serial to raw_front files and :8083)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=piadam
+WorkingDirectory=/home/piadam
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /home/piadam/raw_capture.py --port auto --out /home/piadam/roadtest/raw_front --host 0.0.0.0 --http-port 8083
+Restart=always
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

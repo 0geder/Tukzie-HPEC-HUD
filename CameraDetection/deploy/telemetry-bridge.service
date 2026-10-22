@@ -6,7 +6,8 @@
 #
 # It keeps running with the ESP32 unplugged or the ToF sensors absent
 # (those parts read null) and reopens the serial port when it comes back.
-# Telemetry numbers only: no camera frames, nothing written to disk.
+# No camera frames. Since v0.7.5 the raw IMU lines (RAW, RAWH, RAWS) are saved to
+# /home/ogeder/rawlog/ (rotating files, free-disk guard); see TELEMETRY_LINK.md section 6.
 #
 # The user must be in the dialout group (serial) and the i2c and gpio
 # groups (ToF), which is the default for the first Pi OS user.

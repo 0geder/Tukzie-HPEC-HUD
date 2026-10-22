@@ -281,3 +281,20 @@ committed to git because of their size, kept on OneDrive).
 
 ### Road session of 19 Oct: driver
 - The student confirmed that Yusuf drove the TUKZIE on 19 October (the student did not drive). Added to the report (Methodology, vehicle tests and ethics).
+
+### Run-2 readiness work (software, offline; nothing run on hardware yet)
+- Firmware v0.7.5 (commit 67b6099): raw 200 Hz stream of each IMU on the Pi link as CRC-checked RAW, RAWH and RAWS
+  lines (about 15 kB/s of 46 kB/s), non-blocking with drops counted; I2C read-failure and stuck-sample counters in
+  DASH and !status; front-node build (env front_node, one IMU, no modem/BLE/GNSS); position removed from the public
+  broker payload. Host tests pass (2,326 raw-stream checks); both builds succeed. Not flashed.
+- Pi side: telemetry_bridge.py saves raw lines to /home/ogeder/rawlog/ (Pi 4); BenchTest/raw_capture.py and
+  sw7-front-node.service capture the front node on the Pi 5 (raw_front/, HTTP :8083); road_logger.py polls it as a
+  fifth source. 123 + 21 tests pass offline. Not deployed.
+- Analysis: BenchTest/analysis (42 tests): ISO 2631-1 Wk, a_w, VDV, repeatability (CV and ICC with CIs),
+  front-to-rear delay and speed, powertrain spectra, pothole detector with ROC. Reproduces run-1 figures. Found the
+  driving 95th percentile is 3.174 (report corrected to 3.2). Wk coefficients to be checked against the standard.
+- chrony script for the wired link (setup_sw7_chrony.sh). Data index of every source (DATA_INDEX.md, 182 files).
+  Outstanding register (71 items) and run-2 test plan in Planning/run2-readiness/.
+- Still to do on hardware (bench gate): regulated supply for the ESP32; read out run 1's flash log; flash v0.7.5
+  and run its bench test; deploy the Pi-side capture; chrony; front sync wire (front ESP32 GPIO15 to Pi 5 pin 11);
+  tap test of both nodes.

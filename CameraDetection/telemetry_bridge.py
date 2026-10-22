@@ -12,7 +12,13 @@ the three VL53L0X ToF sensors with the code in tof_reader.py, and serves:
                "age_ms": 35} or null,
        "bridge": {"version": "1.0", "serial_port": "/dev/ttyACM0",
                   "lines": 1234, "bad_lines": 2,
-                  "replay": false, "replay_file": null}}
+                  "replay": false, "replay_file": null,
+                  "raw": {"capture": true, "dir": "/home/ogeder/rawlog",
+                          "file": "rear_raw_2026-10-22_141500.txt",
+                          "lines": 5210, "bad_crc": 0, "raw": 5100,
+                          "rawh": 10, "raws": 100, "bytes_written": 1860000,
+                          "not_written": 0, "write_errors": 0, "files": 1,
+                          "paused": null}}}
   GET /            a short plain-text status page
 
 Beacon (TELEMETRY_LINK.md section 4.2): every 2 s a UDP broadcast to port
@@ -38,7 +44,27 @@ seconds). A reading of 0, about 8190 (nothing in range) or anything at or
 above tof_reader.OUT_OF_RANGE_MM becomes null for that sensor.
 
 Only telemetry numbers are handled: no camera frames, no personal data.
-Nothing is written to disk except the fusion log (see above).
+Nothing is written to disk except the fusion log (see above) and the raw
+IMU capture (below).
+
+Raw IMU capture (firmware 0.7.5+, TelemetryUnit/RAW_STREAM.md): lines that
+carry a RAW, RAWH or RAWS type word are not DASH lines and do not touch
+the esp32 block or the DASH counts. Each one is appended verbatim to a
+capture file as "<host_epoch_s> <line>\n", where host_epoch_s is this Pi's
+wall clock (time.time(), 6 decimals) when the read that completed the line
+returned (resolution about 20 ms; see TELEMETRY_LINK.md section 6 for
+clock alignment). Lines that fail their CRC are written too and counted;
+the reference decoder (TelemetryUnit/tools/raw_stream_decode.py) reads
+these files as they are and drops them again. Files:
+<raw-dir>/rear_raw_YYYY-MM-DD_HHMMSS.txt (local time of opening), a new
+one at every bridge start, every hour (--raw-rotate-s) and whenever a
+file reaches --raw-max-mb. Flushed every second. Writing pauses (lines
+counted in "not_written") while the disk has less than --raw-min-free-mb
+free; with --raw-keep-mb the oldest capture files are deleted to keep the
+directory under that total. The directory is created on the first raw
+line, so a bridge with no raw stream (the Pi 5's) never creates it.
+--no-raw-capture stops the writing; the counting continues. The counts
+are in /telemetry under "bridge": {"raw": {...}} and on the status page.
 
 Serial access uses pyserial when installed (venv/bin/pip install
 pyserial); without it, the tty is read directly with termios (Linux only).
@@ -82,10 +108,13 @@ Testing without hardware:
 Then open http://localhost:8081/telemetry
 """
 import argparse
+import binascii
+import glob
 import ipaddress
 import json
 import math
 import os
+import shutil
 import signal
 import socket
 import subprocess
@@ -99,8 +128,18 @@ import tof_reader
 
 VERSION = "1.0"
 DASH_PREFIX = "DASH "
-MAX_LINE_BYTES = 4096        # a line longer than this with no newline is dropped (contract max is 400)
+DASH_BYTES = DASH_PREFIX.encode()
+MAX_LINE_BYTES = 4096        # a line longer than this with no newline is dropped (DASH max 576, RAW max 400)
 SERIAL_RETRY_S = 2.0         # wait between attempts to open a missing serial port
+READ_IDLE_S = 0.02           # after a short read, wait this long so reads come in chunks, not byte by byte
+READ_SHORT_BYTES = 512       # a read below this size counts as short
+RAW_DIR = "/home/ogeder/rawlog"
+RAW_FILE_PREFIX = "rear_raw_"
+RAW_MAX_MB = 100.0           # rotate a capture file at this size (about 15 kB/s: 54 MB per hour)
+RAW_ROTATE_S = 3600.0        # and at least every hour
+RAW_MIN_FREE_MB = 1000.0     # pause writing below this much free disk
+RAW_FLUSH_S = 1.0
+RAW_RETRY_S = 10.0           # recheck the free space / retry a failed open this often
 TOF_RETRY_S = 5.0            # wait between attempts to open the ToF sensors
 TOF_REPROBE_S = 60.0         # with a sensor missing, reopen all three this often so a reseated one comes back
 TOF_NAMES = ("left", "ahead", "right")
@@ -135,13 +174,247 @@ def parse_dash_line(line):
     return "ok", obj
 
 
+# Raw IMU stream (firmware 0.7.5+) --------------------------------------------
+
+# Type words, longest first so "RAW " never claims a RAWH or RAWS line. As
+# in the reference decoder, the word may follow other text (on USB serial
+# another task's print can land in front of a line); the CRC decides.
+RAW_WORDS = ((b"RAWH ", "rawh"), (b"RAWS ", "raws"), (b"RAW ", "raw"))
+_HEX_LOWER = frozenset(b"0123456789abcdef")
+
+
+def raw_crc_ok(body):
+    """body: bytes from the type word to the end of the line, no newline.
+    True if it ends in " xxxx" (4 lowercase hex digits) and that is the
+    CRC-16/CCITT-FALSE of everything before the space, as in
+    TelemetryUnit/tools/raw_stream_decode.py. binascii.crc_hqx with init
+    0xFFFF is that CRC (poly 0x1021, no reflection, no final XOR), in C."""
+    if len(body) < 6 or body[-5] != 0x20 or not _HEX_LOWER.issuperset(body[-4:]):
+        return False
+    return binascii.crc_hqx(body[:-5], 0xFFFF) == int(body[-4:], 16)
+
+
+def classify_raw(line):
+    """line: bytes, newline removed. None if the line carries no raw type
+    word, else (kind, crc_ok) with kind "raw", "rawh" or "raws"."""
+    for word, kind in RAW_WORDS:
+        p = line.find(word)
+        if p >= 0:
+            return kind, raw_crc_ok(line[p:].rstrip(b"\r"))
+    return None
+
+
+class RawCapture:
+    """Counts raw-stream lines and appends them, with the host receive
+    time, to rotating capture files. handle() and tick() are called from
+    the serial reader thread only; stats() from any thread."""
+
+    def __init__(self, directory=RAW_DIR, enabled=True, prefix=RAW_FILE_PREFIX,
+                 max_mb=RAW_MAX_MB, rotate_s=RAW_ROTATE_S, min_free_mb=RAW_MIN_FREE_MB,
+                 keep_mb=0.0, flush_s=RAW_FLUSH_S, retry_s=RAW_RETRY_S):
+        self._lock = threading.Lock()
+        self.directory = directory
+        self.enabled = enabled
+        self.prefix = prefix
+        self.max_bytes = int(max_mb * 1e6)
+        self.rotate_s = rotate_s
+        self.min_free_bytes = int(min_free_mb * 1e6)
+        self.keep_bytes = int(keep_mb * 1e6)
+        self.flush_s = flush_s
+        self.retry_s = retry_s
+        self.disk_free = lambda d: shutil.disk_usage(d).free     # replaceable in tests
+        self.lines = 0            # every line with a raw type word
+        self.bad_crc = 0          # the subset that failed the CRC (still written)
+        self.by_kind = {"raw": 0, "rawh": 0, "raws": 0}   # good lines per type
+        self.bytes_written = 0
+        self.not_written = 0      # lines not written: capture paused (disk, open or write error)
+        self.write_errors = 0
+        self.files = 0            # capture files opened since start
+        self.paused = None        # reason, while writing is paused
+        self.path = None
+        self._f = None
+        self._file_bytes = 0
+        self._opened = 0.0
+        self._last_flush = 0.0
+        self._retry_at = 0.0
+        self._space_check_at = 0.0
+
+    # Counting and writing
+
+    def handle(self, line, t_host=None):
+        """line: bytes, newline removed. Returns None for a line with no raw
+        type word (not counted, not written), else the kind or "bad"."""
+        r = classify_raw(line)
+        if r is None:
+            return None
+        kind, ok = r
+        with self._lock:
+            self.lines += 1
+            if ok:
+                self.by_kind[kind] += 1
+            else:
+                self.bad_crc += 1
+        if self.enabled:
+            t = time.time() if t_host is None else t_host
+            self._write(b"%.6f " % t + line.rstrip(b"\r") + b"\n")
+        return kind if ok else "bad"
+
+    def _pause(self, reason):
+        if reason != self.paused:
+            print("Raw capture paused: %s" % reason)
+        self.paused = reason
+        self._retry_at = time.monotonic() + self.retry_s
+
+    def _write(self, data):
+        now = time.monotonic()
+        if self._f is not None and (self._file_bytes + len(data) > self.max_bytes
+                                    or now - self._opened >= self.rotate_s):
+            self._close_file()
+        if self._f is None:
+            if now < self._retry_at or not self._open(now):
+                with self._lock:
+                    self.not_written += 1
+                return
+        elif now >= self._space_check_at:
+            self._space_check_at = now + self.retry_s
+            if not self._space_ok():
+                self._close_file()
+                with self._lock:
+                    self.not_written += 1
+                return
+        try:
+            self._f.write(data)
+        except OSError as e:
+            with self._lock:
+                self.write_errors += 1
+                self.not_written += 1
+            self._close_file()
+            self._pause("write error: %s" % e)
+            return
+        self._file_bytes += len(data)
+        with self._lock:
+            self.bytes_written += len(data)
+
+    def _space_ok(self):
+        try:
+            free = self.disk_free(self.directory)
+        except OSError as e:
+            self._pause("cannot read free space: %s" % e)
+            return False
+        if free < self.min_free_bytes:
+            self._pause("disk free %.0f MB, below %.0f MB" % (free / 1e6, self.min_free_bytes / 1e6))
+            return False
+        return True
+
+    def _open(self, now):
+        try:
+            os.makedirs(self.directory, exist_ok=True)
+        except OSError as e:
+            self._pause("cannot create %s: %s" % (self.directory, e))
+            return False
+        if self.keep_bytes > 0:
+            self._prune()
+        if not self._space_ok():
+            return False
+        stem = os.path.join(self.directory, self.prefix + time.strftime("%Y-%m-%d_%H%M%S"))
+        path, n = stem + ".txt", 1
+        while os.path.exists(path):        # a size rotation within the same second
+            path, n = "%s_%d.txt" % (stem, n), n + 1
+        try:
+            self._f = open(path, "xb")
+        except OSError as e:
+            self._pause("cannot open %s: %s" % (path, e))
+            return False
+        if self.paused is not None:
+            print("Raw capture resumed")
+        self.paused = None
+        self.path = path
+        self._file_bytes = 0
+        self._opened = now
+        self._last_flush = now
+        self._space_check_at = now + self.retry_s
+        with self._lock:
+            self.files += 1
+        print("Raw capture file %s" % path)
+        return True
+
+    def _prune(self):
+        """Delete the oldest capture files while the directory's total is over keep_bytes."""
+        try:
+            files = sorted(glob.glob(os.path.join(self.directory, self.prefix + "*.txt")))
+            sizes = [os.path.getsize(p) for p in files]
+        except OSError:
+            return
+        total = sum(sizes)
+        for p, s in zip(files, sizes):
+            if total <= self.keep_bytes:
+                break
+            try:
+                os.remove(p)
+                total -= s
+                print("Raw capture: deleted %s to stay under %.1f MB" % (p, self.keep_bytes / 1e6))
+            except OSError:
+                pass
+
+    def tick(self):
+        """Call often: flushes the open file once per flush_s."""
+        if self._f is None:
+            return
+        now = time.monotonic()
+        if now - self._last_flush >= self.flush_s:
+            self.flush()
+
+    def flush(self):
+        if self._f is None:
+            return
+        self._last_flush = time.monotonic()
+        try:
+            self._f.flush()
+        except OSError as e:
+            with self._lock:
+                self.write_errors += 1
+            self._close_file()
+            self._pause("flush error: %s" % e)
+
+    def _close_file(self):
+        f, self._f = self._f, None
+        if f is not None:
+            try:
+                f.close()
+            except OSError:
+                with self._lock:
+                    self.write_errors += 1
+
+    def close(self):
+        self._close_file()
+
+    def stats(self):
+        with self._lock:
+            return {
+                "capture": self.enabled,
+                "dir": self.directory if self.enabled else None,
+                "file": os.path.basename(self.path) if (self.enabled and self.path) else None,
+                "lines": self.lines,
+                "bad_crc": self.bad_crc,
+                "raw": self.by_kind["raw"],
+                "rawh": self.by_kind["rawh"],
+                "raws": self.by_kind["raws"],
+                "bytes_written": self.bytes_written,
+                "not_written": self.not_written,
+                "write_errors": self.write_errors,
+                "files": self.files,
+                "paused": self.paused,
+            }
+
+
 class TelemetryState:
     """Latest ESP32 record and ToF reading, shared between the reader
     threads and the HTTP handler."""
 
-    def __init__(self, serial_label, replay_file=None):
+    def __init__(self, serial_label, replay_file=None, raw=None):
         self._lock = threading.Lock()
         self.serial_label = serial_label
+        self.raw = raw            # RawCapture, or None
         # File name only (no directories), or None for the live serial port.
         self.replay_file = os.path.basename(replay_file) if replay_file else None
         self.lines = 0
@@ -224,6 +497,7 @@ class TelemetryState:
                     "bad_lines": self.bad_lines,
                     "replay": self.replay_file is not None,
                     "replay_file": self.replay_file,
+                    "raw": self.raw.stats() if self.raw is not None else None,
                 },
             }
         fusion = self.fusion_block(now)
@@ -282,7 +556,7 @@ class _TermiosPort:
         r, _, _ = self._select.select([self._fd], [], [], 0.5)
         if not r:
             return b""
-        data = os.read(self._fd, 512)
+        data = os.read(self._fd, 4096)
         if not data:
             # Readable but empty means the device was unplugged.
             raise OSError("serial device disconnected")
@@ -352,30 +626,52 @@ class LineSource(threading.Thread):
                 continue
             last_error = None
             print("Serial %s open" % self.port)
-            buf = b""
+            buf = bytearray()
             first = True     # the first line after opening may be a fragment
+            raw = self.state.raw
             try:
                 while not self.stop.is_set():
+                    # The port read returns everything waiting (or blocks up to
+                    # 0.5 s for one byte). After a short read the loop waits
+                    # READ_IDLE_S, so at 15 kB/s it wakes about 50 times a second
+                    # with a few hundred bytes, not once per byte.
                     data = dev.read()
-                    if not data:
-                        continue
-                    buf += data
-                    while b"\n" in buf:
-                        raw, buf = buf.split(b"\n", 1)
-                        text = raw.decode("utf-8", errors="replace")
-                        if first:
-                            first = False
-                            if not text.startswith(DASH_PREFIX):
-                                continue
-                        self.state.handle_line(text)
-                    if len(buf) > MAX_LINE_BYTES:
-                        buf = b""
+                    if data:
+                        buf += data
+                        if b"\n" in data:
+                            t_host = time.time()
+                            lines = buf.split(b"\n")
+                            buf = bytearray(lines.pop())
+                            for line in lines:
+                                if first:
+                                    first = False
+                                    if not line.startswith(DASH_BYTES) and classify_raw(line) is None:
+                                        continue
+                                self._line(line, t_host, raw)
+                        if len(buf) > MAX_LINE_BYTES:
+                            buf = bytearray()
+                    if raw is not None:
+                        raw.tick()
+                    if len(data) < READ_SHORT_BYTES:
+                        self.stop.wait(READ_IDLE_S)
             except OSError as e:
                 print("Serial %s lost (%s); waiting for it to come back" % (self.port, e))
             finally:
                 dev.close()
                 self.state.clear_esp32()
+                if raw is not None:
+                    raw.flush()
             self.stop.wait(SERIAL_RETRY_S / 4)
+        if self.state.raw is not None:
+            self.state.raw.close()
+
+    def _line(self, line, t_host, raw):
+        """One complete line (bytes, no newline): DASH to the state as before,
+        raw-stream lines to the capture, anything else ignored."""
+        if line.startswith(DASH_BYTES):
+            self.state.handle_line(line.decode("utf-8", errors="replace"))
+        elif raw is not None:
+            raw.handle(line, t_host)
 
 
 # ToF sensors ----------------------------------------------------------------
@@ -628,9 +924,24 @@ class TelemetryServer:
                 self.beacon.port, self.beacon.sent, self.beacon.send_errors,
                 "" if not self.beacon.last_error else " (last: %s)" % self.beacon.last_error)),
             "fusion: %s" % self._fusion_text(snap.get("fusion")),
+            "raw: %s" % self._raw_text(b.get("raw")),
             "JSON: /telemetry, /hazards",
         ]
         return "\n".join(lines) + "\n"
+
+    @staticmethod
+    def _raw_text(r):
+        if r is None:
+            return "off"
+        counts = "%d lines (RAW %d, RAWH %d, RAWS %d), %d bad CRC" % (
+            r["lines"], r["raw"], r["rawh"], r["raws"], r["bad_crc"])
+        if not r["capture"]:
+            return counts + "; capture to disk off"
+        where = ("file %s/%s" % (r["dir"], r["file"])) if r["file"] else ("dir %s (no file yet)" % r["dir"])
+        text = "%s; %s, %.1f MB written, %d not written" % (counts, where, r["bytes_written"] / 1e6, r["not_written"])
+        if r["paused"]:
+            text += "; PAUSED: %s" % r["paused"]
+        return text
 
     def _fusion_text(self, f):
         r = self.fusion
@@ -655,9 +966,13 @@ class Bridge:
                  replay=None, replay_interval=1.0, tof=True, fake_tof=False,
                  beacon=True, beacon_port=BEACON_PORT, beacon_targets=None,
                  beacon_interval_s=BEACON_INTERVAL_S, camera_port=CAMERA_PORT,
-                 fusion="off", detections_url=None, fusion_config=None, fusion_log=None, side=None):
+                 fusion="off", detections_url=None, fusion_config=None, fusion_log=None, side=None,
+                 raw_capture=True, raw_dir=RAW_DIR, raw_max_mb=RAW_MAX_MB, raw_rotate_s=RAW_ROTATE_S,
+                 raw_min_free_mb=RAW_MIN_FREE_MB, raw_keep_mb=0.0):
         label = ("replay:%s" % replay) if replay else serial_port
-        self.state = TelemetryState(label, replay_file=replay)
+        self.raw = RawCapture(raw_dir, enabled=raw_capture, max_mb=raw_max_mb, rotate_s=raw_rotate_s,
+                              min_free_mb=raw_min_free_mb, keep_mb=raw_keep_mb)
+        self.state = TelemetryState(label, replay_file=replay, raw=self.raw)
         self.stop = threading.Event()
         self.source = LineSource(self.state, self.stop, serial_port, baud, replay, replay_interval)
         self.tof = TofReader(self.state, self.stop, fake=fake_tof) if (tof or fake_tof) else None
@@ -692,6 +1007,8 @@ class Bridge:
         for t in (self.source, self.tof, self.beacon, self.fusion):
             if t is not None and t.is_alive():
                 t.join(timeout=3)
+        if not self.source.is_alive():     # otherwise the source closes it on its way out
+            self.raw.close()
 
 
 def main():
@@ -730,6 +1047,18 @@ def main():
     ap.add_argument("--side", choices=("front", "rear"), default=None,
                     help="Which end of the trike this Pi's ToF sensors and camera face, copied to every fused "
                          "hazard. Default: the side the detector reports in /detections, else null")
+    ap.add_argument("--raw-dir", default=RAW_DIR,
+                    help="Directory for the raw IMU capture files (default %s; created on the first raw line)" % RAW_DIR)
+    ap.add_argument("--no-raw-capture", action="store_true",
+                    help="Do not write raw IMU lines to disk (they are still counted)")
+    ap.add_argument("--raw-max-mb", type=float, default=RAW_MAX_MB,
+                    help="Start a new capture file at this size (default %.0f MB)" % RAW_MAX_MB)
+    ap.add_argument("--raw-rotate-s", type=float, default=RAW_ROTATE_S,
+                    help="Start a new capture file after this many seconds (default %.0f)" % RAW_ROTATE_S)
+    ap.add_argument("--raw-min-free-mb", type=float, default=RAW_MIN_FREE_MB,
+                    help="Pause writing while the disk has less free space than this (default %.0f MB)" % RAW_MIN_FREE_MB)
+    ap.add_argument("--raw-keep-mb", type=float, default=0.0,
+                    help="Delete the oldest capture files to keep the directory under this total; 0 (default) never deletes")
     ap.add_argument("--duration", type=float, default=0, help="Seconds to run, 0 = until Ctrl+C or SIGTERM")
     a = ap.parse_args()
 
@@ -743,7 +1072,10 @@ def main():
                     beacon_port=a.beacon_port, beacon_targets=a.beacon_target,
                     beacon_interval_s=a.beacon_interval, camera_port=a.camera_port,
                     fusion=a.fusion, detections_url=a.detections_url, fusion_config=a.fusion_config,
-                    fusion_log=a.fusion_log or None, side=a.side).start()
+                    fusion_log=a.fusion_log or None, side=a.side,
+                    raw_capture=not a.no_raw_capture, raw_dir=a.raw_dir, raw_max_mb=a.raw_max_mb,
+                    raw_rotate_s=a.raw_rotate_s, raw_min_free_mb=a.raw_min_free_mb,
+                    raw_keep_mb=a.raw_keep_mb).start()
     print("Telemetry bridge %s on http://%s:%d/telemetry, source %s, tof %s" % (
         VERSION, a.host, bridge.port, bridge.state.serial_label,
         "fake" if a.fake_tof else ("off" if a.no_tof else "sensors")))
@@ -764,6 +1096,10 @@ def main():
         bridge.close()
         b = bridge.state.snapshot()["bridge"]
         print("Stopped. %d DASH lines, %d bad, in %.1f s" % (b["lines"], b["bad_lines"], time.monotonic() - start))
+        r = b["raw"]
+        if r and r["lines"]:
+            print("Raw: %d lines, %d bad CRC, %.1f MB written to %s, %d not written" % (
+                r["lines"], r["bad_crc"], r["bytes_written"] / 1e6, r["dir"], r["not_written"]))
         if bridge.beacon is not None:
             print("Beacon: %d sent, %d failed" % (bridge.beacon.sent, bridge.beacon.send_errors))
         if bridge.fusion is not None:

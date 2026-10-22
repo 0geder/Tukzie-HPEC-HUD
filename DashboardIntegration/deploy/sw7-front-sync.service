@@ -1,0 +1,37 @@
+# SW-7 front node sync-edge logger on the Pi 5 (CameraDetection/sync_logger.py).
+# ONLY after the sync wire is fitted (TELEMETRY_LINK.md section 6.3):
+#   front ESP32 GPIO15 (SYNC_PULSE_PIN in platformio.ini env front_node)
+#   -> Pi 5 physical pin 11 (GPIO17), plus a ground wire (Pi 5 pin 9 to ESP32 GND).
+# Both are 3.3 V logic. GPIO17 is free on the Pi 5: the front ToF sensors use
+# I2C (pins 3, 5) and XSHUT on GPIO22, 23, 24 (pins 15, 16, 18).
+#
+# Logs every edge with the Pi's kernel timestamp (CLOCK_MONOTONIC) and wall
+# clock to /home/piadam/roadtest/raw_front/front_sync_YYYY-MM-DD_HHMMSS.csv,
+# a new file each start (sync_logger.py overwrites --out, so the name carries
+# the start time). Paired with the RAWS lines in the front_raw_*.txt files.
+#
+# On current Pi OS kernels the Pi 5 header is gpiochip0; on older ones it was
+# gpiochip4. Check first: gpioinfo | grep -n GPIO17   (or gpiodetect: pinctrl-rp1)
+# and change --chip below if needed.
+#
+# Install (on the Pi 5, after copying CameraDetection/sync_logger.py to /home/piadam/):
+#   sudo cp sw7-front-sync.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now sw7-front-sync.service
+#   journalctl -u sw7-front-sync -n 5 ; ls -l /home/piadam/roadtest/raw_front/
+
+[Unit]
+Description=SW-7 front node sync edges on Pi 5 GPIO17 (needs the sync wire)
+
+[Service]
+Type=simple
+User=piadam
+WorkingDirectory=/home/piadam
+Environment=PYTHONUNBUFFERED=1
+ExecStartPre=/bin/mkdir -p /home/piadam/roadtest/raw_front
+ExecStart=/bin/sh -c 'exec /usr/bin/python3 /home/piadam/sync_logger.py --chip gpiochip0 --line 17 --duration 0 --out /home/piadam/roadtest/raw_front/front_sync_$$(date +%%Y-%%m-%%d_%%H%%M%%S).csv'
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

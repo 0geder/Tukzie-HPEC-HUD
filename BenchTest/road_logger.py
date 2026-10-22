@@ -6,6 +6,8 @@ file per session:
           rear ToF; rear fusion)
   front = Pi 5 bridge  http://<pi5>:8082/telemetry  (front ToF and fusion)
   front_alerts / rear_alerts = http://<pi>:8080/alerts (detector alerts with side, track_id, ttc_s)
+  front_node = front IMU node capture  http://<front-node host, default the Pi 5>:8083/telemetry
+          (BenchTest/raw_capture.py: the front ESP32's latest DASH line and the raw-capture counts; added 22 Oct 2026)
 Markers: type a run id and press Enter (for example "S3 run2 start 20kmh"); each line is written as a marker
 record, so every run can be cut out of the file afterwards. Type "q" and Enter to stop.
 
@@ -24,6 +26,7 @@ ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
 ap.add_argument("--pi4", default="192.168.137.220")
 ap.add_argument("--pi5", default="192.168.137.128")
 ap.add_argument("--out", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs"))
+ap.add_argument("--front-node", default=None, help="host of raw_capture.py (port 8083); default the --pi5 address")
 ap.add_argument("--period", type=float, default=0.5)
 ap.add_argument("--background", action="store_true", help="no keyboard; markers only from roadtest_markers.txt")
 a = ap.parse_args()
@@ -33,6 +36,7 @@ SOURCES = {
     "front": f"http://{a.pi5}:8082/telemetry",
     "rear_alerts": f"http://{a.pi4}:8080/alerts",
     "front_alerts": f"http://{a.pi5}:8080/alerts",
+    "front_node": f"http://{a.front_node or a.pi5}:8083/telemetry",
 }
 os.makedirs(a.out, exist_ok=True)
 path = os.path.join(a.out, time.strftime("%Y-%m-%d_%H%M%S_roadtest.jsonl"))

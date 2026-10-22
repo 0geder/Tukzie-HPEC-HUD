@@ -24,7 +24,7 @@ import telemetry_bridge as tb  # noqa: E402
 BRIDGE = os.path.join(ROOT, "telemetry_bridge.py")
 SAMPLE = os.path.join(HERE, "dash_sample.txt")
 MISSING_PORT = "/dev/ttyACM_missing" if os.name != "nt" else "COM239"
-BRIDGE_KEYS = {"version", "serial_port", "lines", "bad_lines", "replay", "replay_file"}
+BRIDGE_KEYS = {"version", "serial_port", "lines", "bad_lines", "replay", "replay_file", "raw"}
 
 CONTRACT_KEYS = {"seq", "up_ms", "fw", "soc", "v", "i", "bms_age_s", "fix", "lat", "lon", "spd_raw",
                  "vib", "vib_dis", "imu_hz", "drops", "rpm", "csq", "mqtt"}
@@ -230,9 +230,12 @@ class NoSerialPortTests(unittest.TestCase):
                 d = get_json(b.port)
                 self.assertIsNone(d["esp32"])
                 self.assertIsNone(d["tof"])
-                self.assertEqual(d["bridge"], {"version": "1.0", "serial_port": MISSING_PORT,
-                                               "lines": 0, "bad_lines": 0,
-                                               "replay": False, "replay_file": None})
+                bb = dict(d["bridge"])
+                raw = bb.pop("raw")
+                self.assertEqual(bb, {"version": "1.0", "serial_port": MISSING_PORT,
+                                      "lines": 0, "bad_lines": 0,
+                                      "replay": False, "replay_file": None})
+                self.assertEqual((raw["lines"], raw["file"], raw["files"]), (0, None, 0))
                 time.sleep(0.3)
             self.assertIsNone(b.p.poll())   # still running
             out = "".join(b.output)
