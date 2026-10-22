@@ -56,6 +56,7 @@ This appendix indexes the raw evidence behind the bench results reported in Chap
 22 Oct 2026 & Front sync pulse, GPIO5 to Raspberry Pi~5 pin~11 & Pin~11 toggles every 500\,ms (static before the jumper was moved) & \texttt{Planning/ lab-notebook.md}, 22 Oct \\ \hline
 22 Oct 2026 & Rear unit on v0.7.6; IMU1 wires taken off while running & After flashing: 200\,Hz, 0 drops, 0 read failures, consumer ages 1 to 45\,ms; raw capture 0 bad CRC. Wires off: 17,080 read failures, 8,508 late, 0 drops, consumer ages 2 to 29\,ms; sensor asleep after refitting until reset & \texttt{Planning/ lab-notebook.md}, 22 Oct; on the Pi~4 \texttt{/home/ogeder/ rawlog/} \\ \hline
 22 Oct 2026 & Rear unit v0.7.6 soak, 62\,min, own battery, modem silent, wired UART & 0 restarts, 0 drops, 0 read failures, 0 late, 0 raw drops; consumer ages at most 49\,ms; rate outside 199.5 to 200.5\,Hz in 3 of 726 polls; 152 stuck readings; 3,720 lines, 0 bad & \texttt{Report/figures/ results/soak\_v076b\_ 20261022\_134823.jsonl} (copy of \texttt{/home/ogeder/soak/} on the Pi~4), \texttt{soak\_v076b\_ eval.py}, \texttt{soak\_v076b\_ summary.txt} \\ \hline
+22 Oct 2026 & Rear unit on v0.7.8: IMU1 supply wire pulled for several seconds and refitted, four times (about 15:20) & Each time: sensor marked down, 0 drops, consumer ages under 50\,ms; re-initialised by itself after refitting (count 1 to 4), 200\,Hz and vibration value back, no reset & \texttt{BenchTest/logs/ recovery\_2026-10-22/ rear\_recovery\_console\_2.txt} \\ \hline
 \end{longtable}
 
 \begin{figure}[htbp]

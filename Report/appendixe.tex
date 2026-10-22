@@ -121,7 +121,7 @@ All three distances null & Start-up stopped at the first sensor that did not ans
 Pi~4 under-voltage, throttling, failure to boot & LTE modem powered from the Pi's USB port (2\,s power-flag log) & Separate supply for the telemetry unit; fan for temperature \\ \hline
 Touch felt slow & Panel reports contact with the first position; buttons act on release (25 taps read directly) & Act on press and hide the pointer (next step) \\ \hline
 Rear drop counts rising at about 168 and 46 a second, \texttt{imu\_hz} frozen at 200, vibration null & Statistics and ride tasks starved on the IMU core (Section~\ref{sec:inv-stall}) & v0.7.6 moves them to core~0; health fields in the dashboard line \\ \hline
-IMU repeats one reading after its wires are refitted & Sensor back in its power-on sleep state; configured only at boot (bus-failure test, 22 Oct) & v0.7.7 re-initialises after 1\,s of failed or stuck reads (flashed 22 Oct) \\ \hline
+IMU repeats one reading after its wires are refitted & Sensor back in its power-on sleep state; configured only at boot (bus-failure test, 22 Oct) & v0.7.7 re-initialises after 1\,s of failed or stuck reads (flashed 22 Oct; recovery confirmed on the bench on 22 Oct with v0.7.8: four wire pulls, re-initialised each time, no reset) \\ \hline
 Raw stream filled 85\,\% of the front node's 115\,200\,baud line & Hex text at 36 bytes a sample & Console at 921\,600\,baud \\ \hline
 Front sync pulse not seen on the Raspberry Pi~5 & No header pin toggled while the node drove GPIO15: wire not connected or on another pin (not settled) & Jumper moved to GPIO5 and firmware built for GPIO5; pin~11 toggles every 500\,ms \\ \hline
 Commands from the Pi acted on 20 to 25\,s late & Read in the modem task, which waits on MQTT timeouts without network & v0.7.8 command task (flashed 22 Oct) \\ \hline
@@ -130,7 +130,44 @@ Commands from the Pi acted on 20 to 25\,s late & Read in the modem task, which w
 \section{Fault investigations}
 \label{sec:investigations}
 
-These are the eight faults of Table~\ref{tab:faults} that needed a diagnosis, because more than one cause could explain what was seen; Table~\ref{tab:investigations} in Chapter~\ref{chap:design} summarises them. Each is told as symptom, candidate causes, deciding test, cause and fix, and consequence.
+These are the eight faults of Table~\ref{tab:faults} that needed a diagnosis, because more than one cause could explain what was seen; Table~\ref{tab:investigations} summarises them. Each is told as symptom, candidate causes, deciding test, cause and fix, and consequence.
+
+{\small
+\begin{longtable}{|>{\raggedright\arraybackslash}p{2.1cm}|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{4.3cm}|>{\raggedright\arraybackslash}p{3.7cm}|}
+\caption{Fault investigations: candidate causes, the test that separated them and the result.}
+\label{tab:investigations}\\
+\hline
+\textbf{Fault} & \textbf{Candidate cause} & \textbf{Test} & \textbf{Result} \\ \hline
+\endfirsthead
+\hline
+\textbf{Fault} & \textbf{Candidate cause} & \textbf{Test} & \textbf{Result} \\ \hline
+\endhead
+Boot loop (\ref{sec:inv-flash}) & PSRAM setting & Add \texttt{qio\_opi} on top of the flash change & Same loop, same program counter: not the cause alone \\ \cline{2-4}
+ & Application code or hardware & Remove every override & Runs, modem works: cleared \\ \cline{2-4}
+ & Flash access mode & ROM banner; chip detection; 16\,MB with DIO & DIO reported; boots, LittleFS mounts: cause \\ \hline
+GNSS (\ref{sec:inv-gnss}) & Reply layout not as assumed & Raw replies indoors and with a rooftop fix & 9 fields empty, 17 or 18 with a fix, decimal degrees: cause \\ \cline{2-4}
+ & GNSS warm-up & Poll a modem already running for minutes & Polls answered: normal 60 to 90\,s delay \\ \cline{2-4}
+ & Modem switched off & Five-minute capture after reprogramming & No reply to GNSS or MQTT commands: boot pulse toggled the modem off \\ \hline
+BMS (\ref{sec:inv-bms}) & Pack absent or scanner idle & Log every advertiser & Nothing at all logged: scanner idle \\ \cline{2-4}
+ & Characteristics under another service & Compare with a teammate's parser & Found directly there: cause of the drop \\ \cline{2-4}
+ & Stuck BLE stack on the ESP32 & Full power cycle & Same pattern: ruled out \\ \cline{2-4}
+ & Checksum formula & Firmware's own query frame & Register byte excluded; replies failed by 3: cause \\ \hline
+Invalid JSON (\ref{sec:inv-json}) & Damage in transfer & Indexed, length-checked, repeated read-back & All 6,020 records intact: ruled out \\ \cline{2-4}
+ & Records wrong as stored & Parse each record & 5,545 contain \texttt{nan}: cause \\ \hline
+Colour cast (\ref{sec:inv-colour}) & Detector channel order & Still with the standard tuning & Also pink: ruled out \\ \cline{2-4}
+ & No infrared-cut filter & Still with the NoIR tuning & Wall neutral: cause \\ \hline
+ToF null, then hang (\ref{sec:inv-tof}) & One sensor not answering & I\textsuperscript{2}C bus scan & Only the left sensor present; start-up stopped at the next \\ \cline{2-4}
+ & Driver waiting for ever & Driver's default I/O timeout & Zero, wait for ever: cause of the freeze \\ \hline
+Pi~4 under-voltage (\ref{sec:inv-power}) & Pi supply under detector load & 2\,s flag log, nothing attached & Flags clear: ruled out \\ \cline{2-4}
+ & ToF board on I\textsuperscript{2}C & Board disconnected throughout & Under-voltage still occurred: ruled out \\ \cline{2-4}
+ & Telemetry unit on Pi USB & Plug in during the log & Under-voltage 14\,s later, recurring: cause \\ \cline{2-4}
+ & & Unit on Pi USB, then moved off (10 Oct) & 3 restarts in 20 min, then none in 4\,h \\ \cline{2-4}
+ & Heat & Same log & Soft limit from 17:45, before the unit: separate; fan fitted \\ \hline
+Consumer stall (\ref{sec:inv-stall}) & Modem or BLE work starving the consumers & Read the code: where each task runs and how it waits & All on core~0 and every wait yields: ruled out \\ \cline{2-4}
+ & Consumers stopped on core~1 & Which task writes \texttt{imu\_hz} & Only the statistics task: frozen at 200, so it had stopped; drop rates equal the IMU tasks' own rates: cause \\ \cline{2-4}
+ & & Bus failure on v0.7.6 (22 Oct) & 17,080 read failures, 0 drops, consumers 2 to 29\,ms old: fixed \\ \hline
+\end{longtable}
+}
 
 \subsection{Boot loop after enabling the full flash}
 \label{sec:inv-flash}
@@ -218,7 +255,7 @@ These are the eight faults of Table~\ref{tab:faults} that needed a diagnosis, be
 
 \emph{Fix.} Firmware v0.7.6 moved the statistics and ride tasks to core~0 at priority~2, above the modem, BLE and dashboard tasks, so that acquisition and processing no longer share a core. It also bounds the IMU catch-up at 20 periods, computes rates from the real elapsed time, adds the consumer ages, highest queue fill, late slots and idle counts per core to the dashboard line (Section~\ref{sec:imu-health}), and adds a command to switch the modem off for the bench test.
 
-\emph{Field evidence and consequence.} On 22 October, with v0.7.6 on the rear unit, IMU1's wires were taken off while it ran and replaced with shorter ones: an unplanned but real bus failure. The unit counted 17,080 read failures and 8,508 late slots, but drops stayed at 0, the consumers were 2 to 29\,ms old and both cores kept idling, so the stall did not recur. After reconnection the sensor came back in its power-on sleep state and returned the same reading every time (stuck count rising 200 a second, vibration 0.0) until the board was reset, because the firmware configured a sensor only at boot. That led to the automatic re-initialisation of v0.7.7 (Section~\ref{sec:imu-health}), which is host-tested but not yet flashed. The lessons are that processing must not share a core with acquisition and that a lost sensor must be recovered without a reset. The soak test of v0.7.6 is reported in Section~\ref{sec:res-acq}.
+\emph{Field evidence and consequence.} On 22 October, with v0.7.6 on the rear unit, IMU1's wires were taken off while it ran and replaced with shorter ones: an unplanned but real bus failure. The unit counted 17,080 read failures and 8,508 late slots, but drops stayed at 0, the consumers were 2 to 29\,ms old and both cores kept idling, so the stall did not recur. After reconnection the sensor came back in its power-on sleep state and returned the same reading every time (stuck count rising 200 a second, vibration 0.0) until the board was reset, because the firmware configured a sensor only at boot. That led to the automatic re-initialisation of v0.7.7 (Section~\ref{sec:imu-health}), confirmed on the bench on 22 October with v0.7.8: in four pulls of IMU1's supply wire the sensor was re-initialised each time with no reset and no drops (Section~\ref{sec:impl-health}). The lessons are that processing must not share a core with acquisition and that a lost sensor must be recovered without a reset. The soak test of v0.7.6 is reported in Section~\ref{sec:res-acq}.
 
 \section{Diagnosis records}
 \label{sec:diagnoses}

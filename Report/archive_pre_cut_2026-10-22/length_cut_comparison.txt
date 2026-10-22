@@ -1,0 +1,5 @@
+PDF pages: old 149, new 161
+distinct numbers: old 757, new 765; in old but not in new: 0
+labels: old 190, new 226; lost: []
+citation keys: old 63, new 63; lost: []
+figure environments: old 43, new 43; table environments: old 35, new 36
