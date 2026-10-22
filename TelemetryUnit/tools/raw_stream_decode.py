@@ -28,6 +28,7 @@ RECORD_HEX = 32          # 16 bytes per sample
 MAX_BATCH = 10
 FLAG_SYNC = 0x01
 FLAG_STUCK = 0x02
+FLAG_REINIT = 0x04       # firmware v0.7.7: first sample after the sensor was re-initialised
 GRAVITY = 9.80665
 DEFAULT_ACCEL_COUNTS_PER_G = 4096.0
 DEFAULT_GYRO_COUNTS_PER_DPS = 65.5
@@ -176,15 +177,16 @@ def summary(res):
         dts = [b["t_us"] - a["t_us"] for a, b in zip(s, s[1:]) if b["seq"] - a["seq"] == 1]
         rate = 1e6 / (sum(dts) / len(dts)) if dts else float("nan")
         h = res["rawh"].get(key)
-        out.append("%s imu%d: %d samples, %d missing by seq, %d stuck-flagged, mean rate %.2f Hz%s"
-                   % (key[0], key[1], len(s), missing_seq(s), sum(1 for x in s if x["flags"] & FLAG_STUCK), rate,
+        out.append("%s imu%d: %d samples, %d missing by seq, %d stuck-flagged, %d re-init-flagged, mean rate %.2f Hz%s"
+                   % (key[0], key[1], len(s), missing_seq(s), sum(1 for x in s if x["flags"] & FLAG_STUCK),
+                      sum(1 for x in s if x["flags"] & FLAG_REINIT), rate,
                       "" if h is None else ", last RAWH rawdrop=%d rdfail=%d stuck=%d"
                       % (h["rawdrop"], h["rdfail"], h["stuck"])))
     out.append("sync edges: %d" % len(res["sync"]))
     if res["dash"]:
         last = res["dash"][-1]
         out.append("last DASH: " + ", ".join("%s=%s" % (k, last.get(k)) for k in
-                                              ("node", "imu_hz", "drops", "rdfail", "stuck", "rawdrop")))
+                                              ("node", "imu_hz", "drops", "rdfail", "stuck", "rawdrop", "reinit", "imu_up")))
     return "\n".join(out)
 
 

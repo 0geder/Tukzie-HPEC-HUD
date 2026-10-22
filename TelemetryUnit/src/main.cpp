@@ -31,9 +31,10 @@
 
 #include "raw_stream.h"
 #include "imu_pacing.h"
+#include "imu_recovery.h"
 #include "esp_freertos_hooks.h"
 
-#define FIRMWARE_VERSION "v0.7.6"
+#define FIRMWARE_VERSION "v0.7.7"
 
 #if NODE_FRONT
 #define NODE_ID "front"
@@ -70,12 +71,13 @@
 // silkscreened IO17/I2C_SDA and IO18/I2C_SCL respectively.
 #define IMU2_SDA_PIN 17
 #define IMU2_SCL_PIN 18
+// v0.7.7: off by default on both nodes. The second sensor moved from the rear
+// unit to the front node (22 Oct 2026), so the rear unit now has one IMU.
+// Build with -D ENABLE_IMU2=1 to bring it back. With it off, the IMU2 task and
+// ride task are not started and the DASH arrays keep two elements, the second
+// one 0 (see DashTask).
 #ifndef ENABLE_IMU2
-#if NODE_FRONT
 #define ENABLE_IMU2 0
-#else
-#define ENABLE_IMU2 1
-#endif
 #endif
 
 // ---- JBD/Jiabaida BMS over BLE ----
@@ -144,7 +146,7 @@ static const uint8_t BMS_QUERY_COMMAND[] = {0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 
 #define RAW_MAX_AGE_US 100000LL
 // Room kept free in a port's TX buffer for the DASH line: a RAW line is only
 // written when it leaves this much space, so DASH always fits behind it.
-#define RAW_DASH_RESERVE 704  // >= DASH_LINE_MAX (640 in v0.7.5)
+#define RAW_DASH_RESERVE 768  // >= DASH_LINE_MAX (768 since v0.7.7)
 // How long the sender waits for room on a port before giving a line up
 // (its samples are then counted in rawDropped too).
 #define RAW_PORT_WAIT_MS 50
@@ -181,6 +183,60 @@ static const uint8_t BMS_QUERY_COMMAND[] = {0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 
 #define IMU_ACCEL_COUNTS_PER_G 4096   // +-8 g
 #define IMU_GYRO_COUNTS_PER_DPS 65.5f // +-500 deg/s
 #define IMU_DLPF_HZ 94
+// MPU-6050 registers and the values initImu() leaves in them (Adafruit
+// MPU6050 2.2.x begin(): sample rate divider 0, clock PLL with gyro X, then
+// our range and filter settings), written again by imuReinit() (v0.7.7).
+#define MPU_REG_SMPLRT_DIV 0x19
+#define MPU_REG_CONFIG 0x1A
+#define MPU_REG_GYRO_CONFIG 0x1B
+#define MPU_REG_ACCEL_CONFIG 0x1C
+#define MPU_REG_PWR_MGMT_1 0x6B
+#define MPU_REG_PWR_MGMT_2 0x6C
+#define MPU_VAL_SMPLRT_DIV 0x00
+#define MPU_VAL_CONFIG 0x02        // DLPF_CFG 2: 94 Hz (MPU6050_BAND_94_HZ)
+#define MPU_VAL_GYRO_CONFIG 0x08   // FS_SEL 1: +-500 deg/s
+#define MPU_VAL_ACCEL_CONFIG 0x10  // AFS_SEL 2: +-8 g
+#define MPU_VAL_PWR_MGMT_1 0x01    // awake (SLEEP bit 6 clear), clock PLL with gyro X
+#define MPU_PWR1_SLEEP 0x40
+
+// ---- Automatic IMU recovery (v0.7.7), decisions in include/imu_recovery.h ----
+// All counts in IMU slots (5 ms). Any of them can be set by build flag.
+// A sensor with IMU_REINIT_FAIL_SLOTS of failed reads, or IMU_REINIT_STUCK_SLOTS
+// of identical reads, is woken and configured again (as at boot; the
+// calibration factor in NVS is kept). If that fails it is marked down, not
+// read, and tried again every IMU_REINIT_FAST_SLOTS (1 s) for
+// IMU_REINIT_FAST_TRIES tries, then every IMU_REINIT_SLOW_SLOTS (5 s). A sensor
+// absent at boot is tried on the same schedule. Before every
+// IMU_BUS_RESET_EVERY-th failed try in a row, if a transaction on that bus
+// timed out (bus stuck, not just a sensor that does not answer), the I2C
+// driver is restarted (Wire end and begin); 0 = never.
+#ifndef IMU_REINIT_FAIL_SLOTS
+#define IMU_REINIT_FAIL_SLOTS 200
+#endif
+#ifndef IMU_REINIT_STUCK_SLOTS
+#define IMU_REINIT_STUCK_SLOTS 200
+#endif
+#ifndef IMU_REINIT_FAST_SLOTS
+#define IMU_REINIT_FAST_SLOTS 200
+#endif
+#ifndef IMU_REINIT_FAST_TRIES
+#define IMU_REINIT_FAST_TRIES 10
+#endif
+#ifndef IMU_REINIT_SLOW_SLOTS
+#define IMU_REINIT_SLOW_SLOTS 1000
+#endif
+#ifndef IMU_BUS_RESET_EVERY
+#define IMU_BUS_RESET_EVERY 3
+#endif
+// I2C transaction timeout (the Arduino core's default is 50 ms). A normal
+// 14-byte read takes about 0.4 ms at 400 kHz; 10 ms bounds how long one
+// transaction on a hung bus can hold the IMU task.
+#ifndef IMU_I2C_TIMEOUT_MS
+#define IMU_I2C_TIMEOUT_MS 10
+#endif
+static const ImuRecoveryConfig IMU_RECOVERY_CONFIG = {IMU_REINIT_FAIL_SLOTS, IMU_REINIT_STUCK_SLOTS,
+                                                      IMU_REINIT_FAST_SLOTS, IMU_REINIT_FAST_TRIES,
+                                                      IMU_REINIT_SLOW_SLOTS, IMU_BUS_RESET_EVERY};
 
 // ============================================================
 // Data structures
@@ -198,8 +254,9 @@ struct ImuTaskConfig {
   QueueHandle_t queue;
   QueueHandle_t char_queue;  // second, independent feed for ride characterisation
   Adafruit_MPU6050* sensor;
-  bool* ready_flag;
+  volatile bool* ready_flag; // true while the sensor is configured and read (v0.7.7: changes at run time)
   TwoWire* wire;             // the sensor's I2C bus, read directly since v0.7.5
+  int sda, scl;              // its pins, for restarting the bus (v0.7.7)
 };
 
 // Time-domain ride-characterisation features, computed per window from the
@@ -568,8 +625,10 @@ struct GnssFix {
 // ============================================================
 Adafruit_MPU6050 mpu1;
 Adafruit_MPU6050 mpu2;
-bool imu1Ready = false;
-bool imu2Ready = false;
+// Set at boot by initImu(); since v0.7.7 the IMU task clears it while the
+// sensor is down and sets it again when a re-init works.
+volatile bool imu1Ready = false;
+volatile bool imu2Ready = false;
 
 QueueHandle_t imu1Queue;
 QueueHandle_t imu2Queue;
@@ -700,6 +759,17 @@ volatile uint32_t rawSyncDropped = 0;
 // Read failures and stuck samples per IMU (DASH "rdfail" and "stuck").
 // Written only by that IMU's task.
 ImuHealth imuHealth[2] = {};
+// Recovery state per IMU (v0.7.7, DASH "reinit" and "imu_up"), written only
+// by that IMU's task.
+ImuRecovery imuRecovery[2] = {};
+// IMU enabled in this build: IMU1 always, IMU2 with ENABLE_IMU2.
+static inline bool imuEnabled(int imu) { return imu == 0 || ENABLE_IMU2; }
+// DASH "imu_up": 1 configured and read, 0 down (missing or re-init failing),
+// -1 not enabled in this build.
+static inline int imuUpState(int imu) {
+  if (!imuEnabled(imu)) return -1;
+  return (imu == 0 ? imu1Ready : imu2Ready) ? 1 : 0;
+}
 // Sync pulse state, written by SyncTask, read by the IMU tasks for the flag bit.
 volatile uint8_t syncLevel = 0;
 volatile uint32_t syncEdgeCount = 0;
@@ -715,6 +785,7 @@ struct RawSyncEvent {
 bool initImu(Adafruit_MPU6050* sensor, TwoWire* wire, int sda, int scl) {
   wire->begin(sda, scl);
   wire->setClock(I2C_CLOCK_HZ);
+  wire->setTimeOut(IMU_I2C_TIMEOUT_MS);  // v0.7.7, see IMU_I2C_TIMEOUT_MS
 
   if (!sensor->begin(0x68, wire)) {
     return false;
@@ -754,14 +825,32 @@ bool initImu(Adafruit_MPU6050* sensor, TwoWire* wire, int sda, int scl) {
 // arithmetic as the driver, so the float values are unchanged. A failed read
 // sends nothing (the slot number still advances, so the gap is visible) and
 // is counted; a read identical to the previous one is counted as stuck.
+//
+// v0.7.7: a sensor that fails or repeats itself for 1 s is woken and
+// configured again from this task (imuReinit(), bounded I2C, no delays); if
+// that fails it is marked down, not read, and tried again on a back-off
+// (1 s, then 5 s). Bench, 22 Oct 2026: a sensor whose wires were pulled and
+// refitted came back asleep and repeated one reading until the board was
+// reset. The decisions are in include/imu_recovery.h (host-tested).
 // ============================================================
+
+// endTransmission() with the bus-timeout case noted (v0.7.7). The Arduino core
+// returns 2 for no acknowledge (sensor missing: the bus itself is fine) and 5
+// for a timeout (the bus is stuck, for example SDA held low), the case where
+// restarting the I2C driver can help.
+#define I2C_END_TIMEOUT 5
+static uint8_t i2cEnd(TwoWire* wire, bool sendStop, bool* timedOut) {
+  const uint8_t e = wire->endTransmission(sendStop);
+  if (e == I2C_END_TIMEOUT && timedOut != nullptr) *timedOut = true;
+  return e;
+}
 
 // Reads ax ay az, temperature, gx gy gz as counts. False if the bus did not
 // acknowledge or returned fewer than 14 bytes.
-static bool readImuRaw(TwoWire* wire, int16_t out[7]) {
+static bool readImuRaw(TwoWire* wire, int16_t out[7], bool* timedOut) {
   wire->beginTransmission(MPU_ADDR);
   wire->write(MPU_ACCEL_OUT_REG);
-  if (wire->endTransmission(false) != 0) return false;
+  if (i2cEnd(wire, false, timedOut) != 0) return false;
   if (wire->requestFrom((uint8_t)MPU_ADDR, (uint8_t)14) != 14) return false;
   uint8_t b[14];
   for (int i = 0; i < 14; i++) {
@@ -771,6 +860,79 @@ static bool readImuRaw(TwoWire* wire, int16_t out[7]) {
   }
   for (int i = 0; i < 7; i++) out[i] = (int16_t)((b[2 * i] << 8) | b[2 * i + 1]);
   return true;
+}
+
+// ---- Re-initialisation at run time (v0.7.7) ----
+// One register write: a single bounded I2C transaction (IMU_I2C_TIMEOUT_MS).
+static bool mpuWriteReg(TwoWire* wire, uint8_t reg, uint8_t val, bool* timedOut) {
+  wire->beginTransmission(MPU_ADDR);
+  wire->write(reg);
+  wire->write(val);
+  return i2cEnd(wire, true, timedOut) == 0;
+}
+
+static bool mpuReadRegs(TwoWire* wire, uint8_t reg, uint8_t* out, uint8_t n, bool* timedOut) {
+  wire->beginTransmission(MPU_ADDR);
+  wire->write(reg);
+  if (i2cEnd(wire, false, timedOut) != 0) return false;
+  if (wire->requestFrom((uint8_t)MPU_ADDR, n) != n) return false;
+  for (uint8_t i = 0; i < n; i++) {
+    const int c = wire->read();
+    if (c < 0) return false;
+    out[i] = (uint8_t)c;
+  }
+  return true;
+}
+
+// Wakes the sensor and writes the boot settings again (range +-8 g,
+// +-500 deg/s, filter 94 Hz, sample rate divider 0, clock PLL), then reads
+// them back. At most 8 short transactions and no delay: well under 1 ms on a
+// working bus; on a dead one it stops at the first that fails (a missing
+// sensor does not acknowledge its address, a few tens of microseconds; a hung
+// bus costs at most one IMU_I2C_TIMEOUT_MS). Unlike the Adafruit begin() used
+// at boot, there is no sensor reset and no 100 ms waits, so it can run inside
+// the IMU task. A sensor that lost power comes back with every register at its
+// power-on value (asleep, +-2 g, +-250 deg/s, filter off), so writing these
+// five registers gives the same state as boot. The first few reads after the
+// wake can still repeat (the clock starts up); they are counted as stuck.
+static bool imuReinit(TwoWire* wire, bool* timedOut) {
+  if (!mpuWriteReg(wire, MPU_REG_PWR_MGMT_1, MPU_VAL_PWR_MGMT_1, timedOut)) return false;
+  if (!mpuWriteReg(wire, MPU_REG_PWR_MGMT_2, 0x00, timedOut)) return false;  // no axis in standby (power-on value)
+  if (!mpuWriteReg(wire, MPU_REG_SMPLRT_DIV, MPU_VAL_SMPLRT_DIV, timedOut)) return false;
+  if (!mpuWriteReg(wire, MPU_REG_CONFIG, MPU_VAL_CONFIG, timedOut)) return false;
+  if (!mpuWriteReg(wire, MPU_REG_GYRO_CONFIG, MPU_VAL_GYRO_CONFIG, timedOut)) return false;
+  if (!mpuWriteReg(wire, MPU_REG_ACCEL_CONFIG, MPU_VAL_ACCEL_CONFIG, timedOut)) return false;
+  uint8_t cfg[4], pwr;
+  if (!mpuReadRegs(wire, MPU_REG_SMPLRT_DIV, cfg, 4, timedOut)) return false;
+  if (!mpuReadRegs(wire, MPU_REG_PWR_MGMT_1, &pwr, 1, timedOut)) return false;
+  return cfg[0] == MPU_VAL_SMPLRT_DIV && (cfg[1] & 0x3F) == MPU_VAL_CONFIG && (cfg[2] & 0x18) == MPU_VAL_GYRO_CONFIG &&
+         (cfg[3] & 0x18) == MPU_VAL_ACCEL_CONFIG && (pwr & MPU_PWR1_SLEEP) == 0;
+}
+
+// Restarts of an IMU's I2C driver (v0.7.7, !status and the 2 s stats line).
+volatile uint32_t imuBusRestarts[2] = {0, 0};
+
+// One re-init try from the IMU task: imuReinit(), after restarting the bus
+// driver (Wire end and begin) when both are true: the back-off says so
+// (imuRecWantBusReset: every IMU_BUS_RESET_EVERY-th failed try in a row) and
+// a transaction on this bus has timed out since the last good read (the bus
+// is stuck; a missing sensor that just does not answer leaves the bus fine
+// and is not a reason to restart it). The driver already clears a stuck bus
+// itself after a timeout; the restart is the last resort. Each bus belongs to
+// one IMU task once setup() is done (nothing else uses Wire or Wire1 at run
+// time), so restarting it here cannot cut into another task's transaction.
+static void imuTryReinit(ImuTaskConfig* cfg, ImuRecovery& rec, uint32_t slot, bool* busTimedOut) {
+  if (*busTimedOut && imuRecWantBusReset(rec, IMU_RECOVERY_CONFIG)) {
+    cfg->wire->end();
+    cfg->wire->begin(cfg->sda, cfg->scl);
+    cfg->wire->setClock(I2C_CLOCK_HZ);
+    cfg->wire->setTimeOut(IMU_I2C_TIMEOUT_MS);
+    imuBusRestarts[cfg->sensor_id]++;
+    *busTimedOut = false;
+  }
+  const bool worked = imuReinit(cfg->wire, busTimedOut);
+  imuRecAfterTry(rec, slot, worked);
+  *(cfg->ready_flag) = worked;
 }
 
 // Waits for the next sample slot. vTaskDelayUntil measures the period from
@@ -797,18 +959,37 @@ void ImuTask(void* pvParameters) {
   uint32_t seq = 0;
   TickType_t lastWake = xTaskGetTickCount();
   ImuHealth& health = imuHealth[cfg->sensor_id];
+  // v0.7.7: automatic recovery (include/imu_recovery.h). A sensor that was not
+  // found at boot starts down and is tried on the back-off schedule.
+  ImuRecovery& rec = imuRecovery[cfg->sensor_id];
+  imuRecInit(rec, *(cfg->ready_flag), 0);
+  bool busTimedOut = false;  // a transaction on this bus timed out since the last good read
 
   for (;;) {
-    if (*(cfg->ready_flag)) {
+    // v0.7.7: the slot number advances every period, whether the sensor is
+    // read, down or being re-initialised, so time spent down shows in the raw
+    // stream as a gap in seq of the same length.
+    const uint32_t slot = seq++;
+    if (imuRecDueWhileDown(rec, IMU_RECOVERY_CONFIG, slot)) {
+      // Down: no read, only a re-init try when the back-off allows it.
+      imuTryReinit(cfg, rec, slot, &busTimedOut);
+    } else if (rec.up) {
       int16_t raw[7];
-      const bool ok = readImuRaw(cfg->wire, raw);
-      const uint32_t slot = seq++;
+      const bool ok = readImuRaw(cfg->wire, raw, &busTimedOut);
+      if (ok) busTimedOut = false;
       const int16_t motion[6] = {raw[0], raw[1], raw[2], raw[4], raw[5], raw[6]};
       const bool stuck = imuHealthNote(health, ok, motion);
+      // After this slot's sample has been handled: a bad run long enough
+      // re-initialises the sensor (at most one try per slot, bounded I2C).
+      const bool reinitNow = imuRecNoteRead(rec, IMU_RECOVERY_CONFIG, slot, imuReadKind(ok, stuck));
       if (!ok) {
+        if (reinitNow) imuTryReinit(cfg, rec, slot, &busTimedOut);
         imuWaitNextSlot(cfg->sensor_id, &lastWake, &seq);
         continue;
       }
+      // First sample sent after a re-init that worked: flagged in the raw stream.
+      const bool firstAfterReinit = rec.flagNext;
+      rec.flagNext = false;
 
       ImuSample sample;
       sample.sensor_id = cfg->sensor_id;
@@ -828,7 +1009,8 @@ void ImuTask(void* pvParameters) {
         it.imu = cfg->sensor_id;
         it.s.seq = slot;
         it.s.t_us = sample.timestamp_us;
-        it.s.flags = (syncLevel ? RAW_FLAG_SYNC : 0) | (stuck ? RAW_FLAG_STUCK : 0);
+        it.s.flags = (syncLevel ? RAW_FLAG_SYNC : 0) | (stuck ? RAW_FLAG_STUCK : 0) |
+                     (firstAfterReinit ? RAW_FLAG_REINIT : 0);
         for (int a = 0; a < 6; a++) it.s.v[a] = motion[a];
         rawOffer(rawQueue, it, &rawQueueDropped[cfg->sensor_id]);
       }
@@ -856,6 +1038,9 @@ void ImuTask(void* pvParameters) {
           imu2CharDropped++;
         }
       }
+
+      // A stuck run long enough: wake and configure the sensor again (v0.7.7).
+      if (reinitNow) imuTryReinit(cfg, rec, slot, &busTimedOut);
     }
 
     imuWaitNextSlot(cfg->sensor_id, &lastWake, &seq);
@@ -945,7 +1130,8 @@ void StatsTask(void* pvParameters) {
                       (long long)imu2MinDt, (long long)(imu2SumDt / divisor),
                       (long long)imu2MaxDt, (unsigned long)imu2Dropped);
       } else {
-        Serial.println("IMU2: no samples (not ready / not connected)");
+        Serial.println(ENABLE_IMU2 ? "IMU2: no samples (not ready / not connected)"
+                                   : "IMU2: disabled in this build (ENABLE_IMU2 = 0)");
       }
       // Read health and raw stream (v0.7.5), totals since boot.
       Serial.printf("IMU health: rdfail=[%lu,%lu] stuck=[%lu,%lu] rawdrop=[%lu,%lu] raw_lines=%lu\n",
@@ -957,6 +1143,12 @@ void StatsTask(void* pvParameters) {
                     (unsigned long)imuLateSlots[0], (unsigned long)imuLateSlots[1],
                     (unsigned long)imuQueueMax[0], (unsigned long)imuQueueMax[1],
                     (unsigned long)idleHookCalls[0], (unsigned long)idleHookCalls[1]);
+      // v0.7.7: up 1 = read, 0 = down (missing or re-init failing), -1 = disabled.
+      Serial.printf("IMU recovery: up=[%d,%d] reinit=[%lu,%lu] tries=[%lu,%lu] bus_restarts=[%lu,%lu]\n",
+                    imuUpState(0), imuUpState(1), (unsigned long)imuRecovery[0].reinits,
+                    (unsigned long)imuRecovery[1].reinits, (unsigned long)imuRecovery[0].tries,
+                    (unsigned long)imuRecovery[1].tries, (unsigned long)imuBusRestarts[0],
+                    (unsigned long)imuBusRestarts[1]);
 #if !NODE_FRONT
       Serial.printf("GNSS: %lu polls, %lu with a fix\n",
                     (unsigned long)gnssCount, (unsigned long)gnssValidCount);
@@ -1220,10 +1412,22 @@ void RawSenderTask(void* pvParameters) {
       if (batches[imu].n > 0 && nowUs - batches[imu].s[0].t_us > RAW_MAX_AGE_US) rawFlushBatch(batches[imu], imu);
     }
 
-    // Scale header per IMU at start and every RAW_HEADER_PERIOD_MS.
-    if (rawEnabled && nowUs >= nextHeaderUs) {
-      nextHeaderUs = nowUs + (int64_t)RAW_HEADER_PERIOD_MS * 1000;
+    // Scale header per IMU at start and every RAW_HEADER_PERIOD_MS, and
+    // (v0.7.7) for one IMU right after it was re-initialised.
+    static uint32_t headerReinits[2] = {0, 0};
+    bool reinitHeader[2] = {false, false};
+    for (uint8_t imu = 0; imu < 2; imu++) {
+      const uint32_t n = imuRecovery[imu].reinits;
+      if (n != headerReinits[imu]) {
+        headerReinits[imu] = n;
+        reinitHeader[imu] = true;
+      }
+    }
+    const bool periodic = nowUs >= nextHeaderUs;
+    if (rawEnabled && (periodic || reinitHeader[0] || reinitHeader[1])) {
+      if (periodic) nextHeaderUs = nowUs + (int64_t)RAW_HEADER_PERIOD_MS * 1000;
       for (uint8_t imu = 0; imu < 2; imu++) {
+        if (!periodic && !reinitHeader[imu]) continue;
         if (!(imu == 0 ? imu1Ready : imu2Ready)) continue;
         const size_t len = rawEncodeHeader(small, sizeof(small), NODE_ID, (uint8_t)(imu + 1),
                                            IMU_ACCEL_COUNTS_PER_G, IMU_GYRO_COUNTS_PER_DPS,
@@ -2718,8 +2922,9 @@ String buildTelemetryJson(uint32_t seq) {
 // v0.7.3); 576 since v0.7.5 for the node, rdfail, stuck and rawdrop fields
 // (about 60 bytes more in practice; the bridge accepts lines up to 4096);
 // 704 since v0.7.6 for cons_age_ms, qmax, late and idle (about 100 bytes more
-// in the worst case, about 90 in practice).
-#define DASH_LINE_MAX 704
+// in the worst case, about 90 in practice); 768 since v0.7.7 for reinit and
+// imu_up (53 bytes in the worst case, 33 in practice).
+#define DASH_LINE_MAX 768
 static_assert(RAW_DASH_RESERVE >= DASH_LINE_MAX, "the raw stream must leave room for a whole DASH line");
 
 // Runtime switch (serial command "!dash off" / "!dash on"), default on.
@@ -2789,6 +2994,22 @@ void DashTask(void* pvParameters) {
              (unsigned long)imuQueueMax[0], (unsigned long)imuQueueMax[1],
              (unsigned long)imuLateSlots[0], (unsigned long)imuLateSlots[1],
              (unsigned long)dIdle0, (unsigned long)dIdle1);
+#endif
+
+    // IMU recovery (v0.7.7), after the v0.7.6 fields:
+    //   reinit  re-inits that worked per IMU since boot (sensor woken and
+    //           configured again after 1 s of failed or identical reads, or
+    //           found after being absent at boot).
+    //   imu_up  1 configured and read, 0 down (missing, or its re-init is
+    //           failing and being retried), -1 not enabled in this build.
+    char recov[96];
+#if NODE_FRONT
+    snprintf(recov, sizeof(recov), "\"reinit\":[%lu],\"imu_up\":[%d]", (unsigned long)imuRecovery[0].reinits,
+             imuUpState(0));
+#else
+    snprintf(recov, sizeof(recov), "\"reinit\":[%lu,%lu],\"imu_up\":[%d,%d]",
+             (unsigned long)imuRecovery[0].reinits, (unsigned long)imuRecovery[1].reinits, imuUpState(0),
+             imuUpState(1));
 #endif
 
 #if !NODE_FRONT
@@ -2871,10 +3092,16 @@ void DashTask(void* pvParameters) {
     (void)vibDis;
     int len = snprintf(line, sizeof(line),
                        "DASH {\"seq\":%lu,\"up_ms\":%lld,\"fw\":\"%s\",\"vib\":%s,"
-                       "\"imu_hz\":[%.1f],\"drops\":[%lu],%s,%s}\n",
+                       "\"imu_hz\":[%.1f],\"drops\":[%lu],%s,%s,%s}\n",
                        (unsigned long)seq, (long long)(nowUs / 1000), fw, vib, (float)imu1RateHz,
-                       (unsigned long)imu1Dropped, health, pace);
+                       (unsigned long)imu1Dropped, health, pace, recov);
 #else
+    // Rear unit with IMU2 off (the v0.7.7 default): every per-IMU array keeps
+    // two elements and the second is a plain 0 (imu_hz 0.0, drops, rdfail,
+    // stuck, rawdrop, qmax, late and reinit 0; cons_age_ms ride2 -1, as for a
+    // consumer that never ran; imu_up -1). Never null, so a reader that does
+    // arithmetic or checks len == 2 keeps working; a 0 Hz rate is what v0.7.6
+    // already sent for an unconnected IMU2. imu_up says which it is.
     int len = snprintf(line, sizeof(line),
                        "DASH {\"seq\":%lu,\"up_ms\":%lld,\"fw\":\"%s\","
                        "\"soc\":%s,\"v\":%s,\"i\":%s,\"bms_age_s\":%s,"
@@ -2882,14 +3109,14 @@ void DashTask(void* pvParameters) {
                        "\"vib\":%s,\"vib_dis\":%s,\"imu_hz\":[%.1f,%.1f],\"drops\":[%lu,%lu],"
                        "\"rpm\":%s,\"csq\":%s,\"mqtt\":%s,"
                        "\"cell_lat\":%s,\"cell_lon\":%s,\"cell_acc_m\":%s,\"cell_age_s\":%s,\"agps\":%s,"
-                       "%s,%s}\n",
+                       "%s,%s,%s}\n",
                        (unsigned long)seq, (long long)(nowUs / 1000), fw,
                        soc, v, cur, bmsAge,
                        fix ? "true" : "false", lat, lon, spd, crs, alt,
                        vib, vibDis, (float)imu1RateHz, (float)imu2RateHz,
                        (unsigned long)imu1Dropped, (unsigned long)imu2Dropped,
                        rpm, csq, mqttConnected ? "true" : "false",
-                       cLat, cLon, cAcc, cAge, agpsOk ? "true" : "false", health, pace);
+                       cLat, cLon, cAcc, cAge, agpsOk ? "true" : "false", health, pace, recov);
 #endif
     if (len < 0 || len >= (int)sizeof(line)) {
       // A cut line would be invalid JSON; skip it rather than send half.
@@ -2948,10 +3175,17 @@ static void printRawStatus() {
                 rawEnabled ? "on" : "OFF", (unsigned)rawLinesSent, RAW_ON_USB ? " usb" : "",
                 RAW_ON_UART ? " uart" : "");
   for (int i = 0; i < 2; i++) {
-    if (!(i == 0 ? imu1Ready : imu2Ready)) continue;
-    Serial.printf("[CMD] imu%d: rdfail=%u stuck=%u rawdrop=%u (queue %u, port %u)\n", i + 1,
-                  (unsigned)imuHealth[i].rdfail, (unsigned)imuHealth[i].stuck, (unsigned)rawDropped(i),
-                  (unsigned)rawQueueDropped[i], (unsigned)rawPortDropped[i]);
+    // v0.7.7: every IMU enabled in the build, up or down, with its recovery counts.
+    if (!imuEnabled(i)) {
+      Serial.printf("[CMD] imu%d: disabled in this build (ENABLE_IMU2 = 0)\n", i + 1);
+      continue;
+    }
+    Serial.printf("[CMD] imu%d: %s, rdfail=%u stuck=%u rawdrop=%u (queue %u, port %u), reinit=%u (tries %u, "
+                  "bus restarts %u)\n", i + 1,
+                  imuUpState(i) == 1 ? "up" : "DOWN (retrying)", (unsigned)imuHealth[i].rdfail,
+                  (unsigned)imuHealth[i].stuck, (unsigned)rawDropped(i), (unsigned)rawQueueDropped[i],
+                  (unsigned)rawPortDropped[i], (unsigned)imuRecovery[i].reinits, (unsigned)imuRecovery[i].tries,
+                  (unsigned)imuBusRestarts[i]);
   }
   Serial.printf("[CMD] sync edges=%u, events dropped=%u\n", (unsigned)syncEdgeCount, (unsigned)rawSyncDropped);
   const int64_t nowUs = esp_timer_get_time();
@@ -3419,14 +3653,14 @@ void setup() {
 
   imu1Ready = initImu(&mpu1, &Wire, IMU1_SDA_PIN, IMU1_SCL_PIN);
   Serial.println(imu1Ready ? "IMU1 found and configured (stem/chassis - confirm on bracket)."
-                            : "IMU1 not found.");
+                            : "IMU1 not found (v0.7.7: retried every 1 s, then every 5 s, while running).");
 
 #if ENABLE_IMU2
   imu2Ready = initImu(&mpu2, &Wire1, IMU2_SDA_PIN, IMU2_SCL_PIN);
   Serial.println(imu2Ready ? "IMU2 found and configured."
-                            : "IMU2 not found (expected if not yet wired, or pins need verifying).");
+                            : "IMU2 not found (retried while running; check the wiring or the pins).");
 #else
-  Serial.println("IMU2 disabled (ENABLE_IMU2 = 0).");
+  Serial.println("IMU2 disabled (ENABLE_IMU2 = 0; build with -D ENABLE_IMU2=1 to use it).");
 #endif
   Serial.println();
 
@@ -3445,8 +3679,8 @@ void setup() {
   imu1CharQueue = xQueueCreate(RIDE_CHAR_QUEUE_LENGTH, sizeof(ImuSample));
   imu2CharQueue = xQueueCreate(RIDE_CHAR_QUEUE_LENGTH, sizeof(ImuSample));
 
-  imu1Config = {0, imu1Queue, imu1CharQueue, &mpu1, &imu1Ready, &Wire};
-  imu2Config = {1, imu2Queue, imu2CharQueue, &mpu2, &imu2Ready, &Wire1};
+  imu1Config = {0, imu1Queue, imu1CharQueue, &mpu1, &imu1Ready, &Wire, IMU1_SDA_PIN, IMU1_SCL_PIN};
+  imu2Config = {1, imu2Queue, imu2CharQueue, &mpu2, &imu2Ready, &Wire1, IMU2_SDA_PIN, IMU2_SCL_PIN};
 
   // Raw stream (v0.7.5): queues before the IMU and sync tasks start.
   rawQueue.h = xQueueCreate(RAW_QUEUE_LENGTH, sizeof(RawItem));
@@ -3476,7 +3710,10 @@ void setup() {
   esp_register_freertos_idle_hook_for_cpu(idleHookCore1, 1);
 
   xTaskCreatePinnedToCore(ImuTask, "Imu1Task", 4096, &imu1Config, IMU_TASK_PRIORITY, &Imu1TaskHandle, IMU_CORE);
+#if ENABLE_IMU2
+  // v0.7.7: only when IMU2 is enabled (up to v0.7.6 it ran idle without one).
   xTaskCreatePinnedToCore(ImuTask, "Imu2Task", 4096, &imu2Config, IMU_TASK_PRIORITY, &Imu2TaskHandle, IMU_CORE);
+#endif
   // v0.7.6: the consumer on core 0 above all other user tasks there (was core 1, priority 2).
   xTaskCreatePinnedToCore(StatsTask, "StatsTask", 4096, nullptr, CONSUMER_PRIORITY, &StatsTaskHandle, CONSUMER_CORE);
   xTaskCreatePinnedToCore(SyncTask, "SyncTask", 2048, nullptr, 2, &SyncTaskHandle, IMU_CORE);

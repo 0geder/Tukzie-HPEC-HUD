@@ -40,7 +40,9 @@
 //            bytes 1-2   time step from the previous sample, us, unsigned big-endian (0 for the first)
 //            byte 3      flags: bit 0 sync pin level when the sample was read,
 //                        bit 1 stuck (all six values equal to the previous good read),
-//                        bits 2-7 zero
+//                        bit 2 first sample after the sensor was re-initialised
+//                        (v0.7.7; the seq gap before it is the time it was down),
+//                        bits 3-7 zero
 //            bytes 4-15  ax ay az gx gy gz, signed 16-bit big-endian sensor counts
 //   The encoder starts a new line when the seq step is above 255 or the time
 //   step above 65535 us, so both always fit.
@@ -55,6 +57,8 @@
 //     a [m/s^2] = count / accel_counts_per_g * 9.80665
 //     w [rad/s] = count / gyro_counts_per_dps * pi / 180
 //   Raw counts carry no calibration (the magnitude scale in NVS is not applied).
+//   v0.7.7: an extra RAWH for an IMU is also sent right after that IMU was
+//   re-initialised, so the recovery shows in the stream next to the gap.
 //
 // 3. Sync event, one per edge of the sync pulse output (every 500 ms):
 //
@@ -85,6 +89,8 @@
 #define RAW_HEADER_PERIOD_MS 5000
 #define RAW_FLAG_SYNC 0x01
 #define RAW_FLAG_STUCK 0x02
+#define RAW_FLAG_REINIT 0x04         // v0.7.7, same format version: older readers keep the byte as it is
+#define RAW_FLAG_MASK (RAW_FLAG_SYNC | RAW_FLAG_STUCK | RAW_FLAG_REINIT)
 
 struct RawSample {
   uint32_t seq;
@@ -155,7 +161,7 @@ static inline size_t rawEncodeLine(char* out, size_t cap, const char* node, uint
     rec[0] = (uint8_t)dseq;
     rec[1] = (uint8_t)(dt >> 8);
     rec[2] = (uint8_t)(dt & 0xFF);
-    rec[3] = (uint8_t)(s[k].flags & (RAW_FLAG_SYNC | RAW_FLAG_STUCK));
+    rec[3] = (uint8_t)(s[k].flags & RAW_FLAG_MASK);
     for (int a = 0; a < 6; a++) {
       const uint16_t u = (uint16_t)s[k].v[a];
       rec[4 + 2 * a] = (uint8_t)(u >> 8);

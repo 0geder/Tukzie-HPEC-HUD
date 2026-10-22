@@ -238,9 +238,13 @@ def check_telemetry(rep, d, ms):
         rep.add("esp32 data fresh", FAIL, "age %s ms (limit %d)" % (age, ESP32_MAX_AGE_MS), critical=True)
     hz = e.get("imu_hz")
     if isinstance(hz, list) and len(hz) == 2 and all(isinstance(x, (int, float)) for x in hz):
-        st = PASS if min(hz) >= IMU_MIN_HZ else FAIL
-        rep.add("IMU rates", st, "IMU1 %.1f Hz, IMU2 %.1f Hz (min %.0f)" % (hz[0], hz[1], IMU_MIN_HZ),
-                critical=True)
+        # Since v0.7.7 the rear unit has IMU1 only (IMU2 moved to the front node): imu_up[1] == -1
+        # marks IMU2 as disabled, and only the IMUs in use are checked.
+        up = e.get("imu_up")
+        used = [i for i in range(2) if not (isinstance(up, list) and len(up) > i and up[i] == -1)]
+        st = PASS if used and min(hz[i] for i in used) >= IMU_MIN_HZ else FAIL
+        detail = ", ".join("IMU%d %.1f Hz%s" % (i + 1, hz[i], "" if i in used else " (disabled)") for i in range(2))
+        rep.add("IMU rates", st, "%s (min %.0f)" % (detail, IMU_MIN_HZ), critical=True)
     else:
         rep.add("IMU rates", FAIL, "imu_hz missing or invalid: %r" % (hz,), critical=True)
     fw = e.get("fw")

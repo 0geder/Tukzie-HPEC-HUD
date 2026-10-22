@@ -47,7 +47,7 @@ Fields (any value that is unknown or NaN is `null`, never `nan`):
 
 The four 0.7.5 fields are appended at the end; every older field is unchanged. The front IMU node (build env `front_node`, section 6) sends a shorter DASH line: `seq`, `up_ms`, `fw`, `vib`, `imu_hz`, `drops`, `node`, `rdfail`, `stuck`, `rawdrop`, with one element in each array.
 
-The line must be built without heap-heavy String concatenation in a timing-critical task and must never block the IMU tasks (core 1). Maximum length 704 bytes (400 until firmware 0.7.3, 480 until 0.7.5, 576 in 0.7.5; the bridge accepts up to 4096).
+The line must be built without heap-heavy String concatenation in a timing-critical task and must never block the IMU tasks (core 1). Maximum length 768 bytes (400 until firmware 0.7.3, 480 until 0.7.5, 576 in 0.7.5, 704 in 0.7.6; the bridge accepts up to 4096).
 
 Since firmware 0.7.5 the same link also carries the raw IMU stream: RAW, RAWH and RAWS lines, about 15 kB/s on the rear unit (`TelemetryUnit/RAW_STREAM.md`). They never start with `DASH `, so a reader that only wants DASH is unaffected; the bridge saves them (section 6).
 
