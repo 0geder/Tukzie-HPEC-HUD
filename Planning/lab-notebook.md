@@ -356,3 +356,18 @@ committed to git because of their size, kept on OneDrive).
   74.61 V. Not calibrated in this state.
 - Front IMU recalibrated with !recal over the Pi 5 (details in Planning/calibration-record.md): scale 1.0035,
   repeating the first-boot 1.0036; raw counts 1.000 g at rest; mounted at 49 deg, so redo after final mounting.
+
+### Front sync fixed, rear flash log read out, rear unit on v0.7.6 (about 13:30)
+- Front node: sync jumper moved to the ESP32's GPIO5; firmware v0.7.6 front_node with SYNC_PULSE_PIN=5 built on the
+  laptop and flashed from the Pi 5 over USB (Debian esptool 4.7.0 lacks the S3 stub, so --no-stub at 115200; hash
+  verified). Pi 5 pin 11 now toggles every 500 ms. Front node: 200 Hz, 0 drops, cons_age_ms [0, 4], idle [1002, 2072].
+- Rear flash log read out before reflashing (BenchTest/logs/flashlog_2026-10-22/): 2,000 of 2,022 records after 4
+  passes. Boot 109 (v0.7.4) holds the 19 Oct session: 1,154 ten-second records over 1.3 to 8.7 h of uptime, battery
+  current down to -48.03 A (the recorder saw -46.9 A because it missed a third of the seconds), full per-IMU features.
+- Rear unit flashed with v0.7.6 over COM10 (hash verified). After boot: IMU1 200 Hz, dropped 0, rdfail 0, late 0,
+  qmax 2, both cores idle, cons_age_ms [1, 2, 45]; BMS connected (57 %, 74.61 V, 0 A); vib 0.026.
+- IMU2 (IO17/18) NOT detected at this boot ("no samples"), as after one reset on 21 Oct. With the fault's 46/s drop
+  rate (one IMU2 pass about 22 ms instead of 5 ms), this points to IMU2's I2C bus (wiring, connector or pull-ups) as
+  the load on core 1. To check: IMU2 wires and connector.
+- Modem answers AT but AT+CSQ gives 99,99 (no network), where it gave 23 to 30 in the lab before: check that the LTE
+  antenna is still on its socket after the GNSS antenna was fitted.
