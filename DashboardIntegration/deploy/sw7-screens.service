@@ -1,0 +1,21 @@
+# SW-7 dashboard screen record on the Pi 5: one JPEG screenshot of the display every 2 s,
+# to /home/piadam/roadtest/screens/YYYY-MM-DD/HHMMSS.jpg (about 60 kB each, about 110 MB per hour).
+# Stops writing below 2 GB free. Runs offline; no network needed. Turn into a time-lapse video
+# afterwards on the laptop with tools/make_screen_timelapse.py.
+#   sudo cp sw7-screens.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#   sudo systemctl enable --now sw7-screens.service
+[Unit]
+Description=SW-7 dashboard screenshots every 2 s (X display :0)
+After=graphical.target
+
+[Service]
+Type=simple
+User=piadam
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/piadam/.Xauthority
+ExecStart=/bin/bash -c 'while true; do free=$$(df --output=avail -k /home | tail -1); if [ "$$free" -gt 2000000 ]; then d=/home/piadam/roadtest/screens/$$(date +%%F); mkdir -p "$$d"; /usr/bin/scrot -q 55 "$$d/$$(date +%%H%%M%%S).jpg" 2>/dev/null; fi; sleep 2; done'
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target

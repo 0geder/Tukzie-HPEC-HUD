@@ -426,3 +426,10 @@ committed to git because of their size, kept on OneDrive).
   sensor was marked down, drops stayed 0, consumer ages under 50 ms, and the unit re-initialised it by itself after
   refitting (reinit 1 to 4), back to 200 Hz with vib returning. No reset needed. Log:
   BenchTest/logs/recovery_2026-10-22/rear_recovery_console_2.txt (the first 2-minute recording had no pull).
+
+### Dashboard screen record for run 2 (16:00)
+- Pi 5 desktop is X (Xorg, :0). scrot installed; sw7-screens.service saves a JPEG of the display every 2 s to
+  /home/piadam/roadtest/screens/YYYY-MM-DD/HHMMSS.jpg (about 60 kB each, about 110 MB/h; 48 GB free; stops below 2 GB).
+  Time-lapse afterwards with tools/make_screen_timelapse.py. Runs offline.
+- LTE still down at 15:58: rear v0.7.8 reports csq null, mqtt false (antenna or SIM to check). Melo will look at her
+  server later; a watcher retries her broker every 2 min until 18:45.
