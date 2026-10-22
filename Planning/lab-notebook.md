@@ -320,3 +320,15 @@ committed to git because of their size, kept on OneDrive).
   kept as road_logger.py.bak-1022) and sw7-roadlog restarted: front_node 12 of 12 polls OK in the first 6 s.
 - Sync wire: the ESP32 toggles GPIO15 every 500 ms (RAWS lines), but no Pi 5 header GPIO toggles (all free GPIOs,
   plus 2, 3, 14, 15 sampled), so the sync wire is not connected to the header yet or is on the wrong ESP32 pin.
+
+### System check after both Pis restarted (12:27)
+- Pi 5 (192.168.137.128) and Pi 4 (192.168.137.220) up, flags 0x0, about 50 C. Ethernet link up (ping ok).
+- Pi 5: all six services active; front camera 15.1 fps, 59 ms; front node 200 Hz, 0 drops, 0 rdfail, 0 rawdrop,
+  1,107 raw lines, 0 bad CRC; recorder: rear 81/81, rear alerts 80/80, front 80/80, front node 80/80, front alerts
+  79/79 rows OK. Front ToF board: none of the three sensors answers at 0x29 (unpowered or disconnected).
+  Front sync wire: pin 11 still static.
+- Pi 4: detector 13.8 fps, bridge 62 DASH lines 0 bad over the UART, rear ToF ahead 1,043 mm and right 71 mm.
+  Rear ESP32 still v0.7.4.1, up 47 min on its battery, BMS connected (57 %, 74.62 V), modem silent (csq null).
+- FAULT again: rear drop counters rising at about 168/s (IMU1) and 46/s (IMU2), the same rates as on 21 Oct, with
+  imu_hz still 200 and vib null. No USB host attached (so USB console stalls are ruled out). Modem unresponsive in
+  both episodes. Root-cause investigation started before v0.7.5 is flashed to the rear unit.
