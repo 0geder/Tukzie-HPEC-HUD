@@ -348,3 +348,11 @@ committed to git because of their size, kept on OneDrive).
 - Bench gate before run 2: reproduce on v0.7.4.1 (modem off, 60 min, one trigger factor at a time), then 60 min on
   v0.7.6 with pass criteria drops [0,0], vib present, cons_age_ms < 200, late 0, idle > 0 (procedure in
   TelemetryUnit/CHANGELOG.md).
+
+### System check 12:58 and calibration
+- Pi 5 and Pi 4 up, flags 0x0, Ethernet up; recorder all five sources 80/80. Front node 200 Hz, 0 drops, 2,608 raw
+  lines, 0 bad CRC. Front ToF still not answering; front sync pin 11 still static.
+- Rear unit (v0.7.4.1, up 80 min) still in the stall fault: drops [733,399, 198,524], vib null, csq null; BMS 57 %,
+  74.61 V. Not calibrated in this state.
+- Front IMU recalibrated with !recal over the Pi 5 (details in Planning/calibration-record.md): scale 1.0035,
+  repeating the first-boot 1.0036; raw counts 1.000 g at rest; mounted at 49 deg, so redo after final mounting.
