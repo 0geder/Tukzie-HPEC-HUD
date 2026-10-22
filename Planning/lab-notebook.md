@@ -404,3 +404,16 @@ committed to git because of their size, kept on OneDrive).
 - Melo's broker (31.87.115.21) retested 14:45: no answer from the laptop or the Pi 5 on TCP 18883, 8883, 1883, 443
   or 8884, no ping reply, trace lost after hop 6; normal internet works (Google 200). Server down, or it only accepts
   listed addresses. Questions sent via the student to Melo.
+
+### 60-minute soak of v0.7.6 on the rear unit (13:48 to 14:50), short IMU1 wires, on battery
+- 726 records every 5 s, 62.0 min, 0 restarts. drops [0,0] throughout; vib present in every record (0.021 to
+  0.133); consumer age at most 49 ms; late 0; rawdrop 0; rdfail 0; queue peak 7 of 100; both cores idle in every
+  record (min 976 idle calls/s). Wired link 4,504 DASH lines, 0 bad. Modem without network (csq null), BMS 57 %.
+- IMU1 rate per 2 s window 199.5 to 200.4 Hz in 723 of 726 windows; 3 windows 201.3 to 203.9 Hz.
+- Stuck readings +2 to 6 every 82 to 87 s (152 in all), exactly on the flash-log flush period (8 KB buffer):
+  the 40 ms flush pause is followed by catch-up reads about 1 ms apart, faster than the sensor's 1 kHz update, so
+  some repeat the previous value. The high-rate windows are the same catch-up samples landing in the next window.
+  Not a wiring fault (rdfail 0 for the hour). For run 2: !log off before the passes, since the raw stream on the
+  Pis is the record.
+- Verdict: the consumer-stall fault is fixed in v0.7.6 (no drops, no stall, vib throughout for an hour).
+  Log: BenchTest/logs/soak_2026-10-22/soak_v076_rear_60min.jsonl; evaluator BenchTest/soak_eval.py.
