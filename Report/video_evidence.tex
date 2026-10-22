@@ -1,0 +1,18 @@
+% Video evidence: included by appendixi.tex only when video_links.tex exists, so the report never shows a placeholder.
+% video_links.tex holds one \videoentry{title}{what it shows}{report section}{URL} per video, and nothing else.
+\section{Video evidence}
+\label{sec:video-evidence}
+
+The videos of the vehicle work are published on YouTube as unlisted videos: anyone with the link or the QR code can watch them, but they are not listed or searchable. Faces of people other than the author and the number plate are blurred, or the people shown agreed to publication. Each entry names the report section the video supports.
+
+\newcommand{\videoentry}[4]{#1 & #2 & #3 & \href{#4}{Watch} & \vspace{3pt}\qrcode[height=1.6cm]{#4}\vspace{2pt} \\ \hline\ignorespaces}
+\begin{longtable}{|m{3.2cm}|m{5.6cm}|m{1.8cm}|m{1.1cm}|m{1.9cm}|}
+\caption{Video evidence, with links and QR codes.}\label{tab:video-evidence}\\
+\hline
+\textbf{Video} & \textbf{What it shows} & \textbf{Section} & \textbf{Link} & \textbf{QR code} \\ \hline
+\endfirsthead
+\hline
+\textbf{Video} & \textbf{What it shows} & \textbf{Section} & \textbf{Link} & \textbf{QR code} \\ \hline
+\endhead
+\input{video_links}%
+\end{longtable}
