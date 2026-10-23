@@ -452,3 +452,7 @@ committed to git because of their size, kept on OneDrive).
   boot (0x50000). No data from the rear ESP32 (bridge sees no DASH line; the last rear raw file stopped the evening of
   22 Oct), so the GNSS could not be checked. The Pi 4 to Pi 5 Ethernet cable is unplugged (eth0 down), so the Pi 4 had
   not synced its clock and was 20 h behind; set from the laptop at 08:45 UTC. Pi 5 clock correct (synced online).
+- 11:20, rear ESP32 back on (fw 0.7.8, IMU1 200 Hz, BMS 74.6 V, SoC 57 %). GNSS: no fix after 5 min (assisted GNSS
+  loaded, agps true); the mobile-network position works (-33.9595, 18.4598). LTE signal back: csq 11 to 16. MQTT false,
+  as expected: Melo's broker needs TLS, which the firmware lacks. !gnssraw prints to the USB console only, not the UART,
+  so the satellite count cannot be read from the Pi; toggled on and off again (4 commands received, 4 run at once).
