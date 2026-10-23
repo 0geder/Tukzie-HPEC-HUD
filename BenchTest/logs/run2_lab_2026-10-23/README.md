@@ -3,8 +3,9 @@
 Copied on 23 Oct after the session (17:05 to 17:25), checked against the size on the Pi. File names carry the Pi's
 clock at opening; files named 2026-10-22_1436xx were opened after a restart before the clock synced (their contents
 are timestamped correctly once chrony synced, about 2 min after boot). Raw files and recorder logs are git-ignored
-(about 400 MB); they stay here and on the Pis' SD cards. Dashboard screenshots (every 2 s) stay on the Pi 5
-(~/roadtest/screens/2026-10-23); the copy failed when the Pi 5 restarted.
+(about 400 MB); they stay here and on the Pis' SD cards. Dashboard screenshots (every 2 s) from 15:48 to 16:29 (1,198 files, both stand runs and the
+recalibration) are in pi5_screens/ as nine 5-minute tar files (git-ignored); the rest of the day stays on the Pi 5
+(~/roadtest/screens/2026-10-23).
 
 Stand runs: 15:53:11 to 15:55:50 and from 16:08:49 (markers in pi5_roadtest/roadtest_markers.txt). Raw data for them:
 rear pi4_rawlog/rear_raw_2026-10-23_151718.txt (15:17 to 16:17), front pi5_raw_front/front_raw_2026-10-22_143608.txt
