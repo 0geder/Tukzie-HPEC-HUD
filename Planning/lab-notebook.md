@@ -441,3 +441,7 @@ committed to git because of their size, kept on OneDrive).
   dev_publisher succeeds: one test message published to tukzie/sw7/test, acknowledged (QoS 1) and received back on a
   subscription. Script: scratchpad melo_test.py. Still to do: ask Melo for the CA certificate (so the certificate can be
   verified) and move the senders to TLS on 31.97.115.21.
+- Melo's CA certificate (ca.crt, CN tukzie-local-dev-ca, valid to 2036-09-20) checked: the broker's certificate
+  (CN srv1814074.hostgr.cloud, valid to 2029-01-17, names include 31.97.115.21) verifies against it, the name check for
+  31.97.115.21 passes, and the MQTT login succeeds with full verification. One quirk: the CA has no key-usage extension,
+  which Python 3.13's strict mode rejects; clients must relax that one rule (or Melo reissues the CA with keyUsage).
