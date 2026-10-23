@@ -1,9 +1,8 @@
 # SW-7 project notes for Claude
 
-SW-7 (UCT EEE4022S 2026, Samson Okuthe): "Development of an Embedded HPEC
-Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0 Platform"
-(title since 2 Oct 2026; the windshield HUD of the original brief was
-replaced by dashboard integration). ESP32-S3 firmware in TelemetryUnit/
+SW-7 (UCT EEE4022S 2026, Samson Okuthe): "Embedded Telemetry, Road-Surface Characterisation and Camera-Based Hazard Detection for the TUKZIE Electric Tricycle"
+(title since 23 Oct 2026; from 2 Oct it was "Development of an Embedded HPEC Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0 Platform", and the
+windshield HUD of the original brief was replaced by dashboard integration). ESP32-S3 firmware in TelemetryUnit/
 (v0.7.0); Pi 4 camera detector and telemetry bridge in CameraDetection/;
 add-ons for the vehicle's PySide6 dashboard on the Pi 5 (Pirate5) in
 DashboardIntegration/; tests and logs in BenchTest/. README.md has the

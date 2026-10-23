@@ -16,12 +16,13 @@ const FONT = "Calibri";
 const W = 13.333, H = 7.5, M = 0.6;
 
 // The HUD was replaced by integration with the vehicle's existing dashboard (supervisor agreed 1 Oct 2026;
-// title change captured by the course coordinator 2 Oct 2026). Keep TITLE the same in build_poster.js.
-const TITLE = "Development of an Embedded HPEC Telemetry Unit\nand Dashboard Integration for the TUKZIE Rev 0 Platform";
+// title change captured by the course coordinator 2 Oct 2026; changed again 23 Oct 2026 with the supervisor's and
+// convenor's agreement). Keep TITLE the same in build_poster.js.
+const TITLE = "Embedded Telemetry, Road-Surface Characterisation\nand Camera-Based Hazard Detection\nfor the TUKZIE Electric Tricycle";
 
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE";
-pres.title = "SW7: " + TITLE.replace("\n", " ");
+pres.title = "SW7: " + TITLE.replace(/\n/g, " ");
 pres.author = "Samson Okuthe";
 
 let slideNo = 0;
@@ -83,7 +84,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   txt(s, "EEE4022S Final Year Project 2026, Department of Electrical Engineering, University of Cape Town",
     { x: M, y: 0.35, w: W - 2 * M, h: 0.4, fontSize: 15, color: C.white, align: "center", shadow: shadow() });
   txt(s, TITLE,
-    { x: M, y: 0.85, w: W - 2 * M, h: 1.6, fontSize: 34, bold: true, color: C.white, align: "center", valign: "middle", shadow: shadow() });
+    { x: M, y: 0.85, w: W - 2 * M, h: 1.6, fontSize: 31, bold: true, color: C.white, align: "center", valign: "middle", shadow: shadow() });
   txt(s, "Samson Okuthe (OKTSAM001)",
     { x: M, y: 2.5, w: W - 2 * M, h: 0.45, fontSize: 20, bold: true, color: C.white, align: "center", shadow: shadow() });
   txt(s, "Supervisor: A/Prof. Simon Winberg   |   Co-supervisor: Sampath Jayalath   |   Project SW-7",
