@@ -469,3 +469,10 @@ committed to git because of their size, kept on OneDrive).
   15:53:07, else about 0.02. Raw 200 Hz streams logged on both Pis throughout. My live sampling started 15:58, after the
   run, so it saw only rest values. Pi 5 restarted at 15:48 and named its new files before the clock synced
   (2026-10-22_143608...); records from 15:50 on carry correct times.
+- 16:08:49 to about 16:20, second stand run (marker on the student's word; setting not given): about -4.0 to -5.9 A,
+  pack down to 73.85 V, rear vib 0.11 to 0.22 m/s^2.
+- 16:22, IMU calibration in the mounted orientation (vehicle hoisted, motor off): rear !recal 16:22:08 (scale 1.0094
+  from the raw stream, pod 1.5 deg from level), front !recal 16:22:34 (firmware: 9.8864 m/s^2, scale 0.9919).
+  Calibration record updated. The Pi 4 rebooted at 16:22:48, 40 s after the rear ESP32 restarted (under-voltage flag
+  set), the same pattern as the bench reboots when the modem powered up from the Pi 4's USB: check how the rear ESP32
+  is powered. Dashboard at 16:24: LIVE, speed 0 km/h from the phone, navigation using the phone position.
