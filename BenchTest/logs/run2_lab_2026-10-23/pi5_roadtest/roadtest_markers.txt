@@ -1,0 +1,6 @@
+drive session starting (marker added from laptop 17:58:41)
+R2 NOTE stand run without markers: motor current 15:53:11 to 15:55:50 SAST, setting not recorded (found afterwards from the BMS current)
+R2 STANDS run start (setting to be confirmed; marker written on the student's word)
+R2 RECAL rear start (motor off, wheel still, nobody touching)
+R2 RECAL rear done 16:22:08; R2 RECAL front start
+R2 RECAL front done 16:22:34: imu1 mean 9.8864 m/s2, scale 0.9919 (stored)

@@ -476,3 +476,7 @@ committed to git because of their size, kept on OneDrive).
   Calibration record updated. The Pi 4 rebooted at 16:22:48, 40 s after the rear ESP32 restarted (under-voltage flag
   set), the same pattern as the bench reboots when the modem powered up from the Pi 4's USB: check how the rear ESP32
   is powered. Dashboard at 16:24: LIVE, speed 0 km/h from the phone, navigation using the phone position.
+- 17:00 to 17:25, data copy. Pi 4 restarted at 17:00:49 (under-voltage flagged), Pi 5 at about 17:06, 17:07, 17:09
+  and 17:20 (power unstable; one restart cut the copy). Raw captures open files exclusively and add a suffix, and the
+  recorder appends, so no file was overwritten. Copied with sizes checked: BenchTest/logs/run2_lab_2026-10-23
+  (README.md indexes 31 files, about 400 MB, raw files git-ignored). Screenshots left on the Pi 5.

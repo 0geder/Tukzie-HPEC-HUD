@@ -1,0 +1,5 @@
+# Large raw data stays on this laptop (and on the Pis); only small files are committed.
+pi5_raw_front/
+pi4_rawlog/
+pi5_screens/
+pi5_roadtest/*.jsonl
