@@ -36,6 +36,13 @@ Mapping (TELEMETRY_LINK.md, section 3):
   tof ahead (mm)               -> front_obstacle_distance_m, in m (ahead only: a side reading
                                   must not raise a front-obstacle warning when passing parked cars)
   esp32.spd_raw                -> not mapped (units unconfirmed); speed stays 0, "speed" invalid
+  phone GPS (phone_gps_bridge.py on the Pi 5, GET <TUKZIE_PHONE_GPS_URL>/gps, default
+  http://127.0.0.1:8084; 23 Oct 2026), used only while its last RMC is under 3000 ms old with a fix:
+    speed_kmh                  -> speed_kmh, signal_validity["speed"] (the only live speed source)
+    lat, lon, course, alt      -> latitude, longitude, heading, altitude_m, only while the vehicle's
+                                  own GNSS has no fix (its own fix always wins); heading only above
+                                  3 km/h, where the phone's course is meaningful
+  sw7_position_source records which one is shown: "vehicle", "phone" or None.
 
 Nothing is ingested when the bridge cannot be reached, the reply is not JSON,
 esp32 is null, or esp32.age_ms is missing or above 3000. The dashboard's own
@@ -75,6 +82,9 @@ POLL_MS = 500
 REQUEST_TIMEOUT_MS = 2000
 ESP32_STALE_MS = 3000          # contract: stop sending above this age
 TOF_STALE_MS = 3000
+PHONE_GPS_URL = (os.environ.get("TUKZIE_PHONE_GPS_URL", "").strip().rstrip("/") or "http://127.0.0.1:8084")
+PHONE_GPS_STALE_MS = 3000
+PHONE_HEADING_MIN_KMH = 3.0    # below this a phone's course over ground is noise
 SOURCE = "sw7_telemetry"
 REPLAY_SOURCE = "sw7_replay"      # data_source while the bridge replays a file
 
@@ -117,6 +127,18 @@ def front_tof_m(telemetry):
     return ahead / 1000.0 if ahead is not None and ahead > 0 else None
 
 
+def phone_gps_fix(phone):
+    """The phone bridge's /gps reply when it is fresh and has a fix, else None."""
+    if not isinstance(phone, dict) or phone.get("fix") is not True:
+        return None
+    age = _num(phone.get("age_ms"))
+    if age is None or age > PHONE_GPS_STALE_MS:
+        return None
+    if _num(phone.get("lat")) is None or _num(phone.get("lon")) is None:
+        return None
+    return phone
+
+
 def is_replay(telemetry) -> bool:
     """True when the bridge says it is replaying a file (bridge.replay), or the
     ESP32 record is marked as replayed (fw ending in "-replay")."""
@@ -129,7 +151,8 @@ def is_replay(telemetry) -> bool:
     return isinstance(esp, dict) and str(esp.get("fw") or "").endswith("-replay")
 
 
-def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=None, dual=False, front_telemetry=None):
+def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=None, dual=False, front_telemetry=None,
+                     phone_gps=None):
     """Map one /telemetry reply onto a new VehicleState.
 
     driver_inputs: a VehicleState (normally the manager's sim state) to copy
@@ -139,6 +162,7 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     dual: two-camera layout (sw7_dual_camera, 15 Oct 2026). The Pi 4 bridge is then at the rear, so its
     straight-on ToF reading is the rear obstacle, and the front obstacle comes from front_telemetry (the
     Pi 5's own ToF bridge reply, or None when it has not answered).
+    phone_gps: the phone bridge's /gps reply (or None); gives speed, and position when the vehicle has no fix.
     Returns None when the ESP32 part is missing or stale."""
     if not esp32_is_fresh(telemetry):
         return None
@@ -183,11 +207,23 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     # Cell-tower position (firmware 0.7.3+): the modem's estimate from the towers it hears,
     # sent only without a GNSS fix. Approximate (about 550 m indoors), so it is never put in
     # latitude/longitude: the map draws it as a circle, the way a phone does indoors.
+    crs = _num(esp.get("crs")) if gps_ok else None
+    alt = _num(esp.get("alt")) if gps_ok else None
+    s.sw7_position_source = "vehicle" if gps_ok else None
+    phone = phone_gps_fix(phone_gps)
+    phone_kmh = _num(phone.get("speed_kmh")) if phone else None
+    if phone and not gps_ok:
+        s.latitude, s.longitude, s.gps_timestamp = _num(phone["lat"]), _num(phone["lon"]), time.time()
+        gps_ok = True
+        s.sw7_position_source = "phone"
+        crs = _num(phone.get("course_deg")) if (phone_kmh or 0.0) >= PHONE_HEADING_MIN_KMH else None
+        alt = _num(phone.get("alt_m"))
     clat, clon, cacc = _num(esp.get("cell_lat")), _num(esp.get("cell_lon")), _num(esp.get("cell_acc_m"))
     s.sw7_cell_position = (clat, clon, cacc) if not gps_ok and clat is not None and clon is not None else None
-    crs = _num(esp.get("crs")) if gps_ok else None
     s.heading = crs % 360.0 if crs is not None else None
-    s.altitude_m = _num(esp.get("alt")) if gps_ok else None
+    s.altitude_m = alt
+    if phone_kmh is not None:
+        s.speed_kmh = max(0.0, phone_kmh)
 
     if dual:
         front = front_tof_m(front_telemetry) if isinstance(front_telemetry, dict) else None
@@ -198,10 +234,10 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     if dual:
         s.rear_obstacle_distance_m = rear
 
-    # spd_raw is deliberately not mapped: speed_kmh keeps its default of 0
+    # spd_raw is deliberately not mapped: without a fresh phone fix speed_kmh keeps its default of 0
     # (None in live-only mode).
     s.signal_validity = {
-        "speed": False, "soc": soc is not None, "battery_temp": False,
+        "speed": phone_kmh is not None, "soc": soc is not None, "battery_temp": False,
         "gps": gps_ok, "heading": s.heading is not None, "front_obstacle": front is not None,
         "rear_obstacle": rear is not None, "weather": False, "road_surface": False,
         "door": False, "seatbelt": False, "tyres": False,
@@ -232,6 +268,8 @@ class LiveDataProvider(QObject):
         self.dual = False                # set by sw7_dual_camera: this bridge is then the rear one
         self.front_telemetry = None      # the Pi 5 front ToF reply, fed by sw7_dual_camera
         self.last_telemetry = None
+        self.phone_gps = None            # last /gps reply from the phone bridge, or None
+        self._gps_reply = None
         self._last_state = None
         self._reply = None
         self._reply_url = None
@@ -268,8 +306,35 @@ class LiveDataProvider(QObject):
             reply.finished.disconnect(self._on_finished)
             reply.abort()
             reply.deleteLater()
+        gps, self._gps_reply = self._gps_reply, None
+        if gps is not None:
+            gps.finished.disconnect(self._on_gps_finished)
+            gps.abort()
+            gps.deleteLater()
+
+    def _poll_phone_gps(self):
+        if self._gps_reply is not None:
+            return
+        req = QNetworkRequest(QUrl(PHONE_GPS_URL + "/gps"))
+        req.setTransferTimeout(REQUEST_TIMEOUT_MS)
+        self._gps_reply = self._net.get(req)
+        self._gps_reply.finished.connect(self._on_gps_finished)
+
+    def _on_gps_finished(self):
+        reply, self._gps_reply = self._gps_reply, None
+        if reply is None:
+            return
+        data = None
+        if reply.error() == QNetworkReply.NetworkError.NoError:
+            try:
+                data = json.loads(bytes(reply.readAll()))
+            except (ValueError, UnicodeDecodeError):
+                data = None
+        reply.deleteLater()
+        self.phone_gps = data if isinstance(data, dict) else None
 
     def _poll(self):
+        self._poll_phone_gps()
         if self._reply is not None:
             return  # previous poll still in flight
         url = self.url
@@ -312,7 +377,7 @@ class LiveDataProvider(QObject):
         else:
             sim = getattr(self.manager, "sim", None)
             state = build_live_state(telemetry, sim.state if sim is not None else None, self._last_state,
-                                     dual=self.dual, front_telemetry=self.front_telemetry)
+                                     dual=self.dual, front_telemetry=self.front_telemetry, phone_gps=self.phone_gps)
             if state is None:
                 self._set_link("stale")
             else:

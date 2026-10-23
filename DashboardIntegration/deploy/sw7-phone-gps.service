@@ -1,0 +1,12 @@
+[Unit]
+Description=SW-7 phone GPS bridge (phone NMEA to :8084 for the dashboard speed and position; logs to ~/roadtest/phone_gps)
+After=network.target
+
+[Service]
+User=piadam
+ExecStart=/usr/bin/python3 /home/piadam/sw7_integration/phone_gps_bridge.py --udp-port 10110 --tcp gateway:11123,gateway:50000 --http-port 8084 --log-dir /home/piadam/roadtest/phone_gps
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
