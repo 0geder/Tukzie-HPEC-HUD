@@ -14,6 +14,13 @@ This appendix records how every part of the system is connected, so that it can 
 
 \begin{figure}[htbp]
 \centering
+\includegraphics[width=\textwidth]{figures/pi5_gpio_header.png}
+\caption{Raspberry Pi~5 40-pin header, physical pin numbers and functions. The Raspberry Pi~5 header is pin-compatible with the Raspberry Pi~4's (Figure~\ref{fig:pi4-gpio}) \cite{raspberrypigpio}. The coloured pins are the front unit's connections: the front time-of-flight board (3V3, SDA, SCL, GND and the three XSHUT lines on GPIO22, 23 and 24) and the front inertial node's sync pulse (ESP32 GPIO5 to GPIO17) and ground (Section~\ref{sec:front-node}).}
+\label{fig:pi5-gpio}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
 \includegraphics[width=0.8\textwidth]{figures/sensor_board_top.jpg}
 \caption{Sensor board (UCT micromouse ``JCP 2025 Sense v1.0'') used as the time-of-flight stand-in. The 2$\times$16 header J2 runs along the top edge; the silkscreen marks pins 1 and 2 at one end and 31 and 32 at the other, and the legend at the right names the signals (3V3, DA, CL, SH1 to SH3, 5V). The three VL53L0X sensor carriers sit on J4, J5 and J6, facing left, ahead and right.}
 \label{fig:sensor-board}
