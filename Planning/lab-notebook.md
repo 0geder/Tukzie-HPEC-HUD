@@ -433,3 +433,11 @@ committed to git because of their size, kept on OneDrive).
   Time-lapse afterwards with tools/make_screen_timelapse.py. Runs offline.
 - LTE still down at 15:58: rear v0.7.8 reports csq null, mqtt false (antenna or SIM to check). Melo will look at her
   server later; a watcher retries her broker every 2 min until 18:45.
+
+## 23 Oct 2026
+
+- 09:33, Melo's broker. The address used until now (31.87.115.21) was wrong; the correct one is 31.97.115.21, port 18883.
+  Plain MQTT opens the TCP port but gets no CONNACK in 10 s. With TLS (TLSv1.3, certificate not verified) the login as
+  dev_publisher succeeds: one test message published to tukzie/sw7/test, acknowledged (QoS 1) and received back on a
+  subscription. Script: scratchpad melo_test.py. Still to do: ask Melo for the CA certificate (so the certificate can be
+  verified) and move the senders to TLS on 31.97.115.21.
