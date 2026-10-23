@@ -25,7 +25,11 @@
 \usepackage{array}
 \usepackage{tikz}
 \input{figures/tikz/sw7styles}
-\usepackage{hyperref}
+\usepackage[pagebackref=true]{hyperref}
+% Each reference ends with the pages that cite it, as links back to those pages.
+\renewcommand*{\backrefalt}[4]{\ifcase #1 \or {\small(Cited on page~#2.)}\else {\small(Cited on pages~#2.)}\fi}
+\renewcommand*{\backreftwosep}{, }
+\renewcommand*{\backreflastsep}{, }
 \usepackage{qrcode}
 
 % Course handout format: single column, Times New Roman, 11 pt, single line
@@ -151,6 +155,8 @@ This report describes an embedded telemetry unit for the TUKZIE Rev 0, a 72\,V e
 
 \newpage
 \tableofcontents
+\vfill
+\noindent{\small Reading this PDF: section, figure, table and citation numbers are links. Each entry in the References lists the pages that cite it, as links back to them. In Adobe Acrobat and Firefox, Alt+Left Arrow also returns to where a link was clicked; the PDF viewers built into Edge and Chrome do not support this.}
 
 \newpage
 {\Large Abbreviations and terms}\\
