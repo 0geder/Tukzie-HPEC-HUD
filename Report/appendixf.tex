@@ -168,17 +168,17 @@ Rail plate & 84 by 60 by 12 & Dovetail rail with lock detents \\ \hline
 \section{IMU pods}
 \label{sec:mech-imu}
 
-Each IMU pod (Figure~\ref{fig:mech-imu}) holds one GY-521 board in a pocket sized to the measured 20 by 17\,mm, with 0.6\,mm clearance. It is screwed down on its hole edge, and a rib under the lid holds the free edge through a 1\,mm foam pad. Cable ties through two tunnels fix the pod to the stem or the chassis rail, with VHB tape under it. An engraved arrow on the lid marks the vehicle's forward direction. The board's wires are soldered directly to the pads, because a header pin would not fit under the lid.
+Each IMU pod holds one GY-521 board. The pods printed and fitted are revision 3 (Figures~\ref{fig:mech-imu} and~\ref{fig:mech-imu3}). An engraved arrow on the lid marks the vehicle's forward direction, and cable ties through the ears fix the pod to the stem or the chassis rail.
 
 \begin{figure}[htbp]
 \centering
-\subfigure[Base: pocket, board and lid pilot holes, strap tunnels, cable exit.]{\includegraphics[width=0.44\textwidth]{figures/cad/imu_pod_base.png}}
-\subfigure[Lid: clearance holes and forward arrow.]{\includegraphics[width=0.44\textwidth]{figures/cad/imu_pod_lid.png}}
-\caption{IMU pod (revision 2).}
+\subfigure[Base: ledges, pegs, connector bay with wire slot, four cable-tie ears.]{\includegraphics[width=0.44\textwidth]{figures/cad/imu_pod_rev3_base.png}}
+\subfigure[Lid, underside: half-lap rim and the two tubes that press the board onto the pegs.]{\includegraphics[width=0.44\textwidth]{figures/cad/imu_pod_rev3_lid.png}}
+\caption{IMU pod (revision 3, as printed and fitted), rendered from the printed STL files.}
 \label{fig:mech-imu}
 \end{figure}
 
-\paragraph{Revision 3 (13 October).} The first printed pod showed two faults in a fit test: the boards carry a right-angle header whose Dupont housings stand out past the board edge, so the lid could not close, and no screws were to hand. Revision 3 follows the push-fit style of the camera case (Figure~\ref{fig:mech-imu3}):
+Revision 2 was a solid block with a pocket of 0.6\,mm clearance, the board screwed down on its hole edge and held at the free edge by a lid rib and foam pad, with the wires soldered to the pads. The first printed pod showed two faults in a fit test: the boards carry a right-angle header whose Dupont housings stand out past the board edge, so the lid could not close, and no screws were to hand. Revision 3 (13 October) follows the push-fit style of the camera case:
 \begin{itemize}
 \item 1.6\,mm walls instead of a solid block; 24 by 39 by 11.6\,mm with the lid;
 \item the board on ledges 2.5\,mm above the floor, clear of the header's solder tails, located by two pegs in its holes;
@@ -271,7 +271,7 @@ It also had five major defects:
 \item the dovetail flanks were not parallel.
 \end{itemize}
 
-The mirrored holes came from a sign error between the sketch plane's axes and the model's. All were corrected in the scripts and the parts rebuilt (revision 2). The audits were then run again; Table~\ref{tab:mech-verification} gives the results. Two corrections first introduced new thin walls of 1.0 and 1.75\,mm, which the wall audit caught before the parts were saved.
+The mirrored holes came from a sign error between the sketch plane's axes and the model's. All were corrected in the scripts and the parts rebuilt (revision 2). The audits were then run again; Table~\ref{tab:mech-verification} gives the results. Two corrections first introduced new thin walls of 1.0 and 1.75\,mm, which the wall audit caught before the parts were saved. The IMU pod column is for revision 2; revision 3, which was printed, has no screws, and its own script checks only that lid and base do not overlap (Section~\ref{sec:mech-imu}).
 
 \begin{table}[htbp]
 \centering
@@ -280,7 +280,7 @@ The mirrored holes came from a sign error between the sketch plane's axes and th
 \small
 \begin{tabular}{|p{3.0cm}|p{3.8cm}|p{3.8cm}|p{3.8cm}|}
 \hline
-\textbf{Check} & \textbf{Display mount} & \textbf{Sensor pod} & \textbf{IMU pod} \\ \hline
+\textbf{Check} & \textbf{Display mount} & \textbf{Sensor pod} & \textbf{IMU pod (revision 2)} \\ \hline
 Probe overlap detected & Yes (1564\,mm\textsuperscript{3}) & Yes (79\,057\,mm\textsuperscript{3}) & Yes (1303\,mm\textsuperscript{3}) \\ \hline
 Hard interference & 0 & 0, including the view cones & 0 \\ \hline
 Fastener holes & All matched (16 shell bolts, M5 clamp) & All 30 joints and 12 board pilots & All 4 lid screws \\ \hline
@@ -336,8 +336,8 @@ Pod tray and camera retainer & 1 & 3\,h 2\,min & 35\,g \\ \hline
 Pod box base & 1 & 11\,h 23\,min & 130\,g \\ \hline
 Pod lid & 1 & 3\,h 42\,min & 56\,g \\ \hline
 Pod rail plate, sunshade and hatch cover & 1 & 5\,h 12\,min & 61\,g \\ \hline
-Two IMU pods & 1 & 2\,h 28\,min & 27\,g \\ \hline
-\textbf{Total} & & \textbf{about 75.5\,h} & \textbf{about 0.9\,kg} \\ \hline
+Two IMU pods (revision 3) & 1 & 1\,h 19\,min & 13.7\,g \\ \hline
+\textbf{Total} & & \textbf{about 74.5\,h} & \textbf{about 0.9\,kg} \\ \hline
 \end{tabular}
 \end{table}
 
