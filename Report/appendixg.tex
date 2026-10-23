@@ -7,7 +7,7 @@ This appendix records how the driver's dashboard on the Raspberry Pi~5 was redes
 
 The inherited dashboard (Figure~\ref{fig:ui-before}) is the vacation-work teams' PySide6 application. It has eight pages: Driving, Analytics, Diagnostics, Navigation, Front camera, Sensors, Charging and Settings.
 
-Every SW-7 change reaches it as a patch with an exact anchor, applied to a copy (\texttt{DashboardIntegration/tests/dashboard\_patches.py}), so the team's own copy is never edited. Each stage of the redesign has an environment switch that restores the previous look exactly, and a test checks that it does.
+Every SW-7 change reaches it as a patch with an exact anchor, applied to a copy (\texttt{DashboardIntegration/\allowbreak{}tests/\allowbreak{}dashboard\_\allowbreak{}patches.py}), so the team's own copy is never edited. Each stage of the redesign has an environment switch that restores the previous look exactly, and a test checks that it does.
 
 Four constraints shaped the design:
 \begin{itemize}
@@ -62,7 +62,7 @@ The redesign was done in six steps. Each step was written as a brief in \texttt{
   \item at the front, the readings and controls, unchanged in function.
   \end{itemize}
   The Charging page returned to the team's original composition, a ring around the vehicle outline with rising bubbles, redrawn in the paper colours and animated only while the page is shown. Where no space was free (Map, Diagnostics) the page has no render. A test checks that the whole word stays readable in the open space above the tiles.
-\item \emph{Two cameras.} With the second camera and time-of-flight board on the Raspberry Pi~5 (Section~\ref{sec:two-sided}), Surroundings gained a Front | Rear switch that moves the picture, alerts, distances and hazards together, a mirrored rear view, and a banner that labels each warning by side and shows the time to contact of an approaching object (Figure~\ref{fig:two-sided}). A test with four fake servers checks the switch, a side going offline, the mirroring and the banner, and that the off switch restores the single-camera page exactly.
+\item \emph{Two cameras.} With the second camera and time-of-flight board on the Raspberry Pi~5 (Section~\ref{sec:two-sided}), Surroundings gained a Front/Rear switch that moves the picture, alerts, distances and hazards together, a mirrored rear view, and a banner that labels each warning by side and shows the time to contact of an approaching object (Figure~\ref{fig:two-sided}). A test with four fake servers checks the switch, a side going offline, the mirroring and the banner, and that the off switch restores the single-camera page exactly.
 \end{enumerate}
 
 \section{Design rules}

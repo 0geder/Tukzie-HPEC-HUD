@@ -1,14 +1,14 @@
 \chapter{Wiring and Connections}
 \label{app:wiring}
 
-This appendix records how every part of the system is connected, so that it can be rebuilt or checked from this document alone. Each table gives both ends of each wire by connector, pin number and signal. The pin assignments come from the firmware (\texttt{TelemetryUnit/src/main.cpp}), the time-of-flight reader (\texttt{CameraDetection/tof\_reader.py}) and the bench procedures (\texttt{BenchTest/TEST\_PROCEDURES.md}), and the pin positions from the manufacturers' documents reproduced in the figures. Connections not yet made on the hardware are marked as planned. Tables~\ref{tab:wiring-tof} to~\ref{tab:wiring-other} give, in turn, the Raspberry Pi~4 to the time-of-flight board (Table~\ref{tab:wiring-tof}), the telemetry unit to the Raspberry Pi~4 (Table~\ref{tab:wiring-esp-pi}), the IMUs (Table~\ref{tab:wiring-imu}), the telemetry unit's other connections (Table~\ref{tab:wiring-esp-other}), the SEN55 as first planned (Table~\ref{tab:wiring-sen55}) and the camera, displays and power (Table~\ref{tab:wiring-other}). The start-up and interface checks run on these connections are in Table~\ref{tab:startup-checks}.
+This appendix records how every part of the system is connected, so that it can be rebuilt or checked from this document alone. Each table gives both ends of each wire by connector, pin number and signal. The pin assignments come from the firmware (\texttt{TelemetryUnit/\allowbreak{}src/\allowbreak{}main.cpp}), the time-of-flight reader (\texttt{CameraDetection/\allowbreak{}tof\_\allowbreak{}reader.py}) and the bench procedures (\texttt{BenchTest/\allowbreak{}TEST\_\allowbreak{}PROCEDURES.md}), and the pin positions from the manufacturers' documents reproduced in the figures. Connections not yet made on the hardware are marked as planned. Tables~\ref{tab:wiring-tof} to~\ref{tab:wiring-other} give, in turn, the Raspberry Pi~4 to the time-of-flight board (Table~\ref{tab:wiring-tof}), the telemetry unit to the Raspberry Pi~4 (Table~\ref{tab:wiring-esp-pi}), the IMUs (Table~\ref{tab:wiring-imu}), the telemetry unit's other connections (Table~\ref{tab:wiring-esp-other}), the SEN55 as first planned (Table~\ref{tab:wiring-sen55}) and the camera, displays and power (Table~\ref{tab:wiring-other}). The start-up and interface checks run on these connections are in Table~\ref{tab:startup-checks}.
 
 \section{Pin references}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/pi4_gpio_header.png}
-\caption{Raspberry Pi~4 40-pin header, physical pin numbers and functions, from the project's reference sheet (\texttt{References/Hardware/Rasp Pi 4 pins.pdf}) \cite{raspberrypigpio}. Odd-numbered pins are on the inner row and even-numbered pins on the board edge.}
+\caption{Raspberry Pi~4 40-pin header, physical pin numbers and functions, from the project's reference sheet (\texttt{References/\allowbreak{}Hardware/\allowbreak{}Rasp Pi 4 pins.pdf}) \cite{raspberrypigpio}. Odd-numbered pins are on the inner row and even-numbered pins on the board edge.}
 \label{fig:pi4-gpio}
 \end{figure}
 
@@ -80,7 +80,7 @@ Until 21 October the board was powered and read over USB from the Pi (\texttt{/d
 
 \section{Front inertial node to the Raspberry Pi 5}
 
-From 22 October the second MPU6050 is on a separate ESP32-S3 board, the front node, wired to its GPIO8 (SDA) and GPIO9 (SCL) with short wires. The node connects to the Raspberry Pi~5 by USB at 921\,600\,baud, which also powers it, and its 500\,ms sync pulse goes from its GPIO5 to Pi~5 pin~11. The rear board then keeps IMU1 only.
+From 22 October the second MPU6050 is on a separate ESP32-S3 board, the front node, wired to its GPIO8 (SDA) and GPIO9 (SCL) with short wires. The node connects to the Raspberry Pi~5 by USB at 921\,600\,baud, which also powers it, and its 500\,ms sync pulse goes from its GPIO5 to Pi~5 pin~11 (Figure~\ref{fig:pi5-gpio}). The rear board then keeps IMU1 only.
 
 \section{Telemetry unit sensors and antennas}
 

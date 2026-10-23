@@ -1,0 +1,2 @@
+# Build with XeLaTeX so the PDF uses the real Times New Roman (course handout).
+$pdf_mode = 5;

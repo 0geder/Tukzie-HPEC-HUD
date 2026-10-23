@@ -36,7 +36,7 @@ On the road session the per-second vibration value separated the states clearly 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/results/road_session_1019.pdf}
-\caption{Road session on 19 October 2026, 17:15 to 18:50 local time (UTC+2), as recorded by the Raspberry Pi~5 from the rear unit (file \texttt{2026-10-19\_171534\_roadtest.jsonl}). Top: vibration value (standard deviation of the fused acceleration magnitude per 1\,s window). Bottom: battery current from the BMS, negative for discharge. The recorder polled twice a second and the bridge repeats the latest record, so the 10\,287 rear rows carrying a telemetry record were reduced to 3464 by keeping the first row for each sequence number. Lines break wherever a sequence number is missing (2093 of 5557, 37.7\,\%, including one gap of 407 records from 18:06:34 to 18:13:23). Green shading marks records with $|i|>1$\,A or vibration above 0.3\,m/s$^2$ (607 records); the dashed line is the drive marker added from the laptop at 17:58:41.}
+\caption{Road session on 19 October 2026, 17:15 to 18:50 local time (UTC+2), as recorded by the Raspberry Pi~5 from the rear unit (file \texttt{2026-10-19\_\allowbreak{}171534\_\allowbreak{}roadtest.jsonl}). Top: vibration value (standard deviation of the fused acceleration magnitude per 1\,s window). Bottom: battery current from the BMS, negative for discharge. The recorder polled twice a second and the bridge repeats the latest record, so the 10\,287 rear rows carrying a telemetry record were reduced to 3464 by keeping the first row for each sequence number. Lines break wherever a sequence number is missing (2093 of 5557, 37.7\,\%, including one gap of 407 records from 18:06:34 to 18:13:23). Green shading marks records with $|i|>1$\,A or vibration above 0.3\,m/s$^2$ (607 records); the dashed line is the drive marker added from the laptop at 17:58:41.}
 \label{fig:res-road}
 \end{figure}
 
@@ -48,7 +48,7 @@ The unit's own log of the session, read back on 22 October, holds the per-IMU fe
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/results/flashlog_run1.pdf}
-\caption{Run-1 flash log of the rear unit, boot 109, 19 to 20 October 2026 (\texttt{BenchTest/logs/flashlog\_2026-10-22/rear\_flash\_log\_dump.jsonl}). (a) $\sigma$ of each IMU in the latest 1\,s window of each record, log scale; (b) battery current; green shading spans the first to the last record with a current above 1\,A. (c) IMU1 against IMU2 $\sigma$ in the same window, dotted line equal; parked, driving, and low-current records within the drive. (d) Disagreement $D$ (Equation~\ref{eq:disagreement}), box at the quartiles, whiskers at the 5th and 95th percentiles. Records are 10 to 58\,s apart; lines break at missing records.}
+\caption{Run-1 flash log of the rear unit, boot 109, 19 to 20 October 2026 (\texttt{BenchTest/\allowbreak{}logs/\allowbreak{}flashlog\_\allowbreak{}2026-10-22/\allowbreak{}rear\_\allowbreak{}flash\_\allowbreak{}log\_\allowbreak{}dump.jsonl}). (a) $\sigma$ of each IMU in the latest 1\,s window of each record, log scale; (b) battery current; green shading spans the first to the last record with a current above 1\,A. (c) IMU1 against IMU2 $\sigma$ in the same window, dotted line equal; parked, driving, and low-current records within the drive. (d) Disagreement $D$ (Equation~\ref{eq:disagreement}), box at the quartiles, whiskers at the 5th and 95th percentiles. Records are 10 to 58\,s apart; lines break at missing records.}
 \label{fig:res-flashlog}
 \end{figure}
 
