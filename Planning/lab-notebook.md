@@ -462,3 +462,10 @@ committed to git because of their size, kept on OneDrive).
   has no fix. Checked end to end with simulated NMEA on the Pi 5 (20 km/h, 11 sats): the Drive page showed 20 km/h.
   The test log was deleted so it cannot mix with run data. Tests: test_phone_gps.py, test_tile_map.py and
   test_live_data_provider.py pass (against a copy of the Pi 5's v1.1).
+- 15:53 to 15:56, first stand run with the drive wheel raised (no markers typed). Recorder (Pi 5 roadtest jsonl) has the
+  motor drawing current from 15:53:11 to 15:55:50 (160 one-second records): mean about -3.3 A, peak -4.40 A discharge,
+  pack 74.56 V at rest, minimum 74.12 V. Rear IMU vibration (1 s RMS) rose from 0.027 at rest to 0.09 to 0.16 mean
+  (max 0.26) while turning; 1.70 and 1.37 at 15:53:07 to 08 (likely the start or a knock); front node 0.24 max at
+  15:53:07, else about 0.02. Raw 200 Hz streams logged on both Pis throughout. My live sampling started 15:58, after the
+  run, so it saw only rest values. Pi 5 restarted at 15:48 and named its new files before the clock synced
+  (2026-10-22_143608...); records from 15:50 on carry correct times.
