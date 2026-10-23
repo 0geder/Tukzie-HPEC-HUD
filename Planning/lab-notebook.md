@@ -445,3 +445,10 @@ committed to git because of their size, kept on OneDrive).
   (CN srv1814074.hostgr.cloud, valid to 2029-01-17, names include 31.97.115.21) verifies against it, the name check for
   31.97.115.21 passes, and the MQTT login succeeds with full verification. One quirk: the CA has no key-usage extension,
   which Python 3.13's strict mode rejects; clients must relax that one rule (or Melo reissues the CA with keyUsage).
+- 10:45, system check after both Pis rebooted (sw7_check.py plus an inventory over ssh). Pi 5: front node streaming
+  (fw 0.7.8, 0 bad CRC), front camera (ov5647), dashboard live-only, all sw7 services active, no throttling, 59 C;
+  front ToF still not answering at 0x29 (wires on pins 1/3/5/6 to reseat). Pi 4: rear camera (ov5647), detector
+  14.3 fps, bridge and sync services active, ToF boards at 0x30/0x31/0x32 (left reads null); under-voltage flagged since
+  boot (0x50000). No data from the rear ESP32 (bridge sees no DASH line; the last rear raw file stopped the evening of
+  22 Oct), so the GNSS could not be checked. The Pi 4 to Pi 5 Ethernet cable is unplugged (eth0 down), so the Pi 4 had
+  not synced its clock and was 20 h behind; set from the laptop at 08:45 UTC. Pi 5 clock correct (synced online).
