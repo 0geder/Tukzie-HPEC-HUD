@@ -479,4 +479,4 @@ committed to git because of their size, kept on OneDrive).
 - 17:00 to 17:25, data copy. Pi 4 restarted at 17:00:49 (under-voltage flagged), Pi 5 at about 17:06, 17:07, 17:09
   and 17:20 (power unstable; one restart cut the copy). Raw captures open files exclusively and add a suffix, and the
   recorder appends, so no file was overwritten. Copied with sizes checked: BenchTest/logs/run2_lab_2026-10-23
-  (README.md indexes 31 files, about 400 MB, raw files git-ignored). Screenshots left on the Pi 5.
+  (README.md indexes 26 files, about 400 MB, raw files git-ignored). Screenshots left on the Pi 5.
