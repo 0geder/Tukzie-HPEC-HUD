@@ -52,9 +52,16 @@ The unit's own log of the session, read back on 22 October, holds the per-IMU fe
 \label{fig:res-flashlog}
 \end{figure}
 
-The lab part of run 2 took place on 23 October with the drive wheel raised on stands; the road part moved to 26 October. In two stand runs (15:53:11 to 15:55:50, and from 16:08:49 for about ten minutes) the motor drew 2.8 to 5.9\,A from the pack, which fell from 74.56 to 73.85\,V. The rear vibration value rose from 0.027\,m/s\textsuperscript{2} at rest to means of 0.09 to 0.22 per 20\,s (maximum 0.26), four to eight times the resting level, while the front node, near the handlebar, stayed at about 0.02 apart from 0.24 as the first run started. The throttle settings were not recorded, so these runs give the size of the powertrain's contribution with no road input, not its dependence on motor speed; both raw 200\,Hz streams were logged throughout and their spectra are still to be computed.
+The lab part of run 2 took place on 23 October with the drive wheel raised on stands; the road part moved to 26 October. In two stand runs (15:53:11 to 15:55:50 and 16:08:12 to 16:10:20) the motor drew a mean of 3.2 and 4.5\,A (peaks 4.4 and 6.2\,A). In the raw 200\,Hz streams, which had no gaps, the dynamic RMS of the rear acceleration magnitude rose from 0.027\,m/s\textsuperscript{2} at rest to 0.13 and 0.20, five to seven times, with the energy between about 40 and 70\,Hz. The front node rose only from 0.020 to 0.026 and 0.035, but in the second run it showed the same lines as the rear, at 42.75, 49.0 and 64.0\,Hz, so powertrain vibration reaches the front through the frame (Figure~\ref{fig:res-stands}). The throttle settings and wheel speed were not recorded, so the lines cannot yet be assigned to motor orders.
 
-\outstanding{run 2 (road part, 26 October): per-node ride features and the front-to-rear delay from the raw streams over the marked passes: spectra of the stand runs of 23 October and stand runs at marked settings (block STANDS), repeatability over the counterbalanced passes at 10, 15 and 20\,km/h (block A), coasting passes (block C), and the bump passes (block B) (RQ1, RQ4).}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/results/stand_spectra_1023.pdf}
+\caption{Stand runs of 23 October 2026, drive wheel raised: Welch spectra of the acceleration magnitude (4\,s Hann segments, 50\,\% overlap, detrended, raw counts in m/s\textsuperscript{2} without the calibration factor) at rest (motor off, 15:58:00 to 16:07:30, 114,000 samples per node) and in the two runs, each trimmed by 5\,s at both ends. Windows cut from the raw captures by the Raspberry Pis' synchronised clocks; no sequence gaps. Mean battery current from the BMS in the legend. Script \texttt{BenchTest/\allowbreak{}analysis/\allowbreak{}stand\_spectra\_2026\_10\_23.py}; numbers in \texttt{BenchTest/\allowbreak{}logs/\allowbreak{}run2\_lab\_2026-10-23/\allowbreak{}stand\_spectra\_1023.json}.}
+\label{fig:res-stands}
+\end{figure}
+
+\outstanding{run 2 (road part, 26 October): per-node ride features and the front-to-rear delay from the raw streams over the marked passes: stand runs at marked settings with the wheel speed filmed, to assign the lines of 23 October to motor orders (block STANDS), repeatability over the counterbalanced passes at 10, 15 and 20\,km/h (block A), coasting passes (block C), and the bump passes (block B) (RQ1, RQ4).}
 
 \section{Position (R4)}
 

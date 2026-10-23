@@ -1,14 +1,15 @@
 # Run 2: what is done (23 Oct) and what remains (road part, Monday 26 Oct)
 
 Deadlines: presubmission closes Monday 26 Oct (fall-back copy, not marked); final report Tuesday 27 Oct 23:59, no extension.
-Word budget: the body is 14,596 words (long-report range 10,000 to 15,000), so Monday's results must replace the
+Word budget: the body is 14,610 words (long-report range 10,000 to 15,000), so Monday's results must replace the
 placeholder text, not add to it.
 
 ## Done on 23 October (lab part, vehicle on stands)
 
 - Both nodes on the vehicle, v0.7.8, 200 Hz, 0 drops; raw 200 Hz streams logged on both Pis; recorder and screenshots running.
-- Two stand runs, throttle settings not recorded: 15:53:11 to 15:55:50 and from 16:08:49 (about 10 min); 2.8 to 5.9 A,
-  pack 74.56 to 73.85 V; rear vibration 4 to 8 times the resting level. In the report (Results, R3 section).
+- Two stand runs, throttle settings not recorded: 15:53:11 to 15:55:50 and 16:08:12 to 16:10:20; mean 3.2 and 4.5 A
+  (peaks 4.4 and 6.2 A). Spectra done: rear 5 to 7 times rest, 40 to 70 Hz; the front shows the same lines (42.75, 49.0,
+  64.0 Hz) at a smaller level. In the report (Results, R3 section, Figure res-stands).
 - IMU calibration in the mounted position: front 0.9919 (firmware), rear 1.0094 (from the raw stream). R2 now met.
 - Phone GNSS as speed and fallback position (Share GPS over the hotspot, sw7-phone-gps on the Pi 5): 13 satellites,
   0 checksum errors; dashboard speed checked with a simulated 20 km/h. In the report (Results R4, Appendix J).
@@ -19,8 +20,8 @@ placeholder text, not add to it.
 
 | # | Item | Who |
 |---|---|---|
-| 1 | Copy today's data off both Pis (rear raw 15:17 to 16:23, front raw, roadtest jsonl, markers, phone_gps, screens); add to the data index | Claude |
-| 2 | Spectra of the two stand runs from the raw streams (Welch), rest against turning, front against rear | Claude |
+| 1 | Copy today's data off both Pis; add to the data index: done 23 Oct (BenchTest/logs/run2_lab_2026-10-23) | Claude |
+| 2 | Spectra of the two stand runs from the raw streams (Welch), rest against turning, front against rear: done 23 Oct | Claude |
 | 3 | Dashboard: take the phone's speed even when the rear unit's data is stale (a Pi 4 restart blanked the speedometer); redeploy, screenshot | Claude |
 | 4 | Recorders and raw capture wait for the clock sync at boot (files were named with the 22 Oct date) | Claude |
 | 5 | Rear ESP32 on its own supply, never the Pi 4's USB; Pi 4 on a stronger supply (EcoFlow if Dr Amayo agrees, or 5 V 3 A with a short thick cable) | Student |
