@@ -456,3 +456,9 @@ committed to git because of their size, kept on OneDrive).
   loaded, agps true); the mobile-network position works (-33.9595, 18.4598). LTE signal back: csq 11 to 16. MQTT false,
   as expected: Melo's broker needs TLS, which the firmware lacks. !gnssraw prints to the USB console only, not the UART,
   so the satellite count cannot be read from the Pi; toggled on and off again (4 commands received, 4 run at once).
+- 15:35, phone GPS as live speed: phone_gps_bridge.py deployed on the Pi 5 as sw7-phone-gps (UDP 10110; TCP to the
+  hotspot gateway on 11123 and 50000; JSON on :8084; every sentence logged with the Pi clock to
+  ~/roadtest/phone_gps). Dashboard redeployed (076ff49): speed from the phone, position from it only while the vehicle
+  has no fix. Checked end to end with simulated NMEA on the Pi 5 (20 km/h, 11 sats): the Drive page showed 20 km/h.
+  The test log was deleted so it cannot mix with run data. Tests: test_phone_gps.py, test_tile_map.py and
+  test_live_data_provider.py pass (against a copy of the Pi 5's v1.1).
