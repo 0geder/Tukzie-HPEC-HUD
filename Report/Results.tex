@@ -19,13 +19,13 @@ On the first road session, with about 16 minutes of driving, the drop count stay
 
 On 21 and 22 October, on its own battery and the wired link, the rear unit's drop counts rose until a reset: the statistics and ride tasks had stopped on the IMU core, and v0.7.6 moved them (Section~\ref{sec:inv-stall}). On v0.7.6 both nodes ran at 200\,Hz with no drops or read failures, and a 62-minute soak of the rear unit under the fault's conditions had no restarts, drops, read failures or late slots, with the rate outside 199.5 to 200.5\,Hz in 3 of 726 polls (Table~\ref{tab:res-twonode}). The soak shows that v0.7.6 ran through the fault's conditions, not that the trigger was present. With v0.7.8 the unit re-initialised IMU1 by itself after each of four pulls of its supply wire, with no drops and no reset (Section~\ref{sec:impl-health}). R1 is met on both nodes on the bench.
 
-\outstanding{run 2: gap distribution of both nodes' raw 200\,Hz streams on the moving vehicle (sequence gaps and sample intervals), and the read-failure, stuck, late and raw-drop counts over the session.}
+\outstanding{run 2 (road part, 26 October): gap distribution of both nodes' raw 200\,Hz streams on the moving vehicle (sequence gaps and sample intervals), and the read-failure, stuck, late and raw-drop counts over the session.}
 
 \section{Calibration (R2)}
 
-Before calibration the two IMUs read about 5.7\,\% above and 2.6\,\% below standard gravity at rest; after it both read 9.80 to 9.81\,m/s\textsuperscript{2}. On the target board a later session read 1.3\,\% and 2.9\,\% above gravity with the same factors, which confirms that a single factor holds only in the orientation in which it was measured. On the front node a recalibration on 22 October repeated the first factor within 0.01\,\% (1.0036 and 1.0035), with the board not yet mounted (Section~\ref{sec:resx-cal}). R2 is met at calibration, not yet in the mounted position.
+Before calibration the two IMUs read about 5.7\,\% above and 2.6\,\% below standard gravity at rest; after it both read 9.80 to 9.81\,m/s\textsuperscript{2}. On the target board a later session read 1.3\,\% and 2.9\,\% above gravity with the same factors, which confirms that a single factor holds only in the orientation in which it was measured. On the front node a recalibration on 22 October repeated the first factor within 0.01\,\% (1.0036 and 1.0035), with the board not yet mounted (Section~\ref{sec:resx-cal}).
 
-\outstanding{run 2: factors and resting magnitudes from the recalibration of both nodes in their mounted positions (markers R2 RECAL and S0b).}
+On 23 October both nodes were recalibrated in their mounted positions, with the vehicle on stands, the motor off and the wheel still (markers R2 RECAL). The front node read 9.886\,m/s\textsuperscript{2} at rest and stored a factor of 0.9919, against 1.0035 on the bench: the same sensor needs a factor 1.2\,\% different once mounted. The rear node reports its result only on its unconnected USB console, so its factor was computed from the raw stream of the 18\,s after its restart by the same method (2,580 samples, none missing): 0.9907\,g, or 9.715\,m/s\textsuperscript{2}, giving 1.0094, with a noise standard deviation of 0.003\,g; its pod sits within 1.5$^\circ$ of level. R2 is met in the mounted position; whether the factors hold after driving is still to be checked.
 
 \section{Ride features and fusion (R3)}
 
@@ -52,19 +52,23 @@ The unit's own log of the session, read back on 22 October, holds the per-IMU fe
 \label{fig:res-flashlog}
 \end{figure}
 
-\outstanding{run 2: per-node ride features and the front-to-rear delay from the raw streams over the marked passes: stationary baseline at each motor setting on the stands (block STANDS), repeatability over the counterbalanced passes at 10, 15 and 20\,km/h (block A), coasting passes (block C), and the bump passes (block B) (RQ1, RQ4).}
+The lab part of run 2 took place on 23 October with the drive wheel raised on stands; the road part moved to 26 October. In two stand runs (15:53:11 to 15:55:50, and from 16:08:49 for about ten minutes) the motor drew 2.8 to 5.9\,A from the pack, which fell from 74.56 to 73.85\,V. The rear vibration value rose from 0.027\,m/s\textsuperscript{2} at rest to means of 0.09 to 0.22 per 20\,s (maximum 0.26), four to eight times the resting level, while the front node, near the handlebar, stayed at about 0.02 apart from 0.24 as the first run started. The throttle settings were not recorded, so these runs give the size of the powertrain's contribution with no road input, not its dependence on motor speed; both raw 200\,Hz streams were logged throughout and their spectra are still to be computed.
+
+\outstanding{run 2 (road part, 26 October): per-node ride features and the front-to-rear delay from the raw streams over the marked passes: spectra of the stand runs of 23 October and stand runs at marked settings (block STANDS), repeatability over the counterbalanced passes at 10, 15 and 20\,km/h (block A), coasting passes (block C), and the bump passes (block B) (RQ1, RQ4).}
 
 \section{Position (R4)}
 
 The receiver reached a fix 105\,s after a cold start, and over 104 fixes the position was a median of 2.7\,m from a phone's, 95\,\% within 11.0\,m: against the 10\,m criterion the median passes but the 95th percentile does not, and the phone's own error makes this a consistency check. The speed field has not been checked against a known speed. On the road session no GNSS antenna was connected, so no position or speed was recorded; R4 is untested on the vehicle rather than failed (Section~\ref{sec:resx-gnss}).
 
-\outstanding{run 2: time to first fix after the three resets at the venue, and the GNSS speed field against the speed from the side video over the 50\,m section.}
+On 23 October the antenna was fitted to the modem's GNSS connector, but in more than 45 minutes in the lab, with the assisted data loaded, the receiver reported no fix; the modem's network position was available throughout, at an estimated 550\,m accuracy, which is not usable on the road. As a speed and position reference that does not depend on the vehicle's receiver, a phone on the vehicle now streams its GNSS as NMEA over its hotspot to the Raspberry Pi~5, which logs every sentence with its own clock and passes the speed to the dashboard (Section~\ref{sec:impl-phone-gps}). In the lab it delivered 2,006 sentences with no checksum errors and a fix on 13 satellites, and with a simulated 20\,km/h drive the dashboard showed 20\,km/h; it has not yet been compared with a known speed.
+
+\outstanding{run 2 (road part, 26 October): the vehicle receiver's time to first fix in the open, and the phone's speed (and the vehicle's, if it fixes) against the speed from the side video over the 50\,m section.}
 
 \section{Battery telemetry (R5)}
 
 Once the unit was moved near the pack (Section~\ref{sec:two-sided}), the BMS link held, and on the road session it held throughout: the current reached 46.9\,A under load (48.03\,A in the unit's own log), the voltage fell from 74.6 to 72.8\,V and the state of charge from 60 to 58\,\%. The pack name gives 24 cells, and 74.7\,V at 60\,\% fits lithium iron phosphate. R5 is partly met: the voltage has not been compared with a meter (Section~\ref{sec:resx-bms}).
 
-\outstanding{run 2: the BMS voltage against the multimeter, key off and at 30\,s into each stand run (markers R2 BMS and R2 STANDS meter).}
+\outstanding{run 2 (road part, 26 October): the BMS voltage against the multimeter, key off and at 30\,s into each stand run (markers R2 BMS and R2 STANDS meter).}
 
 \section{Hazard sensing (R6 to R8)}
 \label{sec:res-hazard}
@@ -97,7 +101,7 @@ Whole system & 14.6--14.7 & 55--58 / - & - & 51--52 / - & - & 118--122 / 146--14
 
 The time-of-flight sensors answered and responded in the right order, so the first part of R8 is met; their accuracy against a tape, the fusion validation (C9) and the camera's focal length (C5) have not been measured, so the distances are indicative. On the road session the front detector raised 1,342 alerts and the rear 741, not yet checked against video (Section~\ref{sec:resx-hazard}).
 
-\outstanding{run 2: detections and alerts during the walking-pace approaches to a parked object and a standing person (block V5), checked against the forward video.}
+\outstanding{run 2 (road part, 26 October): detections and alerts during the walking-pace approaches to a parked object and a standing person (block V5), checked against the forward video.}
 
 \section{Telemetry, logging and recovery (R9, R10)}
 
@@ -129,19 +133,21 @@ End-to-end latency & Not measured (no GNSS time indoors) \\ \hline
 
 The dashboard line delivered 40 of 40 lines, at most 0.37\,s old at a laptop. Over USB, 2 to 11\,\% of lines were lost over hours on the bench, and a third of the seconds on the road session. Since 21 October the line travels over the wired UART: none of the first 2,489 lines was bad, nor any of the 3,720 in the 62-minute soak. R10 is met on the bench over the wired link and untested on the vehicle since the change.
 
-\outstanding{run 2: share of DASH records received from each node over the session (by sequence number), and end-to-end latency from device UTC to the laptop ingest.}
+\outstanding{run 2 (road part, 26 October): share of DASH records received from each node over the session (by sequence number), and end-to-end latency from device UTC to the laptop ingest.}
 
 \section{Driver display (R11, R12)}
 
 On a laptop against the live detector, the camera page showed video within 0.6\,s at 14.2\,frames/s and listed a person alert 0.5\,s after it was opened with the person in view. In live-only mode every page showed ``-{}-'' or ``Unavailable'' with the bridge down, never a simulated value. On the Raspberry Pi~5 the Sensors page showed live distances in the right colours and the banner appeared over the driving page, and the touch panel added no measurable delay (Section~\ref{sec:resx-display}). R11 is met on the bench. R12, the glance demand, has not been measured: no person takes part as a subject (Section~\ref{sec:ethics}), so it is left for future work.
 
-\outstanding{run 2: display photographs from the eye point in sun and in shade with a grey card (block DISPLAY).}
+\outstanding{run 2 (road part, 26 October): display photographs from the eye point in sun and in shade with a grey card (block DISPLAY).}
 
 \section{Integration and power}
 
 The chain from the telemetry unit through the Raspberry Pi~4 to the dashboard ran on the bench, and on 19 October the whole system was mounted on the vehicle: both detectors ran (front 17.5 to 22.0\,frames/s, 53 to 102\,ms; rear 14.4 to 14.5\,frames/s, 126 to 151\,ms), both time-of-flight boards answered, both IMUs held 200\,Hz and the Ethernet link ran at 1000\,Mb/s. The Raspberry Pi~4's under-voltage was traced to the modem on its USB port (Section~\ref{sec:inv-power}). On the road session the recorder ran for 108.6 minutes without restarting, though the rear unit stopped answering it for the last 15 minutes, cause not recorded. The estimated added load is about 20\,W from the 72\,V pack while driving, 0.28\,\% of a 7.2\,kWh pack an hour, but enough to empty it in about 15 days if left on, so the system must switch off with the vehicle (Table~\ref{tab:power-budget}, Section~\ref{sec:resx-power}). Only the Raspberry Pi~5's figure is measured.
 
-\outstanding{run 2: full-system operation over the session with both nodes: resets, recorder completeness per source, and the Raspberry Pis' supply flags; removal time (R13).}
+On 23 October, in the lab, both nodes, both detectors (front 23.8, rear 14.3\,frames/s), the recorder and the screen capture ran with the Raspberry Pis joined by Ethernet, the Raspberry Pi~4's clock within 1\,$\mu$s of the Raspberry Pi~5's. The Raspberry Pi~4 restarted twice (about 14:17 and 16:22:48) and flagged under-voltage repeatedly (10 events in 44 minutes); the second restart came 40\,s after the rear unit restarted for its recalibration, the pattern of the bench reboots when the modem powered up from the Raspberry Pi~4's USB port. Its supply is therefore not yet adequate on the vehicle.
+
+\outstanding{run 2 (road part, 26 October): full-system operation over the session with both nodes: resets, recorder completeness per source, and the Raspberry Pis' supply flags; removal time (R13).}
 
 \section{Summary against the requirements}
 \label{sec:res-summary}
@@ -155,7 +161,7 @@ The chain from the telemetry unit through the Raspberry Pi~4 to the dashboard ra
 \hline
 \textbf{ID} & \textbf{Result} & \textbf{Status} \\ \hline
 R1 & Bench: 200.0 to 200.5\,Hz, 0 dropped (260 and 94\,Hz filters); gaps over 10\,ms only at a flush. Both nodes on 22 October: 0 drops, 0 read failures; rear v0.7.6 soak 62\,min, 0 drops, rate outside 199.5 to 200.5\,Hz in 3 of 726 polls; v0.7.8 recovers a sensor without a reset. Vehicle: 0 dropped, one 2\,s stall of IMU1; 38\,\% of per-second records not received & Met on the bench (both nodes); partly met on the vehicle \\ \hline
-R2 & 9.80 to 9.81\,m/s\textsuperscript{2} after calibration; drifts with orientation; front node factor repeats (1.0036, 1.0035) & Met at calibration; not yet in the mounted position \\ \hline
+R2 & 9.80 to 9.81\,m/s\textsuperscript{2} after calibration; drifts with orientation; front node factor repeats (1.0036, 1.0035); mounted on 23 October: front 0.9919, rear 1.0094 & Met, including in the mounted position \\ \hline
 R3 & Self-tests pass; 149 of 149 windows fused; run-1 log: two IMUs agree while driving (ratio 1.06, $r$ = 0.97) & Met \\ \hline
 R4 & Median 2.7\,m, 95\% within 11.0\,m of the phone; no fix on the road session & Partly met on the bench; untested on the vehicle (no antenna) \\ \hline
 R5 & Sustained on the vehicle: up to 48.03\,A in the unit's log (46.9\,A in the recorder), 74.6 to 72.7\,V under load; no meter check & Partly met: sustained under load on the vehicle; no meter check \\ \hline

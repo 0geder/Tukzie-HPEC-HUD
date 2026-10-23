@@ -15,7 +15,7 @@ RQ4 needs the vehicle. The method follows the review \cite{li2018}: stand runs a
 
 The first road session showed acquisition holding on the vehicle and the vibration value with the battery current separating driving from parked clearly, but without a speed reference, raw samples or marked runs it could not answer RQ1 or RQ4; the second session was designed around those three gaps.
 
-\outstanding{from run 2 (23 October): the CV and ICC of $a_w$, VDV and $\sigma$ over the six passes at each of 10, 15 and 20\,km/h; whether $I_v$ is speed-invariant over those speeds; the powertrain lines from the stand runs and their share of the road spectrum in powered and coasting passes; and the pothole detector's threshold and ROC from the smooth and obstacle passes.}
+\outstanding{from run 2 (road part, 26 October): the CV and ICC of $a_w$, VDV and $\sigma$ over the six passes at each of 10, 15 and 20\,km/h; whether $I_v$ is speed-invariant over those speeds; the powertrain lines from the stand runs and their share of the road spectrum in powered and coasting passes; and the pothole detector's threshold and ROC from the smooth and obstacle passes.}
 
 \section{Hazard sensing}
 
@@ -23,7 +23,7 @@ At the detector the camera pipeline is fast enough: an alert about 0.26\,s after
 
 Two later changes address these weaknesses. Time to contact from scale change (Section~\ref{sec:ttc}) replaces distance, the camera's least reliable output, with a measure that needs no calibration, as production warnings do \cite{dagan2004fcw}; its accuracy is untested (C11), and a stationary object ahead counts as closing while the vehicle moves, which is the intended behaviour. Moving detection to the Raspberry Pi~5 (Section~\ref{sec:two-sided}) cut the median from readout to result from 118 to 122\,ms to 51 to 54\,ms on the bench, and on the vehicle the front ran at 53 to 102\,ms against 126 to 151\,ms at the rear, about 0.6\,m less travel at 30\,km/h, the same order as the stand-in sensors' range. The price is load beside the dashboard (64 to 73\,\% of the Raspberry Pi~5's CPU). How many road alerts were correct is unknown: the first session kept no video to check them, and labelling public-road video needs a revised ethics application.
 
-\outstanding{from run 2 (23 October), if the forward video is taken: the alerts raised during the passes in the closed area checked against what the video shows.}
+\outstanding{from run 2 (road part, 26 October), if the forward video is taken: the alerts raised during the passes in the closed area checked against what the video shows.}
 
 \section{Data integrity and connectivity (RQ3)}
 
