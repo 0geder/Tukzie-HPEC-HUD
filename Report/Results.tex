@@ -36,7 +36,7 @@ On the road session (Figure~\ref{fig:res-road}), with seconds labelled as drivin
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/results/road_session_1019.pdf}
-\caption{Road session on 19 October 2026, 17:15 to 18:50 local time (UTC+2), as recorded by the Raspberry Pi~5 from the rear unit (file \texttt{2026-10-19\_\allowbreak{}171534\_\allowbreak{}roadtest.jsonl}). Top: vibration value (standard deviation of the fused acceleration magnitude per 1\,s window). Bottom: battery current from the BMS, negative for discharge. The recorder polled twice a second and the bridge repeats the latest record, so the 10\,287 rear rows carrying a telemetry record were reduced to 3464 by keeping the first row for each sequence number. Lines break wherever a sequence number is missing (2093 of 5557, 37.7\,\%, including one gap of 407 records from 18:06:34 to 18:13:23). Green shading marks records with $|i|>1$\,A or vibration above 0.3\,m/s$^2$ (607 records); the dashed line is the drive marker added from the laptop at 17:58:41.}
+\caption{Road session on 19 October 2026, 17:15 to 18:50 local time (UTC+2), as recorded by the Raspberry Pi~5 from the rear unit (file \texttt{2026-10-19\_\allowbreak{}171534\_\allowbreak{}roadtest.jsonl}). Top: vibration value (standard deviation of the fused acceleration magnitude per 1\,s window). Bottom: battery current from the BMS, negative for discharge. The recorder polled twice a second and the bridge repeats the latest record, so the 10\,287 rear rows carrying a telemetry record were reduced to 3464 by keeping the first row for each sequence number. Lines break wherever a sequence number is missing (2093 of 5557, 37.7\,\%, including one gap of 407 records from 18:06:34 to 18:13:23). Green shading marks records with $|i|>1$\,A or vibration above 0.3\,m/s$^2$ (607 records, 605 with every field readable); the dashed line is the drive marker added from the laptop at 17:58:41.}
 \label{fig:res-road}
 \end{figure}
 
@@ -123,7 +123,7 @@ The unit published 47 times with no failures, detected a radio loss within 0.8\,
 \textbf{Measure} & \textbf{Result} \\ \hline
 Outage & Radio off (\texttt{AT+CFUN=4}) for 600\,s; 60 records built up, 0 lost \\ \hline
 Reconnection after the radio returned & 5.2\,s \\ \hline
-Backlog cleared & 37.3\,s for the 60 replays at the database (1.58 per second); unit's backlog zero 37.9\,s after reconnection (Figure~\ref{fig:res-t15}) \\ \hline
+Backlog cleared & 37.3\,s for the 60 replays at the database (1.61 per second); unit's backlog zero 37.9\,s after reconnection (Figure~\ref{fig:res-t15}) \\ \hline
 Stored in the database & 112 of 112 records of the boot; 0 missing sequence numbers; 0 duplicates \\ \hline
 Against the unit's log & 111 of 111 logged records stored (24 backfilled from the log) \\ \hline
 IMUs during the test & 200.0 to 200.5\,Hz, 0 dropped \\ \hline

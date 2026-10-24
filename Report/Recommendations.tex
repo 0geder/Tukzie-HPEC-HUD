@@ -29,13 +29,13 @@ By the SAE taxonomy \cite{saej3016} the system is at level 0: it warns and contr
 \item Validated driver assistance (still level 0): the alert precision and time-to-contact tests above, and a test that an approaching object is on a collision course, so that parked cars ahead do not raise warnings.
 \item Knowing where the vehicle is and how it moves: add wheel speed (Section~\ref{sec:hall-tap}) and fuse it with the IMUs and GNSS into one estimate of position and motion in the vehicle's axes, with every unit on one time base.
 \item A dataset from the vehicle: synchronised camera, inertial, position and battery data from the TUKZIE's routes, which needs a revised ethics application because this project stores no frames.
-\item Control in a closed area, first at low speed in a depot yard, a narrow operating domain in the sense of the taxonomy \cite{saej3016}. This needs a drive-by-wire interface, an emergency stop independent of the computers, and a safety case built to the functional-safety standard \cite{iso26262} and the standard on the safety of the intended function \cite{iso21448}, with the control path on the deterministic microcontroller side of the split used here.
+\item Control in a closed area, first at low speed in a depot yard. This needs a drive-by-wire interface, an emergency stop independent of the computers, and a safety case built to the functional-safety standard \cite{iso26262} and the standard on the safety of the intended function \cite{iso21448}, with the control path on the deterministic microcontroller side of the split used here.
 \end{enumerate}
 
 \section{The bigger picture}
 \label{sec:recs-bigger}
 
-The same record from many vehicles would let an operator follow battery health, spot faults from abnormal current or vibration and plan maintenance from data, through the store-and-forward link and database (Section~\ref{sec:db-sync}). Pothole detections tagged with position, from vehicles that drive the same streets daily, would map road condition across a city, and measured loads and current on real routes are what the next vehicle revision needs. The parts are low-cost and local, the software open, and nothing is specific to this trike. Two cautions apply: road data include position and camera views, so privacy has to be designed in (Section~\ref{sec:ethics}); and none of this can be claimed before the repeatability that RQ1 asks about is shown on the road.
+Records from many vehicles, through the same store-and-forward link (Section~\ref{sec:db-sync}), would let an operator follow battery health, find faults from abnormal current or vibration, and map road condition from position-tagged detections on streets driven daily; the parts are low-cost and nothing is specific to this trike. Privacy has to be designed in (Section~\ref{sec:ethics}), and none of this holds until the repeatability that RQ1 asks about is shown on the road.
 
 \section{Handing the project on}
 \label{sec:recs-handover}

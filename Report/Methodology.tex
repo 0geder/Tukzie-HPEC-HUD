@@ -50,7 +50,7 @@ Sync pulse & Edge every 500\,ms & Clock map with offset and drift (Section~\ref{
 Alert onset, clear & 3 frames, 5 frames & Onset delayed by two frame intervals; one missed frame cannot clear & R7 \\ \hline
 Time-to-contact fit & 0.6\,s, at least 5 frames, growth at least 5\,\% & Error model (Equation~\ref{eq:ttc-error}); the growth gate admits $\tau \le 12$\,s & R7 \\ \hline
 Time-to-contact alert & 4\,s warning, 2\,s immediate & Released at 1.25 times the threshold & R7 \\ \hline
-Delay search & 0.03 to 1.5\,s & Covers $L/v$ at 10 to 20\,km/h for wheelbases of 0.17 to 4.2\,m; error budget in Table~\ref{tab:delay-budget} & RQ1 \\ \hline
+Delay search & 0.03 to 1.5\,s & Covers $L/v$ at 10 to 20\,km/h for wheelbases of 0.17 to 4.1\,m; error budget in Table~\ref{tab:delay-budget} & RQ1 \\ \hline
 \end{tabular}
 \end{table}
 
@@ -124,7 +124,7 @@ a_{\mathrm{pp}} &= \max_k a_k - \min_k a_k, &
 \mathrm{CF} &= \frac{\max_k a_k}{a_{\mathrm{RMS}}}, &
 \bar{J} &= \frac{1}{N-1}\sum_{k=2}^{N} \frac{\lvert a_k - a_{k-1}\rvert}{\Delta t}, \label{eq:pp-cf-jerk}
 \end{align}
-and the threshold count is the number of samples with $a_k > \mu + 2\sigma$. Since $a_k$ includes gravity, $\sigma$ is the vibration measure used. The ISO~2631-1 weighting is not applied on the unit, so these features describe vibration exposure, not comfort; the offline analysis computes the weighted value (Section~\ref{sec:road-analysis}). A synthetic sine checks the code at every boot (Section~\ref{sec:impl-ride}).
+and the threshold count is the number of samples with $a_k > \mu + 2\sigma$. Since $a_k$ includes gravity, CF is about 1 at rest and, with the threshold count, serves only as a relative indicator; $\sigma$ is the vibration measure used. The ISO~2631-1 weighting is not applied on the unit, so these features describe vibration exposure, not comfort; the offline analysis computes the weighted value (Section~\ref{sec:road-analysis}). A synthetic sine checks the code at every boot (Section~\ref{sec:impl-ride}).
 
 \subsection{Per-sensor calibration}
 \label{sec:imu-magnitude-calibration}
@@ -274,7 +274,7 @@ At the 4\,s threshold this is $6.8\varepsilon$ on the Raspberry Pi~5 (19.2\,fram
 \subsection{Two-sided layout}
 \label{sec:two-sided}
 
-Sensing is split by side. The Raspberry Pi~5 behind the dashboard runs the front camera, detector and time-of-flight board, so a front alert does not cross the network and has the Pi~5's lower latency (median 51 to 54 against 102\,ms, Section~\ref{sec:res-hazard}). The Raspberry Pi~4 beside the battery looks backward and reads the rear node near the pack. A dedicated Ethernet cable joins them, leaving Wi-Fi for the internet. The dashboard switches between Front and Rear, the rear view mirrored, and its banner shows both sides (Figure~\ref{fig:two-sided}; Section~\ref{sec:impl-twosided}).
+Sensing is split by side. The Raspberry Pi~5 behind the dashboard runs the front camera, detector and time-of-flight board, so a front alert does not cross the network and has the Pi~5's lower latency (median 51 to 54\,ms beside the dashboard, against 118 to 122\,ms on the Raspberry Pi~4 with the whole system, Section~\ref{sec:res-hazard}). The Raspberry Pi~4 beside the battery looks backward and reads the rear node near the pack. A dedicated Ethernet cable joins them, leaving Wi-Fi for the internet. The dashboard switches between Front and Rear, the rear view mirrored, and its banner shows both sides (Figure~\ref{fig:two-sided}; Section~\ref{sec:impl-twosided}).
 
 \begin{figure}[htbp]
 \centering
