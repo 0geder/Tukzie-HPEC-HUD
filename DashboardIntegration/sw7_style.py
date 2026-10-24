@@ -111,7 +111,7 @@ SECONDARY, BODY, LABEL = 22, 16, 13
 TEXT_SIZES = (LABEL, BODY, SECONDARY)
 # Safety text sized by visual angle (24 Oct 2026; panel 0.170 mm/px, eye 0.70 m, BenchTest/legibility_check.py):
 # ISO 15008 recommends 20 arc min (24.0 px capitals) and accepts 16 (19.2 px). Plex capitals are 0.698 of the size.
-ALERT = 35                  # the hazard banner: 24.4 px capitals, 20.9 arc min
+ALERT = 35                  # the hazard banner: 24.4 px capitals, 20.4 arc min
 DISTANCE = 28               # obstacle distances (Drive's Around tile, the Surroundings figure): 19.5 px, 16.3 arc min
 SANS, MONO = "IBM Plex Sans", "IBM Plex Mono"
 FALLBACK = "Atkinson Hyperlegible"
