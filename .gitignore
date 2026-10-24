@@ -78,5 +78,3 @@ DashboardIntegration/tests/tile_map_navigation.png
 ~$*
 CAD/**/*.bmp
 
-# GNSS test logs hold precise positions: keep local
-BenchTest/logs/gnss_2026-10-24/walk*
