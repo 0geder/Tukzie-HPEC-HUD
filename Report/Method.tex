@@ -92,7 +92,7 @@ Each record is turned into a figure comparable with the acceptance criterion of 
 \begin{itemize}
 \item \emph{Timing.} Latency and interval distributions are skewed and an alert is limited by its slow cases, so they are summarised by the median, 95th percentile and maximum, not the mean, answering the review's finding that edge systems are rarely reported by jitter. Acquisition is judged by rate, drops and gaps over 10\,ms placed against the flash writes (R1).
 \item \emph{Position, pulse, store-and-forward.} Fixes are compared with a phone's position (R4) and pulse intervals with 500 $\pm$ 20\,ms (R6). Records are counted by device, boot and sequence number for missing records, duplicates, replays and backlog time (\texttt{Server/sync\_report.py}), and the database is compared with the read-back log (R9).
-\item \emph{Road session 1.} The bridge repeats its last record and the recorder polls twice a second, so records are first reduced to one per sequence number (Appendix~ef{app:ai} records the correction this needed). A second counts as driving when the current exceeds 1\,A or the vibration value 0.3, with segments under 10\,s apart joined.
+\item \emph{Road session 1.} The bridge repeats its last record and the recorder polls twice a second, so records are first reduced to one per sequence number (Appendix~\ref{app:ai} records the correction this needed). A second counts as driving when the current exceeds 1\,A or the vibration value 0.3, with segments under 10\,s apart joined.
 \end{itemize}
 
 \subsection{Road characterisation pipeline}
