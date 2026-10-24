@@ -26,7 +26,7 @@ Table~\ref{tab:architectures} compares the feasible architectures. The deciding 
 \hline
 \textbf{Option} & \textbf{Workload} & \textbf{Power} & \textbf{Memory} & \textbf{Interfaces} & \textbf{Latency, timing} \\ \hline
 ESP32-S3 alone & Dual 200\,Hz sampling, features, BLE, modem: yes. Camera network at a useful rate: no & Not measured (about 1\,W estimated) & 16\,MB flash, 8\,MB PSRAM (not used) & Two I\textsuperscript{2}C, UARTs, BLE, native USB; LTE and GNSS on the board & 5\,ms period held, 200.0 to 200.5\,Hz \\ \hline
-Raspberry Pi alone & Detector at 19.5 (Pi~4) and 19.2\,frames/s (Pi~5); fixed-period sampling not guaranteed & Pi~5 with the dashboard: 2.2 to 3.0\,W on its rails; Pi~4 not measured & Not a constraint in testing & I\textsuperscript{2}C, CSI camera, Wi-Fi, USB; no LTE modem & Detector median 102\,ms (Pi~4), 51 to 54\,ms (Pi~5); sampling jitter not bounded \\ \hline
+Raspberry Pi alone & Detector alone at 19.5 (Pi~4) and 19.2\,frames/s (Pi~5); fixed-period sampling not guaranteed & Pi~5 with the dashboard: 2.2 to 3.0\,W on its rails; Pi~4 not measured & Not a constraint in testing & I\textsuperscript{2}C, CSI camera, Wi-Fi, USB; no LTE modem & Detector median 102\,ms (Pi~4), 51 to 54\,ms (Pi~5); sampling jitter not bounded \\ \hline
 As built: two ESP32-S3 nodes, Pi~4 (rear), Pi~5 (front and dashboard) & Acquisition on the ESP32 nodes; vision, fusion and display on the Pis & Pi~5 as above, measured before its camera unit was added; the rest estimated, about 20\,W in all & As above & Pulse wire per node for timing; rear node on a wired UART, front node on USB; Ethernet between the Pis & 5\,ms acquisition on both nodes; detection 51 to 54\,ms (front), 118 to 122\,ms (rear, whole system); 1\,Hz dashboard line \\ \hline
 Pi~5 with Hailo-8 accelerator (not tested) & Detector at camera rate expected & Not measured & 16\,GB & Accelerator not yet enabled on the PCIe bus & Not measured \\ \hline
 \end{tabular}
@@ -180,7 +180,7 @@ Correlation peak at $f_s = 200$\,Hz & $\pm 2.5$\,ms (half a sample) & Parabolic 
 Each node's clock to its Pi's (sync pulse) & Edge timestamps spread under 0.7\,ms & Straight line fitted over many edges, with the drift; the fallback, receive times of the raw lines, adds the serial latency \\ \hline
 Raspberry Pi~4 to Pi~5 (chrony over Ethernet) & Error bound $\pm 0.079$\,ms (measured) & None needed \\ \hline
 IMU filter delay & 3.0\,ms on each node & Same setting on both nodes; cancels \\ \hline
-Fixed offsets (each Pi's GPIO latency, sensor position against the axle) & Unknown & In-situ zero from ten mallet strikes midway between the nodes; proposed criterion $\pm 2$\,ms \\ \hline
+Fixed offsets (each Pi's GPIO latency, sensor position against the axle) & Unknown & In-situ zero from ten mallet strikes midway between the nodes; proposed criterion $\pm 2$\,ms, counted at that bound until measured \\ \hline
 Worst-case sum & 5.3\,ms & \\ \hline
 \end{tabular}
 \end{table}
@@ -292,7 +292,7 @@ Sensing is split by side. The Raspberry Pi~5 behind the dashboard runs the front
 \label{sec:db-sync}
 \label{sec:pi-link}
 
-This section serves R9 and R10, and RQ3. Table~\ref{tab:comms-design} gives the design. The principle is that no link is trusted: every record is kept locally whatever the coverage, carries what is needed to detect its loss, and is confirmed rather than assumed delivered (Section~\ref{sec:impl-comms}).
+This section serves R9 and R10, and RQ3. Table~\ref{tab:comms-design} gives the design. The principle is that no link is trusted: every record is kept locally whatever the coverage, carries what is needed to detect its loss, and is confirmed rather than assumed delivered (Section~\ref{sec:impl-comms}). A published record of about 550 bytes every 10\,s is 0.44\,kbit/s, 1.6\,MB in an 8-hour day before protocol overhead, against about 26\,MB an hour for one raw stream (Table~\ref{tab:fw-mechanisms}), so features are sent and samples stay on the vehicle.
 
 \begin{table}[htbp]
 \centering
@@ -319,11 +319,10 @@ This section serves R1, R4, R5, R8, R9 and R10, whose tests exposed the faults, 
 \section{Testing infrastructure}
 \label{sec:bench-tools}
 
-This section serves the tests of every requirement. Each test leaves a record: a browser bench console reads the serial output and replays saved logs through the same parsing (Figure~\ref{fig:live-dashboard}); scripts drive the firmware and record the result; and offline tests replace the camera, model or bridge with stand-ins (Section~\ref{sec:impl-tools}).
+Each test leaves a record: a browser bench console reads the serial output and replays saved logs through the same parsing (Figure~\ref{fig:live-dashboard}); scripts drive the firmware and record the result; and offline tests replace the camera, model or bridge with stand-ins (Section~\ref{sec:impl-tools}).
 
 \section{Maintenance design}
 \label{sec:maintenance}
 
-This section serves R13 and supports RQ3. Firmware is built from the repository with the board settings fixed in \texttt{platformio.ini}, and every record carries its firmware version; the Raspberry Pis are set up by deploy scripts that record the deployed commit; every program runs as a service that restarts on failure; tests travel with the code; the display and pods come off without tools; and every wire is listed (Appendix~\ref{app:wiring}). There is no over-the-air update, and removal from the vehicle has not been timed (Section~\ref{sec:impl-maint}).
+Firmware is built from the repository with the board settings fixed in \texttt{platformio.ini}, and every record carries its firmware version; the Raspberry Pis are set up by deploy scripts that record the deployed commit; every program runs as a service that restarts on failure; tests travel with the code; the display and pods come off without tools; and every wire is listed (Appendix~\ref{app:wiring}). There is no over-the-air update, and removal from the vehicle has not been timed (Section~\ref{sec:impl-maint}).
 
-The first road session ran on an earlier design (v0.7.4, both IMUs on the rear unit; Section~\ref{sec:impl-fusion}); the bench tests from 22 October ran on this one. Chapter~\ref{chap:results} gives the results.

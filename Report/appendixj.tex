@@ -268,7 +268,7 @@ Ground truth is independent of the system: a side video at 60\,frames/s framing 
 \section{Road characterisation pipeline}
 \label{sec:impl-road}
 
-RQ1 and RQ4 need repeated traversals, raw samples and a speed reference, which the first session lacked. Their analysis was written before the second session as one command (\texttt{python -m BenchTest.analysis.run}) that processes a session folder without hand steps and records, with the reason, any analysis it cannot run. Its 42 tests pass on synthetic signals with known answers, it reproduces the figures of the first session, and vehicle-dependent values such as the wheelbase have no default.
+RQ1 and RQ4 need repeated traversals, raw samples and a speed reference, which the first session lacked. Their analysis was written before the second session as one command (\texttt{python -m BenchTest.\allowbreak{}analysis.\allowbreak{}run}) that processes a session folder without hand steps and records, with the reason, any analysis it cannot run. Its 61 tests pass on synthetic signals with known answers, it reproduces the figures of the first session, and vehicle-dependent values such as the wheelbase have no default.
 
 \begin{itemize}
 \item \emph{Vertical acceleration.} Per node, gravity's direction comes from a 0.2\,Hz low-pass of each axis, and the dynamic vertical acceleration $a_v$ is the projection onto it minus its magnitude, positive up. It is band-passed from 2 to 40\,Hz (fourth-order Butterworth, zero phase) for features and events. Samples within 2\,\% of the $\pm 8\,g$ range are flagged as clipped.

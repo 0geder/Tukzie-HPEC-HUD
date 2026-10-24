@@ -1,0 +1,7 @@
+
+# LaTeX build files and local archives
+*.brf
+*.fdb_latexmk
+*.fls
+*.xdv
+Report/*.zip
