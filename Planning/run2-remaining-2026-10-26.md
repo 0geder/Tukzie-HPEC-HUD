@@ -1,7 +1,7 @@
 # Run 2: what is done (23 Oct) and what remains (road part, Monday 26 Oct)
 
 Deadlines: presubmission closes Monday 26 Oct (fall-back copy, not marked); final report Tuesday 27 Oct 23:59, no extension.
-Word budget: the body is 14,610 words (long-report range 10,000 to 15,000), so Monday's results must replace the
+Word budget: the body is 14,493 words (46 pages) (long-report range 10,000 to 15,000), so Monday's results must replace the
 placeholder text, not add to it.
 
 ## Done on 23 October (lab part, vehicle on stands)

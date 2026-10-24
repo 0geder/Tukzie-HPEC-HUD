@@ -76,7 +76,7 @@ Supply & its own LiPo battery & no 5\,V or 3.3\,V wire between the boards \\ \hl
 \end{tabular}
 \end{table}
 
-Until 21 October the board was powered and read over USB from the Pi (\texttt{/dev/ttyACM0}). Its LTE modem, drawing through the Pi's USB port, caused repeated under-voltage on the Raspberry Pi~4 (Section~\ref{sec:inv-power}), and about a third of the per-second records were lost on that link on the road session of 19 October. For the UART the Pi's Bluetooth is disabled, so that its full PL011 UART is on GPIO14 and 15. Both sides use 3.3\,V logic, so no level shifter is needed. On its own LiPo the board browned out during modem transmit bursts on 21 October, so it still needs a regulated supply.
+Until 21 October the board was powered and read over USB from the Pi (\texttt{/dev/ttyACM0}). Its LTE modem, drawing through the Pi's USB port, caused repeated under-voltage on the Raspberry Pi~4 (Section~\ref{sec:inv-power}), and 38\,\% of the per-second records were lost on that link on the road session of 19 October. For the UART the Pi's Bluetooth is disabled, so that its full PL011 UART is on GPIO14 and 15. Both sides use 3.3\,V logic, so no level shifter is needed. On its own LiPo the board browned out during modem transmit bursts on 21 October, so it still needs a regulated supply.
 
 \section{Front inertial node to the Raspberry Pi 5}
 

@@ -1,7 +1,7 @@
 \chapter{Design}
 \label{chap:design}
 
-This chapter is the design of phase 3 (Section~\ref{sec:phases}), the system as built on 22 October 2026. Section~\ref{sec:architecture} gives the architecture and Section~\ref{sec:hardware} the hardware; the software follows (Sections~\ref{sec:dual-imu-architecture} to~\ref{sec:camera-subsystem}), then communications and logging (Section~\ref{sec:mqtt-networking}), the faults that shaped the design (Section~\ref{sec:faults-summary}), the testing tools (Section~\ref{sec:bench-tools}) and maintenance (Section~\ref{sec:maintenance}). Each section names the requirements of Table~\ref{tab:requirements-mapping} and the research questions it serves, and gives what the part does, the key decision and why; pins, formats, parameters and version history are in Appendix~\ref{app:impl}, the firmware configuration in Table~\ref{tab:config} and every connection in Appendix~\ref{app:wiring}. Each interface was tested on its own before higher-level functions were added, so that a fault could be traced to one change.
+This chapter is the design of phase 3 (Section~\ref{sec:phases}), the system as built on 23 October 2026. Section~\ref{sec:architecture} gives the architecture and Section~\ref{sec:hardware} the hardware; the software follows (Sections~\ref{sec:dual-imu-architecture} to~\ref{sec:camera-subsystem}), then communications and logging (Section~\ref{sec:mqtt-networking}), the faults that shaped the design (Section~\ref{sec:faults-summary}), the testing tools (Section~\ref{sec:bench-tools}) and maintenance (Section~\ref{sec:maintenance}). Each section names the requirements of Table~\ref{tab:requirements-mapping} and the research questions it serves, and gives what the part does, the key decision and why; pins, formats, parameters and version history are in Appendix~\ref{app:impl}, the firmware configuration in Table~\ref{tab:config} and every connection in Appendix~\ref{app:wiring}. Each interface was tested on its own before higher-level functions were added, so that a fault could be traced to one change.
 
 \section{System overview and architecture selection}
 \label{sec:architecture}
@@ -11,7 +11,7 @@ This section serves all thirteen requirements, R1 and R7 in particular. Figure~\
 \begin{figure}[htbp]
 \centering
 \input{figures/tikz/system_architecture}
-\caption{The system as built on 21 October 2026: the Raspberry Pi~5 beside the display runs the dashboard and the front camera unit, the Raspberry Pi~4 beside the battery runs the rear camera unit and reads the telemetry unit, and the two are joined by an Ethernet cable (Section~\ref{sec:two-sided}). Programs are named by their files in the repository. Dashed outline: built but not yet connected on the vehicle. Not drawn: the front node added on 22 October, a second ESP32-S3 with one IMU on the Raspberry Pi~5's USB port (Section~\ref{sec:front-node}); from then the telemetry unit carries one IMU.}
+\caption{The system as built on 23 October 2026: the Raspberry Pi~5 beside the display runs the dashboard, the front camera unit and the front node (a second ESP32-S3 with one IMU, Section~\ref{sec:front-node}); the Raspberry Pi~4 beside the battery runs the rear camera unit and reads the telemetry unit, now with one IMU; the two are joined by an Ethernet cable (Section~\ref{sec:two-sided}). A phone's GNSS gives speed (Section~\ref{sec:impl-phone-gps}). Programs are named by their files in the repository. Dashed outline: built but not yet connected on the vehicle.}
 \label{fig:system-architecture}
 \end{figure}
 
@@ -27,7 +27,7 @@ Table~\ref{tab:architectures} compares the feasible architectures. The deciding 
 \textbf{Option} & \textbf{Workload} & \textbf{Power} & \textbf{Memory} & \textbf{Interfaces} & \textbf{Latency, timing} \\ \hline
 ESP32-S3 alone & Dual 200\,Hz sampling, features, BLE, modem: yes. Camera network at a useful rate: no & Lowest of the options (not measured) & 16\,MB flash, 8\,MB PSRAM (not used) & Two I\textsuperscript{2}C, UARTs, BLE, native USB; LTE and GNSS on the board & 5\,ms period held, 200.0 to 200.5\,Hz \\ \hline
 Raspberry Pi alone & Detector at 19.5\,frames/s (Pi~4); fixed-period sampling not guaranteed & Higher; under-voltage on a weak supply & Not a constraint in testing & I\textsuperscript{2}C, CSI camera, Wi-Fi, USB; no LTE modem & Detector 102\,ms median; sampling jitter not bounded by design \\ \hline
-ESP32-S3 and Pi~4 (chosen) & Acquisition on the ESP32, vision and fusion on the Pi & Two supplies; modem not from the Pi's USB & As above & Pulse wire for timing, USB serial for data & 5\,ms acquisition; 102\,ms detection alone, 118 to 122\,ms with the whole system; 1\,Hz dashboard line \\ \hline
+ESP32-S3 and Pi~4 (chosen) & Acquisition on the ESP32, vision and fusion on the Pi & Two supplies; modem not from the Pi's USB & As above & Pulse wire for timing; wired UART for data (USB until 21 October) & 5\,ms acquisition; 102\,ms detection alone, 118 to 122\,ms with the whole system; 1\,Hz dashboard line \\ \hline
 Pi~5 with Hailo-8 accelerator (not tested) & Detector at camera rate expected; no Pi~4 link needed & Not measured & 16\,GB & Accelerator not yet enabled on the PCIe bus & Not measured \\ \hline
 \end{tabular}
 \end{table}
@@ -152,7 +152,7 @@ A distance band says how near an object is, not whether it is coming closer. Sin
 \subsection{Two-sided layout}
 \label{sec:two-sided}
 
-On 15 October the hardware was rearranged after two findings: the BMS link did not reach the telemetry unit at the front of the vehicle, and the Raspberry Pi~5 ran the detector more than twice as fast as the Raspberry Pi~4 (Section~\ref{sec:res-hazard}). The Raspberry Pi~5 behind the dashboard now runs the front camera, detector and time-of-flight board, so a front alert no longer crosses the network; the Raspberry Pi~4 beside the battery looks backwards and keeps the telemetry unit, near enough for the BMS link. A dedicated Ethernet cable joins them, so Wi-Fi keeps the route to the internet. The dashboard's Surroundings page switches between Front and Rear, the rear view mirrored like a reversing camera, and the banner shows warnings from both sides (Figure~\ref{fig:two-sided}; Section~\ref{sec:impl-twosided}).
+On 15 October the hardware was rearranged after two findings: the BMS link did not reach the telemetry unit at the front of the vehicle, and the Raspberry Pi~5 ran the detector with half the Raspberry Pi~4's latency (Section~\ref{sec:res-hazard}). The Raspberry Pi~5 behind the dashboard now runs the front camera, detector and time-of-flight board, so a front alert no longer crosses the network; the Raspberry Pi~4 beside the battery looks backwards and keeps the telemetry unit, near enough for the BMS link. A dedicated Ethernet cable joins them, so Wi-Fi keeps the route to the internet. The dashboard's Surroundings page switches between Front and Rear, the rear view mirrored like a reversing camera, and the banner shows warnings from both sides (Figure~\ref{fig:two-sided}; Section~\ref{sec:impl-twosided}).
 
 \begin{figure}[htbp]
 \centering

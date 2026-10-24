@@ -209,7 +209,7 @@ The vehicle's own motion makes a stationary object ahead ``approach'', which is 
 \section{Two-sided layout}
 \label{sec:impl-twosided}
 
-On 15 October the hardware was rearranged after two findings: the battery-management unit's Bluetooth link did not reach the telemetry unit at the front of the vehicle, and the Raspberry Pi~5 ran the detector more than twice as fast as the Raspberry Pi~4 (Results, Table~\ref{tab:res-camera}). Figure~\ref{fig:two-sided} shows the result.
+On 15 October the hardware was rearranged after two findings: the battery-management unit's Bluetooth link did not reach the telemetry unit at the front of the vehicle, and the Raspberry Pi~5 ran the detector with half the Raspberry Pi~4's latency (Results, Table~\ref{tab:res-camera}). Figure~\ref{fig:two-sided} shows the result.
 
 \begin{itemize}
 \item \emph{Front, Raspberry Pi~5} (behind the dashboard): its own OV5647 camera, the detector, a second time-of-flight board and its fusion, beside the dashboard. A front alert no longer crosses the network before it reaches the screen.

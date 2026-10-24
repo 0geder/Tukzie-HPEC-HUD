@@ -123,7 +123,7 @@ The unit published 47 times with no failures, detected a radio loss within 0.8\,
 \textbf{Measure} & \textbf{Result} \\ \hline
 Outage & Radio off (\texttt{AT+CFUN=4}) for 600\,s; 60 records built up, 0 lost \\ \hline
 Reconnection after the radio returned & 5.2\,s \\ \hline
-Backlog cleared & 37.3\,s for the 60 replays at the database (1.58 per second); unit's backlog zero 42.8\,s after reconnection \\ \hline
+Backlog cleared & 37.3\,s for the 60 replays at the database (1.58 per second); unit's backlog zero 37.9\,s after reconnection (Figure~\ref{fig:res-t15}) \\ \hline
 Stored in the database & 112 of 112 records of the boot; 0 missing sequence numbers; 0 duplicates \\ \hline
 Against the unit's log & 111 of 111 logged records stored (24 backfilled from the log) \\ \hline
 IMUs during the test & 200.0 to 200.5\,Hz, 0 dropped \\ \hline
@@ -138,7 +138,7 @@ End-to-end latency & Not measured (no GNSS time indoors) \\ \hline
 \label{fig:res-t15}
 \end{figure}
 
-The dashboard line delivered 40 of 40 lines, at most 0.37\,s old at a laptop. Over USB, 2 to 11\,\% of lines were lost over hours on the bench, and a third of the seconds on the road session. Since 21 October the line travels over the wired UART: none of the first 2,489 lines was bad, nor any of the 3,720 in the 62-minute soak. R10 is met on the bench over the wired link and untested on the vehicle since the change.
+The dashboard line delivered 40 of 40 lines, at most 0.37\,s old at a laptop. Over USB, 2 to 11\,\% of lines were lost over hours on the bench, and 38\,\% of the seconds on the road session. Since 21 October the line travels over the wired UART: none of the first 2,489 lines was bad, nor any of the 3,720 in the 62-minute soak. R10 is met on the bench over the wired link and untested on the vehicle since the change.
 
 \outstanding{run 2 (road part, 26 October): share of DASH records received from each node over the session (by sequence number), and end-to-end latency from device UTC to the laptop ingest.}
 
@@ -168,17 +168,17 @@ On 23 October, in the lab, both nodes, both detectors (front 23.8, rear 14.3\,fr
 \hline
 \textbf{ID} & \textbf{Result} & \textbf{Status} \\ \hline
 R1 & Bench: 200.0 to 200.5\,Hz, 0 dropped (260 and 94\,Hz filters); gaps over 10\,ms only at a flush. Both nodes on 22 October: 0 drops, 0 read failures; rear v0.7.6 soak 62\,min, 0 drops, rate outside 199.5 to 200.5\,Hz in 3 of 726 polls; v0.7.8 recovers a sensor without a reset. Vehicle: 0 dropped, one 2\,s stall of IMU1; 38\,\% of per-second records not received & Met on the bench (both nodes); partly met on the vehicle \\ \hline
-R2 & 9.80 to 9.81\,m/s\textsuperscript{2} after calibration; drifts with orientation; front node factor repeats (1.0036, 1.0035); mounted on 23 October: front 0.9919, rear 1.0094 & Met, including in the mounted position \\ \hline
+R2 & 9.80 to 9.81\,m/s\textsuperscript{2} after calibration; drifts with orientation; front node factor repeats (1.0036, 1.0035); mounted on 23 October: front 0.9919, rear 1.0094, giving 9.81 at rest in that position & Met at calibration, including in the mounted position; not yet rechecked after driving \\ \hline
 R3 & Self-tests pass; 149 of 149 windows fused; run-1 log: two IMUs agree while driving (ratio 1.06, $r$ = 0.97) & Met \\ \hline
 R4 & Median 2.7\,m, 95\% within 11.0\,m of the phone; no fix on the road session & Partly met on the bench; untested on the vehicle (no antenna) \\ \hline
-R5 & Sustained on the vehicle: up to 48.03\,A in the unit's log (46.9\,A in the recorder), 74.6 to 72.7\,V under load; no meter check & Partly met: sustained under load on the vehicle; no meter check \\ \hline
-R6 & Median interval 500.06\,ms, range 499.72 to 500.41\,ms; front pulse on the Raspberry Pi~5 since 22 October; clock offset not measured & Partly met: pulse timing met, offset not measured \\ \hline
-R7 & Rear (Raspberry Pi~4): 14.6\,frames/s with the whole system (19.5 alone), onset at the detector about 0.26\,s. Front (Raspberry Pi~5): 19.2\,frames/s on the bench beside the dashboard, 17.5 to 22.0 on the vehicle & Met at the detector (person class) \\ \hline
+R5 & Sustained on the vehicle: up to 48.03\,A in the unit's log (46.9\,A in the recorder), 74.6 to 72.8\,V under load; no meter check & Partly met: sustained under load on the vehicle; no meter check \\ \hline
+R6 & Median interval 500.06\,ms, range 499.72 to 500.41\,ms; front pulse on the Raspberry Pi~5 since 22 October; clock offset not measured & Met (pulse timing); the clock offset to the camera is not yet measured \\ \hline
+R7 & Rear (Raspberry Pi~4): 14.6\,frames/s with the whole system (19.5 alone), onset at the detector about 0.26\,s. Front (Raspberry Pi~5): 19.2\,frames/s on the bench beside the dashboard, 17.5 to 22.0 on the vehicle & Met at the detector (person class); onset computed from rate and latency, not timed at the screen (C8) \\ \hline
 R8 & Sensors answer; no tape check; fusion not validated & Partly met \\ \hline
-R9 & 47 of 47 publishes; reconnection about 5\,s after coverage; full read-back (run-1 log 2,000 of 2,022); after a 10-minute outage 112 of 112 records stored, backlog cleared in 43\,s & Met on bench via a test broker; latency and vehicle not measured \\ \hline
+R9 & 47 of 47 publishes; reconnection about 5\,s after coverage; bench read-back 6,020 of 6,020, run-1 log 2,000 of 2,022; after a 10-minute outage 112 of 112 records stored, backlog cleared 38\,s after reconnection & Met on the bench via a test broker; on the vehicle the read-back was incomplete and latency was not measured \\ \hline
 R10 & 40 of 40 lines, record 0.37\,s old at a laptop; 2 to 11\,\% of lines lost over hours on USB; wired UART since 21 October, 0 bad in 2,489 lines and in 3,720 over 62\,min & Met on the bench (wired link); untested on the vehicle since the change \\ \hline
 R11 & Live-only presentation; alert listed 0.5\,s after opening the page with a person in view; offline state & Met (laptop and offscreen) \\ \hline
 R12 & Not measured; no glance study (no participants) & Not met; future work \\ \hline
-R13 & Mounted on the vehicle on 19 October; removal and return to standard not timed & Partly met \\ \hline
+R13 & Mounted on the vehicle on 19 October; no drilling or permanent change; removal and return to standard not timed & Partly met \\ \hline
 \end{tabular}
 \end{table}
