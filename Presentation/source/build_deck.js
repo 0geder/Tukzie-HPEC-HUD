@@ -1,7 +1,8 @@
 // SW7 final presentation, 16:9, matching the A1 poster (UCT banner, navy numbered markers, light-blue cards).
 // Also writes Presentation/SW7_Talking_Points.md from the speaker notes, so the script always matches the deck.
 // Updated 20 Oct 2026: two-sided layout, Pi 5 detector, approaching-object warning, enclosures and power,
-// first road session (19 Oct). Every number is taken from the report (Methodology, Results, Discussion).
+// first road session (19 Oct). Updated 24 Oct: stand runs, mounted calibration, legibility, phone GNSS, design limits.
+// Every number is taken from the report (Methodology, Results, Discussion).
 const pptxgen = require("pptxgenjs");
 const fs = require("fs");
 const path = require("path");
@@ -116,16 +117,16 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 {
   const s = content("Aim and research questions",
     "Four research questions, and where each honestly stands. " +
-    "RQ1, how accurately and repeatably a low-cost unit characterises the ride: the instrument is verified, and on the first road session it held its rate, but repeatability is not measured yet. " +
-    "RQ2, alerts on the existing dashboard with the least distraction: this replaced the head-up display with my supervisor's agreement. It is built; glance time is not measured. " +
+    "RQ1, how accurately and repeatably a low-cost unit characterises the ride: verified on the bench; road repeatability waits for Monday's run. " +
+    "RQ2, alerts on the existing dashboard with the least distraction: this replaced the head-up display with my supervisor's agreement. It is built and its legibility measured; glance time needs a participant. " +
     "RQ3, latency, loss and recovery: loss and recovery pass a ten-minute outage test; latency needs GNSS time. " +
-    "RQ4, road against powertrain vibration, needs the second road session.");
+    "RQ4, road against powertrain vibration: the stands found the powertrain's lines; their road share waits for the road run.");
   // status styles: "bench" filled sky, "part" filled navy, "open" dashed orange outline
   const rows = [
-    ["RQ1", "How accurately and repeatably can a low-cost edge unit characterise the trike's ride response?", "Rate held on road", "part"],
-    ["RQ2", "Which layout and update strategy show safety alerts on the existing dashboard with least distraction?", "Glance untested", "open"],
+    ["RQ1", "How accurately and repeatably can a low-cost edge unit characterise the trike's ride response?", "Road run pending", "open"],
+    ["RQ2", "Which layout and update strategy show safety alerts on the existing dashboard with least distraction?", "Legibility measured", "part"],
     ["RQ3", "What latency, data loss and recovery from sensor through local log to the LTE link?", "Loss tested", "bench"],
-    ["RQ4", "Which ride features separate road-induced from powertrain vibration?", "Needs session 2", "open"],
+    ["RQ4", "Which ride features separate road-induced from powertrain vibration?", "Stand lines found", "part"],
   ];
   const y0 = 1.45, rh = 1.08, gap = 0.18;
   rows.forEach(([id, req, status, style], i) => {
@@ -146,7 +147,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   const s = content("The system: front and rear, joined by one cable",
     "Since the fifteenth of October the system has two sides, joined by one Ethernet cable. " +
     "At the front, a Raspberry Pi 5 behind the dashboard runs its own camera, the detector, a time-of-flight board and the fusion, so a front alert never crosses the network. " +
-    "At the rear, beside the battery, the Pi 4 runs the rear camera and sensors and carries the telemetry unit: an ESP32-S3 with LTE and GNSS, two IMUs at 200 hertz and the battery link. " +
+    "At the rear, beside the battery, the Pi 4 runs the rear camera and sensors and carries the telemetry unit: an ESP32-S3 with LTE, GNSS, the battery link and one IMU at 200 hertz. A second node with its own IMU now sits at the front, so both ends are measured. " +
     "Two findings drove this: the battery's Bluetooth did not reach the front, and the Pi 5 runs the detector more than twice as fast.");
   const cw = 5.0, cy = 1.45, ch = 3.45, xr = W - M - cw;
   const side = (x, head, items) => {
@@ -155,15 +156,15 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
     bullets(s, items, { x: x + 0.3, y: cy + 1.0, w: cw - 0.6, h: ch - 1.1, fontSize: 16 });
   };
   side(M, "Front: Raspberry Pi 5,\nbehind the dashboard", [
-    "Front camera and object detector",
-    "Time-of-flight board (left, ahead, right) and camera fusion",
-    "Dashboard on the 10.1 in touchscreen",
-    "Road recorder: all four sources at 2 Hz",
+    "Front camera, detector, time-of-flight board",
+    "Front node: ESP32-S3 with one IMU at 200 Hz",
+    "Dashboard on the 10.1 in touchscreen; phone GNSS for speed",
+    "Road recorder for all sources",
   ]);
   side(xr, "Rear: Raspberry Pi 4,\nbeside the battery", [
     "Rear camera, detector, time-of-flight board",
-    "Telemetry unit on USB: ESP32-S3 with LTE, GNSS, local log",
-    "Two IMUs at 200 Hz; battery over Bluetooth; Hall counter",
+    "Rear node: ESP32-S3 with one IMU at 200 Hz, wired UART",
+    "LTE, GNSS, local log; battery over Bluetooth",
     "LTE uplink to the central database",
   ]);
   // the link between them
@@ -233,9 +234,9 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   const s = content("Result: 200 Hz acquisition and dual-IMU fusion",
     "Both IMUs run at 200 hertz with no dropped samples, counted, not assumed. " +
     "Flash writes cause one gap of under 45 milliseconds a minute, and the queue holds the samples through it. " +
-    "A gravity factor per sensor brings both to 9.80 or 9.81, but only in that orientation, so it is redone once mounted. " +
-    "Fusion is an equal-weight mean; windows pair only if they end within half a window, and the disagreement is reported. " +
-    "In a 150 second session all 149 windows fused with under a millisecond of skew.");
+    "A gravity factor per sensor brings both to 9.80 or 9.81, but only in that orientation: with bench factors the parked vehicle read 10.04 and 10.34, so both were recalibrated mounted, not yet rechecked. " +
+    "In a 150 second session all 149 windows fused with under a millisecond of skew. " +
+    "One limit: the 94 hertz filter only partly suppresses aliasing, so a line at 40 to 70 hertz could be an image of one at 136 to 157. A speed sweep tells them apart: a motor line rises with speed, its image falls.");
   const stats = [
     ["200 Hz", "on both IMUs, no samples dropped"],
     ["9.8 m/s²", "both IMUs at rest just after calibration (9.80, 9.81)"],
@@ -255,14 +256,12 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
     { x: M, y: gy + chH + 0.05, w: chW, h: 0.5, fontSize: 13, italic: true, color: C.muted });
   const rx = M + chW + 0.35, rw = W - M - rx, rh = 6.75 - gy;
   card(s, rx, gy, rw, rh);
-  txt(s, "Fusion rules and limits", { x: rx + 0.3, y: gy + 0.15, w: rw - 0.6, h: 0.4, fontSize: 18, bold: true, color: C.navy });
+  txt(s, "Calibration and limits", { x: rx + 0.3, y: gy + 0.15, w: rw - 0.6, h: 0.4, fontSize: 18, bold: true, color: C.navy });
   bullets(s, [
-    "Equal-weight mean (equal noise)",
-    "Paired if windows end within 500 ms",
-    "Disagreement reported; 3 s fallback",
+    "Bench factors on the parked vehicle: 10.04 and 10.34 m/s²",
+    "Mounted (23 Oct): front 0.9919, rear 1.0094; not yet rechecked",
     "Flash gaps 33 to 44 ms, once a minute",
-    "Uncalibrated: 8% apart (earlier run)",
-    "Calibration holds in one orientation",
+    "94 Hz filter: lines at 40 to 70 Hz could be images of 136 to 157 Hz; a speed sweep tells them apart",
   ], { x: rx + 0.3, y: gy + 0.62, w: rw - 0.6, h: rh - 0.75, fontSize: 13 });
 }
 
@@ -298,7 +297,7 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 {
   const s = content("Result: timing, position, and no data lost in an outage",
     "The sync wire gives a median interval of 500.06 milliseconds over 121 edges, with under 0.7 of spread, so camera and IMU clocks line up. " +
-    "On a rooftop, GNSS was a median 2.7 metres from a phone. " +
+    "On a rooftop, GNSS was a median 2.7 metres from a phone. On the vehicle it has not fixed yet, so a phone now streams its GNSS over its hotspot as the speed reference. " +
     "The outage test: I switched the radio off for ten minutes. The unit reconnected 5.2 seconds after it came back and cleared 60 records in about 40 seconds; the database holds 112 of 112. " +
     "The public test broker does not queue, so the log read-back is the safety net, and latency needs GNSS time.");
   const n = 3, g = 0.35, cw = (W - 2 * M - (n - 1) * g) / n, cy = 1.4, ch = 5.35;
@@ -315,8 +314,8 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
      "A loose jumper twice gave false edges: a latched connector is needed"]);
   col(M + cw + g, "GNSS outdoors (bench)", "2.7 m", "median from a phone's position over 104 fixes",
     ["95% within 11 m; fix 105 s after a cold start",
-     "Indoors: network position in 0.7 s, 550 m stated",
-     "No fix at all on the first road session"]);
+     "No fix on the road (19 Oct, no antenna) or in 45 min in the lab (23 Oct)",
+     "Speed now from a phone's GNSS over its hotspot: a simulated 20 km/h showed as 20 km/h"]);
   col(M + 2 * (cw + g), "10-minute LTE outage (T15)", "112 / 112", "records stored in the Pi 5 database, none missing or doubled",
     ["60 records built up; reconnected 5.2 s after radio on",
      "Backlog cleared in 37 to 43 s; 111 of 111 against the unit's log",
@@ -361,11 +360,12 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
     "For an object closing at constant speed, the inverse of its box width falls in a straight line to zero at contact. " +
     "So time to contact is the width over its rate of growth, after Lee in 1976, and it needs no focal length or object size. " +
     "I fit that line robustly over the last 0.6 seconds, and warn below 4 seconds, immediate below 2. " +
+    "A one percent jitter in box width gives about plus or minus 0.3 seconds at 4 seconds. " +
     "In 40 synthetic tests it is within 2 percent, at 0.27 milliseconds a frame. It has not been tested on a real approach.");
   const lw = 6.3, ly = 1.4, lh = 5.35;
   card(s, M, ly, lw, lh);
   // three boxes growing as an object closes
-  const base = ly + 2.15;
+  const base = ly + 2.0;
   [[0.55, 0.42, "t − 0.6 s"], [0.95, 0.72, "t − 0.3 s"], [1.55, 1.18, "now"]].forEach(([bw, bh], i) => {
     const cx = M + 0.95 + i * 2.05;
     s.addShape(pres.shapes.RECTANGLE, { x: cx - bw / 2, y: base - bh, w: bw, h: bh, fill: { color: C.white }, line: { color: i === 2 ? C.accent : C.sky, width: 2 } });
@@ -378,7 +378,8 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
     "1/w falls in a straight line to zero at contact; a Theil-Sen line is fitted over the last 0.6 s",
     "No focal length or object size needed (Lee 1976; Dagan et al. 2004)",
     "Used only with 5 frames over 0.25 s, 75 % of slopes agreeing, 5 % growth, box clear of the image edge",
-  ], { x: M + 0.3, y: base + 1.35, w: lw - 0.6, h: ly + lh - base - 1.45, fontSize: 14 });
+    "Relative error ≈ ε (τ/T) √(12/n) for box jitter ε over n frames: 1 % jitter gives about ±0.3 s at 4 s",
+  ], { x: M + 0.3, y: base + 1.3, w: lw - 0.6, h: ly + lh - base - 1.35, fontSize: 13 });
   const rx = M + lw + 0.35, rw = W - M - rx, g = 0.18, bh = (lh - 2 * g) / 3;
   infoCard(s, rx, ly, rw, bh, "Warning rule",
     "Approaching when τ is under 4 s (warning) or 2 s (immediate), after the 3-frame onset; released above 5 s. Inside the time-of-flight range the sensor's own closing rate gives τ.");
@@ -391,13 +392,11 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
 
 // ---------------- 11 Dashboard ----------------
 {
-  const s = content("Both cameras on the existing dashboard",
+  const s = content("The existing dashboard: both cameras, and legibility",
     "This is where RQ2 lands, on the dashboard the team already runs. " +
-    "The Surroundings page now has a Front and Rear switch, which moves the picture, alerts, distances and hazards together, each from that side's own unit. " +
-    "The rear view is mirrored like a reversing camera. " +
-    "The banner shows warnings from both sides, names the side, and puts an approaching object first. " +
-    "It shows only live data, never a simulated value. " +
-    "It is tested offscreen and live on the Pi 5; glance time on the vehicle is still open.");
+    "A Front and Rear switch moves the picture, alerts and distances together, the rear mirrored; the banner names the side and puts an approaching object first; only live data is shown. " +
+    "Glance time needs a participant, but legibility does not, so I measured it. At 0.70 metres the speed digits subtend 84 arc minutes, far above the 20 ISO 15008 recommends; the alert banner subtends 9, and the labels a median of 9, against 16 acceptable. " +
+    "So the speed is legible at a glance; the warnings are not. Enlarging them comes before any glance study.");
   const iw = 7.4, imW = (iw - 0.2) / 2, ih = imW * 800 / 1280;
   s.addImage({ path: R("ui/ui_dualcam_front.png"), x: M, y: 1.4, w: imW, h: ih });
   s.addImage({ path: R("ui/ui_dualcam_rear_approaching.png"), x: M + imW + 0.2, y: 1.4, w: imW, h: ih });
@@ -405,13 +404,15 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   caption(s, "Rear, mirrored: car approaching at 1.6 s (test)", M + imW + 0.2, 1.4 + ih + 0.06, imW);
   const wy = 1.4 + ih + 0.5, wh = 6.75 - wy;
   card(s, M, wy, iw, wh);
-  txt(s, "Two cameras, one page (15 Oct)", { x: M + 0.3, y: wy + 0.12, w: iw - 0.6, h: 0.38, fontSize: 16, bold: true, color: C.navy });
+  txt(s, "Legibility at 0.70 m, measured without a participant (24 Oct)", { x: M + 0.3, y: wy + 0.12, w: iw - 0.6, h: 0.38, fontSize: 16, bold: true, color: C.navy });
   bullets(s, [
-    "Front | Rear switch moves picture, alerts, distances and hazards together",
-    "Rear view mirrored like a car's reversing camera",
-    "Banner names the side; an approaching object comes first",
-    "Live data only: a lost side shows offline, never zero or the other side",
-  ], { x: M + 0.3, y: wy + 0.55, w: iw - 0.6, h: wh - 0.6, fontSize: 14 });
+    "Speed digits: 84 arc minutes (ISO 15008: 16 acceptable, 20 recommended)",
+    "Alert banner capitals: 9 arc minutes; labels a median of 9",
+    "Touch targets: median 10.9 mm; 5 of 26 at 17.5 mm",
+    "First change: enlarge the banner to about 24 px capitals, then a glance study",
+  ], { x: M + 0.3, y: wy + 0.55, w: iw - 0.6, h: wh - 1.15, fontSize: 14 });
+  txt(s, "The speed is legible at a glance; the warnings are not.",
+    { x: M + 0.3, y: wy + wh - 0.55, w: iw - 0.6, h: 0.4, fontSize: 15, bold: true, color: C.accent, valign: "middle" });
   const rx = M + iw + 0.35, rw = W - M - rx;
   card(s, rx, 1.4, rw, 5.35);
   txt(s, "Live on the Pi 5", { x: rx + 0.3, y: 1.52, w: rw - 0.6, h: 0.42, fontSize: 18, bold: true, color: C.navy });
@@ -419,11 +420,12 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   s.addImage({ path: R("ui/ui_pi5_live_dualcam.png"), x: rx + 0.3, y: 2.0, w: sw, h: sh });
   caption(s, "15 Oct: live front camera at 23.6 fps, a rear warning in the banner", rx + 0.3, 2.0 + sh + 0.06, sw, 0.5);
   bullets(s, [
-    "Tested offscreen with four fake servers",
-    "Paper theme, one tap colour, status in words",
-  ], { x: rx + 0.3, y: 2.0 + sh + 0.6, w: sw, h: 0.8, fontSize: 13 });
-  txt(s, [{ text: "Still open: ", options: { bold: true, color: C.accent } }, { text: "glance time on the vehicle, against NHTSA and ISO 15008." }],
-    { x: rx + 0.3, y: 6.05, w: rw - 0.6, h: 0.6, fontSize: 14, valign: "top" });
+    "Front | Rear switch; rear view mirrored",
+    "Banner names the side; approaching first",
+    "Live data only, never simulated",
+  ], { x: rx + 0.3, y: 2.0 + sh + 0.6, w: sw, h: 1.1, fontSize: 13 });
+  txt(s, [{ text: "Still open: ", options: { bold: true, color: C.accent } }, { text: "glance time, which needs a participant." }],
+    { x: rx + 0.3, y: 6.15, w: rw - 0.6, h: 0.5, fontSize: 14, valign: "top" });
 }
 
 // ---------------- 12 Enclosures, heat and power ----------------
@@ -465,67 +467,67 @@ const shadow = () => ({ type: "outer", color: "000000", blur: 6, offset: 2, angl
   ], { x: rx + 0.3, y: top + 2.15, w: rw - 0.6, h: 3.1, fontSize: 14 });
 }
 
-// ---------------- 13 First road session ----------------
+// ---------------- 13 On the vehicle: road session and stand runs ----------------
 {
-  const s = content("First road session, 19 October",
+  const s = content("On the vehicle: road session and stand runs",
     "On the nineteenth of October the whole system was mounted and the first road session run. " +
     "A recorder on the Pi 5 ran for 108.6 minutes, about 16 of them driving, with no laptop on board. " +
-    "Both IMUs held 200 hertz with no drops and one short stall, but a third of the per-second records were lost on the USB link, now replaced by wires, so R1 is only partly met on the vehicle. " +
-    "The battery link held under load: up to 46.9 amps, the pack falling from 74.6 to 72.8 volts. " +
-    "The cameras raised 1,342 front and 741 rear alerts, not yet checked against video. " +
-    "But GNSS had no fix, as no antenna was fitted, and there were no raw samples or run markers, so RQ1 and RQ4 are not answered yet. A second, shorter session is planned.");
-  const lw = 7.4, top = 1.4, g = 0.25, tw = (lw - g) / 2, th = 2.2;
-  const tiles = [
-    ["108.6 min", "recorded on the vehicle by the Pi 5, about 16 min of it driving"],
-    ["200 Hz", "both IMUs, no drops, one 2 s stall; 38 % of records lost on USB: R1 partly met"],
-    ["46.9 A", "peak battery current; 74.6 to 72.8 V, 60 to 58 %: R5 partly met (no meter check)"],
-    ["1,342 / 741", "front and rear camera alerts, not yet checked against video"],
-  ];
-  tiles.forEach(([big, small], i) => {
-    const x = M + (i % 2) * (tw + g), y = top + Math.floor(i / 2) * (th + g);
-    card(s, x, y, tw, th);
-    txt(s, big, { x: x + 0.3, y: y + 0.15, w: tw - 0.6, h: 0.85, fontSize: 36, bold: true, color: C.navy, valign: "middle" });
-    txt(s, small, { x: x + 0.3, y: y + 1.05, w: tw - 0.6, h: th - 1.15, fontSize: 14, valign: "top" });
+    "One IMU stall of about 2 seconds, not in the drop count, means R1 is not met on the vehicle, and 38 percent of the records were lost on USB, now replaced by wires. The battery link held at up to 46.9 amps. With no GNSS antenna and no raw samples, RQ1 and RQ4 stayed open. " +
+    "On the twenty-third, with the drive wheel raised, the rear vibration rose five to seven times, between about 40 and 70 hertz, and the front showed the same lines, so the powertrain reaches the front through the frame. Throttle settings were not recorded, so the lines are not yet assigned to motor orders. " +
+    "Monday's road run answers RQ1 and RQ4; the analysis is ready.");
+  const top = 1.4, g = 0.25, n = 4, tw = (W - 2 * M - (n - 1) * g) / n, th = 1.65;
+  [["108.6 min", "recorded on 19 Oct, about 16 min driving; no GNSS fix (no antenna)"],
+   ["200 Hz", "no counted drops, but one 2 s stall: R1 not met on the vehicle; 38 % of records lost on USB"],
+   ["46.9 A", "peak battery current; 74.6 to 72.8 V: R5 partly met (no meter check)"],
+   ["1,342 / 741", "front and rear camera alerts, not yet checked against video"],
+  ].forEach(([big, small], i) => {
+    const x = M + i * (tw + g);
+    card(s, x, top, tw, th);
+    txt(s, big, { x: x + 0.22, y: top + 0.08, w: tw - 0.44, h: 0.62, fontSize: 28, bold: true, color: C.navy, valign: "middle" });
+    txt(s, small, { x: x + 0.22, y: top + 0.72, w: tw - 0.44, h: th - 0.78, fontSize: 12, valign: "top" });
   });
-  caption(s, "Parked and driving separate clearly: one-second vibration median 0.03 parked; while driving median 1.39, 95th percentile 3.2, maximum 5.09.",
-    M, top + 2 * th + g + 0.1, lw, 0.6);
-  const rx = M + lw + 0.35, rw = W - M - rx;
-  dashedCard(s, rx, top, rw, 5.35);
-  txt(s, "Not captured, so still open", { x: rx + 0.3, y: top + 0.15, w: rw - 0.6, h: 0.4, fontSize: 18, bold: true, color: C.accent });
+  const fy = top + th + 0.25, fw = 7.4, fh = fw * 396 / 1100;
+  s.addImage({ path: R("results/stand_spectra_1023.png"), x: M, y: fy, w: fw, h: fh });
+  caption(s, "Stand runs, 23 Oct, drive wheel raised (3.2 and 4.5 A): rear vibration 5 to 7 times rest, energy 40 to 70 Hz; the same lines at the front (42.75, 49.0, 64.0 Hz). Throttle settings not recorded.",
+    M, fy + fh + 0.05, fw, 6.85 - fy - fh - 0.05);
+  const rx = M + fw + 0.35, rw = W - M - rx, rh = 6.75 - fy;
+  dashedCard(s, rx, fy, rw, rh);
+  txt(s, "Pending: road run, Monday 26 Oct", { x: rx + 0.25, y: fy + 0.12, w: rw - 0.5, h: 0.4, fontSize: 16, bold: true, color: C.accent });
   bullets(s, [
-    "No GNSS fix in any record (no antenna fitted): R4 untested on the vehicle, and no speed",
-    "No raw 200 Hz samples (v0.7.4) and no run markers: RQ1 and RQ4 not answered yet",
-    "LTE upload down: no latency",
-    "Driving found afterwards from battery current and vibration; no gear or speed signal",
-    "Next: a second, shorter session with the raw stream (v0.7.5), a working GNSS antenna, timed runs and the powertrain baseline on stands",
-  ], { x: rx + 0.3, y: top + 0.7, w: rw - 0.6, h: 4.5, fontSize: 15 });
+    "RQ1: repeatability over passes at 10, 15 and 20 km/h",
+    "RQ4: the stand lines' share of the road spectrum, powered and coasting",
+    "Speed index σ²/v: constant with speed if the ISO 8608 road model holds",
+    "Speed from the front-to-rear delay: timing budget 5.3 ms, 1.8 % of a 0.3 s delay",
+    "Phone GNSS speed against video",
+  ], { x: rx + 0.25, y: fy + 0.58, w: rw - 0.5, h: rh - 0.65, fontSize: 13 });
 }
 
 // ---------------- 14 Conclusions ----------------
 {
   const s = content("Conclusions and next steps",
-    "To conclude. Every subsystem runs together, now on the vehicle: two IMUs at 200 hertz, fused; a database that lost nothing across an outage; detection in about 50 milliseconds at the front; an approaching-object warning; and both cameras on the existing dashboard. " +
-    "What remains is the second road session with raw data and GNSS for RQ1 and RQ4, the real approach test, glance time for RQ2, and a separate supply for the telemetry unit. " +
+    "To conclude. Every subsystem runs together, now on the vehicle: two nodes at 200 hertz with no counted drops; a database that lost nothing across an outage; detection in about 50 milliseconds at the front; an approaching-object warning; and both cameras on the existing dashboard. " +
+    "On the stands the powertrain showed at 40 to 70 hertz, at both ends; the dashboard's warnings are too small. " +
+    "What remains is Monday's road run for RQ1 and RQ4, larger warnings and then glance time for RQ2, the real approach test, and a separate supply for the telemetry unit. " +
     "Thank you, I'm happy to take questions.");
   const cw = (W - 2 * M - 0.4) / 2, cy = 1.4, ch = 4.45;
   card(s, M, cy, cw, ch);
   txt(s, "Done and measured", { x: M + 0.35, y: cy + 0.2, w: cw - 0.7, h: 0.45, fontSize: 20, bold: true, color: C.navy });
   bullets(s, [
-    "Two IMUs at 200 Hz, fused; held on the vehicle (R1)",
+    "200 Hz, no drops on both nodes on the bench (R1); one 2 s stall on the road",
     "112 of 112 records stored across an LTE outage",
     "Front detection 51 to 54 ms on the Pi 5 (Pi 4: about 120 ms)",
     "Approaching-object warning: synthetic tests within 2 %",
-    "Both cameras on the existing dashboard, live data only",
-    "Battery under load on the vehicle (R5); seven faults fixed",
+    "Stands: powertrain at 40 to 70 Hz, rear and front",
+    "Dashboard: speed legible, warnings too small (ISO 15008)",
   ], { x: M + 0.35, y: cy + 0.85, w: cw - 0.7, h: ch - 1.0, fontSize: 16 });
   const x2 = M + cw + 0.4;
   dashedCard(s, x2, cy, cw, ch);
   txt(s, "Open, and next", { x: x2 + 0.35, y: cy + 0.2, w: cw - 0.7, h: 0.45, fontSize: 20, bold: true, color: C.accent });
   bullets(s, [
-    "Second road session: raw samples, GNSS, timed runs (RQ1, RQ4)",
-    "Real approach test (C11), fusion and focal calibration (C9)",
-    "Glance time on the vehicle (RQ2); latency with GNSS time",
-    "Own supply for the telemetry unit; measure each unit's power",
+    "Road run, 26 Oct: repeatability (RQ1), road share (RQ4)",
+    "Enlarge the warnings, then glance time (RQ2)",
+    "Real approach test (C11); latency with GNSS time",
+    "Own supply for the telemetry unit (Pi 4 still under-voltage, 23 Oct)",
     "Fit-test the printed enclosures on the vehicle",
   ], { x: x2 + 0.35, y: cy + 0.85, w: cw - 0.7, h: ch - 1.0, fontSize: 16 });
   txt(s, "Thank you. Questions?", { x: M, y: 6.05, w: W - 2 * M, h: 0.6, fontSize: 26, bold: true, color: C.navy, align: "center", valign: "middle" });

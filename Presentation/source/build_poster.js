@@ -2,6 +2,7 @@
 // (campus banner header, light-blue content panels, UCT crest).
 // Updated 20 Oct 2026 with the two-sided layout, the Pi 5 detector, the approaching-object warning,
 // the power budget and the first road session; numbers from the report.
+// Updated 24 Oct 2026: one IMU per node, phone GNSS, legibility, stand runs of 23 Oct, R1 status on the vehicle.
 const pptxgen = require("pptxgenjs");
 const path = require("path");
 const A = (f) => path.join(__dirname, "assets", f);
@@ -84,16 +85,16 @@ b = panel(2, "System: front and rear", XL, yL, h2);
     bullets(items, { x: x + 0.35, y: cy + 1.65, w: cw - 0.7 }, ch - 1.8, 24);
   };
   side(b.x, "Front: Raspberry Pi 5,\nbehind the dashboard", [
-    "Front camera and object detector",
-    "Time-of-flight board and camera fusion",
+    "Front camera, detector and time-of-flight board",
+    "Front node: ESP32-S3 with one IMU at 200" + NB + "Hz",
     "Dashboard on the 10.1" + NB + "in touchscreen",
-    "Road recorder for all four sources",
+    "Phone GNSS for speed; road recorder",
   ]);
   const xr = b.x + b.w - cw;
   side(xr, "Rear: Raspberry Pi 4,\nbeside the battery", [
     "Rear camera, detector and time-of-flight board",
-    "Telemetry unit: ESP32-S3 with LTE and GNSS",
-    "Two IMUs at 200" + NB + "Hz; battery over Bluetooth",
+    "Rear node: ESP32-S3 with one IMU at 200" + NB + "Hz",
+    "LTE, GNSS, battery over Bluetooth",
     "Local log and LTE uplink to a database",
   ]);
   const lx = b.x + cw + 0.2, lw = xr - lx - 0.2, ly = cy + ch / 2;
@@ -118,9 +119,9 @@ b = panel(3, "Hazard warnings on the dashboard", XL, yL, h3);
   bullets([
     "Detection on the Pi 5 beside the display: 51 to 54" + NB + "ms median from sensor readout at 19.2" + NB + "fps, against 118 to 122" + NB + "ms on the Pi 4 with the whole system.",
     "Approaching objects: time to contact from the growth of the box, τ = w / (dw/dt), with no focal length or object size (Lee 1976). Warning under 4" + NB + "s, immediate under 2" + NB + "s.",
-    "Synthetic tests within 2" + NB + "%; not yet tested on a real approach.",
-    "Banner names the side and puts approaching objects first; live data only, frames never stored. Glance time not yet measured.",
-  ], { x: b.x, y: by, w: b.w }, yL + h3 - by - 0.4, 30);
+    "Synthetic tests within 2" + NB + "%; not yet tested on a real approach. Live data only; frames never stored.",
+    "Legibility at 0.70" + NB + "m (ISO 15008: 16 arc minutes acceptable, 20 recommended): speed digits 84, alert banner 9, labels a median of 9. The speed is legible at a glance; the warnings are not. Glance time needs a participant.",
+  ], { x: b.x, y: by, w: b.w }, yL + h3 - by - 0.4, 28);
 }
 
 // ================= right column =================
@@ -149,31 +150,34 @@ b = panel(4, "Bench results", XR, yR, h4);
 
 // 5 Faults found and fixed
 yR += h4 + GAP;
-const h5 = 8.0;
+const h5 = 6.6;
 b = panel(5, "Fault investigations", XR, yR, h5);
 bullets([
-  "Seven faults diagnosed as symptom, candidate causes, deciding test, cause and fix: a flash-mode boot loop, the GNSS reply layout, a battery checksum off by 3, invalid JSON, a pink camera image, a frozen distance sensor.",
-  "The one that mattered most: Pi 4 reboots. Power flags logged every 2" + NB + "s showed under-voltage 14" + NB + "s after the telemetry unit's modem came up on its USB port; moved off, no restarts in 4" + NB + "h.",
-  "It returned in the closed box (76.9" + NB + "°C, a brown-out restart): the unit needs its own supply, and the lids now have vents.",
+  "Seven faults diagnosed as symptom, candidate causes, deciding test, cause and fix, from a flash-mode boot loop to a battery checksum off by 3.",
+  "The one that mattered most: Pi 4 reboots. Power flags logged every 2" + NB + "s showed under-voltage 14" + NB + "s after the modem came up on its USB port; it returned in the closed box (76.9" + NB + "°C), so the unit needs its own supply.",
 ], b, h5 - 2.4, 28);
 
 // 6 Road session and conclusions
 yR += h5 + GAP;
 const h6 = BOTTOM - yR;
-b = panel(6, "First road session (19 Oct)", XR, yR, h6);
+b = panel(6, "On the vehicle: road and stands", XR, yR, h6);
 bullets([
-  "Recorded on the vehicle for 108.6" + NB + "min, about 16" + NB + "min of driving, with no laptop on board.",
-  "Both IMUs held 200" + NB + "Hz with no drops and one 2" + NB + "s stall, but a third of the one-second records were lost on the USB link, now wired (R1 partly met). Battery link held under load: up to 46.9" + NB + "A, 74.6 to 72.8" + NB + "V.",
-  "1,342 front and 741 rear camera alerts, not yet checked against video.",
-], b, 3.6, 30);
-const oy = b.y + 3.7;
-s.addText([
-  ["Open: ", "no GNSS fix, as no antenna was fitted (R4 untested on the vehicle); no raw samples or run markers, so RQ1 and RQ4 are not yet answered; glance time (RQ2) not measured."],
-  ["Next: ", "a second, shorter session with the raw stream and GNSS, the real approach test, and a regulated supply for the telemetry unit."],
-].flatMap(([k, t], i, a) => [
-  { text: k, options: { bold: true, color: C.accent, bullet: { indent: 32 } } },
-  { text: t, options: { breakLine: i < a.length - 1, paraSpaceAfter: 14 } },
-]), { x: b.x, y: oy, w: b.w, h: yR + h6 - oy - 0.4, fontFace: FONT, fontSize: 30, color: C.text, valign: "top", isTextBox: true, margin: 0 });
+  "Road session, 19 Oct: 108.6" + NB + "min recorded, about 16" + NB + "min driving. 200" + NB + "Hz with no counted drops, but one 2" + NB + "s stall: R1 not met on the vehicle. Battery link held at up to 46.9" + NB + "A. No GNSS fix (no antenna).",
+], b, 2.0, 28);
+{
+  const fw = 11.6, fh = fw * 396 / 1100, fy = b.y + 2.1;
+  s.addImage({ path: R("results/stand_spectra_1023.png"), x: b.x + (b.w - fw) / 2, y: fy, w: fw, h: fh });
+  caption("Stand runs, 23 Oct, drive wheel raised: rear vibration 5 to 7 times rest, energy 40 to 70" + NB + "Hz; the same lines at the front (42.75, 49.0, 64.0" + NB + "Hz). Throttle settings not recorded.",
+    b.x, fy + fh + 0.1, b.w, 0.9);
+  const oy = fy + fh + 1.1;
+  s.addText([
+    ["Pending, road run 26 Oct: ", "repeatability over passes (RQ1) and the stand lines' share of the road spectrum (RQ4)."],
+    ["Next: ", "enlarge the warnings, then glance time; the real approach test; a regulated supply for the telemetry unit."],
+  ].flatMap(([k, t], i, a) => [
+    { text: k, options: { bold: true, color: C.accent, bullet: { indent: 32 } } },
+    { text: t, options: { breakLine: i < a.length - 1, paraSpaceAfter: 10 } },
+  ]), { x: b.x, y: oy, w: b.w, h: yR + h6 - oy - 0.3, fontFace: FONT, fontSize: 26, color: C.text, valign: "top", isTextBox: true, margin: 0 });
+}
 
 // ---- footer ----
 s.addImage({ path: A("uct_logo.png"), x: M, y: H - 2.75, w: 2.3, h: 2.34 });
