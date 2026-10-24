@@ -13,18 +13,26 @@ features: peak-to-peak bp[p] - bp[q], duration, drop, spike, speed at the time. 
 cfg.ph_refractory_s keep only the largest.
 Event: a candidate with peak-to-peak >= threshold(v) = a + b v (speed-dependent threshold, step 4).
 
-Calibration (steps 2 to 4): smooth passes give the false-alarm distribution, obstacle passes (plank drop or a
+Descriptive only. Run 2 drives about 1 to 2 km over the marked sections and has at most 5 obstacle passes, so neither
+a detection rate nor a false-alarm rate per km can be estimated with useful precision, and no ROC claim is made. The outputs are counts:
+per pass the hits, misses and false alarms with the distance driven (pass_counts), and a threshold sweep (the same
+counts at each threshold, sweep rows); every summary carries "descriptive, n = ..." with the numbers of passes,
+events and kilometres, a Wilson interval for the hit proportion and an exact Poisson upper bound for false alarms.
+
+Threshold choice (steps 2 to 4): smooth passes give the false-alarm distribution, obstacle passes (plank drop or a
 measured pothole) the event amplitude. If an obstacle pass has a labelled time, the candidate nearest it within
 cfg.ph_label_tol_s is the event; otherwise the largest candidate in the pass is taken (stated in the output).
 The speed shape g(v) = 1 + c v is fitted from smooth-road noise (per-pass 99th percentile of candidate p2p against
 mean speed); the scale k is swept over every candidate score p2p / g(v), giving the ROC table (detection rate on
-obstacle passes, false alarms per km on smooth passes). The chosen k is among those with false alarms per km at
-most cfg.ph_fa_per_km (without speed, so no distance: no false alarm on smooth passes) that reach the highest
-detection rate; of those, the middle of the range is taken, for the largest margin on both sides.
-Then a = k and b = k c.
+obstacle passes, false alarms on smooth passes, as counts and per km driven). The chosen k is among those with
+false alarms per km at most cfg.ph_fa_per_km (without speed, so no distance: no false alarm on smooth passes) that
+reach the highest hit count; of those, the middle of the range is taken, for the largest margin on both sides. This
+is a working threshold for the data in hand, not a calibrated operating point. Then a = k and b = k c.
 """
 import numpy as np
 from scipy import signal as ss
+
+from .stats import poisson_upper, wilson_ci
 
 
 def candidates(t, bp, fs, cfg, speed=None, min_p2p=0.0):
@@ -89,7 +97,7 @@ def candidates_vertical(vert, t0, t1, cfg, speed_fn=None):
 def calibrate(smooth, obstacle, cfg):
     """smooth, obstacle: lists of dicts {"name", "cands", "km" (or NaN), "speed" (mean, or NaN), "t_event" (opt)}.
 
-    Returns {"a", "b", "c", "k", "roc": [rows], "obstacle_events": [...], "basis": text}.
+    Returns {"a", "b", "c", "k", "sweep": [rows], "obstacle_events": [...], "basis": text, "descriptive": text}.
     """
     # speed shape from smooth-road noise
     xs = [(p["speed"], np.quantile([c["p2p"] for c in p["cands"]], 0.99)) for p in smooth
@@ -123,8 +131,10 @@ def calibrate(smooth, obstacle, cfg):
     roc = []
     for k in ks:
         fa = int(np.sum(smooth_scores >= k))
-        roc.append({"k": float(k), "detection_rate": float(np.mean(ob_scores >= k)) if len(ob_scores) else np.nan,
-                    "false_alarms": fa, "fa_per_km": fa / km if have_km else np.nan})
+        roc.append({"k": float(k), "hits": int(np.sum(ob_scores >= k)), "events": int(len(ob_scores)),
+                    "detection_rate": float(np.mean(ob_scores >= k)) if len(ob_scores) else np.nan,
+                    "false_alarms": fa, "smooth_km": km if have_km else np.nan,
+                    "fa_per_km": fa / km if have_km else np.nan})
     if have_km:
         ok = [r for r in roc if r["fa_per_km"] <= cfg.ph_fa_per_km]
         rule = f"smallest k with false alarms per km <= {cfg.ph_fa_per_km}"
@@ -138,14 +148,95 @@ def calibrate(smooth, obstacle, cfg):
         ks_ok = [r["k"] for r in ok if r["detection_rate"] == dmax]
         k = 0.5 * (min(ks_ok) + max(ks_ok))
         fa = int(np.sum(smooth_scores >= k))
-        best = {"k": float(k), "detection_rate": float(np.mean(ob_scores >= k)) if len(ob_scores) else np.nan,
+        best = {"k": float(k), "hits": int(np.sum(ob_scores >= k)), "events": int(len(ob_scores)),
+                "detection_rate": float(np.mean(ob_scores >= k)) if len(ob_scores) else np.nan,
                 "false_alarms": fa, "fa_per_km": fa / km if have_km else np.nan}
         rule += "; middle of the k range with the highest detection rate"
     else:
         best = roc[-1]
         k = best["k"]
-    return {"a": k, "b": k * c_shape, "c": c_shape, "k": k, "rule": rule, "chosen": best, "roc": roc,
-            "obstacle_events": ev, "basis": sorted(set(basis)), "smooth_km": km if have_km else np.nan}
+    best["hit_ci"] = wilson_ci(int(np.sum(ob_scores >= best["k"])), len(ob_scores))
+    best["fa_upper95"] = poisson_upper(best["false_alarms"])
+    desc = (f"descriptive, n = {len(ob_scores)} obstacle events, {len(smooth)} smooth passes, "
+            + (f"{km:.3f} km of smooth road" if have_km else "distance unknown")
+            + "; counts, not a rate estimate (no ROC claim)")
+    return {"a": k, "b": k * c_shape, "c": c_shape, "k": k, "rule": rule, "chosen": best, "sweep": roc,
+            "obstacle_events": ev, "basis": sorted(set(basis)), "smooth_km": km if have_km else np.nan,
+            "descriptive": desc}
+
+
+def pass_counts(passes, a, b, cfg, label_t=(), label_type=()):
+    """Hits, misses and false alarms per pass at threshold a + b v, with the distance driven.
+
+    passes: dicts {"name", "kind", "cands", "km", "t0", "t1"}. Expected events: pothole labels (type containing
+    "pothole") inside the pass; an obstacle pass without a label counts one expected event, and its largest detection
+    is taken as the hit ("unlabelled"). A detection within cfg.ph_label_tol_s of a bump label, or any detection on a
+    bump pass when there are no labels, is "bump_flagged" (a bump called a pothole). Every other detection is a false
+    alarm.
+    """
+    lt = np.asarray(label_t, float)
+    ly = [str(x).lower() for x in label_type]
+    is_hole = np.array(["pothole" in x for x in ly], bool)
+    is_bump = np.array(["bump" in x for x in ly], bool)
+    rows = []
+    for p in passes:
+        det = detect(p["cands"], a, b)
+        inside = (lt >= p["t0"]) & (lt < p["t1"]) if len(lt) else np.zeros(0, bool)
+        holes = lt[inside & is_hole] if len(lt) else np.array([])
+        bumps = lt[inside & is_bump] if len(lt) else np.array([])
+        used = np.zeros(len(holes), bool)
+        hits = bump_flag = fa = 0
+        for e in sorted(det, key=lambda e: -e["p2p"]):
+            d = np.abs(holes - e["t"])
+            d[used] = np.inf
+            if len(d) and d.min() <= cfg.ph_label_tol_s:
+                used[int(np.argmin(d))] = True
+                hits += 1
+            elif (len(bumps) and np.min(np.abs(bumps - e["t"])) <= cfg.ph_label_tol_s) or \
+                    (p["kind"] == "bump" and not len(lt)):
+                bump_flag += 1
+            else:
+                fa += 1
+        expected, basis = len(holes), "labelled" if len(lt) else "no labels"
+        if p["kind"] == "obstacle" and not len(holes):
+            expected, basis = 1, "unlabelled"
+            if fa > 0:
+                hits, fa = 1, fa - 1
+        rows.append({"pass": p["name"], "kind": p["kind"], "km": p.get("km", np.nan), "detections": len(det),
+                     "expected": expected, "hits": hits, "misses": expected - hits, "false_alarms": fa,
+                     "bump_flagged": bump_flag, "basis": basis})
+    return rows
+
+
+def counts_summary(rows):
+    """Totals over pass_counts rows with the descriptive wording, a Wilson interval and a Poisson bound."""
+    exp = sum(r["expected"] for r in rows)
+    hits = sum(r["hits"] for r in rows)
+    fa = sum(r["false_alarms"] for r in rows)
+    bump = sum(r["bump_flagged"] for r in rows)
+    kms = [r["km"] for r in rows if np.isfinite(r.get("km", np.nan))]
+    km = float(np.sum(kms)) if rows and len(kms) == len(rows) else np.nan
+    n_bump = sum(1 for r in rows if r["kind"] == "bump")
+    return {"passes": len(rows), "events_expected": exp, "hits": hits, "misses": exp - hits, "false_alarms": fa,
+            "bump_passes": n_bump, "bump_flagged": bump, "km_driven": km, "hit_ci_wilson": wilson_ci(hits, exp),
+            "false_alarms_upper95": poisson_upper(fa),
+            "wording": (f"descriptive, n = {len(rows)} passes, {exp} expected events, "
+                        + (f"{km:.3f} km driven" if np.isfinite(km) else "distance unknown")
+                        + f": {hits} hits, {exp - hits} misses, {fa} false alarms, {bump} detections at the bump on "
+                          f"{n_bump} bump passes; no false-alarm rate per km is claimed")}
+
+
+def sweep(passes, cfg, ks=None, b_over_a=0.0, label_t=(), label_type=()):
+    """Descriptive threshold sweep: totals of pass_counts at each threshold k (a = k, b = k * b_over_a)."""
+    allp = np.array([c["p2p"] for p in passes for c in p["cands"]], float)
+    if ks is None:
+        ks = np.unique(np.r_[np.quantile(allp, np.linspace(0, 1, 41)) if len(allp) else [], 0.0])
+    out = []
+    for k in ks:
+        t = counts_summary(pass_counts(passes, k, k * b_over_a, cfg, label_t, label_type))
+        out.append({"k": float(k), **{x: t[x] for x in ("hits", "events_expected", "false_alarms", "bump_flagged",
+                                                        "km_driven")}})
+    return out
 
 
 def evaluate(events, label_t, label_type, tol_s=0.5, types=("pothole",), t_range=None, km=np.nan):

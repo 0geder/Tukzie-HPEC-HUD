@@ -9,15 +9,37 @@ from synth import imu_counts_from_vertical
 FS = 200.0
 
 
-def test_wk_response_matches_iso_table3():
-    """|Wk| from the Annex A transfer function against the Table 3 factors at 37 nominal frequencies."""
+def test_wk_response_matches_published_table():
+    """|Wk| against the published Wk values in dB (Virtins 2024) at the 37 nominal one-third-octave frequencies,
+    within their rounding to 0.01 dB."""
+    assert len(dsp.WK_PUBLISHED_DB) == 37
+    for f, db in dsp.WK_PUBLISHED_DB.items():
+        assert 20 * np.log10(abs(dsp.wk_response(f))) == pytest.approx(db, abs=0.006), f
+
+
+def test_wk_parameters_match_rimell_mansfield_2007():
+    """Rimell and Mansfield (2007) Table 3, row Wk; f6 is printed there as 3.3 Hz (see the next test)."""
+    rm = {"f1": 0.4, "Q1": 2 ** -0.5, "f2": 100.0, "Q2": 2 ** -0.5, "f3": 12.5, "f4": 12.5, "Q4": 0.63,
+          "f5": 2.37, "Q5": 0.91, "f6": 3.3, "Q6": 0.91}
+    diff = {k for k in rm if dsp.WK_PARAMS[k] != pytest.approx(rm[k], abs=1e-12)}
+    assert diff == {"f6"} and dsp.WK_PARAMS["f6"] == 3.35
+
+
+def test_wk_f6_3p35_not_3p3():
+    """With f6 = 3.3 Hz the response misses the published dB values by up to about 0.27 dB below 4 Hz, with 3.35 Hz
+    by at most 0.005 dB: 3.35 Hz (Virtins parameter table) is the value, 3.3 a rounding."""
+    p = dict(dsp.WK_PARAMS, f6=3.3)
+    err = max(abs(20 * np.log10(abs(dsp.wk_response(f, p=p))) - db) for f, db in dsp.WK_PUBLISHED_DB.items())
+    assert err > 0.2
+
+
+def test_transcribed_table3_agrees_with_published_values():
     for f, w1000 in dsp.WK_TABLE3.items():
-        g = abs(dsp.wk_response(f)) * 1000
-        assert g == pytest.approx(w1000, rel=0.004), f
+        assert 20 * np.log10(w1000 / 1000) == pytest.approx(dsp.WK_PUBLISHED_DB[f], abs=0.03), f
 
 
 def test_wk_known_points():
-    # values every Wk user knows: about 0.48 at 1 Hz, peak just above 1 near 5 to 6.3 Hz, 0.5 near 25 Hz
+    # published values (Virtins 2024): -6.33 dB (0.482) at 1 Hz, +0.46 dB (1.054) at 6.3 Hz, the peak of the curve
     assert abs(dsp.wk_response(1.0)) == pytest.approx(0.482, abs=0.002)
     f = np.linspace(1, 20, 2000)
     fpk = f[np.argmax(abs(dsp.wk_response(f)))]

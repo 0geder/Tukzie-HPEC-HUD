@@ -38,12 +38,24 @@ def test_synthetic_session_raw_and_dedup(synth_result):
 
 def test_synthetic_repeatability(synth_result):
     _, S, _ = synth_result
+    # three sections are too few rows for an ICC with sections as rows: said so, CV only (NaN is null in the JSON)
     icc = S["repeatability"]["rear1"]["icc"]["a_w"]
-    assert icc["n_sections"] == 3 and icc["k_passes"] == 3
-    assert icc["icc3_1"] > 0.95 and icc["icc2_1"] > 0.95
+    assert icc["n_sections"] == 3 and icc["icc2_1"] is None and icc["status"].startswith("n too small")
     cvs = [r for r in S["repeatability"]["rear1"]["per_section"] if r["metric"] == "a_w"]
+    assert {r["section"] for r in cvs} == {"S1 18kmh", "S2 18kmh", "S3 18kmh"}
     assert all(r["cv"] < 0.1 for r in cvs)
-    assert np.isfinite(S["repeatability"]["rear1"]["icc"]["index_sigma2_per_v"]["icc3_1"])
+    assert all(np.isfinite(r["cv"]) for r in S["repeatability"]["rear1"]["per_section"]
+               if r["metric"] == "index_sigma2_per_v")
+    # bins along each section as rows: 100 m passes (20 s at 5 m/s), 5 m bins, the partial last bin dropped
+    bins = [r for r in S["repeatability"]["rear1"]["bins"] if r["metric"] == "a_w"]
+    per = [r for r in bins if not r["group"].startswith("sections")]
+    assert len(per) == 3
+    for r in per:
+        assert (r["n_rows"], r["k_passes"]) == (19, 3) and r["ICC(2,1)"] > 0.9
+        assert r["ICC(2,1) CI"][0] < r["ICC(2,1)"] < r["ICC(2,1) CI"][1]
+        assert "integrated speed" in r["bins_method"]
+    pooled = [r for r in bins if r["group"].startswith("sections")]
+    assert len(pooled) == 1 and pooled[0]["n_rows"] == 57 and pooled[0]["ICC(2,1)"] > 0.95
 
 
 def test_synthetic_delay_and_speed(synth_result):
@@ -65,19 +77,25 @@ def test_synthetic_powertrain(synth_result):
 
 def test_synthetic_pothole_calibration_and_evaluation(synth_result):
     _, S, out = synth_result
-    cal = S["pothole"]["calibration"]
+    cal = S["pothole"]["threshold"]
     assert cal["chosen"]["detection_rate"] == 1.0 and cal["chosen"]["false_alarms"] == 0
     assert cal["basis"] == ["labelled"]
+    assert cal["descriptive"].startswith("descriptive, n = 5 obstacle events, 9 smooth passes")
+    c = S["pothole"]["counts"]
+    assert (c["events_expected"], c["hits"], c["misses"], c["false_alarms"]) == (5, 5, 0, 0)
+    assert c["wording"].startswith("descriptive, n = 14 passes") and "per km is claimed" in c["wording"]
+    assert c["false_alarms_upper95"] == pytest.approx(2.996, abs=0.001)
     ev = S["pothole"]["evaluation"]
     assert (ev["labels"], ev["tp"], ev["fn"]) == (5, 5, 0) and ev["fp"] == 0
 
 
 def test_synthetic_outputs_written(synth_result):
     _, S, out = synth_result
-    for name in ("pass_metrics", "runs", "driving_segments", "front_rear_delay", "pothole_roc", "powertrain_peaks"):
+    for name in ("pass_metrics", "runs", "driving_segments", "front_rear_delay", "pothole_sweep", "pothole_counts",
+                 "powertrain_peaks", "powertrain_ratios", "powertrain_stands", "repeatability_bin_icc_rear1"):
         for ext in (".csv", ".tex"):
             assert (out / "tables" / (name + ext)).is_file(), name + ext
-    for name in ("session", "psd", "pothole_roc", "pass_aw_rear1"):
+    for name in ("session", "psd", "pothole_sweep", "pass_aw_rear1"):
         for ext in (".pdf", ".png"):
             assert (out / "figures" / (name + ext)).is_file(), name + ext
     tex = (out / "tables" / "pass_metrics.tex").read_text(encoding="utf-8")

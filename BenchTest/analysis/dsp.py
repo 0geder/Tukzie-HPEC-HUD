@@ -7,8 +7,9 @@ Chain (per IMU, per contiguous chunk of samples):
      vector g_hat(t) of that low-passed specific force points up (an accelerometer at rest reads +1 g upward);
   3. vertical acceleration a_v = a . g_hat - |g_lp|: the dynamic vertical specific force, positive up, so a wheel
      dropping into a hole gives a negative excursion and the impact at the far edge a positive spike;
-  4. band-pass cfg.band_lo_hz to cfg.band_hi_hz (Butterworth, order cfg.band_order per edge, zero phase);
-  5. ISO 2631-1 Wk weighting of a_v (wk_filter), giving a_w (r.m.s.) and VDV;
+  4. band-pass cfg.band_lo_hz to cfg.band_hi_hz, the ride band (Butterworth, order cfg.band_order per edge, zero
+     phase); the powertrain analysis (RQ4) does not use this signal but the unfiltered a_v over cfg.pt_band_*;
+  5. ISO 2631-1 Wk weighting of the unfiltered a_v (wk_filter), giving a_w (r.m.s.) and VDV;
   6. per-second features on the band-passed signal: sigma, crest factor on (a - mean), peak-to-peak, jerk after a
      cfg.jerk_lp_hz low-pass differentiated with the measured sample times, and a clipping flag.
 
@@ -19,11 +20,19 @@ ISO 2631-1:1997 Annex A, weighting Wk (vertical, seated, z axis), as implemented
   upward step     f5 = 2.37 Hz, Q5 = 0.91, f6 = 3.35 Hz, Q6 = 0.91
                                                      H_s = (s^2 + w5 s/Q5 + w5^2) / (s^2 + w6 s/Q6 + w6^2)
   Wk = H_h H_l H_t H_s, with w_i = 2 pi f_i.
-Verification (tests/test_dsp.py): |Wk| at the 37 one-third-octave nominal frequencies 0.1 to 400 Hz agrees with the
-tabulated Wk factors of ISO 2631-1 Table 3 (as transcribed in WK_TABLE3 below) within 0.3 %. Both the parameters
-and the table were transcribed from the standard as recalled, not read from a copy in this repository (the
-repository holds no copy of ISO 2631-1); their mutual agreement to three figures at 37 points is the check. Read
-both against the standard before the result is cited.
+Sources checked on 24 Oct 2026 (the repository holds no copy of ISO 2631-1 or ISO 8041):
+  - Rimell A.N., Mansfield N.J. (2007) Design of digital filters for frequency weightings required for risk
+    assessments of workers exposed to vibration. Industrial Health 45, 512-519, Table 3 and Equations 1 to 4, with
+    the erratum (Industrial Health 48, 129, 2010) correcting Equation 4 to the form used here (no extra gain term).
+    Every parameter above agrees with their Table 3 except f6, which they print as 3.3 Hz.
+  - Virtins Technology (2024) Frequency Weightings for Sound and Vibration Perceived by Humans using Multi-Instrument,
+    parameter table (f6 = 3.35 Hz for Wk, gain K = 1) and the Wk values in dB at the one-third-octave nominal
+    frequencies 0.1 to 400 Hz, transcribed in WK_PUBLISHED_DB below.
+  With f6 = 3.35 Hz, |Wk| here agrees with every one of the 37 published dB values within 0.005 dB (their rounding);
+  with f6 = 3.3 Hz it differs by up to 0.27 dB below 4 Hz, so the 3.3 in Rimell and Mansfield is taken as rounded.
+  Both tabulations are computed from the analogue transfer function, so they confirm the parameters and this
+  implementation, not the standard's own Table 3; WK_TABLE3 (transcribed earlier from memory) agrees with the
+  published dB values within 0.03 dB, and is kept only as that cross-check.
 """
 from dataclasses import dataclass, field
 
@@ -38,12 +47,23 @@ from .config import G0, Config
 WK_PARAMS = {"f1": 0.4, "Q1": 2 ** -0.5, "f2": 100.0, "Q2": 2 ** -0.5, "f3": 12.5, "f4": 12.5, "Q4": 0.63,
              "f5": 2.37, "Q5": 0.91, "f6": 3.35, "Q6": 0.91}
 
-# ISO 2631-1 Table 3, Wk weighting factor x 1000 at the nominal one-third-octave frequencies (transcribed, see above)
+# ISO 2631-1 Table 3, Wk weighting factor x 1000 at the nominal one-third-octave frequencies (transcribed from memory,
+# not from the standard; agrees with WK_PUBLISHED_DB within 0.03 dB, see above)
 WK_TABLE3 = {0.1: 31.2, 0.125: 48.6, 0.16: 79.0, 0.2: 121, 0.25: 182, 0.315: 263, 0.4: 352, 0.5: 418, 0.63: 459,
              0.8: 477, 1.0: 482, 1.25: 484, 1.6: 494, 2.0: 531, 2.5: 631, 3.15: 804, 4.0: 967, 5.0: 1039,
              6.3: 1054, 8.0: 1036, 10.0: 988, 12.5: 902, 16.0: 768, 20.0: 636, 25.0: 513, 31.5: 405, 40.0: 314,
              50.0: 246, 63.0: 186, 80.0: 132, 100.0: 88.7, 125.0: 54.0, 160.0: 28.5, 200.0: 15.2, 250.0: 7.9,
              315.0: 3.98, 400.0: 1.95}
+
+
+# Wk in dB at the one-third-octave nominal frequencies, Virtins Technology (2024), table "Wk, Wd, Wf, Wc, We, Wj, Wm,
+# Wb, and Wh weightings in 1/3 octave bands" (column Wk), www.virtins.com
+WK_PUBLISHED_DB = {0.1: -30.11, 0.125: -26.26, 0.16: -22.05, 0.2: -18.33, 0.25: -14.81, 0.315: -11.6, 0.4: -9.07,
+                   0.5: -7.57, 0.63: -6.77, 0.8: -6.43, 1.0: -6.33, 1.25: -6.29, 1.6: -6.12, 2.0: -5.49,
+                   2.5: -4.01, 3.15: -1.9, 4.0: -0.29, 5.0: 0.33, 6.3: 0.46, 8.0: 0.31, 10.0: -0.1, 12.5: -0.89,
+                   16.0: -2.28, 20.0: -3.93, 25.0: -5.8, 31.5: -7.86, 40.0: -10.05, 50.0: -12.19, 63.0: -14.61,
+                   80.0: -17.56, 100.0: -21.04, 125.0: -25.35, 160.0: -30.91, 200.0: -36.38, 250.0: -42.04,
+                   315.0: -48.0, 400.0: -54.2}
 
 
 def wk_response(f, band_limiting=True, p=WK_PARAMS):
@@ -280,8 +300,32 @@ def pass_metrics(vert: Vertical, t0, t1, cfg: Config = None, speed_fn=None):
         v = np.array([speed_fn(r["t"] + cfg.window_s / 2) for r in secs], float)
         ok = np.isfinite(v) & (v >= cfg.v_min_mps)
         out["speed_mean"] = float(np.nanmean(v)) if np.isfinite(v).any() else float("nan")
+        out["speed_sd"] = float(np.nanstd(v, ddof=1)) if np.isfinite(v).sum() > 1 else float("nan")
         out["index_sigma2_per_v"] = float(np.mean(sig[ok] ** 2 / v[ok])) if ok.any() else float("nan")
         out["index_windows"] = int(ok.sum())
+    return out
+
+
+def bin_metrics(vert: Vertical, edges, min_coverage=0.8):
+    """a_w (r.m.s. of Wk), sigma (ride band, about its mean) and sample count in each bin [edges[j], edges[j+1]).
+
+    A bin with less than min_coverage of its expected samples gets NaN (the ICC then drops that row).
+    """
+    out = []
+    for a, b in zip(edges[:-1], edges[1:]):
+        wk, bp, fs = [], [], None
+        for c in vert.chunks:
+            m = (c.t >= a) & (c.t < b)
+            if m.any():
+                wk.append(c.wk[m])
+                bp.append(c.bp[m])
+                fs = c.fs
+        n = int(sum(len(x) for x in wk))
+        if not n or n < min_coverage * fs * (b - a):
+            out.append({"t0": a, "t1": b, "n": n, "a_w": float("nan"), "sigma": float("nan")})
+            continue
+        wk, bp = np.concatenate(wk), np.concatenate(bp)
+        out.append({"t0": a, "t1": b, "n": n, "a_w": rms(wk), "sigma": rms(bp - bp.mean())})
     return out
 
 

@@ -170,7 +170,8 @@ def fig_pass_metric(rows, metric, ylabel, path_base):
     return save_fig(fig, path_base)
 
 
-def fig_psd(stationary, road, lines_hz, path_base, band=(2.0, 40.0)):
+def fig_psd(stationary, road, lines_hz, path_base, band=(0.5, 80.0)):
+    """Stand and road spectra; the RQ4 band is unshaded, lines dotted."""
     fig, ax = plt.subplots(figsize=(W, 2.8))
     for j, (name, (f, p)) in enumerate(stationary.items()):
         if len(f):
@@ -181,6 +182,8 @@ def fig_psd(stationary, road, lines_hz, path_base, band=(2.0, 40.0)):
     for fl in lines_hz:
         ax.axvline(fl, color="black", lw=0.4, ls=":")
     ax.axvspan(0, band[0], color=GREY, alpha=0.08, lw=0)
+    ax.axvspan(band[1], max([f[-1] for f, _ in list(stationary.values()) + list(road.values()) if len(f)],
+                            default=band[1]), color=GREY, alpha=0.08, lw=0)
     ax.set_xlabel("Frequency (Hz)")
     ax.set_ylabel("PSD of vertical acceleration ((m/s$^2$)$^2$/Hz)")
     ax.legend(loc="upper right")
@@ -188,29 +191,30 @@ def fig_psd(stationary, road, lines_hz, path_base, band=(2.0, 40.0)):
     return save_fig(fig, path_base)
 
 
-def fig_roc(roc, chosen, path_base):
+def fig_sweep(rows, chosen_k, path_base):
+    """Descriptive threshold sweep: obstacle hits and false alarms (counts) against the threshold scale k."""
+    k = np.array([r["k"] for r in rows], float)
+    o = np.argsort(k)
     fig, ax = plt.subplots(figsize=(W * 0.55, 2.6))
-    fa = np.array([r["fa_per_km"] if r["fa_per_km"] is not None and np.isfinite(r["fa_per_km"])
-                   else r["false_alarms"] for r in roc], float)
-    dr = np.array([r["detection_rate"] for r in roc], float)
-    o = np.argsort(fa)
-    ax.step(fa[o], dr[o], where="post", color=BLUE, lw=1.2)
-    cfa = chosen["fa_per_km"] if np.isfinite(chosen.get("fa_per_km", np.nan)) else chosen["false_alarms"]
-    ax.plot([cfa], [chosen["detection_rate"]], "o", color=VERM, ms=6)
-    ax.set_xlabel("False alarms per km on smooth road" if np.isfinite(roc[0].get("fa_per_km", np.nan))
-                  else "False alarms on smooth passes (count)")
-    ax.set_ylabel("Detection rate on obstacle passes")
-    ax.set_ylim(-0.03, 1.03)
+    ax.step(k[o], np.array([r["hits"] for r in rows], float)[o], where="post", color=BLUE, lw=1.2,
+            label=f"hits (of {rows[0]['events_expected']} events)")
+    ax.step(k[o], np.array([r["false_alarms"] for r in rows], float)[o], where="post", color=VERM, lw=1.2,
+            label="false alarms")
+    if chosen_k is not None and np.isfinite(chosen_k):
+        ax.axvline(chosen_k, color="black", lw=0.6, ls="--")
+    ax.set_xlabel("Threshold scale $k$ (m/s$^2$)")
+    ax.set_ylabel("Count (descriptive)")
+    ax.legend(loc="upper right")
     fig.tight_layout()
     return save_fig(fig, path_base)
 
 
-def fig_event(t, bp, ev, path_base):
+def fig_event(t, bp, ev, path_base, band=(2.0, 40.0)):
     fig, ax = plt.subplots(figsize=(W * 0.55, 2.4))
     m = (t >= ev["t"] - 0.6) & (t <= ev["t"] + 0.6)
     ax.plot((t[m] - ev["t"]) * 1000, bp[m], color=BLUE, lw=0.9)
     ax.plot([(ev["t_drop"] - ev["t"]) * 1000, 0], [ev["drop"], ev["spike"]], "o", color=VERM, ms=4)
     ax.set_xlabel("Time from spike (ms)")
-    ax.set_ylabel("Vertical acceleration, 2 to 40 Hz (m/s$^2$)")
+    ax.set_ylabel(f"Vertical acceleration, {band[0]:g} to {band[1]:g} Hz (m/s$^2$)")
     fig.tight_layout()
     return save_fig(fig, path_base)

@@ -45,7 +45,7 @@ def test_cv_and_bootstrap_ci():
 def test_repeatability_table():
     rows = [{"section": s, "pass_no": p, "a_w": base * (1 + 0.01 * p)}
             for s, base in (("S1", 0.5), ("S2", 1.0), ("S3", 2.0)) for p in range(1, 6)]
-    rep = stats.repeatability(rows, metrics=("a_w",), n_boot=500)
+    rep = stats.repeatability(rows, metrics=("a_w",), n_boot=500, min_rows=3)
     assert len(rep["per_section"]) == 3
     assert rep["icc"]["a_w"]["icc3_1"] > 0.99 and rep["icc"]["a_w"]["passes_used"] == [1, 2, 3, 4, 5]
 
@@ -95,7 +95,7 @@ def test_powertrain_peak_found_in_stationary_and_ratio_small_on_road():
     pk = res["peaks"]["low"]
     assert len(pk) == 1 and pk[0]["f_hz"] == pytest.approx(37.0, abs=0.3)
     # the 0.3 amplitude line adds power 0.045 to a road power of about 1.045; the +-1 Hz band also holds road noise
-    r_road, r_noise = (r["line_energy_ratio"] for r in res["ratios"])
+    r_road, r_noise = (r["line_share"] for r in res["ratios"])
     assert r_road - r_noise * (1.0 / 1.045) == pytest.approx(0.045 / 1.045, abs=0.01)
     assert res["ratios"][0]["stationary_low_over_road"] == pytest.approx((0.045 + 0.0004 * 38 / 100) / 1.045,
                                                                          abs=0.01)
