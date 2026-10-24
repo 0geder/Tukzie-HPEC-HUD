@@ -523,8 +523,8 @@ def _figure_class():
                 p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True)); p.setPen(S.c("ink_2"))
                 p.drawText(QRectF(b.left(), b.top() - 20, b.width(), 18), align[side] | AL.AlignVCenter,
                            f"{name} · {word.upper()}")
-                p.setFont(S.mono(S.SECONDARY, QFont.Weight.Medium) if value[:1].isdigit()
-                          else S.font(S.SECONDARY, QFont.Weight.Medium))
+                p.setFont(S.mono(S.DISTANCE, QFont.Weight.Medium) if value[:1].isdigit()   # as TukFigure: 28 px
+                          else S.font(S.DISTANCE, QFont.Weight.Medium))
                 p.setPen(S.c("ink_3" if value.startswith("--") else "ink"))
                 p.drawText(b, align[side] | AL.AlignVCenter, value)
             p.end()

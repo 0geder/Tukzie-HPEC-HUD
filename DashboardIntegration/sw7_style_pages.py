@@ -272,7 +272,8 @@ class HazardRow(QWidget):
 class TukFigure(QWidget):
     """The tuk-tuk from above (front up), with the left, ahead and right ToF distances placed round it like the tyre
     pressures in inspo_sports_car_tiles.jpg. Ink and paper: the zone arcs are ink (dashed ink_3 with no reading),
-    the band shows only as a small dot at each sensor, the three distances are the page's 22 px values."""
+    the band shows only as a small dot at each sensor, the three distances are S.DISTANCE (28 px, 19.5 px capitals,
+    ISO 15008's acceptable 16 arc min at 0.70 m; 22 px before 24 Oct 2026)."""
     SIDES = ("left", "ahead", "right")
     PAD = (40, 24, 40, 48)          # room round the card for its own shadow (it overlaps the camera slab)
     RADIUS = 8
@@ -371,7 +372,7 @@ class TukFigure(QWidget):
             p.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True)); p.setPen(S.c("ink_2"))
             p.drawText(QRectF(b.left(), b.top() - 20, b.width(), 18), align[side] | AL.AlignVCenter,
                        f"{side.upper()} · {word.upper()}")
-            p.setFont(S.mono(S.SECONDARY, QFont.Weight.Medium) if value[:1].isdigit() else S.font(S.SECONDARY, QFont.Weight.Medium))
+            p.setFont(S.mono(S.DISTANCE, QFont.Weight.Medium) if value[:1].isdigit() else S.font(S.DISTANCE, QFont.Weight.Medium))
             p.setPen(S.c("ink_3" if value.startswith("--") else "ink"))
             p.drawText(b, align[side] | AL.AlignVCenter, value)
         p.end()

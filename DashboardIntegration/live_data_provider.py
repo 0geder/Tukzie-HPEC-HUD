@@ -44,10 +44,19 @@ Mapping (TELEMETRY_LINK.md, section 3):
                                   3 km/h, where the phone's course is meaningful
   sw7_position_source records which one is shown: "vehicle", "phone" or None.
 
-Nothing is ingested when the bridge cannot be reached, the reply is not JSON,
-esp32 is null, or esp32.age_ms is missing or above 3000. The dashboard's own
-2500 ms watchdog then returns it to simulation, or in live-only mode to the
-explicit no-data state.
+Phone only (24 Oct 2026): the phone bridge runs on the Pi 5, so it does not depend on the Pi 4.
+When the bridge cannot be reached, the reply is not JSON, esp32 is null, or esp32.age_ms is
+missing or above 3000, but the phone has a fresh fix, a state is still built from the phone
+alone: speed, and position, heading and altitude as above (the vehicle has no fix then). Every
+ESP32 field is absent: soc_pct and the battery power None (not the last known value), cell
+position None, validity "soc" False; sw7_rear_live is False (True when the ESP32 record is
+fresh). A ToF reading is used only if its own age is under 3000 ms, as before; the Pi 5 front
+ToF (dual) does not depend on the Pi 4 either. So a Pi 4 restart no longer blanks the
+speedometer. link_changed still reports the Pi 4 link ("stale" or "offline").
+
+Nothing is ingested when the ESP32 record is stale (as above) and the phone has no fresh fix
+either. The dashboard's own 2500 ms watchdog then returns it to simulation, or in live-only
+mode to the explicit no-data state.
 
 Every poll emits telemetry_updated(dict) with the raw bridge JSON, or
 telemetry_updated(None) when the bridge is unreachable, for the ride quality
@@ -163,12 +172,16 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     straight-on ToF reading is the rear obstacle, and the front obstacle comes from front_telemetry (the
     Pi 5's own ToF bridge reply, or None when it has not answered).
     phone_gps: the phone bridge's /gps reply (or None); gives speed, and position when the vehicle has no fix.
-    Returns None when the ESP32 part is missing or stale."""
-    if not esp32_is_fresh(telemetry):
+    telemetry may be None (the Pi 4 bridge unreachable).
+    Returns None when the ESP32 part is missing or stale and the phone has no fresh fix either. With a
+    stale ESP32 and a fresh phone fix the state comes from the phone alone, every ESP32 field absent."""
+    rear_live = esp32_is_fresh(telemetry)
+    phone = phone_gps_fix(phone_gps)
+    if not rear_live and phone is None:
         return None
     if live_only is None:
         live_only = live_only_enabled()
-    esp = telemetry["esp32"]
+    esp = telemetry["esp32"] if rear_live else {}     # phone only: no ESP32 field is trusted
     if live_only:
         s = no_data_state(driver_inputs)
     else:
@@ -181,10 +194,10 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     soc = _num(esp.get("soc"))
     if soc is not None:
         s.soc_pct = soc
-    elif previous is not None and previous.soc_pct is not None:
+    elif rear_live and previous is not None and previous.soc_pct is not None:
         s.soc_pct = previous.soc_pct      # last BMS value, marked invalid below
     else:
-        s.soc_pct = None                  # BMS has never reported: unknown, not 82 %
+        s.soc_pct = None                  # BMS has never reported, or the Pi 4 is gone: unknown, not 82 %
 
     volts, amps = _num(esp.get("v")), _num(esp.get("i"))
     if volts is not None and amps is not None:
@@ -210,7 +223,7 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     crs = _num(esp.get("crs")) if gps_ok else None
     alt = _num(esp.get("alt")) if gps_ok else None
     s.sw7_position_source = "vehicle" if gps_ok else None
-    phone = phone_gps_fix(phone_gps)
+    s.sw7_rear_live = rear_live
     phone_kmh = _num(phone.get("speed_kmh")) if phone else None
     if phone and not gps_ok:
         s.latitude, s.longitude, s.gps_timestamp = _num(phone["lat"]), _num(phone["lon"]), time.time()
@@ -269,6 +282,7 @@ class LiveDataProvider(QObject):
         self.front_telemetry = None      # the Pi 5 front ToF reply, fed by sw7_dual_camera
         self.last_telemetry = None
         self.phone_gps = None            # last /gps reply from the phone bridge, or None
+        self._phone_gps_at = 0.0         # time.monotonic() when it arrived
         self._gps_reply = None
         self._last_state = None
         self._reply = None
@@ -332,6 +346,18 @@ class LiveDataProvider(QObject):
                 data = None
         reply.deleteLater()
         self.phone_gps = data if isinstance(data, dict) else None
+        self._phone_gps_at = time.monotonic()
+
+    def current_phone_gps(self):
+        """The last /gps reply with its age_ms grown by the time since it arrived, so a reply that is not
+        renewed (the phone bridge hanging) turns stale on its own; None if there is none."""
+        gps = self.phone_gps
+        if not isinstance(gps, dict):
+            return None
+        age = _num(gps.get("age_ms"))
+        if age is None:
+            return gps
+        return dict(gps, age_ms=age + (time.monotonic() - self._phone_gps_at) * 1000.0)
 
     def _poll(self):
         self._poll_phone_gps()
@@ -370,20 +396,21 @@ class LiveDataProvider(QObject):
         self.apply(data)
 
     def apply(self, telemetry):
-        """Handle one parsed /telemetry reply (None: bridge unreachable)."""
+        """Handle one parsed /telemetry reply (None: bridge unreachable). With the Pi 4 stale or unreachable,
+        a fresh phone fix still gives a phone-only state (build_live_state); the link reports the Pi 4."""
         self.last_telemetry = telemetry
+        sim = getattr(self.manager, "sim", None)
+        state = build_live_state(telemetry, sim.state if sim is not None else None, self._last_state,
+                                 dual=self.dual, front_telemetry=self.front_telemetry,
+                                 phone_gps=self.current_phone_gps())
+        if state is not None:
+            if state.sw7_rear_live:
+                self._last_state = state     # keeps the last BMS value across a Pi 4 outage, as before
+            self.manager.ingest_live_state(state, source=REPLAY_SOURCE if is_replay(telemetry) else SOURCE)
         if telemetry is None:
             self._set_link("offline")
         else:
-            sim = getattr(self.manager, "sim", None)
-            state = build_live_state(telemetry, sim.state if sim is not None else None, self._last_state,
-                                     dual=self.dual, front_telemetry=self.front_telemetry, phone_gps=self.phone_gps)
-            if state is None:
-                self._set_link("stale")
-            else:
-                self._last_state = state
-                self.manager.ingest_live_state(state, source=REPLAY_SOURCE if is_replay(telemetry) else SOURCE)
-                self._set_link("live")
+            self._set_link("live" if esp32_is_fresh(telemetry) else "stale")
         self.telemetry_updated.emit(telemetry)
 
     def _set_link(self, link):

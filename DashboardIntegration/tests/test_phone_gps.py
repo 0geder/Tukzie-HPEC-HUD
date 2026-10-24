@@ -6,6 +6,9 @@
 3. The provider: build_live_state() with a phone fix gives speed (validity "speed"), and position and heading only
    while the vehicle has no fix; the vehicle's own fix always wins; heading is dropped below 3 km/h; a stale or
    void phone reply changes nothing; no phone gives exactly the old state.
+4. Phone only (24 Oct 2026): with the Pi 4's ESP32 record stale, null, or the bridge unreachable, a fresh phone fix
+   still gives speed (and position), with the battery and every other ESP32 field absent; the provider ingests it
+   while reporting the Pi 4 link as stale or offline. Both stale: nothing at all.
 Run: python DashboardIntegration/tests/test_phone_gps.py   (needs PySide6 and the team's dashboard copy, as the
 other tests; set TUKZIE_DASHBOARD_DIR to use another copy)
 """
@@ -140,4 +143,66 @@ for bad in (dict(PHONE, age_ms=5000), dict(PHONE, fix=False), dict(PHONE, lat=No
 old = st(ESP_NOFIX)
 assert old.signal_validity["speed"] is False and old.latitude is None
 print("3 provider: phone speed always; phone position only without a vehicle fix; stale or void ignored")
+
+# ---- 4. phone only: the Pi 4 stale or gone -------------------------------------------------------------
+ESP_STALE = dict(ESP_FIX, age_ms=4500)
+fresh = ldp.build_live_state({"esp32": ESP_NOFIX, "tof": None}, live_only=True)
+for tel in ({"esp32": ESP_STALE, "tof": None}, {"esp32": None, "tof": None}, None):
+    s = ldp.build_live_state(tel, live_only=True, phone_gps=PHONE, previous=fresh)
+    assert s is not None and s.speed_kmh == 18.5 and s.signal_validity["speed"] is True
+    assert (s.latitude, s.longitude) == (PHONE["lat"], PHONE["lon"]) and s.sw7_position_source == "phone"
+    assert s.heading == 120.0 and s.signal_validity["gps"] is True
+    assert s.soc_pct is None and s.signal_validity["soc"] is False       # not the last BMS value either
+    assert s.battery_power_kw is None and s.signed_battery_power_kw is None and s.sw7_cell_position is None
+    assert s.sw7_rear_live is False and s.front_obstacle_distance_m is None
+    assert s.rear_obstacle_distance_m is None
+s = ldp.build_live_state({"esp32": ESP_STALE, "tof": None}, live_only=False, phone_gps=PHONE)
+assert s.speed_kmh == 18.5 and s.soc_pct is None and s.battery_power_kw == 0.0     # simulation mode: same, no 82 %
+assert ldp.build_live_state({"esp32": ESP_NOFIX, "tof": None}, live_only=True, phone_gps=PHONE).sw7_rear_live is True
+# Pi 5 front ToF (dual) keeps working without the Pi 4; a stale ToF on a reachable bridge is still dropped
+s = ldp.build_live_state(None, live_only=True, phone_gps=PHONE, dual=True,
+                         front_telemetry={"esp32": None, "tof": {"ahead_mm": 850, "age_ms": 100}})
+assert s.front_obstacle_distance_m == 0.85 and s.rear_obstacle_distance_m is None
+s = ldp.build_live_state({"esp32": ESP_STALE, "tof": {"ahead_mm": 600, "age_ms": 5000}}, live_only=True,
+                         phone_gps=PHONE, dual=True)
+assert s.rear_obstacle_distance_m is None
+for bad in (dict(PHONE, age_ms=5000), dict(PHONE, fix=False), None):          # both stale: no data
+    for tel in ({"esp32": ESP_STALE, "tof": None}, {"esp32": None}, None):
+        assert ldp.build_live_state(tel, live_only=True, phone_gps=bad) is None
+
+# The provider: ingests the phone-only state, link still says the Pi 4 is stale or offline.
+from PySide6.QtCore import QCoreApplication  # noqa: E402
+app = QCoreApplication.instance() or QCoreApplication([])
+
+
+class FakeManager:
+    sim = None
+
+    def __init__(self):
+        self.ingested = []
+
+    def ingest_live_state(self, state, source):
+        self.ingested.append((state, source))
+
+
+m = FakeManager()
+prov = ldp.LiveDataProvider(m, url="http://127.0.0.1:9")
+prov.apply({"esp32": ESP_NOFIX, "tof": None})                      # Pi 4 live, no phone yet
+assert prov.link == "live" and m.ingested[-1][0].soc_pct == 57 and m.ingested[-1][0].sw7_rear_live is True
+prov.phone_gps, prov._phone_gps_at = dict(PHONE), time.monotonic()
+prov.apply({"esp32": ESP_STALE, "tof": None})
+assert prov.link == "stale" and len(m.ingested) == 2
+assert m.ingested[-1][0].speed_kmh == 18.5 and m.ingested[-1][0].soc_pct is None
+prov.apply(None)                                                   # Pi 4 bridge unreachable
+assert prov.link == "offline" and len(m.ingested) == 3 and m.ingested[-1][0].speed_kmh == 18.5
+assert m.ingested[-1][1] == ldp.SOURCE
+prov.apply({"esp32": dict(ESP_NOFIX, soc=None), "tof": None})      # Pi 4 back, soc null: last BMS value kept
+assert prov.link == "live" and m.ingested[-1][0].soc_pct == 57 and m.ingested[-1][0].signal_validity["soc"] is False
+prov._phone_gps_at = time.monotonic() - 3.0                        # a reply not renewed for 3 s turns stale
+prov.apply(None)
+assert prov.link == "offline" and len(m.ingested) == 4
+prov.phone_gps = None
+prov.apply({"esp32": ESP_STALE, "tof": None})
+assert prov.link == "stale" and len(m.ingested) == 4                # both stale: nothing ingested
+print("4 phone only: speed and position from the phone with the Pi 4 stale or gone, battery absent; both stale: no data")
 print("ALL PASS")
