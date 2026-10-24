@@ -489,4 +489,4 @@ committed to git because of their size, kept on OneDrive).
 - Horizontal scatter about the median position: median 1.8 m, 95th percentile 4.3 m, maximum 5.9 m. Altitude 80 to 92 m.
 - Speed while stationary: 137 of 179 readings 0.000, the rest spurious up to 6.97 (units unconfirmed). So a minimum-speed gate is needed before speed normalises the ride index.
 - MQTT still fails (CMQTTCONNECT code 3): no broker reachable from this firmware.
-- What the student did: brought the rear node home with the antenna and connected it to the laptop for the GPS test.
+- What the student did: connected the rear node with its GNSS antenna to the laptop by USB for the GPS test.
