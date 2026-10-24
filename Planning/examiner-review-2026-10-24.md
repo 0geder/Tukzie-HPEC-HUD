@@ -4,17 +4,55 @@ Built PDF reviewed: Report/Project Report Template.pdf (built 24 Oct, 16:29, fro
 
 Reviewed against: the Intro Lecture, Lecture 2 and GRT5 slides (References/Course), the ethics letter (Appendix H), the rubric weights and checklists in the review prompt, and the repository.
 
-Not available on this machine, so not verified: the course handout, the rubric itself (band wording), the marking schedule, the signed GA tracking form and the SW-7 topic sheet. Any band named below is an estimate in generic terms (Excellent, Good, Satisfactory, Poor), not the rubric's own wording.
+Update, later on 24 Oct: the course documents were found in Desktop/Fourth Year/EEE4022S and read:
+- the 2026 course handout;
+- the EEE4022 rubric;
+- the marker rubric and schedule including GA5;
+- the GA tracking form;
+- the SW-7 topic sheet.
+
+What they add is in section 0. The rubric's bands are 50 to 59% Acceptable, 60 to 69% Good, 70 to 74% Very Good, 75 to 85% Excellent and 86 to 100% Outstanding.
+
+## 0. What the official documents add
+
+1. Ethics, from the handout: "Please note that you cannot collect any data until you have ethics clearance for your project." The approval is dated 6 October. Several reported results predate it:
+   - T1 on 25 September;
+   - the rooftop GNSS test on 29 to 30 September;
+   - battery frames on the vehicle on 30 September to 1 October;
+   - detector runs on 30 September, including a person in view.
+
+   None involved participants or personal data, and the approval rests on there being no human subjects. Even so, a strict marker can read the handout literally.
+
+   Section 3.7 needs a precise, true sentence about what happened before 6 October, for example: "Before the approval of 6 October only the equipment's own behaviour was recorded on the bench, and the only person in camera view was the author."
+
+   The student must confirm every part of that sentence, in particular who was in view on 30 September and 1 October. If any part is uncertain, ask the supervisor before submitting.
+2. The marking schedule assesses GA1, GA4, GA5, GA6, GA8 and GA9. The handout asks for an appendix on "each of the six Graduate Attributes", specific to the project. Appendix A.1 has all six, plus GA10 in part, which is extra and does no harm.
+3. GA4 as worded in the topic sheet: "construct field testing procedures to evaluate the accuracy and reliability of the edge-sensor array under real driving conditions ... isolate true road roughness from nominal engine vibrations". That is RQ4 on the road. Monday's run is therefore central to GA4 as the supervisor framed it, not just a bonus. If it fails, the report must show the field procedure was designed and validated (the stand runs, the rehearsed analysis) and say exactly what is missing.
+4. GA5 as worded in the topic sheet: "operate within the explicit bounds of the processing hardware, the available electrical draw from the main 72V battery, and wireless bandwidth limits". The report covers:
+   - processing (detector load, the split design);
+   - power (an estimated 20 W, with only the Pi 5 measured);
+   - the serial link budget (460800 baud).
+
+   It does not state the LTE bandwidth: bytes per record times records per hour against the Cat-1 rate, and the data per month. Add one line to Section 4.7 or Table 4.7.
+5. Deliverable 1 in the topic sheet includes the environmental and air-quality payload. The SEN55 is reported as damaged and listed as future work (Sections 1.5 and 8.1), which is honest. Keep it stated plainly in Section 1.2, so a marker comparing against the brief sees it was addressed.
+6. The schedule says the mark "should be moderated by the difficulty of the project set". The scope, with two nodes, two cameras, LTE, the dashboard and a vehicle, supports a difficulty argument. Section 1.2 already lists the scope additions.
+7. The declaration matches the handout's six points word for word, with the convention ("IEEE") and the AI use filled in.
+8. Items carried over from earlier sessions that are still open:
+   - three photos showing people are already in the public repo, and the student has to confirm who is in them (GA10, privacy);
+   - the YouTube links for the video evidence were never supplied, which is why the video table doesn't compile (see blocking issue 5);
+   - the data archive location (Zenodo or OneDrive) is undecided; the report says "available on request".
 
 ## 1. Verdict
 
+Bands use the rubric's own names: 60 to 69 Good, 70 to 74 Very Good, 75 to 85 Excellent.
+
 | Criterion (weight) | Likely band now | Moves up one band if |
 |---|---|---|
-| Problem statement and literature (20%) | Good, close to Excellent | RQ1 asks only what can be shown; the Table 2.1 dashes rest on more than abstracts |
-| Design and theory (20%) | Excellent | Already there; keep it consistent with what was built |
-| Practical work (30%) | Good, close to Excellent | Run 2 produces road data; C9 and C11 run on Sunday |
-| Results and conclusions (20%) | Satisfactory to Good | RQ1 and RQ4 answered with road data; road results gathered in one place |
-| Presentation (10%) | Good | The contradictions in Section 6 below fixed; Table 3.2 referenced; dense prose loosened |
+| Problem statement and literature (20%) | Very Good (about 74) | RQ1 asks only what can be shown ("clear and achievable ... concisely stated"); the Table 2.1 dashes rest on the full papers ("critical engagement ... credible sources") |
+| Design and theory (20%) | Excellent (about 80) | Already there ("thorough discussion of method and limitations ... complete design description for replication"); add the LTE bandwidth line |
+| Practical work (30%) | Very Good to Excellent (about 76) | Run 2 produces road data and C9 and C11 run ("thorough practical work which fully covers question/problem") |
+| Results and conclusions (20%) | Good (about 66) | RQ1 and RQ4 answered with road data ("accurate analysis, drawing out features of the data and speaking to research questions") |
+| Presentation (10%) | Very Good (about 72) | Section 6 fixes; Table 3.2 referenced; overfull lines fixed ("care demonstrated with grammar, layout and presentation") |
 
 Estimate: about 75% as it stands, and about 79 to 80% if run 2 succeeds and is written up well.
 
