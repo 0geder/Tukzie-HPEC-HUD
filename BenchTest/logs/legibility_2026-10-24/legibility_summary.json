@@ -1,0 +1,564 @@
+{
+ "mm_per_px": 0.1699574100855197,
+ "need_cap_px": {
+  "16arcmin@0.6m": 16.4,
+  "16arcmin@0.7m": 19.2,
+  "16arcmin@0.8m": 21.9,
+  "20arcmin@0.6m": 20.5,
+  "20arcmin@0.7m": 24.0,
+  "20arcmin@0.8m": 27.4
+ },
+ "distinct_text_items": 110,
+ "ge20_at_0.7": 4,
+ "ge16_at_0.7": 4,
+ "cap_px_quantiles": {
+  "0.0": 6.7,
+  "0.1": 9.1,
+  "0.25": 9.1,
+  "0.5": 11.2,
+  "0.75": 11.2,
+  "1.0": 104.7
+ },
+ "below_16_at_0.7": [
+  [
+   "ReverseCameraPage",
+   "DISTANCE",
+   6.66
+  ],
+  [
+   "ReverseCameraPage",
+   "m",
+   8.64
+  ],
+  [
+   "DrivingPage",
+   "Map",
+   9.08
+  ],
+  [
+   "AnalyticsPage",
+   "ODOMETER",
+   9.08
+  ],
+  [
+   "AnalyticsPage",
+   "BATTERY OUTPUT",
+   9.08
+  ],
+  [
+   "SensorsPage",
+   "RIDE",
+   9.08
+  ],
+  [
+   "NavigationPage",
+   "\u2212",
+   9.08
+  ],
+  [
+   "AnalyticsPage",
+   "ANALYTICS",
+   9.08
+  ],
+  [
+   "SensorsPage",
+   "FRONT HAZARDS \u00b7 CAMERA AND TOF \u00b7 NEAREST",
+   9.08
+  ],
+  [
+   "DiagnosticsPage",
+   "LINK",
+   9.08
+  ],
+  [
+   "ChargingPage",
+   "Pack temperature",
+   9.08
+  ],
+  [
+   "DrivingPage",
+   "ASIS",
+   9.08
+  ],
+  [
+   "NavigationPage",
+   "Overview",
+   9.08
+  ],
+  [
+   "DrivingPage",
+   "Analytics",
+   9.08
+  ],
+  [
+   "ChargingPage",
+   "Power input (kW)",
+   9.08
+  ],
+  [
+   "DiagnosticsPage",
+   "HEALTH",
+   9.08
+  ],
+  [
+   "ChargingPage",
+   "Energy delivered",
+   9.08
+  ],
+  [
+   "DrivingPage",
+   "Diagnostics",
+   9.08
+  ],
+  [
+   "SettingsPage",
+   "VOICE",
+   9.08
+  ],
+  [
+   "DiagnosticsPage",
+   "POSITION",
+   9.08
+  ],
+  [
+   "DrivingPage",
+   "Charging",
+   9.08
+  ],
+  [
+   "SensorsPage",
+   "NEAREST",
+   9.08
+  ],
+  [
+   "DrivingPage",
+   "NO DATA",
+   9.08
+  ],
+  [
+   "DrivingPage",
+   "Settings",
+   9.08
+  ],
+  [
+   "DiagnosticsPage",
+   "CONTROLS",
+   9.08
+  ],
+  [
+   "SettingsPage",
+   "DRIVER ASSISTANCE",
+   9.08
+  ],
+  [
+   "SensorsPage",
+   "Camera offline, retrying",
+   9.08
+  ],
+  [
+   "ChargingPage",
+   "Range added",
+   9.08
+  ],
+  [
+   "NavigationPage",
+   "+",
+   9.08
+  ],
+  [
+   "SettingsPage",
+   "NAVIGATION",
+   9.08
+  ],
+  [
+   "SensorsPage",
+   "Front sensors offline",
+   9.08
+  ],
+  [
+   "DrivingPage",
+   "Drive",
+   9.08
+  ],
+  [
+   "DrivingPage",
+   "Surroundings",
+   9.08
+  ],
+  [
+   "SettingsPage",
+   "DISPLAY",
+   9.08
+  ],
+  [
+   "ChargingPage",
+   "Range",
+   9.08
+  ],
+  [
+   "NavigationPage",
+   "Follow",
+   9.08
+  ],
+  [
+   "SettingsPage",
+   "SAVE",
+   9.08
+  ],
+  [
+   "SettingsPage",
+   "LOOK",
+   9.08
+  ],
+  [
+   "DiagnosticsPage",
+   "Altitude",
+   11.17
+  ],
+  [
+   "SensorsPage",
+   "Vibration -- \u00b7 IMU disagreement --",
+   11.17
+  ],
+  [
+   "AnalyticsPage",
+   "Total distance",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "GNSS speed (raw)",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Outside (weather)",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Offline",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Firmware",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Voice",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Incline",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Signal",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Link",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Night",
+   11.17
+  ],
+  [
+   "DrivingPage",
+   "15:40",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "ESP32 age",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Repeat last warning",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "GPS",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Brake",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Start the map in follow mode",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Pi 4",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Show advanced settings",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Motor rpm",
+   11.17
+  ],
+  [
+   "AnalyticsPage",
+   "\u25b2",
+   11.17
+  ],
+  [
+   "DrivingPage",
+   "--%",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "IMU drops",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Heading",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Day",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Brightness",
+   11.17
+  ],
+  [
+   "NavigationPage",
+   "Navigate",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "1.00\u00d7",
+   11.17
+  ],
+  [
+   "SensorsPage",
+   "No sensor data",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Unavailable",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "GPS fix",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "MQTT",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Test Voice",
+   11.17
+  ],
+  [
+   "SensorsPage",
+   "Front",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Power",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Voice alerts",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "--",
+   11.17
+  ],
+  [
+   "AnalyticsPage",
+   "\u25bc",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "IMU rate",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "BMS reading",
+   11.17
+  ],
+  [
+   "SensorsPage",
+   "Rear",
+   11.17
+  ],
+  [
+   "ChargingPage",
+   "Charging state unknown \u00b7 no live data",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Auto",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Volume",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "100%",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "On this Pi",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Voice speed",
+   11.17
+  ],
+  [
+   "NavigationPage",
+   "Offline map ready \u00b7 enter a destination",
+   11.17
+  ],
+  [
+   "SettingsPage",
+   "Save",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Throttle",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Show advice and details",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "--\u00b0  \u203a",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Ambient (vehicle)",
+   11.17
+  ],
+  [
+   "ChargingPage",
+   "Source: Unknown",
+   11.17
+  ],
+  [
+   "DiagnosticsPage",
+   "Motor temp",
+   11.17
+  ],
+  [
+   "ReverseCameraPage",
+   "Rear distance: no sensor",
+   11.97
+  ],
+  [
+   "ReverseCameraPage",
+   "0 - 1.0 m",
+   11.97
+  ],
+  [
+   "ReverseCameraPage",
+   "> 3.5 m",
+   11.97
+  ],
+  [
+   "ReverseCameraPage",
+   "2.5 - 3.5 m",
+   11.97
+  ],
+  [
+   "ReverseCameraPage",
+   "1.0 - 2.5 m",
+   11.97
+  ],
+  [
+   "ChargingPage",
+   "--",
+   15.36
+  ],
+  [
+   "DrivingPage",
+   "No live vehicle data",
+   15.36
+  ],
+  [
+   "SettingsPage",
+   "Settings",
+   15.36
+  ],
+  [
+   "DiagnosticsPage",
+   "Diagnostics",
+   15.36
+  ],
+  [
+   "ChargingPage",
+   "Charging",
+   15.36
+  ],
+  [
+   "SensorsPage",
+   "Surroundings",
+   15.36
+  ],
+  [
+   "ReverseCameraPage",
+   "REVERSE",
+   15.95
+  ]
+ ],
+ "buttons": 26,
+ "button_min_side_mm_quantiles": {
+  "0.0": 7.5,
+  "0.25": 10.9,
+  "0.5": 10.9,
+  "0.75": 10.9,
+  "1.0": 61.2
+ },
+ "buttons_ge_17.5mm": 5,
+ "buttons_ge_10mm": 25
+}

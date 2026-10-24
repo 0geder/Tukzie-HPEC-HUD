@@ -144,7 +144,7 @@ The dashboard line delivered 40 of 40 lines, at most 0.37\,s old at a laptop. Ov
 
 \section{Driver display (R11, R12)}
 
-On a laptop against the live detector, the camera page showed video within 0.6\,s at 14.2\,frames/s and listed a person alert 0.5\,s after it was opened with the person in view. In live-only mode every page showed ``-{}-'' or ``Unavailable'' with the bridge down, never a simulated value. On the Raspberry Pi~5 the Sensors page showed live distances in the right colours and the banner appeared over the driving page (Section~\ref{sec:resx-display}). R11 is partly met: alerts were seen to clear only in offline runs. R12, the glance demand, has not been measured: no person takes part as a subject (Section~\ref{sec:ethics}), so it is left for future work.
+On a laptop against the live detector, the camera page showed video within 0.6\,s at 14.2\,frames/s and listed a person alert 0.5\,s after it was opened with the person in view. In live-only mode every page showed ``-{}-'' or ``Unavailable'' with the bridge down, never a simulated value. On the Raspberry Pi~5 the Sensors page showed live distances in the right colours and the banner appeared over the driving page (Section~\ref{sec:resx-display}). R11 is partly met: alerts were seen to clear only in offline runs. R12, the glance demand, needs a participant and is not measured (Section~\ref{sec:ethics}), but its precondition, legibility, needs none. At an assumed 0.70\,m from the 10.1-inch panel (0.170\,mm per pixel), the speed digits are 100\,px tall, 84 arc minutes, far above the 20 recommended by ISO~15008; the alert banner's capitals are 11\,px, 9 arc minutes, and only 4 of 110 labels reach the acceptable 16. The median touch target is 10.9\,mm, and 5 of 26 reach 17.5\,mm (Section~\ref{sec:resx-display}). The speed is legible at a glance; the warnings are not.
 
 \outstanding{run 2 (road part, 26 October): display photographs from the eye point in sun and in shade with a grey card (block DISPLAY).}
 
@@ -178,7 +178,7 @@ R8 & Sensors answer; no tape check; fusion not validated & Partly met \\ \hline
 R9 & 47 of 47 publishes; reconnection about 5\,s after coverage; bench read-back 6,020 of 6,020, run-1 log 2,000 of 2,022; after a 10-minute outage 112 of 112 records stored, backlog cleared 38\,s after reconnection & Met on the bench via a test broker; partly met on the vehicle (read-back 2,000 of 2,022; latency not measured) \\ \hline
 R10 & 40 of 40 lines, record 0.37\,s old at a laptop; 2 to 11\,\% of lines lost over hours on USB; wired UART since 21 October, 0 bad in 2,489 lines and in 3,720 over 62\,min & Met on the bench at a laptop (wired link); not yet timed at the Raspberry Pi~5 or on the vehicle \\ \hline
 R11 & Live-only presentation; alert listed 0.5\,s after opening the page with a person in view; offline state & Partly met: clearing seen only offline \\ \hline
-R12 & Not measured; no glance study (no participants) & Not met; future work \\ \hline
+R12 & Glance time not measured (no participants); legibility measured: speed 84 arc minutes, alert banner 9, labels 9 (ISO~15008: 16 acceptable) & Not met: the warnings' text is too small; glance time future work \\ \hline
 R13 & Mounted on the vehicle on 19 October; no drilling or permanent change; removal and return to standard not timed & Partly met \\ \hline
 \end{tabular}
 \end{table}
