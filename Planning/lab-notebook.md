@@ -480,3 +480,13 @@ committed to git because of their size, kept on OneDrive).
   and 17:20 (power unstable; one restart cut the copy). Raw captures open files exclusively and add a suffix, and the
   recorder appends, so no file was overwritten. Copied with sizes checked: BenchTest/logs/run2_lab_2026-10-23
   (README.md indexes 26 files, about 400 MB, raw files git-ignored). Screenshots left on the Pi 5.
+
+## 24 October 2026 (Saturday), GNSS static test of the rear node's own receiver
+
+- Rear node (v0.7.8) on the laptop's USB (COM10), antenna on the modem's GNSS connector, IMU not connected, off the vehicle.
+- First 3D fix seen from the vehicle's own receiver: 23 satellites, HDOP 0.80.
+- Logged 10 minutes of serial output (BenchTest/logs/gnss_2026-10-24/rear_serial_static.txt): 179 fixes over 598 s, all mode 3, 23 to 29 satellites, HDOP 0.77 to 1.1.
+- Horizontal scatter about the median position: median 1.8 m, 95th percentile 4.3 m, maximum 5.9 m. Altitude 80 to 92 m.
+- Speed while stationary: 137 of 179 readings 0.000, the rest spurious up to 6.97 (units unconfirmed). So a minimum-speed gate is needed before speed normalises the ride index.
+- MQTT still fails (CMQTTCONNECT code 3): no broker reachable from this firmware.
+- What the student did: brought the rear node home with the antenna and connected it to the laptop for the GPS test.
