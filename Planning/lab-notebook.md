@@ -490,3 +490,12 @@ committed to git because of their size, kept on OneDrive).
 - Speed while stationary: 137 of 179 readings 0.000, the rest spurious up to 6.97 (units unconfirmed). So a minimum-speed gate is needed before speed normalises the ride index.
 - MQTT still fails (CMQTTCONNECT code 3): no broker reachable from this firmware.
 - What the student did: connected the rear node with its GNSS antenna to the laptop by USB for the GPS test.
+
+### 24 to 25 October 2026, 22:47 to 00:04, GNSS walk tests (rear node and phone side by side)
+
+- Laptop on the phone's hotspot; phone NMEA from Share GPS and the rear node's serial logged together (BenchTest/logs/gnss_2026-10-24/walk1 to walk3, kept local because they hold precise positions).
+- Walk 1 (22:47): the rear node's GNSS stopped answering at 22:49:27 ("poll timeout" every 3 s) while its MQTT reconnects to the TLS-only broker kept failing. Board reset over USB (RTS) at about 22:53: the modem answered again but took about 50 min to regain a fix (cold start, partial sky view while carried); 33 3D fixes at 23:47 to 23:48, then lost again.
+- Walk 3 (23:51 to 00:04): back and forth on a straight line of 90 paving tiles, measured as 11 tiles = 5 m, so 40.9 m; passes not timed.
+- Phone result: positions along the line spanned 36.3 m (5th to 95th percentile) and 46.8 m (extremes) against 40.9 m, so the track reproduces the line to a few metres. The phone's speed field read 0 in 251 of 716 fixes while walking (mean 1.97 km/h), so at walking pace it under-reports; the speed check needs vehicle speeds with timed passes (Monday, side video over the taped section).
+- For Monday: power the rear node outdoors at least 10 min before the first pass with the GNSS antenna seated and facing the sky; fix the broker setting first so failed reconnects cannot block the modem.
+- What the student did: walked the GNSS tests with the laptop, rear node and phone, and measured the line in paving tiles.
