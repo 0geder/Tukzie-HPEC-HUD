@@ -507,3 +507,11 @@ committed to git because of their size, kept on OneDrive).
 - Added !mqtt off / !mqtt on (kept in NVS) as v0.7.9, built both nodes, flashed the rear node. With publishing off: GNSS every 3.0 s, 33 of 33 replies fixed; after a reset the setting held and it fixed with 35 satellites in 9.6 s.
 - The rear node is left with publishing OFF. Turn it on with !mqtt on once the SIM has data.
 - What the student did: kept the node outside with the antenna facing the sky for the GPS checks.
+
+### 25 October 2026, voice commands for the dashboard (bench only)
+
+- Built DashboardIntegration/sw7_voice_control.py (off unless TUKZIE_SW7_VOICE=1; not deployed): home, map, rear and front camera, reverse mode with automatic return (45 s, or 8 km/h held for 3 s, or "done"), destination by voice with three options read out and "first/second/third" to choose; offline Vosk recognition; place names corrected against a Cape Town list.
+- tests/test_voice_control.py passes (parser, dashboard actions offscreen, auto-return, destination flow against a fake Photon; off by default).
+- Recognition check with Windows synthetic voices (no person recorded): clean 17 and 13 of 18, 10 dB SNR 14 and 13, 0 dB 5 and 9; median 0.7 to 0.9 s per phrase (BenchTest/logs/voice_2026-10-25/voice_check.json).
+- Needs a USB microphone on the Pi 5 before it can be tried on the vehicle.
+- What the student did: proposed the feature (voice navigation, rear camera by voice, destination by voice).

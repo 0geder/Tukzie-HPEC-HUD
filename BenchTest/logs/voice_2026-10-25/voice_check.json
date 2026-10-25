@@ -1,0 +1,1782 @@
+{
+ "rows": [
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "home",
+   "heard": "hum",
+   "intent": null,
+   "want": [
+    "home",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.661,
+   "audio_s": 2.23
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "home",
+   "heard": "oh",
+   "intent": null,
+   "want": [
+    "home",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.494,
+   "audio_s": 2.23
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "home",
+   "heard": "home",
+   "intent": [
+    "home",
+    null
+   ],
+   "want": [
+    "home",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.52,
+   "audio_s": 2.23
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "go home",
+   "heard": "go home",
+   "intent": [
+    "home",
+    null
+   ],
+   "want": [
+    "home",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.734,
+   "audio_s": 2.42
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "go home",
+   "heard": "go home",
+   "intent": [
+    "home",
+    null
+   ],
+   "want": [
+    "home",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.718,
+   "audio_s": 2.42
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "go home",
+   "heard": "the oval",
+   "intent": null,
+   "want": [
+    "home",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.585,
+   "audio_s": 2.42
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "map",
+   "heard": "map",
+   "intent": [
+    "map",
+    null
+   ],
+   "want": [
+    "map",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.728,
+   "audio_s": 2.29
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "map",
+   "heard": "map",
+   "intent": [
+    "map",
+    null
+   ],
+   "want": [
+    "map",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.395,
+   "audio_s": 2.29
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "map",
+   "heard": "there",
+   "intent": null,
+   "want": [
+    "map",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.423,
+   "audio_s": 2.29
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "open the map",
+   "heard": "open the map",
+   "intent": [
+    "map",
+    null
+   ],
+   "want": [
+    "map",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.888,
+   "audio_s": 2.6
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "open the map",
+   "heard": "open the map",
+   "intent": [
+    "map",
+    null
+   ],
+   "want": [
+    "map",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.714,
+   "audio_s": 2.6
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "open the map",
+   "heard": "open the map",
+   "intent": [
+    "map",
+    null
+   ],
+   "want": [
+    "map",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.722,
+   "audio_s": 2.6
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "reverse",
+   "heard": "reverse",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.69,
+   "audio_s": 2.42
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "reverse",
+   "heard": "reverse",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.631,
+   "audio_s": 2.42
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "reverse",
+   "heard": "reverse",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.542,
+   "audio_s": 2.42
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "rear camera",
+   "heard": "rear camera",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.861,
+   "audio_s": 2.59
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "rear camera",
+   "heard": "rear camera",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.966,
+   "audio_s": 2.59
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "rear camera",
+   "heard": "rear camera",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.675,
+   "audio_s": 2.59
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "back camera",
+   "heard": "back camera",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.95,
+   "audio_s": 2.59
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "back camera",
+   "heard": "that camera",
+   "intent": null,
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.746,
+   "audio_s": 2.59
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "back camera",
+   "heard": "that camera",
+   "intent": null,
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.845,
+   "audio_s": 2.59
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "front camera",
+   "heard": "for on camera",
+   "intent": null,
+   "want": [
+    "front",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.639,
+   "audio_s": 2.7
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "front camera",
+   "heard": "front camera",
+   "intent": [
+    "front",
+    null
+   ],
+   "want": [
+    "front",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.7,
+   "audio_s": 2.7
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "front camera",
+   "heard": "front camera",
+   "intent": [
+    "front",
+    null
+   ],
+   "want": [
+    "front",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.878,
+   "audio_s": 2.7
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "done",
+   "heard": "done",
+   "intent": [
+    "done",
+    null
+   ],
+   "want": [
+    "done",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.474,
+   "audio_s": 2.26
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "done",
+   "heard": "done",
+   "intent": [
+    "done",
+    null
+   ],
+   "want": [
+    "done",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.503,
+   "audio_s": 2.26
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "done",
+   "heard": "the on",
+   "intent": null,
+   "want": [
+    "done",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.655,
+   "audio_s": 2.26
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "cancel",
+   "heard": "cancel",
+   "intent": [
+    "cancel",
+    null
+   ],
+   "want": [
+    "cancel",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.774,
+   "audio_s": 2.41
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "cancel",
+   "heard": "cancel",
+   "intent": [
+    "cancel",
+    null
+   ],
+   "want": [
+    "cancel",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.678,
+   "audio_s": 2.41
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "cancel",
+   "heard": "and so",
+   "intent": null,
+   "want": [
+    "cancel",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.647,
+   "audio_s": 2.41
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "first one",
+   "heard": "first one",
+   "intent": [
+    "choose",
+    1
+   ],
+   "want": [
+    "choose",
+    1
+   ],
+   "ok": true,
+   "seconds": 0.687,
+   "audio_s": 2.58
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "first one",
+   "heard": "first one",
+   "intent": [
+    "choose",
+    1
+   ],
+   "want": [
+    "choose",
+    1
+   ],
+   "ok": true,
+   "seconds": 0.704,
+   "audio_s": 2.58
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "first one",
+   "heard": "first one",
+   "intent": [
+    "choose",
+    1
+   ],
+   "want": [
+    "choose",
+    1
+   ],
+   "ok": true,
+   "seconds": 0.693,
+   "audio_s": 2.58
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "second one",
+   "heard": "second one",
+   "intent": [
+    "choose",
+    2
+   ],
+   "want": [
+    "choose",
+    2
+   ],
+   "ok": true,
+   "seconds": 0.83,
+   "audio_s": 2.67
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "second one",
+   "heard": "second one",
+   "intent": [
+    "choose",
+    2
+   ],
+   "want": [
+    "choose",
+    2
+   ],
+   "ok": true,
+   "seconds": 0.729,
+   "audio_s": 2.67
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "second one",
+   "heard": "second one",
+   "intent": [
+    "choose",
+    2
+   ],
+   "want": [
+    "choose",
+    2
+   ],
+   "ok": true,
+   "seconds": 0.774,
+   "audio_s": 2.67
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "option three",
+   "heard": "option three",
+   "intent": [
+    "choose",
+    3
+   ],
+   "want": [
+    "choose",
+    3
+   ],
+   "ok": true,
+   "seconds": 0.578,
+   "audio_s": 2.63
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "option three",
+   "heard": "option three",
+   "intent": [
+    "choose",
+    3
+   ],
+   "want": [
+    "choose",
+    3
+   ],
+   "ok": true,
+   "seconds": 0.622,
+   "audio_s": 2.63
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "option three",
+   "heard": "option three",
+   "intent": [
+    "choose",
+    3
+   ],
+   "want": [
+    "choose",
+    3
+   ],
+   "ok": true,
+   "seconds": 1.067,
+   "audio_s": 2.63
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "map destination Rondebosch",
+   "heard": "map destination run bush",
+   "intent": [
+    "destination",
+    "run bush"
+   ],
+   "want": [
+    "destination",
+    "rondebosch"
+   ],
+   "ok": false,
+   "seconds": 1.117,
+   "audio_s": 3.54
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "map destination Rondebosch",
+   "heard": "math destination run bush",
+   "intent": null,
+   "want": [
+    "destination",
+    "rondebosch"
+   ],
+   "ok": false,
+   "seconds": 1.316,
+   "audio_s": 3.54
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "map destination Rondebosch",
+   "heard": "their destination run for",
+   "intent": null,
+   "want": [
+    "destination",
+    "rondebosch"
+   ],
+   "ok": false,
+   "seconds": 1.547,
+   "audio_s": 3.54
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "go to Claremont",
+   "heard": "go to claremont",
+   "intent": [
+    "destination",
+    "claremont"
+   ],
+   "want": [
+    "destination",
+    "claremont"
+   ],
+   "ok": true,
+   "seconds": 0.859,
+   "audio_s": 2.92
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "go to Claremont",
+   "heard": "go to claremont",
+   "intent": [
+    "destination",
+    "claremont"
+   ],
+   "want": [
+    "destination",
+    "claremont"
+   ],
+   "ok": true,
+   "seconds": 0.965,
+   "audio_s": 2.92
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "go to Claremont",
+   "heard": "the player mode",
+   "intent": null,
+   "want": [
+    "destination",
+    "claremont"
+   ],
+   "ok": false,
+   "seconds": 1.04,
+   "audio_s": 2.92
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "take me to Observatory",
+   "heard": "take me to observatory",
+   "intent": [
+    "destination",
+    "observatory"
+   ],
+   "want": [
+    "destination",
+    "observatory"
+   ],
+   "ok": true,
+   "seconds": 0.9,
+   "audio_s": 3.27
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "take me to Observatory",
+   "heard": "take me to observatory",
+   "intent": [
+    "destination",
+    "observatory"
+   ],
+   "want": [
+    "destination",
+    "observatory"
+   ],
+   "ok": true,
+   "seconds": 0.939,
+   "audio_s": 3.27
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "take me to Observatory",
+   "heard": "take me to observatory",
+   "intent": [
+    "destination",
+    "observatory"
+   ],
+   "want": [
+    "destination",
+    "observatory"
+   ],
+   "ok": true,
+   "seconds": 1.309,
+   "audio_s": 3.27
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "navigate to Cape Town station",
+   "heard": "navigate to capetown station",
+   "intent": [
+    "destination",
+    "capetown station"
+   ],
+   "want": [
+    "destination",
+    "cape town station"
+   ],
+   "ok": false,
+   "seconds": 1.011,
+   "audio_s": 3.71
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "navigate to Cape Town station",
+   "heard": "navigate to capetown station",
+   "intent": [
+    "destination",
+    "capetown station"
+   ],
+   "want": [
+    "destination",
+    "cape town station"
+   ],
+   "ok": false,
+   "seconds": 0.909,
+   "audio_s": 3.71
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "navigate to Cape Town station",
+   "heard": "navigate me down station",
+   "intent": null,
+   "want": [
+    "destination",
+    "cape town station"
+   ],
+   "ok": false,
+   "seconds": 1.749,
+   "audio_s": 3.71
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "clean",
+   "said": "destination Kirstenbosch",
+   "heard": "destination kyrstin bush",
+   "intent": [
+    "destination",
+    "kyrstin bush"
+   ],
+   "want": [
+    "destination",
+    "kirstenbosch"
+   ],
+   "ok": false,
+   "seconds": 0.984,
+   "audio_s": 3.43
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "destination Kirstenbosch",
+   "heard": "destination years in bush",
+   "intent": [
+    "destination",
+    "years in bush"
+   ],
+   "want": [
+    "destination",
+    "kirstenbosch"
+   ],
+   "ok": false,
+   "seconds": 1.239,
+   "audio_s": 3.43
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr0",
+   "said": "destination Kirstenbosch",
+   "heard": "this the nation here the",
+   "intent": null,
+   "want": [
+    "destination",
+    "kirstenbosch"
+   ],
+   "ok": false,
+   "seconds": 1.712,
+   "audio_s": 3.43
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "home",
+   "heard": "home",
+   "intent": [
+    "home",
+    null
+   ],
+   "want": [
+    "home",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.591,
+   "audio_s": 2.42
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "home",
+   "heard": "no",
+   "intent": null,
+   "want": [
+    "home",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.461,
+   "audio_s": 2.42
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "home",
+   "heard": "no",
+   "intent": null,
+   "want": [
+    "home",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.544,
+   "audio_s": 2.42
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "go home",
+   "heard": "go home",
+   "intent": [
+    "home",
+    null
+   ],
+   "want": [
+    "home",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.954,
+   "audio_s": 2.43
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "go home",
+   "heard": "go home",
+   "intent": [
+    "home",
+    null
+   ],
+   "want": [
+    "home",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.906,
+   "audio_s": 2.43
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "go home",
+   "heard": "the home",
+   "intent": [
+    "home",
+    null
+   ],
+   "want": [
+    "home",
+    null
+   ],
+   "ok": true,
+   "seconds": 1.076,
+   "audio_s": 2.43
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "map",
+   "heard": "map",
+   "intent": [
+    "map",
+    null
+   ],
+   "want": [
+    "map",
+    null
+   ],
+   "ok": true,
+   "seconds": 1.032,
+   "audio_s": 2.27
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "map",
+   "heard": "map",
+   "intent": [
+    "map",
+    null
+   ],
+   "want": [
+    "map",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.785,
+   "audio_s": 2.27
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "map",
+   "heard": "man",
+   "intent": null,
+   "want": [
+    "map",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.95,
+   "audio_s": 2.27
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "open the map",
+   "heard": "open the map",
+   "intent": [
+    "map",
+    null
+   ],
+   "want": [
+    "map",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.765,
+   "audio_s": 2.58
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "open the map",
+   "heard": "open the math",
+   "intent": null,
+   "want": [
+    "map",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.832,
+   "audio_s": 2.58
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "open the map",
+   "heard": "know",
+   "intent": null,
+   "want": [
+    "map",
+    null
+   ],
+   "ok": false,
+   "seconds": 1.231,
+   "audio_s": 2.58
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "reverse",
+   "heard": "reverse",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 1.105,
+   "audio_s": 2.41
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "reverse",
+   "heard": "reverse",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.745,
+   "audio_s": 2.41
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "reverse",
+   "heard": "reverse",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.729,
+   "audio_s": 2.41
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "rear camera",
+   "heard": "rear camera",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 1.249,
+   "audio_s": 2.59
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "rear camera",
+   "heard": "rear camera",
+   "intent": [
+    "rear",
+    null
+   ],
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": true,
+   "seconds": 1.237,
+   "audio_s": 2.59
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "rear camera",
+   "heard": "the camera",
+   "intent": null,
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": false,
+   "seconds": 1.109,
+   "audio_s": 2.59
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "back camera",
+   "heard": "that camera",
+   "intent": null,
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.949,
+   "audio_s": 2.62
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "back camera",
+   "heard": "that camera",
+   "intent": null,
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.844,
+   "audio_s": 2.62
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "back camera",
+   "heard": "that camera",
+   "intent": null,
+   "want": [
+    "rear",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.903,
+   "audio_s": 2.62
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "front camera",
+   "heard": "front camera",
+   "intent": [
+    "front",
+    null
+   ],
+   "want": [
+    "front",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.797,
+   "audio_s": 2.67
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "front camera",
+   "heard": "front camera",
+   "intent": [
+    "front",
+    null
+   ],
+   "want": [
+    "front",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.855,
+   "audio_s": 2.67
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "front camera",
+   "heard": "him",
+   "intent": null,
+   "want": [
+    "front",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.949,
+   "audio_s": 2.67
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "done",
+   "heard": "done",
+   "intent": [
+    "done",
+    null
+   ],
+   "want": [
+    "done",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.823,
+   "audio_s": 2.3
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "done",
+   "heard": "done",
+   "intent": [
+    "done",
+    null
+   ],
+   "want": [
+    "done",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.549,
+   "audio_s": 2.3
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "done",
+   "heard": "the",
+   "intent": null,
+   "want": [
+    "done",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.502,
+   "audio_s": 2.3
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "cancel",
+   "heard": "cancel",
+   "intent": [
+    "cancel",
+    null
+   ],
+   "want": [
+    "cancel",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.803,
+   "audio_s": 2.45
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "cancel",
+   "heard": "cancel",
+   "intent": [
+    "cancel",
+    null
+   ],
+   "want": [
+    "cancel",
+    null
+   ],
+   "ok": true,
+   "seconds": 0.508,
+   "audio_s": 2.45
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "cancel",
+   "heard": "himself",
+   "intent": null,
+   "want": [
+    "cancel",
+    null
+   ],
+   "ok": false,
+   "seconds": 0.796,
+   "audio_s": 2.45
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "first one",
+   "heard": "first one",
+   "intent": [
+    "choose",
+    1
+   ],
+   "want": [
+    "choose",
+    1
+   ],
+   "ok": true,
+   "seconds": 0.636,
+   "audio_s": 2.55
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "first one",
+   "heard": "first one",
+   "intent": [
+    "choose",
+    1
+   ],
+   "want": [
+    "choose",
+    1
+   ],
+   "ok": true,
+   "seconds": 0.592,
+   "audio_s": 2.55
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "first one",
+   "heard": "first one",
+   "intent": [
+    "choose",
+    1
+   ],
+   "want": [
+    "choose",
+    1
+   ],
+   "ok": true,
+   "seconds": 0.588,
+   "audio_s": 2.55
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "second one",
+   "heard": "second one",
+   "intent": [
+    "choose",
+    2
+   ],
+   "want": [
+    "choose",
+    2
+   ],
+   "ok": true,
+   "seconds": 0.696,
+   "audio_s": 2.65
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "second one",
+   "heard": "second one",
+   "intent": [
+    "choose",
+    2
+   ],
+   "want": [
+    "choose",
+    2
+   ],
+   "ok": true,
+   "seconds": 0.634,
+   "audio_s": 2.65
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "second one",
+   "heard": "second one",
+   "intent": [
+    "choose",
+    2
+   ],
+   "want": [
+    "choose",
+    2
+   ],
+   "ok": true,
+   "seconds": 0.803,
+   "audio_s": 2.65
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "option three",
+   "heard": "option three",
+   "intent": [
+    "choose",
+    3
+   ],
+   "want": [
+    "choose",
+    3
+   ],
+   "ok": true,
+   "seconds": 0.596,
+   "audio_s": 2.61
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "option three",
+   "heard": "option three",
+   "intent": [
+    "choose",
+    3
+   ],
+   "want": [
+    "choose",
+    3
+   ],
+   "ok": true,
+   "seconds": 0.715,
+   "audio_s": 2.61
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "option three",
+   "heard": "option three",
+   "intent": [
+    "choose",
+    3
+   ],
+   "want": [
+    "choose",
+    3
+   ],
+   "ok": true,
+   "seconds": 0.947,
+   "audio_s": 2.61
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "map destination Rondebosch",
+   "heard": "map destination round bosh",
+   "intent": [
+    "destination",
+    "rondebosch"
+   ],
+   "want": [
+    "destination",
+    "rondebosch"
+   ],
+   "ok": true,
+   "seconds": 1.104,
+   "audio_s": 3.57
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "map destination Rondebosch",
+   "heard": "math destination run fashion",
+   "intent": null,
+   "want": [
+    "destination",
+    "rondebosch"
+   ],
+   "ok": false,
+   "seconds": 1.025,
+   "audio_s": 3.57
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "map destination Rondebosch",
+   "heard": "the commission on fun",
+   "intent": null,
+   "want": [
+    "destination",
+    "rondebosch"
+   ],
+   "ok": false,
+   "seconds": 1.638,
+   "audio_s": 3.57
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "go to Claremont",
+   "heard": "go to claremont",
+   "intent": [
+    "destination",
+    "claremont"
+   ],
+   "want": [
+    "destination",
+    "claremont"
+   ],
+   "ok": true,
+   "seconds": 0.927,
+   "audio_s": 2.85
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "go to Claremont",
+   "heard": "go to claremont",
+   "intent": [
+    "destination",
+    "claremont"
+   ],
+   "want": [
+    "destination",
+    "claremont"
+   ],
+   "ok": true,
+   "seconds": 0.915,
+   "audio_s": 2.85
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "go to Claremont",
+   "heard": "the on",
+   "intent": null,
+   "want": [
+    "destination",
+    "claremont"
+   ],
+   "ok": false,
+   "seconds": 0.977,
+   "audio_s": 2.85
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "take me to Observatory",
+   "heard": "take me to observatory",
+   "intent": [
+    "destination",
+    "observatory"
+   ],
+   "want": [
+    "destination",
+    "observatory"
+   ],
+   "ok": true,
+   "seconds": 1.019,
+   "audio_s": 3.17
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "take me to Observatory",
+   "heard": "take me to observatory",
+   "intent": [
+    "destination",
+    "observatory"
+   ],
+   "want": [
+    "destination",
+    "observatory"
+   ],
+   "ok": true,
+   "seconds": 0.95,
+   "audio_s": 3.17
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "take me to Observatory",
+   "heard": "the conservatory",
+   "intent": null,
+   "want": [
+    "destination",
+    "observatory"
+   ],
+   "ok": false,
+   "seconds": 1.363,
+   "audio_s": 3.17
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "navigate to Cape Town station",
+   "heard": "navigate to cape town station",
+   "intent": [
+    "destination",
+    "cape town station"
+   ],
+   "want": [
+    "destination",
+    "cape town station"
+   ],
+   "ok": true,
+   "seconds": 1.132,
+   "audio_s": 3.67
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "navigate to Cape Town station",
+   "heard": "navigate to cape town station",
+   "intent": [
+    "destination",
+    "cape town station"
+   ],
+   "want": [
+    "destination",
+    "cape town station"
+   ],
+   "ok": true,
+   "seconds": 1.181,
+   "audio_s": 3.67
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "navigate to Cape Town station",
+   "heard": "navigating a temptation",
+   "intent": null,
+   "want": [
+    "destination",
+    "cape town station"
+   ],
+   "ok": false,
+   "seconds": 1.545,
+   "audio_s": 3.67
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "clean",
+   "said": "destination Kirstenbosch",
+   "heard": "destination kyrstin bosh",
+   "intent": [
+    "destination",
+    "kirstenbosch"
+   ],
+   "want": [
+    "destination",
+    "kirstenbosch"
+   ],
+   "ok": true,
+   "seconds": 1.02,
+   "audio_s": 3.44
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr10",
+   "said": "destination Kirstenbosch",
+   "heard": "destination kyrstin bosh",
+   "intent": [
+    "destination",
+    "kirstenbosch"
+   ],
+   "want": [
+    "destination",
+    "kirstenbosch"
+   ],
+   "ok": true,
+   "seconds": 0.917,
+   "audio_s": 3.44
+  },
+  {
+   "voice": "Microsoft Zira Desktop",
+   "condition": "snr0",
+   "said": "destination Kirstenbosch",
+   "heard": "the information hear somebody",
+   "intent": null,
+   "want": [
+    "destination",
+    "kirstenbosch"
+   ],
+   "ok": false,
+   "seconds": 1.354,
+   "audio_s": 3.44
+  }
+ ],
+ "summary": {
+  "Microsoft David Desktop | clean": {
+   "n": 18,
+   "ok": 13,
+   "share_ok": 0.722,
+   "median_s": 0.802
+  },
+  "Microsoft David Desktop | snr10": {
+   "n": 18,
+   "ok": 13,
+   "share_ok": 0.722,
+   "median_s": 0.716
+  },
+  "Microsoft David Desktop | snr0": {
+   "n": 18,
+   "ok": 9,
+   "share_ok": 0.5,
+   "median_s": 0.748
+  },
+  "Microsoft Zira Desktop | clean": {
+   "n": 18,
+   "ok": 17,
+   "share_ok": 0.944,
+   "median_s": 0.938
+  },
+  "Microsoft Zira Desktop | snr10": {
+   "n": 18,
+   "ok": 14,
+   "share_ok": 0.778,
+   "median_s": 0.838
+  },
+  "Microsoft Zira Desktop | snr0": {
+   "n": 18,
+   "ok": 5,
+   "share_ok": 0.278,
+   "median_s": 0.9495
+  }
+ }
+}

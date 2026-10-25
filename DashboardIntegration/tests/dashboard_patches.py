@@ -59,6 +59,7 @@ COPIES = (
     ("sw7_analytics.py", "app/pages/sw7_analytics.py"),
     ("sw7_sim_link.py", "app/pages/sw7_sim_link.py"),
     ("sw7_voice_guide.py", "app/pages/sw7_voice_guide.py"),
+    ("sw7_voice_control.py", "app/pages/sw7_voice_control.py"),
     ("sw7_touch.py", "app/pages/sw7_touch.py"),
     ("sw7_page_swipe.py", "app/pages/sw7_page_swipe.py"),
     ("sw7_search.py", "app/pages/sw7_search.py"),
@@ -625,6 +626,8 @@ SIM_LINK_PATCHES = (
      "        _sw7_sim_connect(self)   # SW-7: each simulated-drive step refreshes the Driving page\n"
      "        from .sw7_voice_guide import install as _sw7_voice_guide\n"
      "        _sw7_voice_guide(self)   # SW-7: spoken turn-by-turn directions from the map's turn banner\n"
+     "        from .sw7_voice_control import install as _sw7_voice_control\n"
+     "        _sw7_voice_control(self)   # SW-7: voice commands (off unless TUKZIE_SW7_VOICE=1)\n"
      "        from .sw7_touch import enable_all as _sw7_touch_scroll\n"
      "        _sw7_touch_scroll(self)   # SW-7: finger-drag scrolling on Diagnostics, Charging and every list\n"
      "        from .sw7_page_swipe import install as _sw7_page_swipe\n"
