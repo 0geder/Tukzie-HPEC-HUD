@@ -85,3 +85,9 @@ Report: citation tukzie2026web (Introduction, first sentence).
 Source: ISO 15008:2003, first edition, read in the publisher's preview (standards.iteh.ai), 12 pages: Foreword, Introduction, Sections 1 to 4.2 and the start of 4.3. Copy: References/Papers/HMI/ISO_15008_2003_preview_iTeh.pdf (git-ignored: copyrighted).
 Checked: 4.3.1 minimum contrast ratio between symbol and background 5:1 night, 3:1 day, 2:1 sunlight. Cited (iso15008) in Section 6.5 for the contrast criterion.
 Not in the preview: 4.5 Alphanumerical character dimensions and Annex C, so the 20 and 16 arc-minute character heights are still cited through reimer2014typeface and you2021charsize, which are still to be downloaded and checked. The full standard (or ISO 15008:2017, or SANS 15008) is to be sought through UCT Libraries.
+
+## ISO 15008:2017 (25 Oct 2026)
+
+Source: DIN EN ISO 15008:2017-07, English translation (DIN, Beuth Verlag), the full 32-page document, which supersedes DIN EN ISO 15008:2011-06. Copy: References/Papers/HMI/DIN_EN_ISO_15008_2017_en.pdf (git-ignored: copyrighted).
+Checked: 4.5.2 Table 1, capital height as the angle subtended at the rearmost point of the cyclopean eyellipse: 20 arcmin recommended, 16 acceptable, 12 minimum (only where accuracy and speed of reading are modest). 4.3.2.1 minimum contrast ratio between symbol and background: 5:1 night, 3:1 twilight, 3:1 day, 2:1 direct sunlight.
+Report: the citation iso15008 now refers to the 2017 edition (Section 2.7 for character height, Section 6.5 for contrast). The 2003 preview gives the same contrast minimums for night, day and sunlight. Section 2.7 no longer cites you2021charsize (entry removed); reimer2014typeface stays for the typeface finding.
