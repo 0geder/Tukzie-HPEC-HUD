@@ -257,14 +257,16 @@ Consumer stall (\ref{sec:inv-stall}) & Modem or BLE work starving the consumers 
 
 \emph{Field evidence and consequence.} On 22 October, with v0.7.6 on the rear unit, IMU1's wires were taken off while it ran and replaced with shorter ones: an unplanned but real bus failure. The unit counted 17,080 read failures and 8,508 late slots, but drops stayed at 0, the consumers were 2 to 29\,ms old and both cores kept idling, so the stall did not recur. After reconnection the sensor came back in its power-on sleep state and returned the same reading every time (stuck count rising 200 a second, vibration 0.0) until the board was reset, because the firmware configured a sensor only at boot. That led to the automatic re-initialisation of v0.7.7 (Section~\ref{sec:imu-health}), confirmed on the bench on 22 October with v0.7.8: in four pulls of IMU1's supply wire the sensor was re-initialised each time with no reset and no drops (Section~\ref{sec:impl-health}). The lessons are that processing must not share a core with acquisition and that a lost sensor must be recovered without a reset. The soak test of v0.7.6 is reported in Section~\ref{sec:res-acq}.
 
-\subsection{GNSS polls unanswered during broker failures (open)}
+\subsection{GNSS polls starved during broker failures}
 \label{sec:inv-gnss-hang}
 
 \emph{Symptom.} On 24 October the rear node, off the vehicle with its antenna under open sky, held a 3D fix for 10 minutes (Section~\ref{sec:res-position}). Later that evening, while it was carried on a walk, every GNSS poll from 22:49:27 timed out (``poll timeout'' every 3\,s) instead of reporting a fix or no fix. Throughout, its MQTT reconnections to a broker that accepts only TLS failed (\texttt{CMQTTCONNECT} code 3) with backoff. After a reset over USB the modem answered again, but the receiver took about 50 minutes to report a fix, held it for about a minute and lost it.
 
 \emph{Candidate causes.} (a) The single modem task blocked by the failing broker exchanges, so that GNSS queries go unanswered; (b) the modem's GNSS engine stopped; (c) for the slow fix after the reset, a cold start with the antenna's sky view partly blocked while it was carried.
 
-\emph{Status.} Not yet decided: the timeouts continued between reconnection attempts, which (a) alone does not explain. The deciding test is to point the firmware at a broker that accepts plain MQTT and check whether GNSS polls continue through a forced broker failure. Until then the run-2 procedure powers the node outdoors at least 10 minutes before the first pass, with a fix confirmed, and the broker setting fixed first.
+\emph{Deciding evidence.} On 25 October, with the firmware pointed at the public broker, the connection still failed (\texttt{CMQTTCONNECT} codes 15 and 3, \texttt{CMQTTACCQ} errors, each attempt about 21\,s), and the assisted-GNSS download failed in the same way, while the same broker accepted the laptop in 0.4\,s; so the broker was not the cause, and the SIM's data connection is the likely one. The statistics lines showed the GNSS polled about once in 30\,s instead of every 3\,s while the reconnections ran, and the receiver fixed (14 satellites, HDOP 1.9) in a gap between two attempts: cause (a) is confirmed, the modem task's broker exchanges starve the GNSS polls.
+
+\emph{Status and fix.} Planned: a command to switch publishing off, so that a failed data connection cannot starve the GNSS, and a check of the SIM's data. Until then the run-2 procedure powers the node outdoors at least 10 minutes before the first pass, with a fix confirmed.
 
 \section{Diagnosis records}
 \label{sec:diagnoses}
