@@ -8,6 +8,16 @@ Date and venue are set by the student. The run does not go ahead until every ben
 
 Update 24 Oct: the lab part (phase L) was done on 23 Oct (stand runs, IMU calibration in the mounted position; `Planning/run2-remaining-2026-10-26.md`). The road part (phase V) is on Monday 26 Oct on campus, about 2 hours, and was redesigned so that the data support valid statistics: three marked sections where the venue allows, counterbalanced speeds, 5 to 6 passes per speed per section, coasting passes at matched speed, bins along each section as the ICC rows, pothole and bump results as descriptive counts, and block V5 with a cardboard or mannequin target only. The analysis package was changed to match (`BenchTest/analysis`, 24 Oct).
 
+## Changes of 25 Oct (lessons from the GPS tests of 24 to 25 Oct; these override the steps below where they differ)
+
+1. Rear node GPS. Rear node runs v0.7.9 with publishing OFF (`!mqtt off`, kept after restarts), because failing MQTT reconnects starved the GPS polls (Report Appendix E). Power the rear node outdoors at least 10 min before the first pass, antenna seated on the GNSS connector and facing the sky, and confirm a 3D fix (P15) before the road phase. Only if the SIM has been checked and has data: send `!mqtt on`, then do P14.
+2. Speed truth is the side video only. The phone's speed read zero in 251 of 716 fixes at walking pace, and the rear receiver reads up to 6.97 standing still. Every pass is timed on video between the section lines; no untimed passes. Phone and receiver speeds are compared against the video afterwards.
+3. Stand runs at a held setting. On 23 Oct the current ramped from 2.7 to 5.9 A within one run, and the vibration followed it (r 0.80), so the runs could not show repeatability. The driver reaches the setting, holds it for 10 s, and only then is the start marker typed; the setting is called out and typed in the marker; the wheel is filmed at 240 frames/s.
+4. Forward video. Phone 1 films forward on every pass and during V5, so detections can be checked against what was in view. Handled as decision D36: kept off git, faces and plates blurred before any copy is shown, only vehicles and objects labelled.
+5. BMS against the meter. Key off (3 readings) and 30 s into each stand run (D1); this is the only step that turns R5 from partly met into met.
+6. Dashboard speed. Before the road phase, check that the dash shows LIVE and a speed with the phone moving; the phone stays where it sees the sky. Deploy the speed fix first (phone speed kept when the Pi 4 drops out) if it is ready.
+7. Pi 4 supply. A stronger supply for the Pi 4 and the rear node on its own supply (Saturday's two restarts were under-voltage).
+
 ## 1. Bench gate (before the day)
 
 | Gate | Register items | Pass (summary; full criterion in the register) |

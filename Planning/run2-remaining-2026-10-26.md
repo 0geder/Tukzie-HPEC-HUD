@@ -25,7 +25,9 @@ placeholder text, not add to it.
 | 3 | Dashboard: take the phone's speed even when the rear unit's data is stale (a Pi 4 restart blanked the speedometer); redeploy, screenshot | Claude |
 | 4 | Recorders and raw capture wait for the clock sync at boot (files were named with the 22 Oct date) | Claude |
 | 5 | Rear ESP32 on its own supply, never the Pi 4's USB; Pi 4 on a stronger supply (EcoFlow if Dr Amayo agrees, or 5 V 3 A with a short thick cable) | Student |
-| 6 | Vehicle GNSS: antenna outside, flat, open sky; reseat the connector; else the spare | Student |
+| 6 | Vehicle GNSS: antenna outside, flat, open sky; reseat the connector; else the spare. Done 24 to 25 Oct: fixes with 23 to 35 satellites outdoors; v0.7.9 with publishing off so MQTT cannot starve the polls | Student, Claude |
+| 6a | ESP32 SIM: check its data balance (plug the node into the laptop and Claude queries the modem); `!mqtt on` only if it has data | Student |
+| 6b | Message Melo: does her database store tukzie/sw7/telemetry; can she send a count after Monday | Student |
 | 7 | Front ToF wires (Pi 5 pins 1, 3, 5, 6) and the rear left ToF | Student |
 | 8 | Upload the presubmission (Sunday's PDF) before Monday ends | Student |
 
