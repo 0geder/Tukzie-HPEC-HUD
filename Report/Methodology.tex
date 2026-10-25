@@ -11,7 +11,7 @@ This section serves all thirteen requirements, R1 and R7 in particular. Figure~\
 \begin{figure}[htbp]
 \centering
 \input{figures/tikz/system_architecture}
-\caption{The system as built on 23 October 2026: the Raspberry Pi~5 beside the display runs the dashboard, the front camera unit and the front node (a second ESP32-S3 with one IMU, Section~\ref{sec:front-node}); the Raspberry Pi~4 beside the battery runs the rear camera unit and reads the telemetry unit, now with one IMU; the two are joined by an Ethernet cable (Section~\ref{sec:two-sided}). A phone's GNSS gives speed (Section~\ref{sec:impl-phone-gps}). Programs are named by their files in the repository. Dashed outline: built but not yet connected on the vehicle.}
+\caption[The system as built on 23 October 2026: the Raspberry Pi~5 beside the display runs the dashboard, the front camera unit and the front node (a second ESP32-S3 with one IMU, Section~\ref{sec:front-node}); the Raspberry Pi~4 beside the battery runs the rear camera unit and reads the telemetry unit, now with one IMU; the two are joined by an Ethernet cable (Section~\ref{sec:two-sided})]{The system as built on 23 October 2026: the Raspberry Pi~5 beside the display runs the dashboard, the front camera unit and the front node (a second ESP32-S3 with one IMU, Section~\ref{sec:front-node}); the Raspberry Pi~4 beside the battery runs the rear camera unit and reads the telemetry unit, now with one IMU; the two are joined by an Ethernet cable (Section~\ref{sec:two-sided}). A phone's GNSS gives speed (Section~\ref{sec:impl-phone-gps}). Programs are named by their files in the repository. Dashed outline: built but not yet connected on the vehicle.}
 \label{fig:system-architecture}
 \end{figure}
 
@@ -20,7 +20,7 @@ Table~\ref{tab:architectures} compares the feasible architectures. The deciding 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Feasible architectures compared. Figures are measured in this project unless marked; power was measured only on the Raspberry Pi~5 (Table~\ref{tab:power-budget}).}
+\caption[Feasible architectures compared]{Feasible architectures compared. Figures are measured in this project unless marked; power was measured only on the Raspberry Pi~5 (Table~\ref{tab:power-budget}).}
 \label{tab:architectures}
 \begin{tabular}{|p{2.0cm}|p{2.9cm}|p{2.1cm}|p{1.7cm}|p{2.2cm}|p{2.1cm}|}
 \hline
@@ -35,7 +35,7 @@ Pi~5 with Hailo-8 accelerator (not tested) & Detector at camera rate expected & 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Design parameters and their derivation.}
+\caption[Design parameters and their derivation]{Design parameters and their derivation.}
 \label{tab:design-params}
 \begin{tabular}{|p{2.9cm}|p{2.9cm}|p{6.9cm}|p{1.2cm}|}
 \hline
@@ -92,7 +92,7 @@ samples on top of its normal fill. The IMU queues hold 100 samples, eleven times
 \begin{table}[htbp]
 \centering
 \small
-\caption{Supporting firmware mechanisms (details in the sections named).}
+\caption[Supporting firmware mechanisms (details in the sections named)]{Supporting firmware mechanisms (details in the sections named).}
 \label{tab:fw-mechanisms}
 \begin{tabular}{|p{2.6cm}|p{7.4cm}|p{4.2cm}|}
 \hline
@@ -171,7 +171,7 @@ with no GNSS. The timing error $\delta t$ (Table~\ref{tab:delay-budget}) sums to
 \begin{table}[htbp]
 \centering
 \small
-\caption{Timing error budget of the front-to-rear delay.}
+\caption[Timing error budget of the front-to-rear delay]{Timing error budget of the front-to-rear delay.}
 \label{tab:delay-budget}
 \begin{tabular}{|p{4.6cm}|p{3.4cm}|p{6.0cm}|}
 \hline
@@ -197,7 +197,7 @@ This section serves R4 and R5, and RQ1, RQ3 and RQ4. Table~\ref{tab:vehicle-inpu
 \begin{table}[htbp]
 \centering
 \small
-\caption{Vehicle inputs (details in the sections named).}
+\caption[Vehicle inputs (details in the sections named)]{Vehicle inputs (details in the sections named).}
 \label{tab:vehicle-inputs}
 \begin{tabular}{|p{2.4cm}|p{8.0cm}|p{3.8cm}|}
 \hline
@@ -243,7 +243,7 @@ The inherited PySide6 dashboard ran only on simulated data. A driver's display s
 \begin{table}[htbp]
 \centering
 \small
-\caption{Dashboard design against the display issues of Section~\ref{sec:lit-display}.}
+\caption[Dashboard design against the display issues of Section~\ref{sec:lit-display}]{Dashboard design against the display issues of Section~\ref{sec:lit-display}.}
 \label{tab:display-design}
 \begin{tabular}{|p{2.4cm}|p{11.8cm}|}
 \hline
@@ -282,7 +282,7 @@ Sensing is split by side. The Raspberry Pi~5 behind the dashboard runs the front
 \subfigure[Surroundings, Rear: mirrored, with a car approaching at 1.6\,s (test data).]{\includegraphics[width=0.48\textwidth]{figures/ui/ui_dualcam_rear_approaching.png}}
 \subfigure[On the Raspberry Pi~5 on 15 October: live front camera at 23.6\,frames/s, a rear warning in the banner.]{\includegraphics[width=0.48\textwidth]{figures/ui/ui_pi5_live_dualcam.png}}
 \subfigure[Front time-of-flight board on the Raspberry Pi~5: the same pins as on the Raspberry Pi~4.]{\includegraphics[width=0.48\textwidth]{figures/pi5_tof_wiring.png}}
-\caption{Two-sided layout: front sensing on the Raspberry Pi~5, rear sensing and the telemetry unit on the Raspberry Pi~4.}
+\caption[Two-sided layout: front sensing on the Raspberry Pi~5, rear sensing and the telemetry unit on the Raspberry Pi~4]{Two-sided layout: front sensing on the Raspberry Pi~5, rear sensing and the telemetry unit on the Raspberry Pi~4.}
 \label{fig:two-sided}
 \end{figure}
 
@@ -297,7 +297,7 @@ This section serves R9 and R10, and RQ3. Table~\ref{tab:comms-design} gives the 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Communications and logging design.}
+\caption[Communications and logging design]{Communications and logging design.}
 \label{tab:comms-design}
 \begin{tabular}{|p{2.6cm}|p{7.6cm}|p{4.0cm}|}
 \hline

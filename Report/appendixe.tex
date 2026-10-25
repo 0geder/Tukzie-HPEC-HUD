@@ -6,7 +6,7 @@ This appendix holds the firmware configuration, the record of development faults
 \begin{figure}[htbp]
 \centering
 \input{figures/tikz/timeline}
-\caption{Project timeline as run, 3 August to 21 October 2026, by week. Each bar spans the first and last dated record of an activity in the git history, \texttt{PROJECT\_LOG.md}, \texttt{CHANGELOG.md}, \texttt{Planning/lab-notebook.md} and the evidence index (Appendix~\ref{app:evidence}); short bars are single dated events. The numbers are the phases of Figure~\ref{fig:vmodel}. Blue: definition and building; green: bench checks and tests; amber: vehicle work; grey: analysis and writing.}
+\caption[Project timeline as run, 3 August to 21 October 2026, by week]{Project timeline as run, 3 August to 21 October 2026, by week. Each bar spans the first and last dated record of an activity in the git history, \texttt{PROJECT\_LOG.md}, \texttt{CHANGELOG.md}, \texttt{Planning/lab-notebook.md} and the evidence index (Appendix~\ref{app:evidence}); short bars are single dated events. The numbers are the phases of Figure~\ref{fig:vmodel}. Blue: definition and building; green: bench checks and tests; amber: vehicle work; grey: analysis and writing.}
 \label{fig:timeline}
 \end{figure}
 
@@ -15,7 +15,7 @@ This appendix holds the firmware configuration, the record of development faults
 Table~\ref{tab:config} gives the telemetry unit's configuration as committed for firmware v0.7.4, flashed on 11 October 2026 and used for test T15 and the first road session; Table~\ref{tab:fw-versions} gives the later changes. It is taken from \texttt{TelemetryUnit/\allowbreak{}platformio.ini} and \texttt{TelemetryUnit/\allowbreak{}src/\allowbreak{}main.cpp}; installed package versions are those in the PlatformIO folders on the development laptop, since \texttt{platformio.ini} does not pin them. Against v0.7.3, used for the bench results before 11 October, v0.7.4 changes the IMU low-pass filter from 260 to 94\,Hz and adds the record identity and the store-and-forward ledger (rows marked v0.7.4); tasks and queues are unchanged.
 
 \begin{longtable}{|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{9.8cm}|}
-\caption{Telemetry unit configuration (firmware v0.7.4).}
+\caption[Telemetry unit configuration (firmware v0.7.4)]{Telemetry unit configuration (firmware v0.7.4).}
 \label{tab:config}\\
 \hline
 \textbf{Item} & \textbf{Setting} \\ \hline
@@ -59,7 +59,7 @@ Table~\ref{tab:fw-versions} gives the changes after v0.7.4, from \texttt{Telemet
 
 {\small
 \begin{longtable}{|>{\raggedright\arraybackslash}p{1.5cm}|>{\raggedright\arraybackslash}p{8.6cm}|>{\raggedright\arraybackslash}p{3.6cm}|}
-\caption{Firmware changes after v0.7.4 and their status on 22 October 2026.}
+\caption[Firmware changes after v0.7.4 and their status on 22 October 2026]{Firmware changes after v0.7.4 and their status on 22 October 2026.}
 \label{tab:fw-versions}\\
 \hline
 \textbf{Version} & \textbf{Change} & \textbf{Status} \\ \hline
@@ -80,7 +80,7 @@ v0.7.8 & Command task: commands not using the modem, MQTT, flash log or ledger r
 Table~\ref{tab:faults} lists every fault found during development, with its cause and fix. Eight of them, which needed a diagnosis, are described step by step in Section~\ref{sec:investigations}.
 
 \begin{longtable}{|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{5.0cm}|>{\raggedright\arraybackslash}p{4.9cm}|}
-\caption{Development faults, causes and fixes.}
+\caption[Development faults, causes and fixes]{Development faults, causes and fixes.}
 \label{tab:faults}\\
 \hline
 \textbf{Symptom} & \textbf{Cause (how found)} & \textbf{Fix and lesson} \\ \hline
@@ -134,7 +134,7 @@ These are the eight faults of Table~\ref{tab:faults} that needed a diagnosis, be
 
 {\small
 \begin{longtable}{|>{\raggedright\arraybackslash}p{2.1cm}|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{4.3cm}|>{\raggedright\arraybackslash}p{3.7cm}|}
-\caption{Fault investigations: candidate causes, the test that separated them and the result.}
+\caption[Fault investigations: candidate causes, the test that separated them and the result]{Fault investigations: candidate causes, the test that separated them and the result.}
 \label{tab:investigations}\\
 \hline
 \textbf{Fault} & \textbf{Candidate cause} & \textbf{Test} & \textbf{Result} \\ \hline
@@ -302,7 +302,7 @@ The dashboard's resolver (\texttt{DashboardIntegration/\allowbreak{}sw7\_\allowb
 \begin{figure}[htbp]
 \centering
 \input{figures/tikz/pi4_discovery}
-\caption{How the dashboard finds the Raspberry Pi~4 (\texttt{DashboardIntegration/\allowbreak{}sw7\_\allowbreak{}endpoints.py}). The same resolver serves the camera page and the live-data provider.}
+\caption[How the dashboard finds the Raspberry Pi~4 (\texttt{DashboardIntegration/\allowbreak{}sw7\_\allowbreak{}endpoints.py})]{How the dashboard finds the Raspberry Pi~4 (\texttt{DashboardIntegration/\allowbreak{}sw7\_\allowbreak{}endpoints.py}). The same resolver serves the camera page and the live-data provider.}
 \label{fig:pi4-discovery}
 \end{figure}
 
@@ -312,7 +312,7 @@ With the NoIR tuning and saturation 1.8, printed cards held about 1\,m from the 
 
 \begin{table}[htbp]
 \centering
-\caption{Colour cards in the detector's frames with the NoIR tuning and saturation 1.8 (mean red, green and blue, 0 to 255; 1 October 2026, indoor light).}
+\caption[Colour cards in the detector's frames with the NoIR tuning and saturation 1.8 (mean red, green and blue, 0 to 255; 1 October 2026, indoor light)]{Colour cards in the detector's frames with the NoIR tuning and saturation 1.8 (mean red, green and blue, 0 to 255; 1 October 2026, indoor light).}
 \label{tab:colour-cards}
 \begin{tabular}{lrrr}
 \hline

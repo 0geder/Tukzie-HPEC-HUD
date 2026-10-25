@@ -8,28 +8,28 @@ This appendix records how every part of the system is connected, so that it can 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/pi4_gpio_header.png}
-\caption{Raspberry Pi~4 40-pin header, physical pin numbers and functions, from the project's reference sheet (\texttt{References/\allowbreak{}Hardware/\allowbreak{}Rasp Pi 4 pins.pdf}) \cite{raspberrypigpio}. Odd-numbered pins are on the inner row and even-numbered pins on the board edge.}
+\caption[Raspberry Pi~4 40-pin header, physical pin numbers and functions, from the project's reference sheet (\texttt{References/\allowbreak{}Hardware/\allowbreak{}Rasp Pi 4 pins.pdf}) \cite{raspberrypigpio}]{Raspberry Pi~4 40-pin header, physical pin numbers and functions, from the project's reference sheet (\texttt{References/\allowbreak{}Hardware/\allowbreak{}Rasp Pi 4 pins.pdf}) \cite{raspberrypigpio}. Odd-numbered pins are on the inner row and even-numbered pins on the board edge.}
 \label{fig:pi4-gpio}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/pi5_gpio_header.png}
-\caption{Raspberry Pi~5 40-pin header, physical pin numbers and functions. The Raspberry Pi~5 header is pin-compatible with the Raspberry Pi~4's (Figure~\ref{fig:pi4-gpio}) \cite{raspberrypigpio}. The coloured pins are the front unit's connections: the front time-of-flight board (3V3, SDA, SCL, GND and the three XSHUT lines on GPIO22, 23 and 24) and the front inertial node's sync pulse (ESP32 GPIO5 to GPIO17) and ground (Section~\ref{sec:front-node}).}
+\caption[Raspberry Pi~5 40-pin header, physical pin numbers and functions]{Raspberry Pi~5 40-pin header, physical pin numbers and functions. The Raspberry Pi~5 header is pin-compatible with the Raspberry Pi~4's (Figure~\ref{fig:pi4-gpio}) \cite{raspberrypigpio}. The coloured pins are the front unit's connections: the front time-of-flight board (3V3, SDA, SCL, GND and the three XSHUT lines on GPIO22, 23 and 24) and the front inertial node's sync pulse (ESP32 GPIO5 to GPIO17) and ground (Section~\ref{sec:front-node}).}
 \label{fig:pi5-gpio}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{figures/sensor_board_top.jpg}
-\caption{Sensor board (UCT micromouse ``JCP 2025 Sense v1.0'') used as the time-of-flight stand-in. The 2$\times$16 header J2 runs along the top edge; the silkscreen marks pins 1 and 2 at one end and 31 and 32 at the other, and the legend at the right names the signals (3V3, DA, CL, SH1 to SH3, 5V). The three VL53L0X sensor carriers sit on J4, J5 and J6, facing left, ahead and right.}
+\caption[Sensor board (UCT micromouse ``JCP 2025 Sense v1.0'') used as the time-of-flight stand-in]{Sensor board (UCT micromouse ``JCP 2025 Sense v1.0'') used as the time-of-flight stand-in. The 2$\times$16 header J2 runs along the top edge; the silkscreen marks pins 1 and 2 at one end and 31 and 32 at the other, and the legend at the right names the signals (3V3, DA, CL, SH1 to SH3, 5V). The three VL53L0X sensor carriers sit on J4, J5 and J6, facing left, ahead and right.}
 \label{fig:sensor-board}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/sen5x_pinout.png}
-\caption{Sensirion SEN5x interface connector and pin assignment, reproduced from the datasheet \cite{sensirionsen5x}. The mating plug is a JST GHR-06V-S (1.25\,mm pitch, six way).}
+\caption[Sensirion SEN5x interface connector and pin assignment, reproduced from the datasheet \cite{sensirionsen5x}]{Sensirion SEN5x interface connector and pin assignment, reproduced from the datasheet \cite{sensirionsen5x}. The mating plug is a JST GHR-06V-S (1.25\,mm pitch, six way).}
 \label{fig:sen5x-pinout}
 \end{figure}
 
@@ -41,7 +41,7 @@ The three VL53L0X sensors share one I\textsuperscript{2}C bus and all start at a
 
 \begin{table}[htbp]
 \centering
-\caption{Raspberry Pi 4 to sensor board J2 (Figures~\ref{fig:pi4-gpio} and~\ref{fig:sensor-board}).}
+\caption[Raspberry Pi 4 to sensor board J2 (Figures~\ref{fig:pi4-gpio} and~\ref{fig:sensor-board})]{Raspberry Pi 4 to sensor board J2 (Figures~\ref{fig:pi4-gpio} and~\ref{fig:sensor-board}).}
 \label{tab:wiring-tof}
 \begin{tabular}{|l|l|l|l|}
 \hline
@@ -63,7 +63,7 @@ If a cooling fan uses Pi pins 4 and 6, the sensor ground goes to pin 14. The sen
 
 \begin{table}[htbp]
 \centering
-\caption{ESP32-S3 board (rear node) to Raspberry Pi 4, from 21 October 2026.}
+\caption[ESP32-S3 board (rear node) to Raspberry Pi 4, from 21 October 2026]{ESP32-S3 board (rear node) to Raspberry Pi 4, from 21 October 2026.}
 \label{tab:wiring-esp-pi}
 \begin{tabular}{|p{3.6cm}|p{4.2cm}|p{4.2cm}|}
 \hline
@@ -86,7 +86,7 @@ From 22 October the second MPU6050 is on a separate ESP32-S3 board, the front no
 
 \begin{table}[htbp]
 \centering
-\caption{ESP32-S3 board to the two MPU6050 inertial sensors, as used up to 22 October 2026. Each sensor has its own I\textsuperscript{2}C bus, so both use address 0x68 (AD0 left low). From 22 October IMU2 is on the front node and the rear board has IMU1 only.}
+\caption[ESP32-S3 board to the two MPU6050 inertial sensors, as used up to 22 October 2026]{ESP32-S3 board to the two MPU6050 inertial sensors, as used up to 22 October 2026. Each sensor has its own I\textsuperscript{2}C bus, so both use address 0x68 (AD0 left low). From 22 October IMU2 is on the front node and the rear board has IMU1 only.}
 \label{tab:wiring-imu}
 \begin{tabular}{|l|l|l|}
 \hline
@@ -101,7 +101,7 @@ AD0, INT, XDA, XCL & not connected & not connected \\ \hline
 
 \begin{table}[htbp]
 \centering
-\caption{Other telemetry unit connections.}
+\caption[Other telemetry unit connections]{Other telemetry unit connections.}
 \label{tab:wiring-esp-other}
 \begin{tabular}{|p{3.4cm}|p{4.6cm}|p{4.6cm}|}
 \hline
@@ -116,7 +116,7 @@ Battery management system & Bluetooth Low Energy, no wire & board within about 1
 
 \begin{table}[htbp]
 \centering
-\caption{Sensirion SEN55 to the ESP32-S3 board as first planned (Figure~\ref{fig:sen5x-pinout}); its address, 0x69, does not clash with the MPU6050 at 0x68. The sensor came without its cable and was instead to share the Raspberry Pi~4's I\textsuperscript{2}C bus through wires soldered to its test pads. The supply pad lifted, and the sensor never answered at 0x69, so it is future work (Chapter~\ref{chap:recs}).}
+\caption[Sensirion SEN55 to the ESP32-S3 board as first planned (Figure~\ref{fig:sen5x-pinout}); its address, 0x69, does not clash with the MPU6050 at 0x68]{Sensirion SEN55 to the ESP32-S3 board as first planned (Figure~\ref{fig:sen5x-pinout}); its address, 0x69, does not clash with the MPU6050 at 0x68. The sensor came without its cable and was instead to share the Raspberry Pi~4's I\textsuperscript{2}C bus through wires soldered to its test pads. The supply pad lifted, and the sensor never answered at 0x69, so it is future work (Chapter~\ref{chap:recs}).}
 \label{tab:wiring-sen55}
 \begin{tabular}{|l|l|l|}
 \hline
@@ -135,7 +135,7 @@ Battery management system & Bluetooth Low Energy, no wire & board within about 1
 
 \begin{table}[htbp]
 \centering
-\caption{Remaining connections.}
+\caption[Remaining connections]{Remaining connections.}
 \label{tab:wiring-other}
 \begin{tabular}{|p{3.6cm}|p{4.4cm}|p{4.6cm}|}
 \hline
@@ -160,7 +160,7 @@ The routine checks that establish each interface before the higher-level tests a
 \begin{table}[htbp]
 \centering
 \small
-\caption{Start-up and interface checks (bench).}
+\caption[Start-up and interface checks (bench)]{Start-up and interface checks (bench).}
 \label{tab:startup-checks}
 \begin{tabular}{|p{3.4cm}|p{6.2cm}|p{4.4cm}|}
 \hline

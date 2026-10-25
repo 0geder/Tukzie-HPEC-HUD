@@ -11,7 +11,7 @@ Both IMUs held 200.0 to 200.5\,Hz with no dropped samples in every bench session
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/results/imu_write_gaps.pdf}
-\caption{Longest interval between consecutive IMU samples in each 2\,s statistics window, on the bench. (a) Firmware v0.5.0, 29 September, writing to flash every 10\,s; the grey band is the period with flash logging switched off (219.7 to 340.8\,s). (b) Firmware v0.6.0, 1 October, buffered logging; dashed lines mark the five flushes as logged by the firmware (71 to 202\,ms each). The firmware reports only the minimum, mean and maximum interval per window, so each point is one window maximum (212 windows per IMU in (a), 173 in (b)); times are when the host received the line. The dotted line is the nominal 5\,ms interval at 200\,Hz. No samples were dropped in either run.}
+\caption[Longest interval between consecutive IMU samples in each 2\,s statistics window, on the bench]{Longest interval between consecutive IMU samples in each 2\,s statistics window, on the bench. (a) Firmware v0.5.0, 29 September, writing to flash every 10\,s; the grey band is the period with flash logging switched off (219.7 to 340.8\,s). (b) Firmware v0.6.0, 1 October, buffered logging; dashed lines mark the five flushes as logged by the firmware (71 to 202\,ms each). The firmware reports only the minimum, mean and maximum interval per window, so each point is one window maximum (212 windows per IMU in (a), 173 in (b)); times are when the host received the line. The dotted line is the nominal 5\,ms interval at 200\,Hz. No samples were dropped in either run.}
 \label{fig:res-imu-gaps}
 \end{figure}
 
@@ -36,7 +36,7 @@ On the road session (Figure~\ref{fig:res-road}), with seconds labelled as drivin
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/results/road_session_1019.pdf}
-\caption{Road session on 19 October 2026, 17:15 to 18:50 local time (UTC+2), as recorded by the Raspberry Pi~5 from the rear unit (file \texttt{2026-10-19\_\allowbreak{}171534\_\allowbreak{}roadtest.jsonl}). Top: vibration value (standard deviation of the fused acceleration magnitude per 1\,s window). Bottom: battery current from the BMS, negative for discharge. The recorder polled twice a second and the bridge repeats the latest record, so the 10\,287 rear rows carrying a telemetry record were reduced to 3464 by keeping the first row for each sequence number. Lines break wherever a sequence number is missing (2093 of 5557, 37.7\,\%, including one gap of 407 records from 18:06:34 to 18:13:23). Green shading marks records with $|i|>1$\,A or vibration above 0.3\,m/s$^2$ (607 records, 605 with every field readable); the dashed line is the drive marker added from the laptop at 17:58:41.}
+\caption[Road session on 19 October 2026, 17:15 to 18:50 local time (UTC+2), as recorded by the Raspberry Pi~5 from the rear unit (file \texttt{2026-10-19\_\allowbreak{}171534\_\allowbreak{}roadtest.jsonl})]{Road session on 19 October 2026, 17:15 to 18:50 local time (UTC+2), as recorded by the Raspberry Pi~5 from the rear unit (file \texttt{2026-10-19\_\allowbreak{}171534\_\allowbreak{}roadtest.jsonl}). Top: vibration value (standard deviation of the fused acceleration magnitude per 1\,s window). Bottom: battery current from the BMS, negative for discharge. The recorder polled twice a second and the bridge repeats the latest record, so the 10\,287 rear rows carrying a telemetry record were reduced to 3464 by keeping the first row for each sequence number. Lines break wherever a sequence number is missing (2093 of 5557, 37.7\,\%, including one gap of 407 records from 18:06:34 to 18:13:23). Green shading marks records with $|i|>1$\,A or vibration above 0.3\,m/s$^2$ (607 records, 605 with every field readable); the dashed line is the drive marker added from the laptop at 17:58:41.}
 \label{fig:res-road}
 \end{figure}
 
@@ -48,7 +48,7 @@ The unit's own log of the session, read back on 22 October, holds the per-IMU fe
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/results/flashlog_run1.pdf}
-\caption{Run-1 flash log of the rear unit, boot 109, 19 to 20 October 2026 (\texttt{BenchTest/\allowbreak{}logs/\allowbreak{}flashlog\_\allowbreak{}2026-10-22/\allowbreak{}rear\_\allowbreak{}flash\_\allowbreak{}log\_\allowbreak{}dump.jsonl}). (a) $\sigma$ of each IMU in the latest 1\,s window of each record, log scale; (b) battery current; green shading spans the first to the last record with a current above 1\,A. (c) IMU1 against IMU2 $\sigma$ in the same window, dotted line equal; parked, driving, and low-current records within the drive. (d) Disagreement $D$ (Equation~\ref{eq:disagreement}), box at the quartiles, whiskers at the 5th and 95th percentiles. Records are 10 to 58\,s apart; lines break at missing records.}
+\caption[Run-1 flash log of the rear unit, boot 109, 19 to 20 October 2026 (\texttt{BenchTest/\allowbreak{}logs/\allowbreak{}flashlog\_\allowbreak{}2026-10-22/\allowbreak{}rear\_\allowbreak{}flash\_\allowbreak{}log\_\allowbreak{}dump.jsonl})]{Run-1 flash log of the rear unit, boot 109, 19 to 20 October 2026 (\texttt{BenchTest/\allowbreak{}logs/\allowbreak{}flashlog\_\allowbreak{}2026-10-22/\allowbreak{}rear\_\allowbreak{}flash\_\allowbreak{}log\_\allowbreak{}dump.jsonl}). (a) $\sigma$ of each IMU in the latest 1\,s window of each record, log scale; (b) battery current; green shading spans the first to the last record with a current above 1\,A. (c) IMU1 against IMU2 $\sigma$ in the same window, dotted line equal; parked, driving, and low-current records within the drive. (d) Disagreement $D$ (Equation~\ref{eq:disagreement}), box at the quartiles, whiskers at the 5th and 95th percentiles. Records are 10 to 58\,s apart; lines break at missing records.}
 \label{fig:res-flashlog}
 \end{figure}
 
@@ -57,7 +57,7 @@ The lab part of run 2 took place on 23 October with the drive wheel raised on st
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/results/stand_spectra_1023.pdf}
-\caption{Stand runs of 23 October 2026, drive wheel raised: Welch spectra of the acceleration magnitude (4\,s Hann segments, 50\,\% overlap, detrended, raw counts in m/s\textsuperscript{2} without the calibration factor) at rest (motor off, 15:58:00 to 16:07:30, 114,000 samples per node) and in the two runs, each trimmed by 5\,s at both ends. Windows cut from the raw captures by the Raspberry Pis' synchronised clocks; no sequence gaps. Mean battery current from the BMS in the legend. Script \texttt{BenchTest/\allowbreak{}analysis/\allowbreak{}stand\_spectra\_2026\_10\_23.py}; numbers in \texttt{BenchTest/\allowbreak{}logs/\allowbreak{}run2\_lab\_2026-10-23/\allowbreak{}stand\_spectra\_1023.json}.}
+\caption[Stand runs of 23 October 2026, drive wheel raised: Welch spectra of the acceleration magnitude (4\,s Hann segments, 50\,\% overlap, detrended, raw counts in m/s\textsuperscript{2} without the calibration factor) at rest (motor off, 15:58:00 to 16:07:30, 114,000 samples per node) and in the two runs, each trimmed by 5\,s at both ends]{Stand runs of 23 October 2026, drive wheel raised: Welch spectra of the acceleration magnitude (4\,s Hann segments, 50\,\% overlap, detrended, raw counts in m/s\textsuperscript{2} without the calibration factor) at rest (motor off, 15:58:00 to 16:07:30, 114,000 samples per node) and in the two runs, each trimmed by 5\,s at both ends. Windows cut from the raw captures by the Raspberry Pis' synchronised clocks; no sequence gaps. Mean battery current from the BMS in the legend. Script \texttt{BenchTest/\allowbreak{}analysis/\allowbreak{}stand\_spectra\_2026\_10\_23.py}; numbers in \texttt{BenchTest/\allowbreak{}logs/\allowbreak{}run2\_lab\_2026-10-23/\allowbreak{}stand\_spectra\_1023.json}.}
 \label{fig:res-stands}
 \end{figure}
 
@@ -85,7 +85,7 @@ On the Raspberry Pi~4, the rear unit, the detector alone ran at 19.5\,frames/s w
 
 \begin{table}[htbp]
 \centering
-\caption{Camera detector latency on the Raspberry Pi~4, the rear unit in the final layout (ms, median / 95th percentile; 60\,s per run, except the whole-system row, read from the service's timing lines).}
+\caption[Camera detector latency on the Raspberry Pi~4, the rear unit in the final layout (ms, median / 95th percentile; 60\,s per run, except the whole-system row, read from the service's timing lines)]{Camera detector latency on the Raspberry Pi~4, the rear unit in the final layout (ms, median / 95th percentile; 60\,s per run, except the whole-system row, read from the service's timing lines).}
 \label{tab:camera-latency}
 \small
 \begin{tabular}{lrrrrrr}
@@ -103,7 +103,7 @@ Whole system & 14.6--14.7 & 55--58 / - & - & 51--52 / - & - & 118--122 / 146--14
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/results/detector_latency.pdf}
-\caption{Detector latency from camera readout to detection result, per frame, for 60\,s runs of the TensorFlow Lite detector (\texttt{detect.tflite}, 300$\times$300 input, 640$\times$480 camera stream). (a) Cumulative distribution; (b) box plots with the box at the quartiles, whiskers at the 5th and 95th percentiles and dots beyond them. Pi~4 runs on 30 September: four threads (1161 frames, 19.5 frames/s), four threads with the live view open in the Pi's browser (1031 frames, 17.3 frames/s), one thread (419 frames, 7.0 frames/s). Pi~5 run on 15 October: four threads with the live-view server running (1151 frames, 19.2 frames/s). Data from the detector's per-frame timing CSV files.}
+\caption[Detector latency from camera readout to detection result, per frame, for 60\,s runs of the TensorFlow Lite detector (\texttt{detect.tflite}, 300$\times$300 input, 640$\times$480 camera stream)]{Detector latency from camera readout to detection result, per frame, for 60\,s runs of the TensorFlow Lite detector (\texttt{detect.tflite}, 300$\times$300 input, 640$\times$480 camera stream). (a) Cumulative distribution; (b) box plots with the box at the quartiles, whiskers at the 5th and 95th percentiles and dots beyond them. Pi~4 runs on 30 September: four threads (1161 frames, 19.5 frames/s), four threads with the live view open in the Pi's browser (1031 frames, 17.3 frames/s), one thread (419 frames, 7.0 frames/s). Pi~5 run on 15 October: four threads with the live-view server running (1151 frames, 19.2 frames/s). Data from the detector's per-frame timing CSV files.}
 \label{fig:res-latency}
 \end{figure}
 
@@ -117,7 +117,7 @@ The unit published 47 times with no failures, detected a radio loss within 0.8\,
 
 \begin{table}[htbp]
 \centering
-\caption{Store-and-forward to the database after a 10-minute outage (test T15, firmware v0.7.4, bench).}
+\caption[Store-and-forward to the database after a 10-minute outage (test T15, firmware v0.7.4, bench)]{Store-and-forward to the database after a 10-minute outage (test T15, firmware v0.7.4, bench).}
 \label{tab:res-sync}
 \begin{tabular}{|p{6.2cm}|p{7.6cm}|}
 \hline
@@ -135,7 +135,7 @@ End-to-end latency & Not measured (no GNSS time indoors) \\ \hline
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/results/t15_outage_backlog.pdf}
-\caption{Store-and-forward outage test T15 on the bench, 11 October, firmware v0.7.4. The radio was turned off with \texttt{AT+CFUN=4} at 63.4\,s and back on with \texttt{AT+CFUN=1} at 663.7\,s (grey band); the board was not reset. Points are the device's own counters from the 21 \texttt{!sync} status lines in the capture: records stored on the device and not yet acknowledged (backlog), and records replayed and acknowledged since the outage began. Dashed lines mark the MQTT reconnection (669.0\,s) and the firmware's ``backlog cleared'' message (706.9\,s). The server's per-record receive times were not exported for this run, so the figure uses the device counters; the server-side totals are in the text.}
+\caption[Store-and-forward outage test T15 on the bench, 11 October, firmware v0.7.4]{Store-and-forward outage test T15 on the bench, 11 October, firmware v0.7.4. The radio was turned off with \texttt{AT+CFUN=4} at 63.4\,s and back on with \texttt{AT+CFUN=1} at 663.7\,s (grey band); the board was not reset. Points are the device's own counters from the 21 \texttt{!sync} status lines in the capture: records stored on the device and not yet acknowledged (backlog), and records replayed and acknowledged since the outage began. Dashed lines mark the MQTT reconnection (669.0\,s) and the firmware's ``backlog cleared'' message (706.9\,s). The server's per-record receive times were not exported for this run, so the figure uses the device counters; the server-side totals are in the text.}
 \label{fig:res-t15}
 \end{figure}
 
@@ -163,7 +163,7 @@ On 23 October, in the lab, both nodes, both detectors (front 23.8, rear 14.3\,fr
 \begin{table}[htbp]
 \centering
 \small
-\caption{Status of each requirement at the time of writing (bench unless stated).}
+\caption[Status of each requirement at the time of writing (bench unless stated)]{Status of each requirement at the time of writing (bench unless stated).}
 \label{tab:results-summary}
 \begin{tabular}{|p{0.8cm}|p{7.6cm}|p{5.4cm}|}
 \hline

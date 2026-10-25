@@ -40,7 +40,7 @@ Each camera unit carries an OV5647 camera module without an infrared-cut filter 
   \draw[lead] (gps.west) -- (0.745,0.20); \node[pin] at (0.745,0.20) {};
 \end{scope}
 \end{tikzpicture}
-\caption{Bench setup of the telemetry system before the two-sided layout, each component labelled by its role. At this stage the Raspberry Pi~4 carried the only camera; in the final layout it is the rear unit and the Raspberry Pi~5 carries the front camera (Figure~\ref{fig:two-sided}).}
+\caption[Bench setup of the telemetry system before the two-sided layout, each component labelled by its role]{Bench setup of the telemetry system before the two-sided layout, each component labelled by its role. At this stage the Raspberry Pi~4 carried the only camera; in the final layout it is the rear unit and the Raspberry Pi~5 carries the front camera (Figure~\ref{fig:two-sided}).}
 \label{fig:bench-setup}
 \end{figure}
 
@@ -52,7 +52,7 @@ The firmware is written with PlatformIO and the Arduino framework on FreeRTOS (T
 \begin{figure}[htbp]
 \centering
 \input{figures/tikz/firmware_tasks}
-\caption{FreeRTOS tasks and queues as drawn for firmware v0.7.1 and unchanged to v0.7.4.1. Priorities as set in the firmware (higher runs first); each queue is labelled with its name and capacity in items. Queues between the two cores are drawn in blue. Later changes, not drawn: the raw-stream sender (v0.7.5), the statistics and ride tasks moved to core~0 at priority~2 (v0.7.6), the command task (v0.7.8), and IMU2 and its ride task off in the rear build (v0.7.7).}
+\caption[FreeRTOS tasks and queues as drawn for firmware v0.7.1 and unchanged to v0.7.4.1]{FreeRTOS tasks and queues as drawn for firmware v0.7.1 and unchanged to v0.7.4.1. Priorities as set in the firmware (higher runs first); each queue is labelled with its name and capacity in items. Queues between the two cores are drawn in blue. Later changes, not drawn: the raw-stream sender (v0.7.5), the statistics and ride tasks moved to core~0 at priority~2 (v0.7.6), the command task (v0.7.8), and IMU2 and its ride task off in the rear build (v0.7.7).}
 \label{fig:task-architecture}
 \end{figure}
 
@@ -173,7 +173,7 @@ The camera says what an object is and in which direction, but its distance is un
 \begin{figure}[htbp]
 \centering
 \input{figures/tikz/fusion_geometry}
-\caption{Camera and time-of-flight geometry used by the fusion on each camera unit, top view to scale, the unit's viewing direction up. The values are the first configuration defaults ($\pm 35$\textdegree\ side sensors), not calibrated; the side sensors were later set to $\pm 90$\textdegree\ (Section~\ref{sec:two-sided}). A detection is matched to a sensor when its bearing lies within that sensor's cone widened by the 5\textdegree\ gate.}
+\caption[Camera and time-of-flight geometry used by the fusion on each camera unit, top view to scale, the unit's viewing direction up]{Camera and time-of-flight geometry used by the fusion on each camera unit, top view to scale, the unit's viewing direction up. The values are the first configuration defaults ($\pm 35$\textdegree\ side sensors), not calibrated; the side sensors were later set to $\pm 90$\textdegree\ (Section~\ref{sec:two-sided}). A detection is matched to a sensor when its bearing lies within that sensor's cone widened by the 5\textdegree\ gate.}
 \label{fig:fusion-geometry}
 \end{figure}
 
