@@ -18,6 +18,24 @@ Update 24 Oct: the lab part (phase L) was done on 23 Oct (stand runs, IMU calibr
 6. Dashboard speed. Before the road phase, check that the dash shows LIVE and a speed with the phone moving; the phone stays where it sees the sky. Deploy the speed fix first (phone speed kept when the Pi 4 drops out) if it is ready.
 7. Pi 4 supply. A stronger supply for the Pi 4 and the rear node on its own supply (Saturday's two restarts were under-voltage).
 
+## Phase S: stationary checks on the vehicle, Monday before driving (added 25 Oct)
+
+The Sunday bench checks (Planning/bench-validation-2026-10-25.md) move to Monday, because the units stay installed on the vehicle to save the set-up time. Run them parked, 72 V off unless stated, in this order; cut from the bottom if time runs short. Nobody is a subject: a chair and boxes are the targets.
+
+| Order | Check | Requirement | Steps (short) | Marker | Time |
+|---|---|---|---|---|---|
+| S1 | Eye-to-screen distance | R12 | Seated eye to panel, 3 readings | `R2 NOTE eye <m> <m> <m>` | 2 min |
+| S2 | BMS against the meter, key off | R5 | Meter on the pack terminals, 3 readings 30 s apart | `R2 BMS keyoff m1 V=<v>` (m2, m3) | 5 min |
+| S3 | C9, camera and ToF fusion, front | R8 | Chair on the camera axis at 0.5 m and 1.0 m from the sensor plane, 20 s each, nobody in view | `R2 C9 front 0.5 start/end`, `R2 C9 front 1.0 start/end` | 10 min |
+| S4 | C7, ToF against a tape, front | R8 | Flat box face square to each sensor at 0.3, 0.5, 0.75, 1.0 m | `R2 C7 front <sensor> <m> start/end` | 15 min |
+| S5 | C8, alert to screen | R7 | Phone at 240 frames/s films the chair pulled into the camera view and the dashboard together, 5 pulls | `R2 C8 p1 start` (p1 to p5) | 10 min |
+| S6 | C5, focal length | R7, R8 | The three objects at 1, 2 and 3 m in front of each camera; real widths measured with the tape | `R2 C5 <object> <m>` | 15 min |
+| S7 | C11, approaching chair | R7 | Chair pulled towards the front camera from 6 m at walking pace, tape marks every metre, side phone filming, 5 pulls | `R2 C11 p1 start/end` (p1 to p5) | 15 min |
+| S8 | Rear: C9 and C7 again on the rear unit | R8 | As S3 and S4 behind the vehicle | as above with `rear` | 15 min |
+| S9 | LED camera-to-IMU offset | R6 | Only if time allows (needs an LED wired to a sync pin) | `R2 LED <side> start/end` | 25 min |
+
+Minimum if time is short: S1, S2, S3, S5 (about 30 min). They close the "not measured" items that cost the most marks: the fused distance, the delay to the screen, the meter check and the eye distance.
+
 ## 1. Bench gate (before the day)
 
 | Gate | Register items | Pass (summary; full criterion in the register) |
