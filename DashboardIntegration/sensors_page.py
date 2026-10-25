@@ -15,11 +15,6 @@ HazardBanner sits over the top of DashboardMain on every page:
   - amber when the Pi 4 bridge was reachable and has been lost for 5 s.
 Tapping it opens the Sensors page; "Hide 30 s" snoozes it. It is not shown
 while the Sensors page itself is on screen.
-In the paper style its text is S.ALERT (35 px, 24.4 px capitals, ISO 15008's
-20 arc minutes at 0.70 m; 24 Oct 2026, BenchTest/legibility_check.py): the
-pill fills the status bar's height and grows left over the bar's own items
-(weather, source chip, battery) while it shows, never below the bar, so no
-page content is covered. A text too long for the bar is cut with "...".
 
 Feed both from LiveDataProvider.telemetry_updated (raw /telemetry dict, or
 None when the bridge is unreachable). QtWidgets only, colours from THEME.
@@ -50,7 +45,6 @@ TOF_WARN_M = 1.0
 TOF_CRIT_M = 0.5
 LINK_LOST_S = 5.0        # banner warns once a live link has been gone this long
 SNOOZE_S = 30.0
-PAPER_CLOCK_W = 110      # paper style: the clock's room at the right of the status bar, left free by the pill
 WATCHDOG_MS = 3000
 
 BAND_STATUS = {"immediate": "crit", "warning": "warn", "monitoring": "normal"}
@@ -573,32 +567,12 @@ class HazardBanner(QFrame):
         pw = parent.width()
         bar = getattr(parent, "status", None)
         bar_h = bar.height() if bar is not None and bar.height() > 0 else 38
-        if getattr(self, "_paper", None) is not None:
-            # Paper style, 35 px text: the bar's full height less 2 px each side, as wide as the text needs up to the
-            # bar's left end, right-aligned against the clock as before.
-            h = max(24, bar_h - 4)
-            w = min(self._paper_max_w(), max(200, self.sizeHint().width()))
-            self.setGeometry(int(pw - PAPER_CLOCK_W - w), int((bar_h - h) / 2), int(w), int(h))
-            return
         from os import environ
         layout = environ.get("TUKZIE_SW7_LAYOUT", "1").strip() != "0"
         h = max(24, min(40, bar_h - 8)) if layout else max(24, min(32, bar_h - 6))   # 40 px in the 48 px bar
         w = min(460, max(200, self.sizeHint().width()))
         clock_w = 110 if layout else 190   # the layout pass shows the clock alone, the earlier bar date and clock
         self.setGeometry(int(max(8, pw - clock_w - w)), int((bar_h - h) / 2), int(w), int(h))
-
-    def _paper_max_w(self):
-        return max(200, self.parent().width() - PAPER_CLOCK_W - 8)
-
-    def _paper_text(self, text):
-        """text, cut with "..." if the pill would not fit in the status bar at its full width."""
-        from PySide6.QtGui import QFontMetricsF
-        m = self.layout().contentsMargins()
-        other = (m.left() + m.right() + self.dot.width() + self.hide_btn.sizeHint().width()
-                 + 2 * self.layout().spacing() + 24)          # 24: the button's own frame and a little air
-        room = self._paper_max_w() - other
-        fm = QFontMetricsF(self.text.font())
-        return text if fm.horizontalAdvance(text) <= room else fm.elidedText(text, Qt.TextElideMode.ElideRight, room)
 
     def set_telemetry(self, telemetry):
         link, _ = format_telemetry(telemetry)
@@ -620,20 +594,17 @@ class HazardBanner(QFrame):
 
     def sw7_paper(self):
         """Paper and depth style (sw7_style, called by the frame): a charcoal pill with a status dot and white text;
-        Hide is the only signal-coloured thing in it. The text is S.ALERT (35 px) and the pill as tall as the status
-        bar allows (44 px in the 48 px bar), as wide as its text needs (24 Oct 2026; was 13 px text in a pill of at
-        most 460 x 40 px)."""
-        from PySide6.QtWidgets import QLabel, QSizePolicy
+        Hide is the only signal-coloured thing in it. Position and size stay as in the layout pass."""
+        from PySide6.QtWidgets import QLabel
         from ..widgets import sw7_style as S
         self._paper = S
-        self.dot = QLabel(self); self.dot.setFixedSize(16, 16)
+        self.dot = QLabel(self); self.dot.setFixedSize(12, 12)
         self.dot.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.layout().insertWidget(0, self.dot)
-        self.layout().setContentsMargins(16, 0, 4, 0); self.layout().setSpacing(12)
-        self.text.setFont(S.font(S.ALERT, QFont.Weight.Bold, caps=True))
-        self.text.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Ignored)   # the pill sets the height
-        self.hide_btn.setFont(S.font(S.BODY, QFont.Weight.Bold))
-        self.hide_btn.setFixedHeight(36); self.hide_btn.setObjectName("hide")
+        self.layout().setContentsMargins(16, 0, 6, 0); self.layout().setSpacing(10)
+        self.text.setFont(S.font(S.LABEL, QFont.Weight.Bold, caps=True))
+        self.hide_btn.setFont(S.font(S.LABEL, QFont.Weight.Bold))
+        self.hide_btn.setFixedHeight(28); self.hide_btn.setObjectName("hide")
         S.mark_exempt(self.text, "the alert text opens Sensors; the brief keeps the pill charcoal with Hide as its control")
         S.elevate(self, 1)
         THEME.changed.connect(self._refresh)
@@ -651,9 +622,9 @@ class HazardBanner(QFrame):
                                f" QPushButton#hide {{ background: {S.hx('signal')}; color: {S.hx('card')};"
                                f" border-radius: {S.RADIUS_SM}px; padding: 0px 14px; }}"
                                f" QPushButton#hide:pressed {{ background: {S.hx('signal_pressed')}; }}")
-            self.dot.setStyleSheet(f"background: {S.hx('critical' if status == 'crit' else 'warn')}; border-radius: 8px;")
+            self.dot.setStyleSheet(f"background: {S.hx('critical' if status == 'crit' else 'warn')}; border-radius: 6px;")
             self.hide_btn.setObjectName("hide")
-            self.text.setText(self._paper_text(text))
+            self.text.setText(text)
             self._place(); self.show(); self.raise_()
             return
         if show:

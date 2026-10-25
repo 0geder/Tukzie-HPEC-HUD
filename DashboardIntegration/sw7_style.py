@@ -25,7 +25,6 @@ API for the page agents (everything else in this file is the frame and can be ig
   Type (bundled IBM Plex Sans and IBM Plex Mono, SIL OFL; Atkinson Hyperlegible stays as the fallback; sizes in px)
     S.HERO (150), S.HERO_MIN 120, S.HERO_MAX 180: the page's one hero value
     S.SECONDARY 22 (at most 3 per page), S.BODY 16, S.LABEL 13 (labels, units, caps section labels in ink_2)
-    S.ALERT 35 (the hazard banner) and S.DISTANCE 28 (obstacle distances): safety text sized by visual angle at 0.70 m
     S.font(px, weight=QFont.Weight.Normal, caps=False)  -> QFont in Plex Sans (the interface). Bold and Black map to
                            SemiBold (the heaviest weight bundled, never a synthetic bold); caps=True adds a little
                            letter spacing for the few caps section labels.
@@ -33,7 +32,7 @@ API for the page agents (everything else in this file is the frame and can be ig
                            timestamps. Both fonts have tabular figures, so digits never shift when a value changes.
     S.value_font(label, px, weight)  sets Mono on a value label when its text is a figure ("12.3 V", "--") and Sans
                            when it is a word ("Unavailable", "Yes"), so an unavailable value never looks like a number.
-    S.type_audit(root) -> [(widget, px)] for visible text widgets outside {13, 16, 22, 35, 120..180}
+    S.type_audit(root) -> [(widget, px)] for visible text widgets outside {13, 16, 22, 120..180}
 
   Surfaces (the refinement of 12 Oct: restrained, Planning/ui-theme-refinement-prompt.md)
     Back plane:   three planes (Planning/three-planes-hero-prompt.md). S.set_plane(page, S.Plane(word, word_box,
@@ -109,10 +108,6 @@ SPACE = (4, 8, 12, 16, 24, 32)   # the spacing scale
 HERO_MIN, HERO, HERO_MAX = 120, 150, 180
 SECONDARY, BODY, LABEL = 22, 16, 13
 TEXT_SIZES = (LABEL, BODY, SECONDARY)
-# Safety text sized by visual angle (24 Oct 2026; panel 0.170 mm/px, eye 0.70 m, BenchTest/legibility_check.py):
-# ISO 15008 recommends 20 arc min (24.0 px capitals) and accepts 16 (19.2 px). Plex capitals are 0.698 of the size.
-ALERT = 35                  # the hazard banner: 24.4 px capitals, 20.4 arc min
-DISTANCE = 28               # obstacle distances (Drive's Around tile, the Surroundings figure): 19.5 px, 16.3 arc min
 SANS, MONO = "IBM Plex Sans", "IBM Plex Mono"
 FALLBACK = "Atkinson Hyperlegible"
 HERO_FACE = "Archivo Black"  # the back-plane word only: heavy and wide (a full-width word stays short enough to sit
@@ -295,7 +290,7 @@ def type_audit(root):
         if not hasattr(w, "text") or not w.isVisibleTo(root.window()) or not w.isVisible() or not str(w.text()).strip():
             continue
         px = text_px(w)
-        if px not in TEXT_SIZES and px != ALERT and not (HERO_MIN <= px <= HERO_MAX):
+        if px not in TEXT_SIZES and not (HERO_MIN <= px <= HERO_MAX):
             out.append((w, px))
     return out
 

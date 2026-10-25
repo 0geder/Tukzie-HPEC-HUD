@@ -846,9 +846,7 @@ class NextTurnTile(GlanceTile):
 
 class AroundTile(GlanceTile):
     """Around: the tuk-tuk from above with the left, ahead and right ToF distances placed at their sensors (like the
-    tyre pressures in inspo_sports_car_tiles.jpg), each with a small status dot, and the nearest hazard.
-    The figures are S.DISTANCE (28 px Mono, 19.5 px capitals, ISO 15008's acceptable 16 arc min at 0.70 m) with the
-    unit at 16 px, so they stay clear of the sensor arcs (24 Oct 2026; were 16 px, 11.2 px capitals)."""
+    tyre pressures in inspo_sports_car_tiles.jpg), each with a small status dot, and the nearest hazard."""
 
     SIDES = ("left", "ahead", "right")
 
@@ -908,12 +906,9 @@ class AroundTile(GlanceTile):
         W = float(self.width())
         cx, cy = W / 2.0, 214.0
         self._tuk(p, cx, cy)
-        # box: the figure's row (34 px) above the word's row (18 px); the words sit where they were before 24 Oct
-        pos = {"ahead": (QRectF(cx - 80, 58, 160, 52), QPointF(cx, cy - 82), QPointF(cx, 116)),
-               "left": (QRectF(20, cy - 46, 118, 52), QPointF(cx - 44, cy - 22), QPointF(112, cy - 12)),
-               "right": (QRectF(W - 138, cy - 46, 118, 52), QPointF(cx + 44, cy - 22), QPointF(W - 112, cy - 12))}
-        fig, unit = S.mono(S.DISTANCE, QFont.Weight.Medium), S.mono(S.BODY, QFont.Weight.Medium)
-        ffm, ufm = QFontMetricsF(fig), QFontMetricsF(unit)
+        pos = {"ahead": (QRectF(cx - 70, 70, 140, 44), QPointF(cx, cy - 82), QPointF(cx, 116)),
+               "left": (QRectF(20, cy - 34, 118, 44), QPointF(cx - 44, cy - 22), QPointF(112, cy - 12)),
+               "right": (QRectF(W - 138, cy - 34, 118, 44), QPointF(cx + 44, cy - 22), QPointF(W - 112, cy - 12))}
         for side in self.SIDES:
             box, at_car, at_text = pos[side]
             m = self.metres.get(side)
@@ -926,28 +921,25 @@ class AroundTile(GlanceTile):
                 rr = QRectF(cx - 60, cy - 100, 120, 120) if side == "ahead" else QRectF(cx - 70, cy - 70, 140, 140)
                 start = {"ahead": 70, "left": 160, "right": -20}[side]
                 p.drawArc(rr, start * 16, 40 * 16)
-            text = "--" if m is None else f"{m:.2f}"
+            text = "--" if m is None else f"{m:.2f} m"
             align = {"ahead": Qt.AlignmentFlag.AlignHCenter, "left": Qt.AlignmentFlag.AlignLeft,
                      "right": Qt.AlignmentFlag.AlignRight}[side]
-            nw = ffm.horizontalAdvance(text)
-            tw = nw + (4 + ufm.horizontalAdvance("m") if m is not None else 0)
-            x0 = {"ahead": box.center().x() - tw / 2, "left": box.left(), "right": box.right() - tw}[side]
-            base = box.top() + (34 + ffm.capHeight()) / 2           # capitals centred in the 34 px row
-            p.setPen(S.c("ink" if m is not None else "ink_3")); p.setFont(fig)
-            p.drawText(QPointF(x0, base), text)
-            if m is not None:                              # the unit small, on the same baseline
-                p.setFont(unit); p.drawText(QPointF(x0 + nw + 4, base), "m")
+            f = S.mono(S.BODY, QFont.Weight.Medium)
+            tw = QFontMetricsF(f).horizontalAdvance(text)
+            p.setPen(S.c("ink" if m is not None else "ink_3")); p.setFont(f)
+            p.drawText(QRectF(box.left(), box.top(), box.width(), 22), align | Qt.AlignmentFlag.AlignVCenter, text)
             # the side and, with a reading, its band in words (never by colour alone)
             word = {None: "no reading", "critical": "very close", "warn": "close", "ok": "clear"}[status]
-            self._text(p, QRectF(box.left() - (20 if side == "ahead" else 0), box.top() + 34,
+            self._text(p, QRectF(box.left() - (20 if side == "ahead" else 0), box.top() + 22,
                                  box.width() + (40 if side == "ahead" else 0), 18),
                        f"{side.capitalize()} · {word}", S.LABEL, "ink_2", QFont.Weight.Medium,
                        align | Qt.AlignmentFlag.AlignVCenter)
             if status is not None:                         # status dot beside the number
-                x = {"ahead": x0 + tw + 10, "left": x0 + tw + 8, "right": x0 - 8}[side]
+                x = {"ahead": box.center().x() + tw / 2 + 10, "left": box.left() + tw + 10,
+                     "right": box.right() - tw - 10}[side]
                 p.setPen(Qt.PenStyle.NoPen)
                 p.setBrush(S.c(status))
-                p.drawEllipse(QPointF(x, base - ffm.capHeight() / 2), 4.5, 4.5)
+                p.drawEllipse(QPointF(x, box.top() + 11), 4.5, 4.5)
         p.setPen(QPen(S.c("hairline"), 1))
         p.drawLine(QPointF(24, 308), QPointF(W - 24, 308))
         if not self.has_data:
