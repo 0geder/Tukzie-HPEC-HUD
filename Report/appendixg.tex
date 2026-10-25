@@ -132,21 +132,23 @@ Figures~\ref{fig:ui-drive} to~\ref{fig:ui-pages-b} show the deployed pages, and 
 
 The vehicle has no gear signal and the driver should not have to look and tap, so the dashboard can also take spoken commands (\texttt{DashboardIntegration/\allowbreak{}sw7\_voice\_control.py}, switched on with \texttt{TUKZIE\_SW7\_VOICE=1}, not yet deployed). They change only what is shown; nothing controls the vehicle:
 \begin{itemize}
-\item ``home'' shows Driving, ``map'' the map;
+\item ``home'' or ``drive'' shows Driving, ``map'' the map, and every other page by its name (analytics, diagnostics, charging, settings, surroundings);
 \item ``reverse'' or ``rear camera'' shows the rear side of Surroundings, and ``front camera'' the front;
 \item since there is no gear signal, the Driving page returns by itself after 45\,s on the rear view, or once the speed has stayed at 8\,km/h or more for 3\,s, or on ``done'';
-\item ``map destination Rondebosch'' (or ``go to'', ``take me to'') searches the place, reads out the first three options, and takes ``first'', ``second'' or ``third'' as the destination.
+\item ``map destination Rondebosch'' (or ``go to'', ``take me to'') searches the place, reads out the first three options, and takes ``first'', ``second'' or ``third'' as the destination;
+\item ``hello'' is answered with ``Where are we headed today?'', and the next phrase is taken as the destination; ``weather'', ``alerts'' and ``battery level'' are answered from the dashboard's own weather report, hazard banner and battery record.
 \end{itemize}
-Recognition is offline (Vosk, a small English model), so it works without coverage, and audio is processed in memory and never stored. Each action is confirmed through the team's voice output. A heard place name close in spelling to a known Cape Town place is corrected before the search, because the model hears ``Rondebosch'' as ``round bosh''. The offscreen test passes all of these steps, including the automatic return and the choice of the second option against a stand-in search service.
+This is a fixed set of commands, not a conversational model: every answer comes from the dashboard's own data, which keeps it predictable while driving.
+Recognition is offline (Vosk, a small English model), so it works without coverage, and audio is processed in memory and never stored. Each action is confirmed through the team's voice output. A heard place name close in spelling to a known Cape Town place or UCT building is corrected before the search, because the model hears ``Rondebosch'' as ``round bosh''. Each phrase goes to two recognisers at once, one that knows only the commands and one free one for place names, and the dashboard acts on the command unless the free one heard a destination. The offscreen test passes all of these steps, including the automatic return and the choice of the second option against a stand-in search service.
 
 On the bench, 18 commands spoken by the two Windows synthetic voices (so no person was recorded) were recognised and parsed (\texttt{BenchTest/\allowbreak{}voice\_recognition\_check.py}, output in \texttt{BenchTest/\allowbreak{}logs/\allowbreak{}voice\_2026-10-25}):
 \begin{itemize}
-\item clean: 17 and 13 of 18 understood;
-\item with white noise at 10\,dB signal-to-noise ratio: 14 and 13;
-\item at 0\,dB: 5 and 9;
-\item recognition took a median of 0.7 to 0.9\,s per phrase on the laptop.
+\item clean: 18 and 15 of 18 understood (17 and 13 with free recognition alone);
+\item with white noise at 10\,dB signal-to-noise ratio: 17 and 15 (14 and 13);
+\item at 0\,dB: 13 and 14 (5 and 9);
+\item recognition took a median of 1.8 to 2.4\,s per phrase on the laptop with both recognisers, against 0.7 to 0.9\,s for free recognition alone.
 \end{itemize}
-Short words were sometimes confused (``back camera'' heard as ``that camera''), and loud noise defeats it. Synthetic voices are clearer than a driver, and white noise is not road noise, so these are upper bounds. A test with the driver on the road needs a participant and is outside the approval. A command-only vocabulary and a microphone close to the driver are the next steps.
+The command recogniser removed most confusions of short words (``back camera'' had been heard as ``that camera''); place names in loud noise still fail. Synthetic voices are clearer than a driver, and white noise is not road noise, so these are upper bounds. A test with the driver on the road needs a participant and is outside the approval. A microphone close to the driver and a shorter command list, to cut the delay, are the next steps.
 
 \section{Verification}
 

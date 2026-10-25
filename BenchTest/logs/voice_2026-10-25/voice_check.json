@@ -5,13 +5,19 @@
    "condition": "clean",
    "said": "home",
    "heard": "hum",
-   "intent": null,
+   "command_heard": "home",
+   "chosen": "home",
+   "intent": [
+    "home",
+    null
+   ],
    "want": [
     "home",
     null
    ],
-   "ok": false,
-   "seconds": 0.661,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 2.118,
    "audio_s": 2.23
   },
   {
@@ -19,13 +25,19 @@
    "condition": "snr10",
    "said": "home",
    "heard": "oh",
-   "intent": null,
+   "command_heard": "home",
+   "chosen": "home",
+   "intent": [
+    "home",
+    null
+   ],
    "want": [
     "home",
     null
    ],
-   "ok": false,
-   "seconds": 0.494,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 0.328,
    "audio_s": 2.23
   },
   {
@@ -33,6 +45,8 @@
    "condition": "snr0",
    "said": "home",
    "heard": "home",
+   "command_heard": "home",
+   "chosen": "home",
    "intent": [
     "home",
     null
@@ -42,7 +56,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.52,
+   "ok_free_only": true,
+   "seconds": 0.382,
    "audio_s": 2.23
   },
   {
@@ -50,6 +65,8 @@
    "condition": "clean",
    "said": "go home",
    "heard": "go home",
+   "command_heard": "go home",
+   "chosen": "go home",
    "intent": [
     "home",
     null
@@ -59,7 +76,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.734,
+   "ok_free_only": true,
+   "seconds": 1.923,
    "audio_s": 2.42
   },
   {
@@ -67,6 +85,8 @@
    "condition": "snr10",
    "said": "go home",
    "heard": "go home",
+   "command_heard": "go home",
+   "chosen": "go home",
    "intent": [
     "home",
     null
@@ -76,7 +96,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.718,
+   "ok_free_only": true,
+   "seconds": 2.333,
    "audio_s": 2.42
   },
   {
@@ -84,13 +105,19 @@
    "condition": "snr0",
    "said": "go home",
    "heard": "the oval",
-   "intent": null,
+   "command_heard": "go home",
+   "chosen": "go home",
+   "intent": [
+    "home",
+    null
+   ],
    "want": [
     "home",
     null
    ],
-   "ok": false,
-   "seconds": 0.585,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 1.536,
    "audio_s": 2.42
   },
   {
@@ -98,6 +125,8 @@
    "condition": "clean",
    "said": "map",
    "heard": "map",
+   "command_heard": "map",
+   "chosen": "map",
    "intent": [
     "map",
     null
@@ -107,7 +136,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.728,
+   "ok_free_only": true,
+   "seconds": 1.779,
    "audio_s": 2.29
   },
   {
@@ -115,6 +145,8 @@
    "condition": "snr10",
    "said": "map",
    "heard": "map",
+   "command_heard": "map",
+   "chosen": "map",
    "intent": [
     "map",
     null
@@ -124,7 +156,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.395,
+   "ok_free_only": true,
+   "seconds": 1.176,
    "audio_s": 2.29
   },
   {
@@ -132,13 +165,19 @@
    "condition": "snr0",
    "said": "map",
    "heard": "there",
-   "intent": null,
+   "command_heard": "map",
+   "chosen": "map",
+   "intent": [
+    "map",
+    null
+   ],
    "want": [
     "map",
     null
    ],
-   "ok": false,
-   "seconds": 0.423,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 0.955,
    "audio_s": 2.29
   },
   {
@@ -146,6 +185,8 @@
    "condition": "clean",
    "said": "open the map",
    "heard": "open the map",
+   "command_heard": "open the map",
+   "chosen": "open the map",
    "intent": [
     "map",
     null
@@ -155,7 +196,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.888,
+   "ok_free_only": true,
+   "seconds": 1.869,
    "audio_s": 2.6
   },
   {
@@ -163,6 +205,8 @@
    "condition": "snr10",
    "said": "open the map",
    "heard": "open the map",
+   "command_heard": "open the map",
+   "chosen": "open the map",
    "intent": [
     "map",
     null
@@ -172,7 +216,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.714,
+   "ok_free_only": true,
+   "seconds": 1.712,
    "audio_s": 2.6
   },
   {
@@ -180,6 +225,8 @@
    "condition": "snr0",
    "said": "open the map",
    "heard": "open the map",
+   "command_heard": "open the map",
+   "chosen": "open the map",
    "intent": [
     "map",
     null
@@ -189,7 +236,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.722,
+   "ok_free_only": true,
+   "seconds": 1.573,
    "audio_s": 2.6
   },
   {
@@ -197,6 +245,8 @@
    "condition": "clean",
    "said": "reverse",
    "heard": "reverse",
+   "command_heard": "reverse",
+   "chosen": "reverse",
    "intent": [
     "rear",
     null
@@ -206,7 +256,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.69,
+   "ok_free_only": true,
+   "seconds": 1.986,
    "audio_s": 2.42
   },
   {
@@ -214,6 +265,8 @@
    "condition": "snr10",
    "said": "reverse",
    "heard": "reverse",
+   "command_heard": "reverse",
+   "chosen": "reverse",
    "intent": [
     "rear",
     null
@@ -223,7 +276,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.631,
+   "ok_free_only": true,
+   "seconds": 1.584,
    "audio_s": 2.42
   },
   {
@@ -231,6 +285,8 @@
    "condition": "snr0",
    "said": "reverse",
    "heard": "reverse",
+   "command_heard": "reverse",
+   "chosen": "reverse",
    "intent": [
     "rear",
     null
@@ -240,7 +296,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.542,
+   "ok_free_only": true,
+   "seconds": 1.183,
    "audio_s": 2.42
   },
   {
@@ -248,6 +305,8 @@
    "condition": "clean",
    "said": "rear camera",
    "heard": "rear camera",
+   "command_heard": "rear camera",
+   "chosen": "rear camera",
    "intent": [
     "rear",
     null
@@ -257,7 +316,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.861,
+   "ok_free_only": true,
+   "seconds": 2.68,
    "audio_s": 2.59
   },
   {
@@ -265,6 +325,8 @@
    "condition": "snr10",
    "said": "rear camera",
    "heard": "rear camera",
+   "command_heard": "rear camera",
+   "chosen": "rear camera",
    "intent": [
     "rear",
     null
@@ -274,7 +336,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.966,
+   "ok_free_only": true,
+   "seconds": 2.714,
    "audio_s": 2.59
   },
   {
@@ -282,6 +345,8 @@
    "condition": "snr0",
    "said": "rear camera",
    "heard": "rear camera",
+   "command_heard": "rear camera",
+   "chosen": "rear camera",
    "intent": [
     "rear",
     null
@@ -291,7 +356,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.675,
+   "ok_free_only": true,
+   "seconds": 3.361,
    "audio_s": 2.59
   },
   {
@@ -299,6 +365,8 @@
    "condition": "clean",
    "said": "back camera",
    "heard": "back camera",
+   "command_heard": "back camera",
+   "chosen": "back camera",
    "intent": [
     "rear",
     null
@@ -308,7 +376,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.95,
+   "ok_free_only": true,
+   "seconds": 2.054,
    "audio_s": 2.59
   },
   {
@@ -316,13 +385,19 @@
    "condition": "snr10",
    "said": "back camera",
    "heard": "that camera",
-   "intent": null,
+   "command_heard": "back camera",
+   "chosen": "back camera",
+   "intent": [
+    "rear",
+    null
+   ],
    "want": [
     "rear",
     null
    ],
-   "ok": false,
-   "seconds": 0.746,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 1.762,
    "audio_s": 2.59
   },
   {
@@ -330,13 +405,19 @@
    "condition": "snr0",
    "said": "back camera",
    "heard": "that camera",
-   "intent": null,
+   "command_heard": "back camera",
+   "chosen": "back camera",
+   "intent": [
+    "rear",
+    null
+   ],
    "want": [
     "rear",
     null
    ],
-   "ok": false,
-   "seconds": 0.845,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 2.152,
    "audio_s": 2.59
   },
   {
@@ -344,20 +425,8 @@
    "condition": "clean",
    "said": "front camera",
    "heard": "for on camera",
-   "intent": null,
-   "want": [
-    "front",
-    null
-   ],
-   "ok": false,
-   "seconds": 0.639,
-   "audio_s": 2.7
-  },
-  {
-   "voice": "Microsoft David Desktop",
-   "condition": "snr10",
-   "said": "front camera",
-   "heard": "front camera",
+   "command_heard": "front camera",
+   "chosen": "front camera",
    "intent": [
     "front",
     null
@@ -367,7 +436,28 @@
     null
    ],
    "ok": true,
-   "seconds": 0.7,
+   "ok_free_only": false,
+   "seconds": 1.947,
+   "audio_s": 2.7
+  },
+  {
+   "voice": "Microsoft David Desktop",
+   "condition": "snr10",
+   "said": "front camera",
+   "heard": "front camera",
+   "command_heard": "front camera",
+   "chosen": "front camera",
+   "intent": [
+    "front",
+    null
+   ],
+   "want": [
+    "front",
+    null
+   ],
+   "ok": true,
+   "ok_free_only": true,
+   "seconds": 1.827,
    "audio_s": 2.7
   },
   {
@@ -375,6 +465,8 @@
    "condition": "snr0",
    "said": "front camera",
    "heard": "front camera",
+   "command_heard": "front camera",
+   "chosen": "front camera",
    "intent": [
     "front",
     null
@@ -384,7 +476,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.878,
+   "ok_free_only": true,
+   "seconds": 2.066,
    "audio_s": 2.7
   },
   {
@@ -392,6 +485,8 @@
    "condition": "clean",
    "said": "done",
    "heard": "done",
+   "command_heard": "done",
+   "chosen": "done",
    "intent": [
     "done",
     null
@@ -401,7 +496,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.474,
+   "ok_free_only": true,
+   "seconds": 1.575,
    "audio_s": 2.26
   },
   {
@@ -409,6 +505,8 @@
    "condition": "snr10",
    "said": "done",
    "heard": "done",
+   "command_heard": "done",
+   "chosen": "done",
    "intent": [
     "done",
     null
@@ -418,7 +516,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.503,
+   "ok_free_only": true,
+   "seconds": 1.392,
    "audio_s": 2.26
   },
   {
@@ -426,13 +525,19 @@
    "condition": "snr0",
    "said": "done",
    "heard": "the on",
-   "intent": null,
+   "command_heard": "done",
+   "chosen": "done",
+   "intent": [
+    "done",
+    null
+   ],
    "want": [
     "done",
     null
    ],
-   "ok": false,
-   "seconds": 0.655,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 1.529,
    "audio_s": 2.26
   },
   {
@@ -440,6 +545,8 @@
    "condition": "clean",
    "said": "cancel",
    "heard": "cancel",
+   "command_heard": "cancel",
+   "chosen": "cancel",
    "intent": [
     "cancel",
     null
@@ -449,7 +556,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.774,
+   "ok_free_only": true,
+   "seconds": 1.709,
    "audio_s": 2.41
   },
   {
@@ -457,6 +565,8 @@
    "condition": "snr10",
    "said": "cancel",
    "heard": "cancel",
+   "command_heard": "cancel",
+   "chosen": "cancel",
    "intent": [
     "cancel",
     null
@@ -466,7 +576,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.678,
+   "ok_free_only": true,
+   "seconds": 1.793,
    "audio_s": 2.41
   },
   {
@@ -474,13 +585,19 @@
    "condition": "snr0",
    "said": "cancel",
    "heard": "and so",
-   "intent": null,
+   "command_heard": "cancel",
+   "chosen": "cancel",
+   "intent": [
+    "cancel",
+    null
+   ],
    "want": [
     "cancel",
     null
    ],
-   "ok": false,
-   "seconds": 0.647,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 1.596,
    "audio_s": 2.41
   },
   {
@@ -488,6 +605,8 @@
    "condition": "clean",
    "said": "first one",
    "heard": "first one",
+   "command_heard": "first one",
+   "chosen": "first one",
    "intent": [
     "choose",
     1
@@ -497,7 +616,8 @@
     1
    ],
    "ok": true,
-   "seconds": 0.687,
+   "ok_free_only": true,
+   "seconds": 1.687,
    "audio_s": 2.58
   },
   {
@@ -505,6 +625,8 @@
    "condition": "snr10",
    "said": "first one",
    "heard": "first one",
+   "command_heard": "first one",
+   "chosen": "first one",
    "intent": [
     "choose",
     1
@@ -514,7 +636,8 @@
     1
    ],
    "ok": true,
-   "seconds": 0.704,
+   "ok_free_only": true,
+   "seconds": 1.597,
    "audio_s": 2.58
   },
   {
@@ -522,6 +645,8 @@
    "condition": "snr0",
    "said": "first one",
    "heard": "first one",
+   "command_heard": "first one",
+   "chosen": "first one",
    "intent": [
     "choose",
     1
@@ -531,7 +656,8 @@
     1
    ],
    "ok": true,
-   "seconds": 0.693,
+   "ok_free_only": true,
+   "seconds": 1.509,
    "audio_s": 2.58
   },
   {
@@ -539,6 +665,8 @@
    "condition": "clean",
    "said": "second one",
    "heard": "second one",
+   "command_heard": "second one",
+   "chosen": "second one",
    "intent": [
     "choose",
     2
@@ -548,7 +676,8 @@
     2
    ],
    "ok": true,
-   "seconds": 0.83,
+   "ok_free_only": true,
+   "seconds": 2.001,
    "audio_s": 2.67
   },
   {
@@ -556,6 +685,8 @@
    "condition": "snr10",
    "said": "second one",
    "heard": "second one",
+   "command_heard": "second one",
+   "chosen": "second one",
    "intent": [
     "choose",
     2
@@ -565,7 +696,8 @@
     2
    ],
    "ok": true,
-   "seconds": 0.729,
+   "ok_free_only": true,
+   "seconds": 1.901,
    "audio_s": 2.67
   },
   {
@@ -573,6 +705,8 @@
    "condition": "snr0",
    "said": "second one",
    "heard": "second one",
+   "command_heard": "second one",
+   "chosen": "second one",
    "intent": [
     "choose",
     2
@@ -582,7 +716,8 @@
     2
    ],
    "ok": true,
-   "seconds": 0.774,
+   "ok_free_only": true,
+   "seconds": 1.716,
    "audio_s": 2.67
   },
   {
@@ -590,6 +725,8 @@
    "condition": "clean",
    "said": "option three",
    "heard": "option three",
+   "command_heard": "option three",
+   "chosen": "option three",
    "intent": [
     "choose",
     3
@@ -599,7 +736,8 @@
     3
    ],
    "ok": true,
-   "seconds": 0.578,
+   "ok_free_only": true,
+   "seconds": 1.828,
    "audio_s": 2.63
   },
   {
@@ -607,6 +745,8 @@
    "condition": "snr10",
    "said": "option three",
    "heard": "option three",
+   "command_heard": "option three",
+   "chosen": "option three",
    "intent": [
     "choose",
     3
@@ -616,7 +756,8 @@
     3
    ],
    "ok": true,
-   "seconds": 0.622,
+   "ok_free_only": true,
+   "seconds": 1.479,
    "audio_s": 2.63
   },
   {
@@ -624,6 +765,8 @@
    "condition": "snr0",
    "said": "option three",
    "heard": "option three",
+   "command_heard": "option three",
+   "chosen": "option three",
    "intent": [
     "choose",
     3
@@ -633,7 +776,8 @@
     3
    ],
    "ok": true,
-   "seconds": 1.067,
+   "ok_free_only": true,
+   "seconds": 2.39,
    "audio_s": 2.63
   },
   {
@@ -641,6 +785,8 @@
    "condition": "clean",
    "said": "map destination Rondebosch",
    "heard": "map destination run bush",
+   "command_heard": "map [unk]",
+   "chosen": "map destination run bush",
    "intent": [
     "destination",
     "run bush"
@@ -650,7 +796,8 @@
     "rondebosch"
    ],
    "ok": false,
-   "seconds": 1.117,
+   "ok_free_only": false,
+   "seconds": 4.102,
    "audio_s": 3.54
   },
   {
@@ -658,13 +805,16 @@
    "condition": "snr10",
    "said": "map destination Rondebosch",
    "heard": "math destination run bush",
+   "command_heard": "map go finished around much",
+   "chosen": "math destination run bush",
    "intent": null,
    "want": [
     "destination",
     "rondebosch"
    ],
    "ok": false,
-   "seconds": 1.316,
+   "ok_free_only": false,
+   "seconds": 2.795,
    "audio_s": 3.54
   },
   {
@@ -672,13 +822,19 @@
    "condition": "snr0",
    "said": "map destination Rondebosch",
    "heard": "their destination run for",
-   "intent": null,
+   "command_heard": "map go to the two one front",
+   "chosen": "map go to the two one front",
+   "intent": [
+    "destination",
+    "the two one front"
+   ],
    "want": [
     "destination",
     "rondebosch"
    ],
    "ok": false,
-   "seconds": 1.547,
+   "ok_free_only": false,
+   "seconds": 5.427,
    "audio_s": 3.54
   },
   {
@@ -686,6 +842,8 @@
    "condition": "clean",
    "said": "go to Claremont",
    "heard": "go to claremont",
+   "command_heard": "go to [unk]",
+   "chosen": "go to claremont",
    "intent": [
     "destination",
     "claremont"
@@ -695,7 +853,8 @@
     "claremont"
    ],
    "ok": true,
-   "seconds": 0.859,
+   "ok_free_only": true,
+   "seconds": 2.124,
    "audio_s": 2.92
   },
   {
@@ -703,6 +862,8 @@
    "condition": "snr10",
    "said": "go to Claremont",
    "heard": "go to claremont",
+   "command_heard": "go to [unk]",
+   "chosen": "go to claremont",
    "intent": [
     "destination",
     "claremont"
@@ -712,7 +873,8 @@
     "claremont"
    ],
    "ok": true,
-   "seconds": 0.965,
+   "ok_free_only": true,
+   "seconds": 2.417,
    "audio_s": 2.92
   },
   {
@@ -720,13 +882,19 @@
    "condition": "snr0",
    "said": "go to Claremont",
    "heard": "the player mode",
-   "intent": null,
+   "command_heard": "go to rear mind",
+   "chosen": "go to rear mind",
+   "intent": [
+    "destination",
+    "rear mind"
+   ],
    "want": [
     "destination",
     "claremont"
    ],
    "ok": false,
-   "seconds": 1.04,
+   "ok_free_only": false,
+   "seconds": 2.751,
    "audio_s": 2.92
   },
   {
@@ -734,6 +902,8 @@
    "condition": "clean",
    "said": "take me to Observatory",
    "heard": "take me to observatory",
+   "command_heard": "to me to of [unk]",
+   "chosen": "take me to observatory",
    "intent": [
     "destination",
     "observatory"
@@ -743,7 +913,8 @@
     "observatory"
    ],
    "ok": true,
-   "seconds": 0.9,
+   "ok_free_only": true,
+   "seconds": 6.631,
    "audio_s": 3.27
   },
   {
@@ -751,6 +922,8 @@
    "condition": "snr10",
    "said": "take me to Observatory",
    "heard": "take me to observatory",
+   "command_heard": "hey me to rear battery",
+   "chosen": "take me to observatory",
    "intent": [
     "destination",
     "observatory"
@@ -760,7 +933,8 @@
     "observatory"
    ],
    "ok": true,
-   "seconds": 0.939,
+   "ok_free_only": true,
+   "seconds": 4.109,
    "audio_s": 3.27
   },
   {
@@ -768,6 +942,8 @@
    "condition": "snr0",
    "said": "take me to Observatory",
    "heard": "take me to observatory",
+   "command_heard": "me whats around forward",
+   "chosen": "take me to observatory",
    "intent": [
     "destination",
     "observatory"
@@ -777,7 +953,8 @@
     "observatory"
    ],
    "ok": true,
-   "seconds": 1.309,
+   "ok_free_only": true,
+   "seconds": 10.163,
    "audio_s": 3.27
   },
   {
@@ -785,6 +962,8 @@
    "condition": "clean",
    "said": "navigate to Cape Town station",
    "heard": "navigate to capetown station",
+   "command_heard": "navigation [unk]",
+   "chosen": "navigate to capetown station",
    "intent": [
     "destination",
     "capetown station"
@@ -794,7 +973,8 @@
     "cape town station"
    ],
    "ok": false,
-   "seconds": 1.011,
+   "ok_free_only": false,
+   "seconds": 2.955,
    "audio_s": 3.71
   },
   {
@@ -802,6 +982,8 @@
    "condition": "snr10",
    "said": "navigate to Cape Town station",
    "heard": "navigate to capetown station",
+   "command_heard": "navigation to hey can status",
+   "chosen": "navigate to capetown station",
    "intent": [
     "destination",
     "capetown station"
@@ -811,7 +993,8 @@
     "cape town station"
    ],
    "ok": false,
-   "seconds": 0.909,
+   "ok_free_only": false,
+   "seconds": 2.6,
    "audio_s": 3.71
   },
   {
@@ -819,13 +1002,16 @@
    "condition": "snr0",
    "said": "navigate to Cape Town station",
    "heard": "navigate me down station",
+   "command_heard": "navigation me health page",
+   "chosen": "navigate me down station",
    "intent": null,
    "want": [
     "destination",
     "cape town station"
    ],
    "ok": false,
-   "seconds": 1.749,
+   "ok_free_only": false,
+   "seconds": 4.01,
    "audio_s": 3.71
   },
   {
@@ -833,6 +1019,8 @@
    "condition": "clean",
    "said": "destination Kirstenbosch",
    "heard": "destination kyrstin bush",
+   "command_heard": "[unk]",
+   "chosen": "destination kyrstin bush",
    "intent": [
     "destination",
     "kyrstin bush"
@@ -842,7 +1030,8 @@
     "kirstenbosch"
    ],
    "ok": false,
-   "seconds": 0.984,
+   "ok_free_only": false,
+   "seconds": 2.721,
    "audio_s": 3.43
   },
   {
@@ -850,6 +1039,8 @@
    "condition": "snr10",
    "said": "destination Kirstenbosch",
    "heard": "destination years in bush",
+   "command_heard": "[unk]",
+   "chosen": "destination years in bush",
    "intent": [
     "destination",
     "years in bush"
@@ -859,7 +1050,8 @@
     "kirstenbosch"
    ],
    "ok": false,
-   "seconds": 1.239,
+   "ok_free_only": false,
+   "seconds": 2.732,
    "audio_s": 3.43
   },
   {
@@ -867,13 +1059,16 @@
    "condition": "snr0",
    "said": "destination Kirstenbosch",
    "heard": "this the nation here the",
+   "command_heard": "the finished can you do",
+   "chosen": "this the nation here the",
    "intent": null,
    "want": [
     "destination",
     "kirstenbosch"
    ],
    "ok": false,
-   "seconds": 1.712,
+   "ok_free_only": false,
+   "seconds": 3.335,
    "audio_s": 3.43
   },
   {
@@ -881,6 +1076,8 @@
    "condition": "clean",
    "said": "home",
    "heard": "home",
+   "command_heard": "home",
+   "chosen": "home",
    "intent": [
     "home",
     null
@@ -890,7 +1087,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.591,
+   "ok_free_only": true,
+   "seconds": 1.36,
    "audio_s": 2.42
   },
   {
@@ -898,13 +1096,19 @@
    "condition": "snr10",
    "said": "home",
    "heard": "no",
-   "intent": null,
+   "command_heard": "home",
+   "chosen": "home",
+   "intent": [
+    "home",
+    null
+   ],
    "want": [
     "home",
     null
    ],
-   "ok": false,
-   "seconds": 0.461,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 1.135,
    "audio_s": 2.42
   },
   {
@@ -912,13 +1116,19 @@
    "condition": "snr0",
    "said": "home",
    "heard": "no",
-   "intent": null,
+   "command_heard": "home",
+   "chosen": "home",
+   "intent": [
+    "home",
+    null
+   ],
    "want": [
     "home",
     null
    ],
-   "ok": false,
-   "seconds": 0.544,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 1.585,
    "audio_s": 2.42
   },
   {
@@ -926,6 +1136,8 @@
    "condition": "clean",
    "said": "go home",
    "heard": "go home",
+   "command_heard": "go home",
+   "chosen": "go home",
    "intent": [
     "home",
     null
@@ -935,7 +1147,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.954,
+   "ok_free_only": true,
+   "seconds": 1.993,
    "audio_s": 2.43
   },
   {
@@ -943,6 +1156,8 @@
    "condition": "snr10",
    "said": "go home",
    "heard": "go home",
+   "command_heard": "go home",
+   "chosen": "go home",
    "intent": [
     "home",
     null
@@ -952,7 +1167,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.906,
+   "ok_free_only": true,
+   "seconds": 2.001,
    "audio_s": 2.43
   },
   {
@@ -960,6 +1176,8 @@
    "condition": "snr0",
    "said": "go home",
    "heard": "the home",
+   "command_heard": "go home",
+   "chosen": "go home",
    "intent": [
     "home",
     null
@@ -969,7 +1187,8 @@
     null
    ],
    "ok": true,
-   "seconds": 1.076,
+   "ok_free_only": true,
+   "seconds": 2.375,
    "audio_s": 2.43
   },
   {
@@ -977,6 +1196,8 @@
    "condition": "clean",
    "said": "map",
    "heard": "map",
+   "command_heard": "map",
+   "chosen": "map",
    "intent": [
     "map",
     null
@@ -986,7 +1207,8 @@
     null
    ],
    "ok": true,
-   "seconds": 1.032,
+   "ok_free_only": true,
+   "seconds": 1.915,
    "audio_s": 2.27
   },
   {
@@ -994,6 +1216,8 @@
    "condition": "snr10",
    "said": "map",
    "heard": "map",
+   "command_heard": "map",
+   "chosen": "map",
    "intent": [
     "map",
     null
@@ -1003,7 +1227,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.785,
+   "ok_free_only": true,
+   "seconds": 1.585,
    "audio_s": 2.27
   },
   {
@@ -1011,13 +1236,19 @@
    "condition": "snr0",
    "said": "map",
    "heard": "man",
-   "intent": null,
+   "command_heard": "map",
+   "chosen": "map",
+   "intent": [
+    "map",
+    null
+   ],
    "want": [
     "map",
     null
    ],
-   "ok": false,
-   "seconds": 0.95,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 1.539,
    "audio_s": 2.27
   },
   {
@@ -1025,6 +1256,8 @@
    "condition": "clean",
    "said": "open the map",
    "heard": "open the map",
+   "command_heard": "open the map",
+   "chosen": "open the map",
    "intent": [
     "map",
     null
@@ -1034,7 +1267,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.765,
+   "ok_free_only": true,
+   "seconds": 1.949,
    "audio_s": 2.58
   },
   {
@@ -1042,13 +1276,19 @@
    "condition": "snr10",
    "said": "open the map",
    "heard": "open the math",
-   "intent": null,
+   "command_heard": "open the map",
+   "chosen": "open the map",
+   "intent": [
+    "map",
+    null
+   ],
    "want": [
     "map",
     null
    ],
-   "ok": false,
-   "seconds": 0.832,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 2.109,
    "audio_s": 2.58
   },
   {
@@ -1056,13 +1296,19 @@
    "condition": "snr0",
    "said": "open the map",
    "heard": "know",
-   "intent": null,
+   "command_heard": "open the map",
+   "chosen": "open the map",
+   "intent": [
+    "map",
+    null
+   ],
    "want": [
     "map",
     null
    ],
-   "ok": false,
-   "seconds": 1.231,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 2.84,
    "audio_s": 2.58
   },
   {
@@ -1070,6 +1316,8 @@
    "condition": "clean",
    "said": "reverse",
    "heard": "reverse",
+   "command_heard": "reverse",
+   "chosen": "reverse",
    "intent": [
     "rear",
     null
@@ -1079,7 +1327,8 @@
     null
    ],
    "ok": true,
-   "seconds": 1.105,
+   "ok_free_only": true,
+   "seconds": 1.956,
    "audio_s": 2.41
   },
   {
@@ -1087,6 +1336,8 @@
    "condition": "snr10",
    "said": "reverse",
    "heard": "reverse",
+   "command_heard": "reverse",
+   "chosen": "reverse",
    "intent": [
     "rear",
     null
@@ -1096,7 +1347,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.745,
+   "ok_free_only": true,
+   "seconds": 2.177,
    "audio_s": 2.41
   },
   {
@@ -1104,6 +1356,8 @@
    "condition": "snr0",
    "said": "reverse",
    "heard": "reverse",
+   "command_heard": "reverse",
+   "chosen": "reverse",
    "intent": [
     "rear",
     null
@@ -1113,7 +1367,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.729,
+   "ok_free_only": true,
+   "seconds": 2.206,
    "audio_s": 2.41
   },
   {
@@ -1121,6 +1376,8 @@
    "condition": "clean",
    "said": "rear camera",
    "heard": "rear camera",
+   "command_heard": "rear camera",
+   "chosen": "rear camera",
    "intent": [
     "rear",
     null
@@ -1130,7 +1387,8 @@
     null
    ],
    "ok": true,
-   "seconds": 1.249,
+   "ok_free_only": true,
+   "seconds": 2.336,
    "audio_s": 2.59
   },
   {
@@ -1138,6 +1396,8 @@
    "condition": "snr10",
    "said": "rear camera",
    "heard": "rear camera",
+   "command_heard": "rear camera",
+   "chosen": "rear camera",
    "intent": [
     "rear",
     null
@@ -1147,7 +1407,8 @@
     null
    ],
    "ok": true,
-   "seconds": 1.237,
+   "ok_free_only": true,
+   "seconds": 2.209,
    "audio_s": 2.59
   },
   {
@@ -1155,13 +1416,19 @@
    "condition": "snr0",
    "said": "rear camera",
    "heard": "the camera",
-   "intent": null,
+   "command_heard": "rear camera",
+   "chosen": "rear camera",
+   "intent": [
+    "rear",
+    null
+   ],
    "want": [
     "rear",
     null
    ],
-   "ok": false,
-   "seconds": 1.109,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 2.368,
    "audio_s": 2.59
   },
   {
@@ -1169,13 +1436,19 @@
    "condition": "clean",
    "said": "back camera",
    "heard": "that camera",
-   "intent": null,
+   "command_heard": "back camera",
+   "chosen": "back camera",
+   "intent": [
+    "rear",
+    null
+   ],
    "want": [
     "rear",
     null
    ],
-   "ok": false,
-   "seconds": 0.949,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 2.153,
    "audio_s": 2.62
   },
   {
@@ -1183,13 +1456,19 @@
    "condition": "snr10",
    "said": "back camera",
    "heard": "that camera",
-   "intent": null,
+   "command_heard": "back camera",
+   "chosen": "back camera",
+   "intent": [
+    "rear",
+    null
+   ],
    "want": [
     "rear",
     null
    ],
-   "ok": false,
-   "seconds": 0.844,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 1.882,
    "audio_s": 2.62
   },
   {
@@ -1197,13 +1476,19 @@
    "condition": "snr0",
    "said": "back camera",
    "heard": "that camera",
-   "intent": null,
+   "command_heard": "back camera",
+   "chosen": "back camera",
+   "intent": [
+    "rear",
+    null
+   ],
    "want": [
     "rear",
     null
    ],
-   "ok": false,
-   "seconds": 0.903,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 2.315,
    "audio_s": 2.62
   },
   {
@@ -1211,6 +1496,8 @@
    "condition": "clean",
    "said": "front camera",
    "heard": "front camera",
+   "command_heard": "front camera",
+   "chosen": "front camera",
    "intent": [
     "front",
     null
@@ -1220,7 +1507,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.797,
+   "ok_free_only": true,
+   "seconds": 1.954,
    "audio_s": 2.67
   },
   {
@@ -1228,6 +1516,8 @@
    "condition": "snr10",
    "said": "front camera",
    "heard": "front camera",
+   "command_heard": "front camera",
+   "chosen": "front camera",
    "intent": [
     "front",
     null
@@ -1237,7 +1527,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.855,
+   "ok_free_only": true,
+   "seconds": 2.257,
    "audio_s": 2.67
   },
   {
@@ -1245,13 +1536,19 @@
    "condition": "snr0",
    "said": "front camera",
    "heard": "him",
-   "intent": null,
+   "command_heard": "front camera",
+   "chosen": "front camera",
+   "intent": [
+    "front",
+    null
+   ],
    "want": [
     "front",
     null
    ],
-   "ok": false,
-   "seconds": 0.949,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 2.448,
    "audio_s": 2.67
   },
   {
@@ -1259,6 +1556,8 @@
    "condition": "clean",
    "said": "done",
    "heard": "done",
+   "command_heard": "done",
+   "chosen": "done",
    "intent": [
     "done",
     null
@@ -1268,7 +1567,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.823,
+   "ok_free_only": true,
+   "seconds": 1.68,
    "audio_s": 2.3
   },
   {
@@ -1276,6 +1576,8 @@
    "condition": "snr10",
    "said": "done",
    "heard": "done",
+   "command_heard": "done",
+   "chosen": "done",
    "intent": [
     "done",
     null
@@ -1285,7 +1587,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.549,
+   "ok_free_only": true,
+   "seconds": 1.525,
    "audio_s": 2.3
   },
   {
@@ -1293,13 +1596,19 @@
    "condition": "snr0",
    "said": "done",
    "heard": "the",
-   "intent": null,
+   "command_heard": "done",
+   "chosen": "done",
+   "intent": [
+    "done",
+    null
+   ],
    "want": [
     "done",
     null
    ],
-   "ok": false,
-   "seconds": 0.502,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 1.514,
    "audio_s": 2.3
   },
   {
@@ -1307,6 +1616,8 @@
    "condition": "clean",
    "said": "cancel",
    "heard": "cancel",
+   "command_heard": "cancel",
+   "chosen": "cancel",
    "intent": [
     "cancel",
     null
@@ -1316,7 +1627,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.803,
+   "ok_free_only": true,
+   "seconds": 1.735,
    "audio_s": 2.45
   },
   {
@@ -1324,6 +1636,8 @@
    "condition": "snr10",
    "said": "cancel",
    "heard": "cancel",
+   "command_heard": "cancel",
+   "chosen": "cancel",
    "intent": [
     "cancel",
     null
@@ -1333,7 +1647,8 @@
     null
    ],
    "ok": true,
-   "seconds": 0.508,
+   "ok_free_only": true,
+   "seconds": 1.281,
    "audio_s": 2.45
   },
   {
@@ -1341,13 +1656,19 @@
    "condition": "snr0",
    "said": "cancel",
    "heard": "himself",
-   "intent": null,
+   "command_heard": "cancel",
+   "chosen": "cancel",
+   "intent": [
+    "cancel",
+    null
+   ],
    "want": [
     "cancel",
     null
    ],
-   "ok": false,
-   "seconds": 0.796,
+   "ok": true,
+   "ok_free_only": false,
+   "seconds": 1.823,
    "audio_s": 2.45
   },
   {
@@ -1355,6 +1676,8 @@
    "condition": "clean",
    "said": "first one",
    "heard": "first one",
+   "command_heard": "first one",
+   "chosen": "first one",
    "intent": [
     "choose",
     1
@@ -1364,7 +1687,8 @@
     1
    ],
    "ok": true,
-   "seconds": 0.636,
+   "ok_free_only": true,
+   "seconds": 1.754,
    "audio_s": 2.55
   },
   {
@@ -1372,6 +1696,8 @@
    "condition": "snr10",
    "said": "first one",
    "heard": "first one",
+   "command_heard": "first one",
+   "chosen": "first one",
    "intent": [
     "choose",
     1
@@ -1381,7 +1707,8 @@
     1
    ],
    "ok": true,
-   "seconds": 0.592,
+   "ok_free_only": true,
+   "seconds": 1.839,
    "audio_s": 2.55
   },
   {
@@ -1389,6 +1716,8 @@
    "condition": "snr0",
    "said": "first one",
    "heard": "first one",
+   "command_heard": "first one",
+   "chosen": "first one",
    "intent": [
     "choose",
     1
@@ -1398,7 +1727,8 @@
     1
    ],
    "ok": true,
-   "seconds": 0.588,
+   "ok_free_only": true,
+   "seconds": 1.663,
    "audio_s": 2.55
   },
   {
@@ -1406,6 +1736,8 @@
    "condition": "clean",
    "said": "second one",
    "heard": "second one",
+   "command_heard": "second one",
+   "chosen": "second one",
    "intent": [
     "choose",
     2
@@ -1415,7 +1747,8 @@
     2
    ],
    "ok": true,
-   "seconds": 0.696,
+   "ok_free_only": true,
+   "seconds": 2.1,
    "audio_s": 2.65
   },
   {
@@ -1423,6 +1756,8 @@
    "condition": "snr10",
    "said": "second one",
    "heard": "second one",
+   "command_heard": "second one",
+   "chosen": "second one",
    "intent": [
     "choose",
     2
@@ -1432,7 +1767,8 @@
     2
    ],
    "ok": true,
-   "seconds": 0.634,
+   "ok_free_only": true,
+   "seconds": 1.999,
    "audio_s": 2.65
   },
   {
@@ -1440,6 +1776,8 @@
    "condition": "snr0",
    "said": "second one",
    "heard": "second one",
+   "command_heard": "second one",
+   "chosen": "second one",
    "intent": [
     "choose",
     2
@@ -1449,7 +1787,8 @@
     2
    ],
    "ok": true,
-   "seconds": 0.803,
+   "ok_free_only": true,
+   "seconds": 2.147,
    "audio_s": 2.65
   },
   {
@@ -1457,6 +1796,8 @@
    "condition": "clean",
    "said": "option three",
    "heard": "option three",
+   "command_heard": "option three",
+   "chosen": "option three",
    "intent": [
     "choose",
     3
@@ -1466,7 +1807,8 @@
     3
    ],
    "ok": true,
-   "seconds": 0.596,
+   "ok_free_only": true,
+   "seconds": 1.87,
    "audio_s": 2.61
   },
   {
@@ -1474,6 +1816,8 @@
    "condition": "snr10",
    "said": "option three",
    "heard": "option three",
+   "command_heard": "option three",
+   "chosen": "option three",
    "intent": [
     "choose",
     3
@@ -1483,7 +1827,8 @@
     3
    ],
    "ok": true,
-   "seconds": 0.715,
+   "ok_free_only": true,
+   "seconds": 1.913,
    "audio_s": 2.61
   },
   {
@@ -1491,6 +1836,8 @@
    "condition": "snr0",
    "said": "option three",
    "heard": "option three",
+   "command_heard": "option three",
+   "chosen": "option three",
    "intent": [
     "choose",
     3
@@ -1500,7 +1847,8 @@
     3
    ],
    "ok": true,
-   "seconds": 0.947,
+   "ok_free_only": true,
+   "seconds": 2.381,
    "audio_s": 2.61
   },
   {
@@ -1508,6 +1856,8 @@
    "condition": "clean",
    "said": "map destination Rondebosch",
    "heard": "map destination round bosh",
+   "command_heard": "map [unk]",
+   "chosen": "map destination round bosh",
    "intent": [
     "destination",
     "rondebosch"
@@ -1517,7 +1867,8 @@
     "rondebosch"
    ],
    "ok": true,
-   "seconds": 1.104,
+   "ok_free_only": true,
+   "seconds": 2.995,
    "audio_s": 3.57
   },
   {
@@ -1525,13 +1876,16 @@
    "condition": "snr10",
    "said": "map destination Rondebosch",
    "heard": "math destination run fashion",
+   "command_heard": "map to finished [unk]",
+   "chosen": "math destination run fashion",
    "intent": null,
    "want": [
     "destination",
     "rondebosch"
    ],
    "ok": false,
-   "seconds": 1.025,
+   "ok_free_only": false,
+   "seconds": 2.66,
    "audio_s": 3.57
   },
   {
@@ -1539,13 +1893,19 @@
    "condition": "snr0",
    "said": "map destination Rondebosch",
    "heard": "the commission on fun",
-   "intent": null,
+   "command_heard": "finished",
+   "chosen": "finished",
+   "intent": [
+    "done",
+    null
+   ],
    "want": [
     "destination",
     "rondebosch"
    ],
    "ok": false,
-   "seconds": 1.638,
+   "ok_free_only": false,
+   "seconds": 3.54,
    "audio_s": 3.57
   },
   {
@@ -1553,6 +1913,8 @@
    "condition": "clean",
    "said": "go to Claremont",
    "heard": "go to claremont",
+   "command_heard": "go to can rear mind",
+   "chosen": "go to claremont",
    "intent": [
     "destination",
     "claremont"
@@ -1562,7 +1924,8 @@
     "claremont"
    ],
    "ok": true,
-   "seconds": 0.927,
+   "ok_free_only": true,
+   "seconds": 2.288,
    "audio_s": 2.85
   },
   {
@@ -1570,6 +1933,8 @@
    "condition": "snr10",
    "said": "go to Claremont",
    "heard": "go to claremont",
+   "command_heard": "go to rear mind",
+   "chosen": "go to claremont",
    "intent": [
     "destination",
     "claremont"
@@ -1579,7 +1944,8 @@
     "claremont"
    ],
    "ok": true,
-   "seconds": 0.915,
+   "ok_free_only": true,
+   "seconds": 2.264,
    "audio_s": 2.85
   },
   {
@@ -1587,13 +1953,16 @@
    "condition": "snr0",
    "said": "go to Claremont",
    "heard": "the on",
+   "command_heard": "",
+   "chosen": "the on",
    "intent": null,
    "want": [
     "destination",
     "claremont"
    ],
    "ok": false,
-   "seconds": 0.977,
+   "ok_free_only": false,
+   "seconds": 2.449,
    "audio_s": 2.85
   },
   {
@@ -1601,6 +1970,8 @@
    "condition": "clean",
    "said": "take me to Observatory",
    "heard": "take me to observatory",
+   "command_heard": "to me to hazards forward",
+   "chosen": "take me to observatory",
    "intent": [
     "destination",
     "observatory"
@@ -1610,7 +1981,8 @@
     "observatory"
    ],
    "ok": true,
-   "seconds": 1.019,
+   "ok_free_only": true,
+   "seconds": 2.427,
    "audio_s": 3.17
   },
   {
@@ -1618,6 +1990,8 @@
    "condition": "snr10",
    "said": "take me to Observatory",
    "heard": "take me to observatory",
+   "command_heard": "to me to third battery",
+   "chosen": "take me to observatory",
    "intent": [
     "destination",
     "observatory"
@@ -1627,7 +2001,8 @@
     "observatory"
    ],
    "ok": true,
-   "seconds": 0.95,
+   "ok_free_only": true,
+   "seconds": 2.532,
    "audio_s": 3.17
   },
   {
@@ -1635,13 +2010,16 @@
    "condition": "snr0",
    "said": "take me to Observatory",
    "heard": "the conservatory",
+   "command_heard": "me to status morning",
+   "chosen": "the conservatory",
    "intent": null,
    "want": [
     "destination",
     "observatory"
    ],
    "ok": false,
-   "seconds": 1.363,
+   "ok_free_only": false,
+   "seconds": 3.566,
    "audio_s": 3.17
   },
   {
@@ -1649,6 +2027,8 @@
    "condition": "clean",
    "said": "navigate to Cape Town station",
    "heard": "navigate to cape town station",
+   "command_heard": "navigation [unk]",
+   "chosen": "navigate to cape town station",
    "intent": [
     "destination",
     "cape town station"
@@ -1658,7 +2038,8 @@
     "cape town station"
    ],
    "ok": true,
-   "seconds": 1.132,
+   "ok_free_only": true,
+   "seconds": 2.589,
    "audio_s": 3.67
   },
   {
@@ -1666,6 +2047,8 @@
    "condition": "snr10",
    "said": "navigate to Cape Town station",
    "heard": "navigate to cape town station",
+   "command_heard": "navigation [unk]",
+   "chosen": "navigate to cape town station",
    "intent": [
     "destination",
     "cape town station"
@@ -1675,7 +2058,8 @@
     "cape town station"
    ],
    "ok": true,
-   "seconds": 1.181,
+   "ok_free_only": true,
+   "seconds": 2.656,
    "audio_s": 3.67
   },
   {
@@ -1683,13 +2067,16 @@
    "condition": "snr0",
    "said": "navigate to Cape Town station",
    "heard": "navigating a temptation",
+   "command_heard": "navigation can say show",
+   "chosen": "navigating a temptation",
    "intent": null,
    "want": [
     "destination",
     "cape town station"
    ],
    "ok": false,
-   "seconds": 1.545,
+   "ok_free_only": false,
+   "seconds": 3.857,
    "audio_s": 3.67
   },
   {
@@ -1697,6 +2084,8 @@
    "condition": "clean",
    "said": "destination Kirstenbosch",
    "heard": "destination kyrstin bosh",
+   "command_heard": "[unk]",
+   "chosen": "destination kyrstin bosh",
    "intent": [
     "destination",
     "kirstenbosch"
@@ -1706,7 +2095,8 @@
     "kirstenbosch"
    ],
    "ok": true,
-   "seconds": 1.02,
+   "ok_free_only": true,
+   "seconds": 2.81,
    "audio_s": 3.44
   },
   {
@@ -1714,6 +2104,8 @@
    "condition": "snr10",
    "said": "destination Kirstenbosch",
    "heard": "destination kyrstin bosh",
+   "command_heard": "[unk]",
+   "chosen": "destination kyrstin bosh",
    "intent": [
     "destination",
     "kirstenbosch"
@@ -1723,7 +2115,8 @@
     "kirstenbosch"
    ],
    "ok": true,
-   "seconds": 0.917,
+   "ok_free_only": true,
+   "seconds": 2.627,
    "audio_s": 3.44
   },
   {
@@ -1731,52 +2124,61 @@
    "condition": "snr0",
    "said": "destination Kirstenbosch",
    "heard": "the information hear somebody",
+   "command_heard": "me system back",
+   "chosen": "the information hear somebody",
    "intent": null,
    "want": [
     "destination",
     "kirstenbosch"
    ],
    "ok": false,
-   "seconds": 1.354,
+   "ok_free_only": false,
+   "seconds": 3.421,
    "audio_s": 3.44
   }
  ],
  "summary": {
   "Microsoft David Desktop | clean": {
    "n": 18,
-   "ok": 13,
-   "share_ok": 0.722,
-   "median_s": 0.802
+   "ok": 15,
+   "ok_free_only": 13,
+   "share_ok": 0.833,
+   "median_s": 1.9935
   },
   "Microsoft David Desktop | snr10": {
    "n": 18,
-   "ok": 13,
-   "share_ok": 0.722,
-   "median_s": 0.716
+   "ok": 15,
+   "ok_free_only": 13,
+   "share_ok": 0.833,
+   "median_s": 1.81
   },
   "Microsoft David Desktop | snr0": {
    "n": 18,
-   "ok": 9,
-   "share_ok": 0.5,
-   "median_s": 0.748
+   "ok": 14,
+   "ok_free_only": 9,
+   "share_ok": 0.778,
+   "median_s": 1.891
   },
   "Microsoft Zira Desktop | clean": {
    "n": 18,
-   "ok": 17,
-   "share_ok": 0.944,
-   "median_s": 0.938
+   "ok": 18,
+   "ok_free_only": 17,
+   "share_ok": 1.0,
+   "median_s": 1.9745
   },
   "Microsoft Zira Desktop | snr10": {
    "n": 18,
-   "ok": 14,
-   "share_ok": 0.778,
-   "median_s": 0.838
+   "ok": 17,
+   "ok_free_only": 14,
+   "share_ok": 0.944,
+   "median_s": 2.0549999999999997
   },
   "Microsoft Zira Desktop | snr0": {
    "n": 18,
-   "ok": 5,
-   "share_ok": 0.278,
-   "median_s": 0.9495
+   "ok": 13,
+   "ok_free_only": 5,
+   "share_ok": 0.722,
+   "median_s": 2.3715
   }
  }
 }

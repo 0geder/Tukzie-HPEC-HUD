@@ -42,11 +42,22 @@ REVERSE_TIMEOUT_S = 45.0
 FORWARD_KMH = 8.0
 FORWARD_HOLD_S = 3.0
 CHOICE_WINDOW_S = 20.0
+ASK_WINDOW_S = 15.0             # after "Hello. Where are we headed today?" the next phrase is a destination
 SUGGESTION_WAIT_S = 6.0
 READ_OUT = 3                     # suggestions read out and choosable by number
 
-HOME = {"home", "speed", "driving", "drive page", "dashboard", "main page", "home page"}
+HOME = {"home", "speed", "driving", "drive", "drive page", "dashboard", "main page", "home page"}
 MAP = {"map", "navigation", "the map", "maps"}
+PAGES = {"analytics": {"analytics", "stats", "statistics", "trip", "trip stats"},
+         "diagnostics": {"diagnostics", "health", "system health", "status"},
+         "charging": {"charging", "charge", "charging page"},
+         "settings": {"settings", "setting"},
+         "sensors": {"surroundings", "sensors", "camera", "cameras", "around"}}
+GREETING = {"hello", "hi", "hey", "good morning", "good afternoon", "good evening", "hey dashboard", "hello dashboard"}
+WEATHER = {"weather", "the weather", "whats the weather", "what is the weather", "how is the weather", "temperature"}
+ALERTS = {"alerts", "any alerts", "hazards", "any hazards", "warnings", "any warnings", "whats around"}
+BATTERY = {"battery level", "how much battery", "battery status", "state of charge", "range"}
+HELP = {"help", "what can you do", "what can i say", "commands"}
 REAR = {"reverse", "rear camera", "rear view", "back camera", "back view", "rear", "reversing", "reverse camera"}
 FRONT = {"front camera", "front view", "front"}
 DONE = {"done", "forward", "finished", "done reversing", "finished reversing", "stop reversing"}
@@ -66,7 +77,12 @@ PLACES = ("Rondebosch", "Kirstenbosch", "Claremont", "Observatory", "Newlands", 
           "Bellville", "Athlone", "Langa", "Gugulethu", "Khayelitsha", "Mitchells Plain", "Durbanville", "Stellenbosch",
           "Camps Bay", "Constantia", "Tokai", "Plumstead", "Diep River", "Bergvliet", "Cape Town", "Cavendish Square",
           "Canal Walk", "Groote Schuur", "Table Mountain", "Rhodes Memorial", "Belhar", "Bishopscourt", "Oranjezicht",
-          "Tamboerskloof", "Vredehoek", "Zonnebloem", "Maitland", "Ndabeni", "Hout Bay", "Fish Hoek", "Simon's Town")
+          "Tamboerskloof", "Vredehoek", "Zonnebloem", "Maitland", "Ndabeni", "Hout Bay", "Fish Hoek", "Simon's Town",
+          # UCT upper campus, where the vehicle is tested (Photon finds each of these first near campus, 25 Oct)
+          "Menzies Building", "R W James Building", "New Engineering Building", "Snape Building", "Jameson Hall",
+          "Sarah Baartman Hall", "Leslie Social Sciences Building", "Chancellor Oppenheimer Library", "Steve Biko Students Union",
+          "Kramer Law Building", "Hoerikwaggo Building", "PD Hahn Building", "John Day Building", "Molly Blackburn Hall",
+          "Upper Campus", "Middle Campus", "Lower Campus", "UCT")
 PLACE_CUTOFF = 0.75
 
 
@@ -120,9 +136,13 @@ def parse_intent(text, wake=""):
     if bare.startswith("the "):
         bare = bare[4:]
     for kind, words in (("rear", REAR), ("front", FRONT), ("home", HOME), ("map", MAP), ("done", DONE),
-                        ("cancel", CANCEL)):
+                        ("cancel", CANCEL), ("greet", GREETING), ("weather", WEATHER), ("alerts", ALERTS),
+                        ("battery", BATTERY), ("help", HELP)):
         if t in words or bare in words:
             return (kind, None)
+    for pid, words in PAGES.items():
+        if t in words or bare in words or bare.removesuffix(" page") in words:
+            return ("page", pid)
     return None
 
 
@@ -140,6 +160,7 @@ class VoiceControl(QObject):
         self.last_command = 0.0
         self.fast_since = None
         self.choosing_until = 0.0
+        self.asking_until = 0.0
         self.choices = []            # (label, item) read out for the current destination search
         self.query = ""
         self.log = []                # (time, text, intent) for the tests and the bench check
@@ -182,6 +203,9 @@ class VoiceControl(QObject):
     # ---- commands --------------------------------------------------------------------------------------------------
     def handle_text(self, text):
         intent = parse_intent(text, self.wake)
+        if intent is None and self.asking_until > self.clock() and normalise(text):
+            intent = ("destination", normalise(text))   # the answer to "Where are we headed today?"
+        self.asking_until = 0.0
         self.log.append((self.clock(), text, intent))
         if intent is None:
             return None
@@ -214,7 +238,45 @@ class VoiceControl(QObject):
             self.say("Cancelled")
         elif kind == "destination":
             self._search(arg)
+        elif kind == "page":
+            self._page(arg)
+            self.say(arg.capitalize() if arg != "sensors" else "Surroundings")
+        elif kind == "greet":
+            self.asking_until = self.clock() + ASK_WINDOW_S
+            self.say("Hello. Where are we headed today?")
+        elif kind == "weather":
+            self.say(self.weather_text())
+        elif kind == "alerts":
+            self.say(self.alerts_text())
+        elif kind == "battery":
+            self.say(self.battery_text())
+        elif kind == "help":
+            self.say("You can say home, map, rear camera, front camera, a page name, weather, alerts, battery level, "
+                     "or go to, and a place.")
         return intent
+
+    # ---- spoken information ----------------------------------------------------------------------------------------
+    def weather_text(self):
+        rep = getattr(getattr(self.main, "sw7_weather", None), "report", None)
+        if rep is None:
+            return "No weather report yet."
+        parts = [f"{rep.condition}, {round(rep.temp_c)} degrees"]
+        if rep.wind_kmh is not None:
+            parts.append(f"wind {round(rep.wind_kmh)} kilometres per hour")
+        return ", ".join(parts) + (f", in {rep.place}." if rep.place else ".")
+
+    def alerts_text(self):
+        banner = getattr(self.main, "hazard_banner", None)
+        label = getattr(banner, "text", None)
+        if banner is not None and banner.isVisible() and label is not None and label.text().strip():
+            return label.text().strip().capitalize() + "."
+        return "No alerts."
+
+    def battery_text(self):
+        soc = getattr(getattr(self.main, "current_state", None), "soc_pct", None)
+        if not isinstance(soc, (int, float)):
+            return "Battery level unavailable."
+        return f"Battery at {round(soc)} percent."
 
     def _end_reverse(self):
         self.reverse, self.fast_since = False, None
@@ -304,6 +366,32 @@ class VoiceControl(QObject):
         self._page("driving")
 
 
+def command_grammar():
+    """Every command phrase, for a second recogniser that knows only these (Vosk grammar mode, with "[unk]" for
+    anything else). It is far more reliable on short commands than free recognition, which is kept for place names."""
+    words = set()
+    for group in (HOME, MAP, REAR, FRONT, DONE, CANCEL, GREETING, WEATHER, ALERTS, BATTERY, HELP, *PAGES.values()):
+        for w in group:
+            words.add(w)
+            for v in VERBS:
+                words.add(v + w)
+    for o in ("first", "second", "third", "one", "two", "three"):
+        words.update({o, f"{o} one", f"option {o}", f"number {o}", f"the {o} one"})
+    return sorted(words) + ["[unk]"]
+
+
+def pick_text(command_text, free_text, wake=""):
+    """The phrase to act on, from the command recogniser and the free one on the same audio: a destination heard by
+    the free recogniser wins (place names are not in the grammar); otherwise a command the grammar recogniser parsed;
+    otherwise the free text."""
+    free = parse_intent(free_text, wake)
+    if free and free[0] == "destination":
+        return free_text
+    if command_text and "[unk]" not in command_text and parse_intent(command_text, wake):
+        return command_text
+    return free_text
+
+
 class VoskListener(threading.Thread):
     """Microphone to final phrases, on its own thread. Needs the vosk and sounddevice packages and a model folder;
     if any is missing, available() says why and the dashboard runs without voice."""
@@ -331,12 +419,19 @@ class VoskListener(threading.Thread):
             import sounddevice as sd
             from vosk import KaldiRecognizer, Model, SetLogLevel
             SetLogLevel(-1)
-            rec = KaldiRecognizer(Model(self.model_path), self.rate)
+            model = Model(self.model_path)
+            rec = KaldiRecognizer(model, self.rate)                                   # free: place names
+            cmd = KaldiRecognizer(model, self.rate, json.dumps(command_grammar()))    # commands only
             with sd.RawInputStream(samplerate=self.rate, blocksize=4000, dtype="int16", channels=1) as stream:
                 while not self.stop_flag.is_set():
                     data, _ = stream.read(4000)
+                    cmd.AcceptWaveform(bytes(data))
                     if rec.AcceptWaveform(bytes(data)):
-                        text = json.loads(rec.Result()).get("text", "")
+                        free_text = json.loads(rec.Result()).get("text", "")
+                        command_text = json.loads(cmd.FinalResult()).get("text", "")
+                        if hasattr(cmd, "Reset"):
+                            cmd.Reset()
+                        text = pick_text(command_text, free_text)
                         if text:
                             self.on_text(text)
         except Exception as e:                       # no microphone, device busy: the dashboard carries on

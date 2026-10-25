@@ -73,3 +73,9 @@ Result: all statements in the chapter match the passages listed; no number was t
 Report: citations ru2022, tedaldi2014, webering2022, depasquale2010, alessandroni2017, rfc5905, elson2002, olson2010,
 merry2019, mqtt311, fall2003, chapungo2025, ugwuanyi2021, manglik2019, lenkeit2012fcw, yeong2021, eising2022
 (Report/new_refs_lit.tex, to be merged into References.tex).
+
+## tukzie.com (25 Oct 2026)
+
+Source: University of Cape Town, "Tukzie", programme website, https://tukzie.com/, accessed 25 Oct 2026. Copy: References/Papers/Urban Electric Cargo Trike/TUKZIE_website_tukzie.com_2026-10-25.html.
+Checked against the report: "Developed at UCT, it is built for Africa's conditions and opportunities" and "An electric mobility platform combining adaptable vehicle architecture, energy systems, control and connected technologies" support Section 1.1's "TUKZIE Flagship Programme of the University of Cape Town". The site gives no specifications (battery, motor, range), so no number in the report is taken from it.
+Report: citation tukzie2026web (Introduction, first sentence).

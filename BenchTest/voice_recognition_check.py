@@ -22,7 +22,7 @@ import numpy as np
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, "DashboardIntegration"))
-from sw7_voice_control import correct_place, parse_intent  # noqa: E402
+from sw7_voice_control import command_grammar, correct_place, parse_intent, pick_text  # noqa: E402
 
 PHRASES = [
     ("home", ("home", None)), ("go home", ("home", None)), ("map", ("map", None)), ("open the map", ("map", None)),
@@ -73,13 +73,24 @@ def with_noise(pcm, snr_db, rng):
 
 
 def recognise(model, pcm):
+    """(free text, command-recogniser text, seconds for both), as the dashboard's listener runs them."""
     from vosk import KaldiRecognizer
     rec = KaldiRecognizer(model, 16000)
+    cmd = KaldiRecognizer(model, 16000, json.dumps(command_grammar()))
     t0 = time.perf_counter()
     for i in range(0, pcm.size, 4000):
         rec.AcceptWaveform(pcm[i:i + 4000].tobytes())
+        cmd.AcceptWaveform(pcm[i:i + 4000].tobytes())
     text = json.loads(rec.FinalResult()).get("text", "")
-    return text, time.perf_counter() - t0
+    ctext = json.loads(cmd.FinalResult()).get("text", "")
+    return text, ctext, time.perf_counter() - t0
+
+
+def judged(text, want):
+    got = parse_intent(text)
+    if got and got[0] == "destination":                     # as the dashboard does before searching
+        got = ("destination", correct_place(got[1]).lower())
+    return got, (got == tuple(want)) if got else False
 
 
 def main():
@@ -99,23 +110,26 @@ def main():
                 speak(text, voice, path)
                 pcm = read_pcm(path)
                 for cond, snr in (("clean", None), ("snr10", 10.0), ("snr0", 0.0)):
-                    heard, dt = recognise(model, with_noise(pcm, snr, rng))
-                    got = parse_intent(heard)
-                    if got and got[0] == "destination":     # as the dashboard does before searching
-                        got = ("destination", correct_place(got[1]).lower())
+                    heard, cheard, dt = recognise(model, with_noise(pcm, snr, rng))
+                    got_free, ok_free = judged(heard, want)
+                    chosen = pick_text(cheard, heard)
+                    got, ok = judged(chosen, want)
                     rows.append({"voice": voice, "condition": cond, "said": text, "heard": heard,
-                                 "intent": got, "want": want, "ok": got == tuple(want) if got else False,
+                                 "command_heard": cheard, "chosen": chosen, "intent": got, "want": want,
+                                 "ok": ok, "ok_free_only": ok_free,
                                  "seconds": round(dt, 3), "audio_s": round(pcm.size / 16000 + 1.0, 2)})
-                    print(f"{voice[:18]:18s} {cond:5s} {'ok ' if rows[-1]['ok'] else 'BAD'} {text!r} -> {heard!r}")
+                    print(f"{voice[:18]:18s} {cond:5s} {'ok ' if ok else 'BAD'} (free {'ok ' if ok_free else 'BAD'}) "
+                          f"{text!r} -> {chosen!r}")
     summary = {}
     for r in rows:
         k = f"{r['voice']} | {r['condition']}"
-        s = summary.setdefault(k, {"n": 0, "ok": 0, "seconds": []})
-        s["n"] += 1; s["ok"] += r["ok"]; s["seconds"].append(r["seconds"])
+        s = summary.setdefault(k, {"n": 0, "ok": 0, "ok_free_only": 0, "seconds": []})
+        s["n"] += 1; s["ok"] += r["ok"]; s["ok_free_only"] += r["ok_free_only"]; s["seconds"].append(r["seconds"])
     for k, s in summary.items():
         s["share_ok"] = round(s["ok"] / s["n"], 3)
         s["median_s"] = float(np.median(s.pop("seconds")))
-        print(f"{k}: {s['ok']}/{s['n']} understood, median recognition {s['median_s']:.3f} s")
+        print(f"{k}: {s['ok']}/{s['n']} understood with the command recogniser ({s['ok_free_only']} free only), "
+              f"median {s['median_s']:.3f} s")
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     json.dump({"rows": rows, "summary": summary}, open(args.out, "w"), indent=1)
     print("saved", args.out)

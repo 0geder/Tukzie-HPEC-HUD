@@ -32,6 +32,11 @@ CASES = [
     ("first", ("choose", 1)), ("second one", ("choose", 2)), ("option three", ("choose", 3)), ("number two", ("choose", 2)),
     ("the first one", ("choose", 1)), ("2", ("choose", 2)),
     ("hey map please", ("map", None)),
+    ("drive", ("home", None)), ("analytics", ("page", "analytics")), ("open diagnostics", ("page", "diagnostics")),
+    ("show the charging page", ("page", "charging")), ("settings", ("page", "settings")), ("surroundings", ("page", "sensors")),
+    ("hello", ("greet", None)), ("good morning", ("greet", None)), ("whats the weather", ("weather", None)),
+    ("any alerts", ("alerts", None)), ("battery level", ("battery", None)), ("what can you do", ("help", None)),
+    ("go to menzies building", ("destination", "menzies building")),
     ("what time is it", None), ("i think the map is wrong", None), ("", None), ("go to map", ("map", None)),
 ]
 bad = [(t, parse_intent(t), want) for t, want in CASES if parse_intent(t) != want]
@@ -179,6 +184,29 @@ def run():
     vc.handle_text("first"); QTest.qWait(100)
     check(said[-1] == "Going to Rondebosch Station", "'first' after the choice is ignored")
     w.grab().save(f"{OUT}/voice_destination_set.png")
+
+    # every page by name, and the spoken information
+    for said_, pid in (("analytics", "analytics"), ("diagnostics", "diagnostics"), ("charging", "charging"),
+                       ("settings", "settings"), ("surroundings", "sensors"), ("drive", "driving")):
+        vc.handle_text(said_); QTest.qWait(150)
+        check(page(d) == pid, f"'{said_}': page {page(d)}")
+    vc.handle_text("battery level")
+    check(said[-1].startswith("Battery"), f"battery level: {said[-1]!r}")
+    vc.handle_text("any alerts")
+    check(said[-1] == "No alerts." or said[-1].endswith("."), f"alerts: {said[-1]!r}")
+    vc.handle_text("weather")
+    check(said[-1] in ("No weather report yet.",) or "degrees" in said[-1], f"weather: {said[-1]!r}")
+
+    # conversation: hello, then the place alone
+    vc.handle_text("hello")
+    check(said[-1] == "Hello. Where are we headed today?", f"greeting: {said[-1]!r}")
+    vc.handle_text("round bosh")
+    check(page(d) == "navigation" and d.navigation.destination.text() == "Rondebosch", "the answer to the greeting is taken as the destination")
+    check(wait_until(lambda: len(vc.choices) == 3, 8000), "options found after the greeting")
+    vc.handle_text("first"); QTest.qWait(400)
+    check(said[-1].startswith("Going to Rondebosch"), f"'first' chosen: {said[-1]!r} (recents are listed first)")
+    vc.handle_text("round bosh"); QTest.qWait(100)
+    check(vc.log[-1][2] is None, "without the greeting a bare place name does nothing")
     finish()
 
 def finish():

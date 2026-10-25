@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tukzie — An electric tuk-tuk, engineered in Cape Town</title>
+<meta name="description" content="Tukzie is a University of Cape Town programme designing, building and testing a fully electric tuk-tuk. Walk around the prototype and the design study that follows it.">
+<meta name="theme-color" content="#FBFAF6">
+
+<!-- Favicon expected at Images/Index/tukzie-favicon.svg — drop the SVG file
+     there with this exact name. If it's missing, browsers simply fall back
+     to no icon, so this tag is safe to leave in either way. -->
+<link rel="icon" type="image/svg+xml" sizes="any" href="Images/Index/tukzie-favicon.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- The first station is the LCP element: fetch it with the document.
+     Hero image lives in Images/Index/tukzie/ alongside the other tukzie
+     photos. Confirmed no transparent-background version exists in that
+     folder, so this is the correct file to keep using. -->
+<link rel="preload" as="image" href="Images/Index/tukzie/tukzie_rhino_composite.jpg" fetchpriority="high">
+
+<style>
+/* ==========================================================================
+   TUKZIE — LANDING PAGE
+   --------------------------------------------------------------------------
+   Structure
+     1. Tokens          — palette, type, easing
+     2. Base + type     — reset, scale, shared rhythm
+     3. Components      — .btn, .link-arrow, .eyebrow, .wrap, .rv
+     4. Nav             — shared with about/research/blog/get-involved
+     5. Walkaround      — the sticky, scroll-driven centrepiece
+     6. Handoff         — routes to the four inner pages
+     7. Footer
+     8. Responsive      — tablet, then a purpose-built mobile layout
+     9. Reduced motion  — collapses the walkaround into a static article
+
+   Notes
+     - Palette, fonts and component classes are inherited from the existing
+       Tukzie pages so this page drops in without restyling the others.
+     - The vehicle renders are supplied on a near-white (#FEFEFE) ground.
+       They are composited with `mix-blend-mode: multiply` so that ground
+       disappears into the Snow White page instead of showing as a rectangle.
+       Multiply is only ever applied to ONE visible render at a time — see
+       the "dissolve through light" note in section 5.
+     - The render always sits on the right of the sticky stage and the copy
+       always sits on the left — this fixed viewpoint holds at every station,
+       so the composition never mirrors or alternates as the walk advances.
+   ========================================================================== */
+
+/* ------------------------------ 1. TOKENS ------------------------------- */
+:root{
+  /* Surfaces — Snow White dominant, warm whites and greys for layering only */
+  --snow:#FBFAF6;
+  --snow-2:#F5F3EE;
+
+  /* Typography — deep charcoal */
+  --ink:#22252B;
+  --muted:#6B6F78;
+
+  /* Primary brand — Pantone 2273 C (screen approximation used across the site) */
+  --green:#257226;
+  --green-deep:#1F5E20;
+
+  /* Secondary accent — UCT blue (as used across the site) */
+  --blue:#0F3B67;
+  --blue-deep:#0A2A4A;
+
+  /* The live accent. Swapped green → blue at the generation change. */
+  --acc:var(--green);
+  --acc-deep:var(--green-deep);
+
+  --line:rgba(34,37,43,.14);
+  --line-2:rgba(34,37,43,.07);
+
+  --disp:'Space Grotesk',system-ui,-apple-system,sans-serif;
+  --body:'Inter',system-ui,-apple-system,sans-serif;
+
+  /* Asymmetric ease: quick to leave, long to settle */
+  --ease:cubic-bezier(.22,.8,.24,1);
+}
+
+/* --------------------------- 2. BASE + TYPE ----------------------------- */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--body);
+  background:var(--snow);
+  color:var(--ink);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+::selection{background:var(--green);color:#fff}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:2px}
+
+h1,h2,h3{font-family:var(--disp);font-weight:700;line-height:1.04;letter-spacing:-.025em}
+.h-xl{font-size:clamp(2.9rem,6.6vw,5.2rem)}
+.h-lg{font-size:clamp(2rem,4vw,3.2rem)}
+.acc{color:var(--acc);transition:color .5s var(--ease)}
+
+/* Visually hidden, still announced */
+.vh{
+  position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+
+/* --------------------------- 3. COMPONENTS ------------------------------ */
+.wrap{max-width:1240px;margin:0 auto;position:relative}
+
+.eyebrow{
+  display:flex;align-items:center;gap:14px;
+  font-family:var(--disp);font-size:11px;font-weight:600;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--ink);
+  margin-bottom:26px;
+}
+.eyebrow .num{
+  font-size:13px;color:var(--acc);font-variant-numeric:tabular-nums;
+  transition:color .5s var(--ease);
+}
+.eyebrow .rule{display:inline-block;width:44px;height:2px;background:currentColor;opacity:.9}
+
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--disp);font-weight:600;font-size:14.5px;
+  padding:14px 26px;border-radius:10px;border:1.5px solid transparent;
+  transition:transform .35s var(--ease),background .25s,border-color .25s,box-shadow .35s var(--ease);
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn-solid{background:var(--acc);color:#fff;box-shadow:0 10px 26px -12px rgba(37,114,38,.55)}
+.btn-solid:hover{background:var(--acc-deep)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:rgba(34,37,43,.26)}
+.btn-ghost:hover{border-color:var(--ink)}
+
+.link-arrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--disp);font-weight:600;font-size:14.5px;
+  color:var(--acc);transition:color .5s var(--ease);
+}
+.link-arrow svg{transition:transform .3s var(--ease)}
+.link-arrow:hover svg{transform:translateX(5px)}
+
+/* Scroll reveal for the static sections below the walkaround */
+.rv{
+  opacity:0;transform:translateY(28px);
+  transition:opacity .9s var(--ease),transform .9s var(--ease);
+  transition-delay:calc(var(--i,0) * 80ms);
+}
+.rv.in{opacity:1;transform:none}
+
+/* ------------------------------- 4. NAV --------------------------------- */
+.nav{
+  position:fixed;inset:0 0 auto 0;z-index:60;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px clamp(20px,4.5vw,58px);
+  transition:background .35s,box-shadow .35s,padding .35s;
+}
+.nav.scrolled{
+  background:rgba(251,250,246,.86);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 1px 0 var(--line-2);
+  padding-top:13px;padding-bottom:13px;
+}
+.brand-lockup{display:flex;align-items:center;gap:clamp(12px,1.6vw,26px);min-width:0}
+.brand{
+  display:flex;align-items:center;gap:2px;font-family:var(--disp);font-weight:700;
+  font-size:22px;letter-spacing:.06em;line-height:1;
+  padding:10px 6px;margin:-10px -6px;border-radius:8px;flex:none;
+}
+.brand .e-glyph{display:inline-flex;flex-direction:column;gap:3px;margin-left:3px}
+.brand .e-glyph span{display:block;width:13px;height:3.4px;background:currentColor}
+.brand .e-glyph span:nth-child(2){width:10px}
+
+/* Live chapter label — mirrors the active station */
+.chapter-tag{
+  display:flex;align-items:center;gap:12px;min-width:0;
+  font-family:var(--disp);font-size:10.5px;font-weight:600;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--muted);
+}
+.chapter-tag .tag-rule{width:clamp(20px,3vw,46px);height:1px;background:rgba(34,37,43,.3);flex:none}
+.chapter-tag .tag-text{transition:opacity .35s var(--ease);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.nav-links{display:flex;align-items:center;gap:clamp(18px,2.6vw,38px)}
+.nav-links a:not(.btn){
+  font-family:var(--disp);font-size:14px;font-weight:500;color:var(--ink);
+  position:relative;padding:4px 0;
+}
+.nav-links a:not(.btn)::after{
+  content:"";position:absolute;left:0;bottom:0;height:2px;width:0;
+  background:var(--acc);transition:width .3s var(--ease),background .5s var(--ease);
+}
+.nav-links a:not(.btn):hover::after{width:100%}
+.nav .btn{padding:10px 20px;font-size:13.5px;border-radius:9px}
+
+.nav-toggle{display:none;width:42px;height:42px;position:relative;z-index:70}
+.nav-toggle span{position:absolute;left:9px;right:9px;height:2px;background:var(--ink);transition:.3s var(--ease)}
+.nav-toggle span:nth-child(1){top:15px}
+.nav-toggle span:nth-child(2){top:21px}
+.nav-toggle span:nth-child(3){top:27px}
+body.menu-open .nav-toggle span:nth-child(1){top:21px;transform:rotate(45deg)}
+body.menu-open .nav-toggle span:nth-child(2){opacity:0}
+body.menu-open .nav-toggle span:nth-child(3){top:21px;transform:rotate(-45deg)}
+
+.mobile-menu{
+  position:fixed;inset:0;z-index:55;background:var(--snow);
+  display:flex;flex-direction:column;justify-content:center;gap:8px;
+  padding:0 32px;opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .35s,visibility 0s linear .35s;
+}
+.mobile-menu a{
+  font-family:var(--disp);font-size:clamp(1.8rem,8vw,2.6rem);font-weight:700;
+  padding:10px 0;border-bottom:1px solid var(--line-2);
+}
+.mobile-menu a:last-child{border-bottom:none;color:var(--green)}
+body.menu-open .mobile-menu{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .35s}
+body.menu-open{overflow:hidden}
+
+/* =========================== 5. THE WALKAROUND ==========================
+   One sticky stage. Scroll advances a 7-station walk around the vehicle,
+   settling at 0°/60°/120°/180°/240°/300°/360°: three views of the working
+   prototype, the generation change at 180°, then three views of the
+   proposed design study.
+
+   Dissolve through light
+   ----------------------
+   Consecutive renders are separate scene shots, so they are never
+   cross-dissolved on top of each other — that would read as a double
+   exposure and, with multiply compositing, would darken where the two
+   vehicles overlap. Instead the outgoing render fades fully out to the
+   Snow White ground before the incoming one fades up. Only one render is
+   ever partially visible, so multiply stays clean and the swap reads as a
+   deliberate lookbook cut rather than a broken rotation.
+   ======================================================================= */
+.walk{
+  --n:7;                        /* stations */
+  position:relative;
+  height:calc(var(--n) * 88vh);
+  background:var(--snow);
+}
+.stage{
+  position:sticky;top:0;
+  height:100vh;height:100svh;
+  overflow:hidden;
+  background:linear-gradient(180deg,var(--snow) 0%,var(--snow) 58%,var(--snow-2) 100%);
+}
+
+/* A single hairline that sits on the vehicle's horizon — depth, not decoration */
+.horizon{
+  position:absolute;left:6%;right:6%;top:62%;height:1px;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(34,37,43,.12),transparent);
+}
+
+.stations{position:absolute;inset:0;z-index:1}
+.station{
+  position:absolute;inset:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
+  align-items:center;
+  gap:clamp(20px,4vw,64px);
+  padding:96px clamp(24px,6vw,96px) 108px;
+  pointer-events:none;
+}
+.station.is-active{pointer-events:auto}
+/* Fixed viewpoint layout: the vehicle render always sits on the right, the
+   copy always on the left — the composition never mirrors between stations. */
+
+/* ---- the render ---- */
+.station__viz{
+  position:relative;z-index:0;
+  height:100%;min-height:0;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;
+  /* will-change is applied by script to the two live layers only — promoting
+     all seven full-viewport renders would cost GPU memory for no benefit. */
+}
+.station__viz img{
+  width:100%;height:100%;
+  object-fit:contain;
+  mix-blend-mode:multiply;   /* keys the render's near-white ground to the page */
+  /* PHASE 1 NOTE: every render currently in use sits on a near-white ground
+     and needs this multiply key. If/when a true-transparent PNG (e.g. the
+     tukzie_rhino_composite_transparent.png hero) replaces one of these,
+     give that <img> a dedicated class with mix-blend-mode:normal so
+     multiply isn't applied to an image that no longer needs it. */
+}
+
+/* ---- the copy ---- */
+.station__copy{
+  position:relative;z-index:2;
+  max-width:min(560px,100%);
+  opacity:0;visibility:hidden;
+}
+.station__copy .lede{
+  font-family:var(--disp);font-weight:600;
+  font-size:clamp(1.05rem,1.5vw,1.28rem);line-height:1.35;
+  margin-top:26px;max-width:32ch;
+}
+.station__copy .lede::before{
+  content:"";display:block;width:52px;height:3px;
+  background:var(--acc);margin-bottom:18px;transition:background .5s var(--ease);
+}
+.station__copy p.body{font-size:15px;color:var(--muted);margin-top:18px;max-width:46ch}
+.station__copy .cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:32px}
+.station__copy .link-arrow{margin-top:26px}
+.station__copy .meta{
+  display:flex;gap:16px;flex-wrap:wrap;margin-top:34px;
+  font-family:var(--disp);font-size:10px;font-weight:600;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+}
+
+/* The ghosted heading number IS the vehicle's heading — structure, not ornament */
+.ghost{
+  position:absolute;top:50%;left:-7%;z-index:-1;
+  font-family:var(--disp);font-weight:700;
+  font-size:clamp(10rem,18vw,18rem);line-height:.8;letter-spacing:-.05em;
+  color:var(--ink);opacity:.045;
+  transform:translateY(-50%);
+  pointer-events:none;user-select:none;white-space:nowrap;
+}
+
+/* ---- HUD: heading + generation + station rail ---- */
+.hud{
+  position:absolute;left:0;right:0;bottom:0;z-index:4;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
+  padding:0 clamp(24px,6vw,96px) 30px;
+  pointer-events:none;
+}
+.hud__read{display:flex;align-items:baseline;gap:14px;white-space:nowrap}
+.hud__deg{
+  font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.02em;
+  color:var(--acc);font-variant-numeric:tabular-nums;transition:color .5s var(--ease);
+}
+.hud__phase{
+  font-family:var(--disp);font-size:10px;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+}
+
+/* Station rail — seven ticks, clickable, keyboard-navigable */
+.rail{display:flex;align-items:center;gap:6px;pointer-events:auto}
+.rail__tick{
+  width:30px;height:26px;padding:0;position:relative;flex:none;
+  border-radius:4px;
+}
+.rail__tick::after{
+  content:"";position:absolute;left:2px;right:2px;top:12px;height:2px;
+  background:rgba(34,37,43,.22);border-radius:2px;
+  transition:background .35s var(--ease),transform .35s var(--ease);
+}
+.rail__tick:hover::after{background:rgba(34,37,43,.5)}
+.rail__tick[aria-current="true"]::after{background:var(--acc);transform:scaleY(2)}
+
+.cue{
+  position:absolute;right:clamp(24px,6vw,96px);bottom:64px;z-index:5;
+  display:flex;align-items:center;gap:14px;
+  font-family:var(--disp);font-size:11px;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+  transition:opacity .5s var(--ease);pointer-events:none;
+}
+.cue .ring{
+  width:38px;height:38px;border-radius:50%;
+  border:1.5px solid rgba(34,37,43,.28);
+  display:grid;place-items:center;
+}
+.cue svg{animation:cue 1.9s var(--ease) infinite}
+@keyframes cue{0%,100%{transform:translateY(-2px);opacity:.5}50%{transform:translateY(2px);opacity:1}}
+
+/* ============================== 6. HANDOFF ============================= */
+.handoff{
+  position:relative;z-index:10;overflow:hidden;
+  background:var(--snow);
+  border-top:1px solid var(--line-2);
+  padding:clamp(84px,10vw,150px) clamp(22px,6vw,96px);
+}
+/* One restrained gradient: Snow White → UCT Blue, for depth only */
+.handoff::before{
+  content:"";position:absolute;right:-180px;top:-200px;
+  width:560px;height:560px;border-radius:50%;
+  background:radial-gradient(circle,rgba(15,59,103,.10),transparent 68%);
+  pointer-events:none;
+}
+.handoff__head{
+  display:grid;grid-template-columns:1.3fr 1fr;gap:clamp(30px,5vw,80px);
+  align-items:end;margin-bottom:clamp(46px,6vw,74px);
+}
+.handoff__head p{color:var(--muted);max-width:44ch}
+.handoff__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(16px,1.6vw,20px)}
+.hc{
+  display:flex;flex-direction:column;justify-content:space-between;
+  background:var(--snow-2);border:1px solid var(--line-2);border-radius:18px;
+  padding:clamp(22px,2vw,26px);min-height:196px;
+  transition:transform .45s var(--ease),border-color .3s,box-shadow .45s var(--ease);
+}
+.hc:hover{
+  transform:translateY(-6px);
+  border-color:rgba(15,59,103,.34);
+  box-shadow:0 26px 60px -44px rgba(34,37,43,.45);
+}
+.hc__title{
+  display:flex;align-items:baseline;gap:9px;
+  font-family:var(--disp);font-weight:700;font-size:18px;letter-spacing:-.01em;
+}
+.hc__num{
+  font-size:11.5px;font-weight:700;color:var(--blue);
+  font-variant-numeric:tabular-nums;letter-spacing:.05em;
+}
+.hc p{color:var(--muted);font-size:14px;margin-top:14px;line-height:1.55}
+.hc .link-arrow{margin-top:26px;font-size:13.5px;color:var(--blue)}
+
+/* =============================== 7. FOOTER ============================= */
+footer{
+  position:relative;z-index:10;
+  background:var(--snow-2);border-top:1px solid var(--line);
+  padding:clamp(64px,8vw,104px) clamp(22px,6vw,96px) 36px;
+}
+.f-top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(34px,5vw,80px)}
+.f-col h3{
+  font-family:var(--disp);font-size:11px;font-weight:600;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:22px;
+}
+.f-col a{
+  display:block;width:fit-content;font-size:14.5px;padding:6px 0;color:var(--ink);
+  opacity:.78;transition:opacity .25s,color .25s,transform .3s var(--ease);
+}
+.f-col a:hover{opacity:1;color:var(--green);transform:translateX(4px)}
+.f-bottom{
+  margin-top:clamp(52px,7vw,88px);padding-top:26px;border-top:1px solid var(--line-2);
+  display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;
+  font-size:13px;color:var(--muted);
+}
+
+/* ============================ 8. RESPONSIVE =========================== */
+
+/* Tablet — scale the composition, keep the two-column balance */
+@media(max-width:1040px){
+  .station{gap:clamp(16px,3vw,32px);padding:92px clamp(24px,5vw,48px) 104px}
+  .ghost{font-size:clamp(8rem,16vw,13rem)}
+  .handoff__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .handoff__head{grid-template-columns:1fr;align-items:start}
+}
+
+/* Mobile — rebuilt, not shrunk.
+   The render owns the upper band as the focal object; the copy owns the rest
+   on solid Snow White and reads beneath it. The left/right alternation is
+   dropped entirely — it means nothing in a single column.
+   NOTE: .station__copy precedes .station__viz in the DOM (the copy carries the
+   heading, so it leads for assistive tech and for the static fallback). Order
+   is therefore reversed explicitly here rather than relying on source order. */
+@media(max-width:880px){
+  .nav-links{display:none}
+  .nav-toggle{display:block}
+  .chapter-tag{display:none}
+
+  .walk{--n:7;height:calc(var(--n) * 82vh)}
+
+  .station{
+    grid-template-columns:1fr;
+    grid-template-rows:minmax(0,38vh) minmax(0,1fr);
+    align-items:stretch;
+    gap:0;
+    padding:76px 24px 88px;
+  }
+  .station__viz{order:-1}
+  .station__copy{order:0}
+  .station__viz{height:100%}
+  .station__copy{max-width:none;align-self:start;padding-top:14px}
+
+  /* The hero carries a headline, a lede, a paragraph and two buttons — more
+     than any other station — so it trades render height for copy height. */
+  .h-xl{font-size:clamp(2.1rem,9vw,2.6rem)}
+  .station--hero{grid-template-rows:minmax(0,26vh) minmax(0,1fr)}
+  .station__copy .lede{font-size:1rem;margin-top:18px;max-width:none}
+  .station__copy .lede::before{width:40px;height:2.5px;margin-bottom:14px}
+  .station__copy p.body{font-size:14px;margin-top:14px;max-width:none}
+  .station__copy .cta-row{margin-top:24px;gap:10px}
+  .station__copy .link-arrow{margin-top:20px}
+  .station__copy .meta{margin-top:22px;gap:12px;font-size:9px}
+  .eyebrow{margin-bottom:18px;font-size:10px}
+
+  .ghost{
+    top:auto;bottom:-6%;left:auto;right:-4%;
+    font-size:clamp(7rem,30vw,11rem);transform:none;opacity:.04;
+  }
+
+  .cue{display:none}
+  .hud{padding:0 24px 20px;align-items:center}
+  .hud__read{gap:10px}
+  .hud__deg{font-size:13px}
+  /* Stays at/above the 24×24 minimum target size */
+  .rail__tick{width:26px;height:26px}
+  .rail{gap:4px}
+
+  .handoff__grid{grid-template-columns:1fr}
+  .hc{min-height:0}
+  .f-top{grid-template-columns:1fr;gap:34px}
+}
+
+/* Short viewports (iPhone SE and friends) — the render yields space to the
+   copy. The body paragraph is never dropped: it carries the actual content. */
+@media(max-width:880px) and (max-height:720px){
+  .station{grid-template-rows:minmax(0,29vh) minmax(0,1fr);padding:68px 22px 80px}
+  .station--hero{grid-template-rows:minmax(0,21vh) minmax(0,1fr)}
+  /* The hero's tag row is the one purely decorative element on the station;
+     on the shortest phones it yields to the headline, lede and buttons. */
+  .station--hero .meta{display:none}
+  .station__copy .lede{font-size:.95rem;margin-top:14px}
+  .station__copy .lede::before{margin-bottom:10px}
+  .station__copy p.body{font-size:13.5px;margin-top:12px;line-height:1.5}
+  .station__copy .cta-row{margin-top:18px}
+  .station__copy .meta{margin-top:16px}
+  .h-xl{font-size:2.4rem}
+  .h-lg{font-size:1.8rem}
+}
+
+/* Narrow phones — full-width buttons, and the hero sheds its tag row so the
+   headline, lede and calls-to-action always clear the HUD. */
+@media(max-width:420px){
+  .station__copy .cta-row .btn{flex:1 1 auto;justify-content:center}
+  .hud__phase{display:none}
+  .station--hero{grid-template-rows:minmax(0,22vh) minmax(0,1fr)}
+  .station--hero .meta{display:none}
+}
+
+/* ========================== 9. REDUCED MOTION ========================
+   The walkaround is motion by definition, so it is not "toned down" — it is
+   replaced by the same seven chapters as a plain, scrollable article with
+   every render shown in place. Nothing is lost, nothing moves.
+   ===================================================================== */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{
+    animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+  .walk{height:auto!important}
+  .stage{position:static;height:auto;overflow:visible;background:var(--snow)}
+  .horizon,.cue,.hud{display:none}
+  .stations{position:static;padding-top:80px}
+  .station{
+    position:relative;inset:auto;
+    padding:clamp(40px,6vw,72px) clamp(24px,6vw,96px);
+    pointer-events:auto;
+    border-bottom:1px solid var(--line-2);
+  }
+  .station__viz{opacity:1!important;transform:none!important;height:auto;min-height:0}
+  .station__viz img{max-height:60vh}
+  .station__copy{opacity:1!important;visibility:visible!important;transform:none!important}
+  .rv{opacity:1;transform:none}
+  /* Restore the generation accent statically */
+  .station[data-phase="proposed"],
+  .station[data-phase="transition"]{--acc:var(--blue);--acc-deep:var(--blue-deep)}
+}
+</style>
+
+<noscript>
+<style>
+/* Same treatment as reduced motion: a readable, static article. */
+.walk{height:auto!important}
+.stage{position:static;height:auto;overflow:visible}
+.horizon,.cue,.hud{display:none}
+.stations{position:static;padding-top:80px}
+.station{
+  position:relative;inset:auto;pointer-events:auto;
+  padding:clamp(40px,6vw,72px) clamp(24px,6vw,96px);
+  border-bottom:1px solid var(--line-2);
+}
+.station__viz{opacity:1!important;height:auto}
+.station__viz img{max-height:60vh}
+/* Stations 2-9 get their src from script. With no script there is no src, so
+   hide those and let the <noscript> twin inside each figure render instead. */
+.station__viz img[data-src]{display:none}
+.station__copy{opacity:1!important;visibility:visible!important}
+.rv{opacity:1;transform:none}
+.station[data-phase="proposed"],
+.station[data-phase="transition"]{--acc:#0F3B67;--acc-deep:#0A2A4A}
+</style>
+</noscript>
+</head>
+<body>
+
+<!-- ================================ NAV ================================ -->
+<nav class="nav" id="nav" aria-label="Main navigation">
+  <div class="brand-lockup">
+    <a class="brand" href="index.html" aria-label="Tukzie home">TUKZI<span class="e-glyph" aria-hidden="true"><span></span><span></span><span></span></span></a>
+    <div class="chapter-tag" aria-hidden="true">
+      <span class="tag-rule"></span>
+      <span class="tag-text" id="chapterTag">Meet Tukzie</span>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="about.html">About Us</a>
+    <a href="research.html">Research &amp; Projects</a>
+    <a href="progress.html">Progress &amp; Updates</a>
+    <a class="btn btn-solid" href="get-involved.html">Get Involved</a>
+  </div>
+  <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="about.html">About Us</a>
+  <a href="research.html">Research &amp; Projects</a>
+  <a href="progress.html">Progress &amp; Updates</a>
+  <a href="get-involved.html">Get Involved →</a>
+</div>
+
+<main>
+
+<!-- ============================ WALKAROUND ============================= -->
+<!-- Labelled with aria-label rather than a hidden heading: the page's only h1
+     lives in station 1, and a heading here would sit above it in the outline. -->
+<section class="walk" id="walk" aria-label="Walk around Tukzie: seven chapters, from the working prototype to the proposed design">
+  <div class="stage">
+    <div class="horizon" aria-hidden="true"></div>
+
+    <div class="stations" id="stations">
+
+      <!-- 1 — Meet Tukzie · 0° · original -->
+      <article class="station station--hero is-active" data-deg="0" data-phase="original" data-tag="Meet Tukzie">
+        <div class="station__copy">
+          <span class="ghost" aria-hidden="true">000</span>
+          <div class="eyebrow"><span class="num">0°</span><span class="rule"></span><span>Meet Tukzie</span></div>
+          <h1 class="h-xl">Walk around<br><span class="acc">Tukzie.</span></h1>
+          <p class="lede">Strong by design. African by inspiration. Electric by purpose.</p>
+          <p class="body">Inspired by the African rhino, Tukzie is engineered for strength, resilience and practical mobility. Developed at UCT, it is built for Africa's conditions and opportunities.</p>
+          <div class="cta-row">
+            <a class="btn btn-solid" href="about.html">Explore the project</a>
+            <a class="btn btn-ghost" href="get-involved.html">Get involved</a>
+          </div>
+          <p class="meta"><span>UCT</span><span>Electric</span><span>African-engineered</span></p>
+        </div>
+        <figure class="station__viz">
+          <img src="Images/Index/tukzie/tukzie_rhino_composite.jpg" width="1448" height="1086" fetchpriority="high" decoding="async"
+               alt="Composite image of an African rhino merged with the Tukzie vehicle silhouette, symbolising the design's strength and African inspiration.">
+        </figure>
+      </article>
+
+      <!-- 2 — Purpose · 60° · original -->
+      <article class="station" data-deg="60" data-phase="original" data-tag="Purpose">
+        <div class="station__copy">
+          <span class="ghost" aria-hidden="true">060</span>
+          <div class="eyebrow"><span class="num">60°</span><span class="rule"></span><span>Purpose</span></div>
+          <h2 class="h-lg">Built for<br><span class="acc">everyday movement.</span></h2>
+          <p class="body">Tukzie is being developed to move people, goods and services where reliability, affordability and practical maintenance matter.</p>
+          <a class="link-arrow" href="about.html">Read our story <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <p class="meta"><span>Passenger</span><span>Cargo</span><span>Utility</span></p>
+        </div>
+        <figure class="station__viz">
+          <!-- src is assigned by script two stations ahead of the scroll; see warm() -->
+               <img data-src="Images/Index/tukzie/old_tukzie_three_quarter_front.png" width="1448" height="1086" decoding="async"
+                    alt="Three-quarter front view of the original Tukzie, showing the exposed battery bay, open chassis and rear cargo platform.">
+               <noscript><img src="Images/Index/tukzie/old_tukzie_three_quarter_front.png" width="1448" height="1086" loading="lazy" decoding="async" alt="Three-quarter front view of the original Tukzie, showing the exposed battery bay, open chassis and rear cargo platform."></noscript>
+        </figure>
+      </article>
+
+      <!-- 3 — Capability · 120° · original -->
+      <article class="station" data-deg="120" data-phase="original" data-tag="Capability">
+        <div class="station__copy">
+          <span class="ghost" aria-hidden="true">120</span>
+          <div class="eyebrow"><span class="num">120°</span><span class="rule"></span><span>Capability</span></div>
+          <h2 class="h-lg">One platform.<br><span class="acc">Multiple roles.</span></h2>
+          <p class="body">An electric mobility platform combining adaptable vehicle architecture, energy systems, control and connected technologies.</p>
+          <a class="link-arrow" href="research.html">Explore the research <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <p class="meta"><span>Electric</span><span>Adaptable</span><span>Connected</span><span>Serviceable</span></p>
+        </div>
+        <figure class="station__viz">
+          <!-- src is assigned by script two stations ahead of the scroll; see warm() -->
+               <img data-src="Images/Index/tukzie/old_tukzie_side.png" width="1448" height="1086" decoding="async"
+                    alt="Side profile of the original green open-frame Tukzie, with its running gear fully exposed along the length of the chassis.">
+               <noscript><img src="Images/Index/tukzie/old_tukzie_side.png" width="1448" height="1086" loading="lazy" decoding="async" alt="Side profile of the original green open-frame Tukzie, with its running gear fully exposed along the length of the chassis."></noscript>
+        </figure>
+      </article>
+
+      <!-- 4 — Validation · 180° · transition (the signature beat: old meets new) -->
+      <article class="station" data-deg="180" data-phase="transition" data-tag="Validation">
+        <div class="station__copy">
+          <span class="ghost" aria-hidden="true">180</span>
+          <div class="eyebrow"><span class="num">180°</span><span class="rule"></span><span>Validation</span></div>
+          <h2 class="h-lg">Built. Tested.<br><span class="acc">Improved.</span></h2>
+          <p class="body">A physical prototype provides the platform to test drivetrain, energy, control and vehicle systems — with each result informing the next revision.</p>
+          <a class="link-arrow" href="progress.html">See the testing <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <p class="meta"><span>Physical prototype</span><span>Testing</span><span>Iteration</span></p>
+        </div>
+        <figure class="station__viz">
+          <!-- src is assigned by script two stations ahead of the scroll; see warm() -->
+               <img data-src="Images/Index/tukzie/new_tukzie_old_tukzie_rear_combined.png" width="1448" height="1086" decoding="async"
+                    alt="Rear view split down the middle: the proposed enclosed silver body on the left, the original green open-frame prototype on the right.">
+               <noscript><img src="Images/Index/tukzie/new_tukzie_old_tukzie_rear_combined.png" width="1448" height="1086" loading="lazy" decoding="async" alt="Rear view split down the middle: the proposed enclosed silver body on the left, the original green open-frame prototype on the right."></noscript>
+        </figure>
+      </article>
+
+      <!-- 5 — Progress · 240° · proposed (accent turns UCT blue) -->
+      <article class="station" data-deg="240" data-phase="proposed" data-tag="Progress">
+        <div class="station__copy">
+          <span class="ghost" aria-hidden="true">240</span>
+          <div class="eyebrow"><span class="num">240°</span><span class="rule"></span><span>Progress</span></div>
+          <h2 class="h-lg">From prototype to<br><span class="acc">purpose-built.</span></h2>
+          <p class="body">Tukzie is progressing from a research platform toward a purpose-designed vehicle for real-world pilot deployment.</p>
+          <a class="link-arrow" href="progress.html">Follow the build <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <p class="meta"><span>Prototype</span><span>Current design</span><span>Pilot</span></p>
+        </div>
+        <figure class="station__viz">
+          <!-- src is assigned by script two stations ahead of the scroll; see warm() -->
+               <img data-src="Images/Index/tukzie/new_tukzie_side.png" width="1448" height="1086" decoding="async"
+                    alt="Side profile of the proposed enclosed Tukzie, with a multi-panel silver body, side doors and tinted windows over the same three-wheel layout.">
+               <noscript><img src="Images/Index/tukzie/new_tukzie_side.png" width="1448" height="1086" loading="lazy" decoding="async" alt="Side profile of the proposed enclosed Tukzie, with a multi-panel silver body, side doors and tinted windows over the same three-wheel layout."></noscript>
+        </figure>
+      </article>
+
+      <!-- 6 — Impact · 300° · proposed -->
+      <article class="station" data-deg="300" data-phase="proposed" data-tag="Impact">
+        <div class="station__copy">
+          <span class="ghost" aria-hidden="true">300</span>
+          <div class="eyebrow"><span class="num">300°</span><span class="rule"></span><span>Impact</span></div>
+          <h2 class="h-lg">The vehicle is only<br><span class="acc">part of what we are building.</span></h2>
+          <p class="body">Tukzie develops local engineering capability, skills, serviceability and knowledge for Africa's electric-mobility future.</p>
+          <a class="link-arrow" href="about.html">Meet the team <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <p class="meta"><span>Engineering</span><span>Skills</span><span>Serviceability</span><span>Sustainability</span></p>
+        </div>
+        <figure class="station__viz">
+          <!-- src is assigned by script two stations ahead of the scroll; see warm() -->
+               <img data-src="Images/Index/tukzie/new_tukzie_three_quarter_front.png" width="1448" height="1086" decoding="async"
+                    alt="Three-quarter front view of the proposed Tukzie, showing the angular cabin, large windshield, mirrors and integrated light bar.">
+               <noscript><img src="Images/Index/tukzie/new_tukzie_three_quarter_front.png" width="1448" height="1086" loading="lazy" decoding="async" alt="Three-quarter front view of the proposed Tukzie, showing the angular cabin, large windshield, mirrors and integrated light bar."></noscript>
+        </figure>
+      </article>
+
+      <!-- 7 — Get Involved · 360° · proposed -->
+      <article class="station" data-deg="360" data-phase="proposed" data-tag="Get Involved">
+        <div class="station__copy">
+          <span class="ghost" aria-hidden="true">360</span>
+          <div class="eyebrow"><span class="num">360°</span><span class="rule"></span><span>Get Involved</span></div>
+          <h2 class="h-lg">Help move<br><span class="acc">Tukzie forward.</span></h2>
+          <p class="body">We are looking for partners to pilot, build, support and advance Tukzie from engineering development to real-world deployment.</p>
+          <a class="link-arrow" href="get-involved.html">Find your role <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <p class="meta"><span>Pilot</span><span>Industry</span><span>Research</span><span>Funding</span></p>
+        </div>
+        <figure class="station__viz">
+          <!-- src is assigned by script two stations ahead of the scroll; see warm() -->
+               <img data-src="Images/Index/tukzie/new_tukzie_front.png" width="1448" height="1086" decoding="async"
+                    alt="Front view of the proposed Tukzie, with a single front wheel, broad enclosed face, horizontal LED light bar and full-width windshield.">
+               <noscript><img src="Images/Index/tukzie/new_tukzie_front.png" width="1448" height="1086" loading="lazy" decoding="async" alt="Front view of the proposed Tukzie, with a single front wheel, broad enclosed face, horizontal LED light bar and full-width windshield."></noscript>
+        </figure>
+      </article>
+
+    </div><!-- /.stations -->
+
+    <!-- HUD -->
+    <div class="hud">
+      <p class="hud__read">
+        <span class="hud__deg" id="hudDeg">0°</span>
+        <span class="hud__phase" id="hudPhase">Original prototype</span>
+      </p>
+      <div class="rail" id="rail" role="group" aria-label="Jump to a view">
+        <!-- ticks injected by script, so no-JS users never see dead controls -->
+      </div>
+    </div>
+
+    <p class="cue" id="cue">
+      <span id="cueText">Scroll to walk around</span>
+      <span class="ring" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1.5v11M2.5 8 7 12.5 11.5 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </p>
+
+    <p class="vh" aria-live="polite" id="live"></p>
+  </div>
+</section>
+
+<!-- ============================== HANDOFF ============================= -->
+<section class="handoff" id="explore" aria-labelledby="handoff-h">
+  <div class="wrap">
+    <div class="handoff__head">
+      <div>
+        <div class="eyebrow rv"><span class="num" aria-hidden="true">→</span><span class="rule"></span><span>Explore Tukzie</span></div>
+        <h2 class="h-lg rv" style="--i:1" id="handoff-h">The walk ends here.<br>The project doesn't.</h2>
+      </div>
+      <p class="rv" style="--i:2">Go deeper into the story, the engineering, the progress&mdash;or find your place in what comes next.</p>
+    </div>
+    <div class="handoff__grid">
+      <a class="hc rv" style="--i:1" href="about.html">
+        <div>
+          <span class="hc__title"><span class="hc__num">01</span>About Tukzie</span>
+          <p>The story, purpose, design philosophy and people behind Tukzie.</p>
+        </div>
+        <span class="link-arrow">Discover Tukzie <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+      <a class="hc rv" style="--i:2" href="research.html">
+        <div>
+          <span class="hc__title"><span class="hc__num">02</span>Research &amp; Engineering</span>
+          <p>Explore the vehicle architecture, energy, drive, and connected systems behind Tukzie.</p>
+        </div>
+        <span class="link-arrow">Explore the engineering <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+      <a class="hc rv" style="--i:3" href="progress.html">
+        <div>
+          <span class="hc__title"><span class="hc__num">03</span>Progress &amp; Updates</span>
+          <p>Follow the prototypes, testing, milestones and lessons shaping each new revision.</p>
+        </div>
+        <span class="link-arrow">See our progress <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+      <a class="hc rv" style="--i:4" href="get-involved.html">
+        <div>
+          <span class="hc__title"><span class="hc__num">04</span>Partner With Tukzie</span>
+          <p>Pilot, build, support or research with us as Tukzie moves toward real-world deployment.</p>
+        </div>
+        <span class="link-arrow">Work with us <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- =============================== FOOTER ============================== -->
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <div class="f-col">
+        <h3>Quick Links</h3>
+        <a href="about.html">About Us</a>
+        <a href="research.html">Research &amp; Projects</a>
+        <a href="progress.html">Progress &amp; Updates</a>
+        <a href="get-involved.html">Get Involved</a>
+      </div>
+      <div class="f-col">
+        <h3>Resources</h3>
+        <a href="research.html">Technical papers</a>
+        <a href="progress.html">Media gallery</a>
+        <a href="get-involved.html#contact">Student opportunities</a>
+        <a href="get-involved.html#contact">Contact</a>
+      </div>
+      <div class="f-col">
+        <h3>Follow Us</h3>
+        <a href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.linkedin.com/company/tukzie/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://www.youtube.com/" target="_blank" rel="noopener">YouTube</a>
+        <a href="https://www.facebook.com/" target="_blank" rel="noopener">Facebook</a>
+      </div>
+    </div>
+    <div class="f-bottom">
+      <a class="brand" href="index.html" aria-label="Tukzie home">TUKZI<span class="e-glyph" aria-hidden="true"><span></span><span></span><span></span></span></a>
+      <span>© 2026 Tukzie — University of Cape Town</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ==========================================================================
+   1. NAV — scrolled state + mobile menu
+   ========================================================================== */
+(function(){
+  "use strict";
+  var nav = document.getElementById('nav');
+  var toggle = document.getElementById('navToggle');
+
+  var navTick = false;
+  function onScroll(){
+    if (navTick) return;
+    navTick = true;
+    requestAnimationFrame(function(){
+      navTick = false;
+      nav.classList.toggle('scrolled', window.pageYOffset > 12);
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+
+  function setMenu(open){
+    document.body.classList.toggle('menu-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  }
+  toggle.addEventListener('click', function(){
+    setMenu(!document.body.classList.contains('menu-open'));
+  });
+  document.querySelectorAll('.mobile-menu a').forEach(function(a){
+    a.addEventListener('click', function(){ setMenu(false); });
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && document.body.classList.contains('menu-open')){
+      setMenu(false);
+      toggle.focus();
+    }
+  });
+})();
+
+
+/* ==========================================================================
+   2. WALKAROUND — scroll position drives a 9-station walk
+
+   Scroll progress p ∈ [0,1] maps to a continuous position `exact` ∈ [0, n-1].
+   Within a transition (t = fractional part) the outgoing render fades to the
+   page ground over t ∈ [.34,.5] and the incoming one fades up over [.5,.66],
+   so the two are never composited on top of each other. Copy fades on a
+   tighter window so the words settle before the render does.
+
+   All per-frame work is opacity + transform only, batched in one rAF, and
+   skipped entirely while the section is off screen.
+   ========================================================================== */
+(function(){
+  "use strict";
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var walk = document.getElementById('walk');
+  if (!walk) return;
+
+  /* Reduced motion keeps the static article, and the scroll engine below never
+     runs — so nothing would ever assign the deferred sources. Hand them over
+     now: the static layout puts the off-screen stations genuinely below the
+     fold, which is exactly the case native lazy-loading handles well. */
+  if (reduce){
+    Array.prototype.forEach.call(walk.querySelectorAll('img[data-src]'), function(img){
+      img.loading = 'lazy';
+      img.src = img.dataset.src;
+    });
+    return;
+  }
+
+  var stations = Array.prototype.slice.call(walk.querySelectorAll('.station'));
+  var vizzes   = stations.map(function(s){ return s.querySelector('.station__viz'); });
+  var copies   = stations.map(function(s){ return s.querySelector('.station__copy'); });
+  var LAST     = stations.length - 1;
+
+  var hudDeg   = document.getElementById('hudDeg');
+  var hudPhase = document.getElementById('hudPhase');
+  var chapterTag = document.getElementById('chapterTag');
+  var railBox  = document.getElementById('rail');
+  var cue      = document.getElementById('cue');
+  var cueText  = document.getElementById('cueText');
+  var live     = document.getElementById('live');
+
+  var PHASE_LABEL = {
+    original:   'Original prototype',
+    transition: 'Heading held — generation change',
+    proposed:   'Proposed design study'
+  };
+
+  var travel = 1;
+  var active = -1;
+  var inView = true;
+  var ticking = false;
+  var liveTimer = 0;
+
+  function clamp01(v){ return v < 0 ? 0 : v > 1 ? 1 : v; }
+  /* Smooth ramp from 0→1 across [a,b]; flat outside. */
+  function ramp(v, a, b){
+    var t = clamp01((v - a) / (b - a));
+    return t * t * (3 - 2 * t);
+  }
+  function measure(){ travel = Math.max(1, walk.offsetHeight - window.innerHeight); }
+
+  /* Give a station its render once, and decode it off the main thread, so a
+     swap never waits on the network or stutters mid-scroll. Because every
+     station sits at inset:0 inside the sticky stage, the browser considers all
+     seven to be in-viewport and native lazy-loading would fetch the lot on
+     first paint — hence the manual, two-ahead scheduling. Safe to call every
+     frame; each station is only ever fetched once. */
+  var warmed = stations.map(function(){ return false; });
+  function warm(k){
+    if (k < 1 || k > LAST || warmed[k]) return;
+    warmed[k] = true;
+    var img = stations[k].querySelector('img');
+    if (!img.getAttribute('src') && img.dataset.src) img.src = img.dataset.src;
+    if (img.decode) img.decode().catch(function(){});
+  }
+
+  /* ---- station rail (built in JS so no-JS users get no dead controls) ---- */
+  var ticks = stations.map(function(s, i){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'rail__tick';
+    b.dataset.i = i;
+    b.setAttribute('aria-label', s.dataset.deg + ' degrees — ' + s.dataset.tag);
+    b.addEventListener('click', function(){ goTo(i); });
+    railBox.appendChild(b);
+    return b;
+  });
+
+  function goTo(i){
+    i = Math.max(0, Math.min(LAST, i));
+    measure();
+    var top = window.pageYOffset + walk.getBoundingClientRect().top + (i / LAST) * travel + 1;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+  }
+
+  railBox.addEventListener('keydown', function(e){
+    var t = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') t = Math.min(LAST, active + 1);
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') t = Math.max(0, active - 1);
+    else if (e.key === 'Home') t = 0;
+    else if (e.key === 'End')  t = LAST;
+    if (t === null) return;
+    e.preventDefault();
+    goTo(t);
+    ticks[t].focus();
+  });
+
+  /* ---- the frame ---- */
+  function render(){
+    var p = clamp01(-walk.getBoundingClientRect().top / travel);
+    var exact = p * LAST;
+    var i = Math.min(LAST - 1, Math.floor(exact));
+    var t = exact - i;                       // 0→1 across this transition
+
+    var outV = 1 - ramp(t, .34, .50);        // render leaving
+    var inV  = ramp(t, .50, .66);            // render arriving
+    var outC = 1 - ramp(t, .18, .42);        // copy leaving (earlier)
+    var inC  = ramp(t, .58, .84);            // copy arriving (later)
+
+    for (var k = 0; k <= LAST; k++){
+      var v = 0, c = 0;
+      if (k === i){ v = outV; c = outC; }
+      else if (k === i + 1){ v = inV; c = inC; }
+
+      var viz = vizzes[k], cp = copies[k];
+      var live = (k === i || k === i + 1);
+
+      /* Render: a soft push, never a spin */
+      viz.style.opacity = v;
+      if (v > 0){
+        var s = (k === i) ? 1 + (1 - v) * .02 : 1 - (1 - v) * .02;
+        viz.style.transform = 'scale(' + s.toFixed(4) + ')';
+      }
+
+      /* Copy: rises into place, hidden from tab order once invisible */
+      cp.style.opacity = c;
+      cp.style.visibility = c > .02 ? 'visible' : 'hidden';
+      if (c > 0) cp.style.transform = 'translateY(' + ((1 - c) * 18).toFixed(2) + 'px)';
+
+      /* Only the outgoing/incoming pair stays promoted */
+      var hint = live ? 'opacity, transform' : 'auto';
+      if (viz.style.willChange !== hint){ viz.style.willChange = hint; cp.style.willChange = hint; }
+    }
+
+    /* Keep the next two renders ready — but not before the visitor has moved,
+       so an arrival that never scrolls costs exactly one image. */
+    if (p > .002){ warm(i + 1); warm(i + 2); }
+
+    /* Active station = whichever side of the transition we are on */
+    var now = t < .5 ? i : i + 1;
+    if (now !== active){
+      active = now;
+      var d = stations[active].dataset;
+
+      stations.forEach(function(s, k){ s.classList.toggle('is-active', k === active); });
+      ticks.forEach(function(b, k){ b.setAttribute('aria-current', k === active ? 'true' : 'false'); });
+
+      hudDeg.textContent = d.deg + '°';
+      hudPhase.textContent = PHASE_LABEL[d.phase];
+      chapterTag.textContent = d.tag;
+
+      /* Green for the built prototype, UCT blue from the generation change on */
+      var blue = d.phase !== 'original';
+      walk.style.setProperty('--acc', blue ? 'var(--blue)' : 'var(--green)');
+      walk.style.setProperty('--acc-deep', blue ? 'var(--blue-deep)' : 'var(--green-deep)');
+
+      clearTimeout(liveTimer);
+      liveTimer = setTimeout(function(){
+        live.textContent = d.deg + ' degrees. ' + d.tag + '. ' + PHASE_LABEL[d.phase] + '.';
+      }, 300);
+    }
+
+    /* The cue only speaks at the two ends of the walk */
+    var end = p > .985;
+    cue.style.opacity = (p < .02 || end) ? '1' : '0';
+    var label = end ? 'Continue below' : 'Scroll to walk around';
+    if (cueText.textContent !== label) cueText.textContent = label;
+  }
+
+  function onScroll(){
+    if (!inView || ticking) return;
+    ticking = true;
+    requestAnimationFrame(function(){ ticking = false; render(); });
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', function(){ measure(); render(); }, { passive:true });
+
+  /* Pause all per-frame work while the walk is off screen */
+  if ('IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ inView = e.isIntersecting; });
+      if (inView) onScroll();
+    }, { rootMargin: '200px 0px' }).observe(walk);
+  }
+
+  measure();
+  render();
+
+  /* Warm only the station after the first while the page is idle; the rest are
+     fetched two ahead of the scroll by render(). Pulling all seven renders up
+     front would cost several megabytes that most visitors never scroll to. */
+  if ('requestIdleCallback' in window) requestIdleCallback(function(){ warm(1); }, { timeout: 2500 });
+  else window.addEventListener('load', function(){ setTimeout(function(){ warm(1); }, 600); });
+})();
+
+
+/* ==========================================================================
+   3. REVEAL — one observer for everything below the walkaround
+   ========================================================================== */
+(function(){
+  "use strict";
+  var items = document.querySelectorAll('.rv');
+  if (!items.length) return;
+
+  if (!('IntersectionObserver' in window) ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    items.forEach(function(el){ el.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      io.unobserve(e.target);          // reveal once, then stop watching
+    });
+  }, { rootMargin: '0px 0px -12% 0px' });
+
+  items.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
