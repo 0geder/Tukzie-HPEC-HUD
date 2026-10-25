@@ -35,7 +35,7 @@
 #include "cmd_link.h"
 #include "esp_freertos_hooks.h"
 
-#define FIRMWARE_VERSION "v0.7.8"
+#define FIRMWARE_VERSION "v0.7.9"
 
 #if NODE_FRONT
 #define NODE_ID "front"
@@ -2238,6 +2238,21 @@ uint32_t mqttConnectAttempts = 0;
 unsigned long mqttRetryDelayMs = MQTT_RETRY_MIN_MS;
 unsigned long mqttNextAttemptMs = 0;
 
+// v0.7.9: publishing can be switched off with !mqtt off and back on with
+// !mqtt on, kept in NVS so a power cycle on the vehicle keeps the choice.
+// Off, no connection is attempted: on 25 Oct 2026 a SIM without a working
+// data connection kept ModemTask in 21 s reconnect waits, so the GNSS was
+// polled about once in 30 s instead of every 3 s. Records still go to the
+// flash log and the ledger, and replay once publishing is back on.
+volatile bool mqttEnabled = true;
+Preferences mqttPrefs;
+
+void mqttSaveEnabled() {
+  mqttPrefs.begin("mqttcfg", false);
+  mqttPrefs.putBool("enabled", mqttEnabled);
+  mqttPrefs.end();
+}
+
 // Sends one AT command and waits up to timeoutMs for a line containing
 // expectSubstring. Returns the full accumulated response via outResponse
 // (may be nullptr if not needed) and true/false for whether expectSubstring
@@ -3309,7 +3324,7 @@ void handleLocalCommand(String line) {
   line.toLowerCase();
   if (handleCommonCommand(line)) return;
   if (line == "!help") {
-    Serial.println("[CMD] !status  !sync  !sync drop  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !gnssraw  !dash off  !dash on  !raw off  !raw on  !recal  !agps  !cellpos  !modem off  !modem on");
+    Serial.println("[CMD] !status  !sync  !sync drop  !log off  !log on  !log flush  !log dump  !log clear  !mqtt  !mqtt off  !mqtt on  !gnssraw  !dash off  !dash on  !raw off  !raw on  !recal  !agps  !cellpos  !modem off  !modem on");
   } else if (line == "!modem off") {
     // Bench test of the modem-silent state (v0.7.6): AT+CPOF powers the
     // A7670 down, so every later AT command goes unanswered, as in the
@@ -3426,10 +3441,28 @@ void handleLocalCommand(String line) {
   } else if (line == "!gnssraw") {
     gnssPrintRaw = !gnssPrintRaw;
     Serial.printf("[CMD] raw GNSS replies %s\n", gnssPrintRaw ? "on" : "off");
-  } else if (line == "!mqtt") {
+  } else if (line == "!mqtt off") {
+    mqttEnabled = false;
+    if (mqttConnected) {
+      mqttTeardown();
+      mqttConnected = false;
+    }
+    mqttSaveEnabled();
+    Serial.println("[CMD] MQTT publishing off (kept after restarts); records stay in the flash log");
+  } else if (line == "!mqtt on") {
+    mqttEnabled = true;
+    mqttSaveEnabled();
+    mqttRetryDelayMs = MQTT_RETRY_MIN_MS;
     mqttNextAttemptMs = millis();
-    mqttConnected = false;
-    Serial.println("[CMD] MQTT reconnect requested");
+    Serial.println("[CMD] MQTT publishing on (kept after restarts); connecting");
+  } else if (line == "!mqtt") {
+    if (!mqttEnabled) {
+      Serial.println("[CMD] MQTT publishing is off; !mqtt on to enable");
+    } else {
+      mqttNextAttemptMs = millis();
+      mqttConnected = false;
+      Serial.println("[CMD] MQTT reconnect requested");
+    }
   } else if (line == "!recal") {
     flushLocalLog();
     imuCalPrefs.begin("imucal", false);
@@ -3522,17 +3555,24 @@ void ModemTask(void* pvParameters) {
   sendGnssCommand("AT+CGNSSPWR=1");
   Serial.println("GNSS engine enabled; waiting for navigation data.");
 
-  Serial.println("---> Connecting MQTT...");
-  modemWaitAborted = false;
-  modemYieldToCommands = true;  // v0.7.8: a queued command stops the wait
-  const bool firstOk = mqttConnect();
-  modemYieldToCommands = false;
-  if (!firstOk && modemWaitAborted) {
-    mqttNextAttemptMs = millis();
-    Serial.println("[MQTT] Initial connect stopped to run a queued command, retrying next pass.");
-  } else if (!firstOk) {
-    mqttNextAttemptMs = millis() + mqttRetryDelayMs;
-    Serial.printf("[MQTT] Initial connect failed, retrying in %lu s.\n", mqttRetryDelayMs / 1000);
+  mqttPrefs.begin("mqttcfg", true);
+  mqttEnabled = mqttPrefs.getBool("enabled", true);
+  mqttPrefs.end();
+  if (!mqttEnabled) {
+    Serial.println("[MQTT] Publishing is off (!mqtt on to enable); records stay in the flash log.");
+  } else {
+    Serial.println("---> Connecting MQTT...");
+    modemWaitAborted = false;
+    modemYieldToCommands = true;  // v0.7.8: a queued command stops the wait
+    const bool firstOk = mqttConnect();
+    modemYieldToCommands = false;
+    if (!firstOk && modemWaitAborted) {
+      mqttNextAttemptMs = millis();
+      Serial.println("[MQTT] Initial connect stopped to run a queued command, retrying next pass.");
+    } else if (!firstOk) {
+      mqttNextAttemptMs = millis() + mqttRetryDelayMs;
+      Serial.printf("[MQTT] Initial connect failed, retrying in %lu s.\n", mqttRetryDelayMs / 1000);
+    }
   }
 
   Serial.println("==============================");
@@ -3555,7 +3595,7 @@ void ModemTask(void* pvParameters) {
     while (xQueueReceive(modemTxQueue, &txByte, 0) == pdTRUE) {
       Serial1.write(txByte);
     }
-    if (!mqttConnected && (long)(millis() - mqttNextAttemptMs) >= 0) {
+    if (mqttEnabled && !mqttConnected && (long)(millis() - mqttNextAttemptMs) >= 0) {
       Serial.println("[MQTT] Reconnecting...");
       modemWaitAborted = false;
       modemYieldToCommands = true;

@@ -499,3 +499,11 @@ committed to git because of their size, kept on OneDrive).
 - Phone result: positions along the line spanned 36.3 m (5th to 95th percentile) and 46.8 m (extremes) against 40.9 m, so the track reproduces the line to a few metres. The phone's speed field read 0 in 251 of 716 fixes while walking (mean 1.97 km/h), so at walking pace it under-reports; the speed check needs vehicle speeds with timed passes (Monday, side video over the taped section).
 - For Monday: power the rear node outdoors at least 10 min before the first pass with the GNSS antenna seated and facing the sky; fix the broker setting first so failed reconnects cannot block the modem.
 - What the student did: walked the GNSS tests with the laptop, rear node and phone, and measured the line in paving tiles.
+
+### 25 October 2026, about 05:30 to 06:30, rear node firmware v0.7.9
+
+- Pointed the rear node at the public broker (mqtt_secrets.h moved to the git-ignored mqtt_secrets.melo.h) and reflashed v0.7.8: MQTT still failed (code 15, then 3) and AGPS was refused, while the laptop reached the same broker in 0.4 s. The SIM's data connection is the likely cause; the student is to check its balance.
+- The statistics showed the GNSS polled about once in 30 s during the reconnect waits: the starvation in the open fault record is confirmed.
+- Added !mqtt off / !mqtt on (kept in NVS) as v0.7.9, built both nodes, flashed the rear node. With publishing off: GNSS every 3.0 s, 33 of 33 replies fixed; after a reset the setting held and it fixed with 35 satellites in 9.6 s.
+- The rear node is left with publishing OFF. Turn it on with !mqtt on once the SIM has data.
+- What the student did: kept the node outside with the antenna facing the sky for the GPS checks.

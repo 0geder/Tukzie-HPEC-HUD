@@ -78,3 +78,4 @@ DashboardIntegration/tests/tile_map_navigation.png
 ~$*
 CAD/**/*.bmp
 
+TelemetryUnit/include/mqtt_secrets.melo.h

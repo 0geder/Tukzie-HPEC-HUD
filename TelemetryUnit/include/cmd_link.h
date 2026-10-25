@@ -109,7 +109,7 @@ inline void cmdNormalize(char* s) {
 // ModemTask without a lock). Everything else, unknown commands included,
 // only reads state or sets a single flag and runs at once in CommandTask.
 //   !modem off / !modem on   Serial1 (AT+CPOF, AT probe, power key)
-//   !mqtt                    mqttConnected and mqttNextAttemptMs
+//   !mqtt, !mqtt off/on      mqttConnected and mqttNextAttemptMs; off tears the session down (Serial1)
 //   !agps / !cellpos         agpsNextMs / cellLocNextMs (ModemTask writes them too)
 //   !log off / !log flush    flushLocalLog (log buffer, ledger save)
 //   !log dump                flushLocalLog, then a long paced file print
@@ -117,7 +117,7 @@ inline void cmdNormalize(char* s) {
 //   !recal                   flushLocalLog before the restart
 inline bool cmdIsDeferred(const char* line) {
   static const char* const kDeferred[] = {
-      "!modem off", "!modem on", "!mqtt",      "!agps",      "!cellpos", "!log off",
+      "!modem off", "!modem on", "!mqtt",      "!mqtt off",  "!mqtt on",  "!agps",      "!cellpos", "!log off",
       "!log flush", "!log dump", "!log clear", "!sync drop", "!recal",
   };
   for (size_t i = 0; i < sizeof(kDeferred) / sizeof(kDeferred[0]); i++) {

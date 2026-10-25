@@ -2,6 +2,21 @@
 
 Firmware changes, newest first. The repository-wide record is CHANGELOG.md at the root; this file holds the firmware detail and the bench test for each version.
 
+## v0.7.9, 25 Oct 2026 (flashed on the rear node and bench-tested; front node not reflashed)
+
+Finding of 24 to 25 Oct 2026: with a SIM whose data connection fails (CMQTTCONNECT codes 3 and 15, CMQTTACCQ errors, AGPS refused, each attempt about 21 s) while the public broker accepted the laptop in 0.4 s, ModemTask spent most of its time in MQTT reconnect waits and polled the GNSS about once in 30 s instead of every 3 s; the receiver fixed only in gaps between attempts (Report Appendix E, GNSS polls starved during broker failures).
+
+### Changes
+
+- New commands !mqtt off and !mqtt on (rear node, run in ModemTask, include/cmd_link.h). Off tears down a live session and stops all connection attempts; on resets the backoff and connects at once. The choice is kept in NVS (namespace mqttcfg, key enabled, default on), so a power cycle on the vehicle keeps it. !mqtt with publishing off replies instead of reconnecting.
+- Records are still written to the flash log and the ledger with publishing off, and replay once it is back on.
+- mqtt_secrets.h moved aside (to the git-ignored mqtt_secrets.melo.h), so the build uses the default public broker test.mosquitto.org, topic sw7/telemetry.
+
+### Bench test (rear node, 25 Oct, USB on the laptop, antenna under open sky)
+
+- !mqtt off: 33 GNSS replies in 100 s (every 3.0 s), all 33 3D fixes.
+- Reset: "Publishing is off" printed at boot (setting kept) and a 3D fix with 35 satellites, HDOP 1.11, 9.6 s after the reset.
+
 ## v0.7.8, 22 Oct 2026 (built, host-tested, not flashed)
 
 Field finding of 22 Oct 2026: '!' commands sent from the Pi over the UART link (Serial2, RX IO42) reached the rear unit but were acted on only about 20 to 25 s later. Cause: the rear unit read its commands (Pi UART and USB) in ModemTask's loop, which also runs the MQTT reconnect. With the modem attached but without network (AT+CSQ 99,99), each reconnect step (CMQTTDISC 5 s, CMQTTREL 3 s, CMQTTSTOP 5 s, CMQTTSTART 12 s, CMQTTCONNECT 30 s) waits for its timeout, and AGPS (30 s) and cell position (25 s) do the same, so the loop did not get back to its input for many seconds.
