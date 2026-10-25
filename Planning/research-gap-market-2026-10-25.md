@@ -51,3 +51,24 @@ Road repeatability (RQ1) and the road share of the powertrain (RQ4) complete the
 - Cite Nericell in Section 2.3: phone road sensing on 2-wheelers in India since 2008, with thresholds and no integrity measures.
 - Cite one low-cost IMU roughness system validated against a profiler, to sharpen what this project does not claim (an IRI).
 - Words: about +150, offset by cuts elsewhere (body at 14,946 of a 15,000 guide).
+
+## Deeper pass, 25 Oct evening
+
+Searched specifically where a counter-example would hurt most: e-rickshaw and tuk-tuk systems, motorcycle data acquisition, e-scooter sensing platforms, instrumented three-wheelers, and integrated ESP32, Pi, IMU, camera and LTE builds.
+
+| Closest new item | What it has | What it lacks against the gap |
+|---|---|---|
+| IoT Enabled Electric Tricycle Monitoring System (IEEE SCES 2020, doi 10.1109/SCES50439.2020.9236699) | Electric tricycle; NodeMCU over WiFi: motor and battery temperature, state of charge, speed, load, GPS | Laboratory only; no IMU, camera, cellular, local log or replay. Full text needed (IEEE, UCT access) |
+| Pérez-González et al. 2025 (already cited) | ESP32 acquisition, Raspberry Pi gateway, LoRaWAN, Node-RED visualisation; a search summary says the test vehicle is three-wheeled and the driver saw the dashboard | No IMU, camera, cellular or replay. **The Table 2.1 dashboard cell and the vehicle class must be checked in the full text before submission** |
+| Zheng et al. 2025, e-scooter obstacle detection (arXiv 2504.03171, filed) | RGB plus depth camera plus IMU (RealSense D435i), obstacle detection; IMU vertical acceleration for surface vibration | Displays and alerts proposed as future work; no telemetry, logging or fleet link; scooter, not cargo vehicle |
+| DELTA platform (Sensors 2024) | Modular e-scooter: cameras, LiDAR, IMU, GNSS, synchronised | Dataset collection, not live warnings or telemetry |
+| MotoMonkey (GitHub), CANedge3 (product) | Motorcycle data acquisition with IMU and GPS; CAN logger with GNSS, IMU and 4G | No camera; hobby or industrial loggers, unpublished performance |
+| Hobby ESP32 builds (ESP32 with A7670C LTE and ESP32-CAM; Pi 5 with MPU6050 dashboard) | Pieces of the same stack | Unpublished, no measurement, not a vehicle study |
+
+**Conclusion:** the gap still holds, and is sharper for it. The closest three-wheeler systems (the IoT e-tricycle, Pérez-González) do battery and position telemetry without ride sensing, cameras, cellular store-and-forward or measured integrity. The closest camera-plus-IMU systems (e-scooter work) do detection without telemetry. Commercial products do one slice each.
+
+**Before submission, so that Table 2.1 is defensible:**
+1. Read the full text of Pérez-González 2025 (MDPI, browser download): wheel count; whether the dashboard is in the vehicle; Table 2.1 dashboard cell.
+2. Read Noomwongs 2025 (MDPI), Alatoom 2025 (ScienceDirect, UCT) and Bui 2026 (IEEE, UCT), and change the Table 2.1 caption from "abstract and passages" to "full text".
+3. Add the IoT e-tricycle (2020) and Zheng 2025 as rows, so the table shows a three-wheeler telemetry system and a camera-plus-IMU micromobility system.
+4. Optionally add a commercial row (Ride Vision; e-rickshaw telematics) from dated web copies.
