@@ -515,3 +515,12 @@ committed to git because of their size, kept on OneDrive).
 - Recognition check with Windows synthetic voices (no person recorded): clean 17 and 13 of 18, 10 dB SNR 14 and 13, 0 dB 5 and 9; median 0.7 to 0.9 s per phrase (BenchTest/logs/voice_2026-10-25/voice_check.json).
 - Needs a USB microphone on the Pi 5 before it can be tried on the vehicle.
 - What the student did: proposed the feature (voice navigation, rear camera by voice, destination by voice).
+
+### 25 October 2026, about 19:00, LTE publishing working
+
+- Student bought data for the rear node's SIM. Modem: SIM ready, Vodacom (65501) on LTE, CSQ 21, attached, APN "internet", IP 100.116.149.226: the data connection works.
+- On the laptop's USB alone the node dropped off USB when the modem started transmitting (brown-out); with its own battery connected as well it stayed up.
+- test.mosquitto.org was unreachable from the laptop as well (TCP 1883 timed out), while broker.hivemq.com, broker.emqx.io and Melo's broker answered. The rear node was pointed at broker.hivemq.com (git-ignored mqtt_secrets.h, topic sw7/telemetry, no position) and reflashed (v0.7.9).
+- With publishing on: "[MQTT] Connected" 25 s after start; records received on the laptop's subscription, all from sw7-esp32-telemetry, none with a position; the backlog of an earlier boot (1881) replaying alongside the live records (boot 2034).
+- For Monday: the Pi 5 ingest must subscribe to broker.hivemq.com, not test.mosquitto.org; the node keeps its own battery.
+- What the student did: bought the data bundle and connected the node's battery.

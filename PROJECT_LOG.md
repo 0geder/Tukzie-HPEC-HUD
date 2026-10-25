@@ -163,6 +163,8 @@ Status values: agreed (the student decided, or the supervisor confirmed), pendin
 | D38 | 2026-10-24 | Existing data cannot show road repeatability; Monday's repeated passes are needed | Road session 1 had no marked passes or speed; stand runs of 23 Oct varied with the throttle (current 2.7 to 5.9 A in run 2; vibration tracks current, r 0.80). Rest windows CV 1.7 to 4.2 % | Student with Claude | Analysis committed (e2839f6); Monday stand runs to hold each setting steady |
 | D39 | 2026-10-24 | Vehicle receiver GNSS confirmed working with sky view | 10 min static: 179 fixes, scatter median 1.8 m, 95 % 4.3 m; the 23 Oct lab failure was the sky view. Stationary speed noise up to 6.97 means a minimum-speed gate | Student with Claude | Logged; in Results 5.4 and Table 5.3 |
 | D40 | 2026-10-24 | LTE publishing: point the firmware back at the public test broker for Monday | LTE data works (csq 19 to 21) but Melo's broker accepts TLS only, which the firmware lacks; the public broker passed the bench tests and published records carry no position | Student with Claude | Proposed; needs a reflash with the student's agreement |
+| D41 | 2026-10-25 | Public broker changed to broker.hivemq.com; LTE publishing confirmed | test.mosquitto.org unreachable on 25 Oct; HiveMQ public broker answers; SIM data bought; records arrive without position | Student with Claude | Done; the Pi 5 ingest to follow |
+| D42 | 2026-10-25 | Voice commands built, off by default | Student request; fixed commands for predictability while driving; offline Vosk with a command-only recogniser; needs a USB microphone; deploy after screenshot approval | Student with Claude | Built and tested on the bench |
 
 ---
 
