@@ -79,3 +79,9 @@ merry2019, mqtt311, fall2003, chapungo2025, ugwuanyi2021, manglik2019, lenkeit20
 Source: University of Cape Town, "Tukzie", programme website, https://tukzie.com/, accessed 25 Oct 2026. Copy: References/Papers/Urban Electric Cargo Trike/TUKZIE_website_tukzie.com_2026-10-25.html.
 Checked against the report: "Developed at UCT, it is built for Africa's conditions and opportunities" and "An electric mobility platform combining adaptable vehicle architecture, energy systems, control and connected technologies" support Section 1.1's "TUKZIE Flagship Programme of the University of Cape Town". The site gives no specifications (battery, motor, range), so no number in the report is taken from it.
 Report: citation tukzie2026web (Introduction, first sentence).
+
+## ISO 15008:2003 (25 Oct 2026)
+
+Source: ISO 15008:2003, first edition, read in the publisher's preview (standards.iteh.ai), 12 pages: Foreword, Introduction, Sections 1 to 4.2 and the start of 4.3. Copy: References/Papers/HMI/ISO_15008_2003_preview_iTeh.pdf (git-ignored: copyrighted).
+Checked: 4.3.1 minimum contrast ratio between symbol and background 5:1 night, 3:1 day, 2:1 sunlight. Cited (iso15008) in Section 6.5 for the contrast criterion.
+Not in the preview: 4.5 Alphanumerical character dimensions and Annex C, so the 20 and 16 arc-minute character heights are still cited through reimer2014typeface and you2021charsize, which are still to be downloaded and checked. The full standard (or ISO 15008:2017, or SANS 15008) is to be sought through UCT Libraries.
