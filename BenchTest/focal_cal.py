@@ -10,7 +10,7 @@ The detector's current setting is --focal-length-px 600 (uncalibrated).
 import argparse, csv, json, os, statistics, time, urllib.request
 
 ap = argparse.ArgumentParser()
-ap.add_argument("--pi", default="192.168.137.128", help="Pi running the detector (front Pi 5 by default)")
+ap.add_argument("--pi", default="Pirate5.local", help="Pi running the detector: Pirate5.local (front), pi4-camera.local (rear)")
 ap.add_argument("--dist", type=float, required=True, help="tape distance, camera lens to the object's front, m")
 ap.add_argument("--width", type=float, required=True, help="object's real width across the camera, m")
 ap.add_argument("--cls", default="person")
