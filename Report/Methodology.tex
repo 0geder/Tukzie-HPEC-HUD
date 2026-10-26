@@ -148,7 +148,7 @@ v = \frac{L}{\tau_d}, \qquad
 \frac{\delta \tau_d}{\tau_d} = \frac{v\,\delta t}{L},
 \label{eq:delay-speed}
 \end{equation}
-with no GNSS. The timing error $\delta t$ (Table~\ref{tab:delay-budget}) sums to at most 5.3\,ms, 1.8\,\% of a 0.3\,s delay, growing in proportion to speed; a wheelbase taped to $\pm 1$\,cm adds 1\,\% for a 1\,m wheelbase, less for a longer one. Both are well inside the proposed 10\,\% criterion against the video speed, so timing does not limit the method; correlation does, because the front wheel and the two rear wheels run on different tracks and only full-width features such as a speed bump are used (Section~\ref{sec:impl-road}).
+with no GNSS. The timing error $\delta t$ (Table~\ref{tab:delay-budget}) is budgeted at 5.3\,ms, provisional until the fixed offsets are measured, 1.8\,\% of a 0.3\,s delay, growing in proportion to speed; a wheelbase taped to $\pm 1$\,cm adds 1\,\% for a 1\,m wheelbase, less for a longer one. Both are well inside the proposed 10\,\% criterion against the video speed, so timing does not limit the method; correlation does, because the front wheel and the two rear wheels run on different tracks and only full-width features such as a speed bump are used (Section~\ref{sec:impl-road}).
 
 \begin{table}[htbp]
 \centering
@@ -287,7 +287,7 @@ Communications must keep every record through gaps in coverage (R9) and feed the
 MQTT over LTE & JSON summary every 10\,s from the modem task; success taken from the modem's separate result code, not its first \texttt{OK}; session lost on repeated failures or the modem's report; reconnection when packet data returns & The modem UART has no lock; the first \texttt{OK} does not mean success \\ \hline
 Public test broker & Record carries no position & Proves the path only \\ \hline
 Flash log & Every record written whatever the coverage, buffered and written once a minute (Section~\ref{sec:buffering}); missing values as \texttt{null} & A session leaves a complete, valid record (Section~\ref{sec:inv-json}) \\ \hline
-Store-and-forward & Boot counter and never-repeating sequence number; QoS~1; a ledger replays unacknowledged records after reconnection; ingest on the Raspberry Pi~5 stores each record once & Outages lose nothing; duplicates are removed \\ \hline
+Store-and-forward & Boot counter and never-repeating sequence number; QoS~1; a ledger replays unacknowledged records after reconnection; ingest on the Raspberry Pi~5 stores each record once & Radio outages are replayed from the log; the record key prevents duplicate rows \\ \hline
 Rear node to Pi~4 & Own supply; three-wire UART at 460\,800\,baud, no supply wire & A modem powered from a Pi's USB port pulled the Pi's supply down (Section~\ref{sec:inv-power}) \\ \hline
 Front node to Pi~5 & USB & No modem load \\ \hline
 \end{tabular}
