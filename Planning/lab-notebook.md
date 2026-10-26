@@ -553,3 +553,11 @@ committed to git because of their size, kept on OneDrive).
 - The deployed dashboard (076ff49) built no live state when the ESP32 record was missing, so with the rear node off the Pi 4 the speedometer could not show the phone's speed. Deployed main (fa1b588, phone-speed fix of 25 Oct; voice commands included but off by default). tests/test_phone_gps.py: ALL PASS. Screenshots before and after in DashboardIntegration/screenshots/2026-10-26.
 - After: dashboard LIVE, 0 km/h from the phone (parked, 14 satellites), battery "no reading" (the BMS arrives through the rear ESP32, which is not on the Pi 4's USB).
 - The deploy had reset the online voice to gTTS; set back to auto (Leah), and apply_patches.py now sets it on every deploy.
+
+### 26 October 2026, about 13:00 to 14:30, rear node wiring
+
+- UART to the Pi 4 started working after the student reseated the wires (DASH lines every second, 0 bad lines, BMS 74.42 V, 57 %). The Pi 4 later went offline (no Ethernet carrier at the Pi 5, no Wi-Fi answer).
+- Rear IMU not detected all day: MQTT records had imu1 rms 0 on every boot; serial log "IMU1: no samples (not ready)".
+- Flashed a temporary I2C scanner over USB (COM10), then a pull-down test: no device on IO8/IO9, IO9/IO8, IO17/IO18 or IO18/IO17; IO8 and IO9 read 0 with the internal pull-down (no MPU6050 board pull-ups attached), IO17 and IO18 read 1; no short between SDA and SCL on either pair. Conclusion: the MPU6050's SDA and SCL wires do not reach IO8/IO9, or the module has no power.
+- Firmware v0.7.9 reflashed afterwards (saved settings kept); BMS and DASH confirmed.
+- What the student did: reseated the UART wires and the IMU wires, and moved the node to the laptop's USB.
