@@ -206,7 +206,7 @@ BMS, JBD protocol over BLE (\ref{sec:impl-bms}) & One reused client; reconnectio
 GNSS in the modem (\ref{sec:impl-gnss}) & Polled every 3\,s; raw reply logged; parser anchored on the latitude hemisphere letter; fix rejected for an invalid format or a jump over 100\,m/s & The manual \cite{simcoma76xx} did not match the fitted modem \\ \hline
 Network position & About 550\,m accuracy; map only, never speed or $I_v$ & Too coarse for speed \\ \hline
 Phone GNSS (\ref{sec:impl-phone-gps}) & NMEA over the phone's hotspot; dashboard speed when fresh & No fix in the lab; no speed signal on the vehicle \\ \hline
-SEN55 air quality \cite{sensirionsen5x} (\ref{sec:impl-other}) & Chosen, not yet connected & Conditions on the vehicle's timeline \\ \hline
+SEN55 air quality \cite{sensirionsen5x} (\ref{sec:impl-other}) & Chosen; first unit damaged in wiring, replacement to fit & Conditions on the vehicle's timeline \\ \hline
 Motor Hall signal (\ref{sec:impl-other}) & Hardware pulse counter behind an optocoupler, at no cost to the IMU tasks & Relates powertrain lines to motor speed (RQ4) \\ \hline
 \end{tabular}
 \end{table}
