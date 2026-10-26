@@ -133,10 +133,15 @@ def main(argv=None):
     if prefs is not None:
         before = prefs["global"].get("map_display_provider")
         prefs["global"]["map_display_provider"] = "Native fallback"
+        # 26 Oct 2026: online voice "auto" (edge-tts Leah, then gTTS); the team copy's "gTTS" never reached edge-tts
+        voice_before = prefs["global"].get("online_voice_provider")
+        prefs["global"]["online_voice_provider"] = "auto"
+        prefs["global"]["edge_tts_voice"] = "en-ZA-LeahNeural"
         with open(prefs_path, "w", encoding="utf-8") as f:
             json.dump(prefs, f, indent=2)
             f.write("\n")
         print('prefs   global.map_display_provider: %r -> "Native fallback"' % before)
+        print('prefs   global.online_voice_provider: %r -> "auto" (en-ZA-LeahNeural)' % voice_before)
 
     print("OK: %d file(s) copied, %d edit(s) in %d file(s), target %s" % (
         len(copies), sum(per_file.values()), len(per_file), target))
