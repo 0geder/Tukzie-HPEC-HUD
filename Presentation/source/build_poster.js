@@ -33,7 +33,7 @@ s.addImage({ path: A("uct_banner.jpg"), x: 0, y: 0, w: W, h: BANNER_H, sizing: {
 s.addText("EEE4022S Final Year Project 2026, Department of Electrical Engineering, University of Cape Town", {
   x: M, y: 0.45, w: W - 2 * M, h: 0.8, fontFace: FONT, fontSize: 30, color: C.white, align: "center", isTextBox: true, margin: 0,
 });
-s.addText("Embedded Telemetry, Road-Surface Characterisation\nand Camera-Based Hazard Detection for the TUKZIE Electric Tricycle", {
+s.addText("Embedded Telemetry with Road-Surface Characterisation\nand Camera-Based Hazard Detection for the TUKZIE Electric Trike", {
   x: M, y: 1.35, w: W - 2 * M, h: 3.3, fontFace: FONT, fontSize: 78, bold: true, color: C.white, align: "center", valign: "middle",
   isTextBox: true, margin: 0, shadow: { type: "outer", color: "000000", blur: 8, offset: 3, angle: 45, opacity: 0.55 },
 });

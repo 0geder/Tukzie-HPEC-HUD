@@ -19,7 +19,7 @@ const W = 13.333, H = 7.5, M = 0.6;
 // The HUD was replaced by integration with the vehicle's existing dashboard (supervisor agreed 1 Oct 2026;
 // title change captured by the course coordinator 2 Oct 2026; changed again 23 Oct 2026 with the supervisor's and
 // convenor's agreement). Keep TITLE the same in build_poster.js.
-const TITLE = "Embedded Telemetry, Road-Surface Characterisation\nand Camera-Based Hazard Detection\nfor the TUKZIE Electric Tricycle";
+const TITLE = "Embedded Telemetry with Road-Surface Characterisation\nand Camera-Based Hazard Detection\nfor the TUKZIE Electric Trike";
 
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE";
