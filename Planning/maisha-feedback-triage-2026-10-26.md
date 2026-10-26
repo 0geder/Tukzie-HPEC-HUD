@@ -1,4 +1,4 @@
-# Maisha Magavha's review of 26 Oct 2026: what was done with each point
+# Maisha Magavha's review of 26 Oct 2026: what was done with each of his points
 
 Source: SW7_Revised_Project_Report_Feedback.pdf (9 pages), outside the repository. Checked against the report text on 26 Oct. Simon's guidance (26 Oct) takes priority: the run-2 results matter more than wording.
 
