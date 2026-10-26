@@ -132,7 +132,16 @@ Word count: 14\,994 (body of the report, Chapters 1 to 8)
 {\Large Terms of Reference}\\
 \hrule
 
-This project (SW-7) is to develop a high-performance embedded computing (HPEC) telemetry unit for the TUKZIE Rev 0 electric cargo trike, integrated with the vehicle's existing dashboard, capable of acquiring synchronised inertial, battery, positioning and camera data, characterising the vehicle's dynamic response at the edge, preserving telemetry under intermittent cellular connectivity, and presenting a minimal set of safety-relevant information to the driver on that dashboard.
+Project SW-7, set by A/Prof. Simon Winberg and Sampath Jayalath for the TUKZIE Flagship Programme, is to develop a high-performance embedded computing (HPEC) telemetry unit for the TUKZIE Rev~0 electric cargo trike, integrated with the vehicle's existing dashboard. The project is to:
+\begin{itemize}
+\item acquire synchronised inertial, battery, positioning and camera data on the vehicle;
+\item characterise the vehicle's dynamic response on board, separating road-induced from powertrain vibration;
+\item log telemetry locally and synchronise it with a central database over 4G/LTE through intermittent coverage;
+\item present a minimal set of safety-relevant information and hazard alerts to the driver on the existing dashboard;
+\item keep the installation removable, so that the vehicle can return quickly to its standard set-up;
+\item test on the vehicle in a safe setting under an approved ethics application;
+\item validate data accuracy, edge processing latency and synchronisation with the database in a technical report.
+\end{itemize}
 
 
 \fancyfoot[C]{\thepage}
@@ -151,7 +160,7 @@ I thank my supervisor, A/Prof. Simon Winberg, and co-supervisor, Sampath Jayalat
 
 % Place your abstract here.
 % Place your abstract here.
-The TUKZIE Rev 0, a 72\,V electric cargo tricycle, had no measurement of how it rides, what its battery does or what is around it. This project built a low-cost system that measures all three and shows them on the vehicle's existing dashboard, and tested it on the bench and on the vehicle. Two ESP32-S3 nodes, one at each end, sample an inertial sensor at 200\,Hz and stream every sample with a checksum; the rear node also reads the battery-management system over Bluetooth Low Energy and GNSS, logs every record to flash and publishes it over LTE, replaying what the broker did not acknowledge. A Raspberry Pi~4 at the rear and a Raspberry Pi~5 at the front each run an object detector fused with time-of-flight sensors and warn of closing objects from their time to contact; the dashboard shows live data only. On the bench, both sensors held 200\,Hz with no dropped samples, apart from flash-write pauses of up to 44\,ms; after a 10-minute radio outage every logged record reached the database once, 24 only after a backfill from the log; and detection took a median of 118 to 122\,ms from camera readout on the Raspberry Pi~4 and 51 to 54\,ms on the Raspberry Pi~5. On the vehicle the battery link held at up to 46.9\,A, a single calibration factor per sensor held only in the orientation calibrated, and with the drive wheel raised the motor raised the rear vibration five to seven times, between about 40 and 70\,Hz, with the same lines at the front. No reviewed system combines these on a light electric cargo trike; the contribution is that integration and its measurement. The repeatability of the ride measure on the road, the road's share of the vibration spectrum and the driver's glance time remain open.
+The TUKZIE Rev 0, a 72\,V electric cargo trike, had no measurement of how it rides, what its battery does or what is around it. This project built a low-cost system that measures all three and shows them on the vehicle's existing dashboard, and tested it on the bench and on the vehicle. Two ESP32-S3 nodes, one at each end, sample an inertial sensor at 200\,Hz and stream every sample with a checksum; the rear node also reads the battery-management system over Bluetooth Low Energy and GNSS, logs every record to flash and publishes it over LTE, replaying what the broker did not acknowledge. A Raspberry Pi~4 at the rear and a Raspberry Pi~5 at the front each run an object detector fused with time-of-flight sensors and warn of closing objects from their time to contact; the dashboard shows live data only. On the bench, both sensors held 200\,Hz with no dropped samples, apart from flash-write pauses of up to 44\,ms; after a 10-minute radio outage every logged record reached the database once, 24 only after a backfill from the log; and detection took a median of 118 to 122\,ms from camera readout on the Raspberry Pi~4 and 51 to 54\,ms on the Raspberry Pi~5. On the vehicle the battery link held at up to 46.9\,A, a single calibration factor per sensor held only in the orientation calibrated, and with the drive wheel raised the motor raised the rear vibration five to seven times, between about 40 and 70\,Hz, with the same lines at the front. No reviewed system combines these on a light electric cargo trike; the contribution is that integration and its measurement. The repeatability of the ride measure on the road, the road's share of the vibration spectrum and the driver's glance time remain open.
 
 
 \newpage
