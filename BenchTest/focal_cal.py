@@ -16,6 +16,7 @@ ap.add_argument("--width", type=float, required=True, help="object's real width 
 ap.add_argument("--cls", default="person")
 ap.add_argument("--seconds", type=float, default=4.0)
 ap.add_argument("--frame-w", type=int, default=640)
+ap.add_argument("--no-proof", action="store_true", help="do not save a camera frame (use when a person is the target)")
 a = ap.parse_args()
 
 widths, ests, t_end = [], [], time.time() + a.seconds
@@ -52,6 +53,8 @@ with open(out, "a", newline="") as fh:
 cal = os.path.join(os.path.dirname(out), "calibration"); os.makedirs(cal, exist_ok=True)
 tag = time.strftime("%Y%m%d_%H%M%S") + f"_{a.cls}_{a.dist:g}m"
 try:
+    if a.no_proof:
+        raise RuntimeError("--no-proof: frame not saved (person in view)")
     raw = b""
     with urllib.request.urlopen(f"http://{a.pi}:8080/stream", timeout=3) as r:
         while raw.count(b"\xff\xd9") < 2 and len(raw) < 2_000_000:

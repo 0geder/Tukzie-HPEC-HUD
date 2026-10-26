@@ -561,3 +561,12 @@ committed to git because of their size, kept on OneDrive).
 - Flashed a temporary I2C scanner over USB (COM10), then a pull-down test: no device on IO8/IO9, IO9/IO8, IO17/IO18 or IO18/IO17; IO8 and IO9 read 0 with the internal pull-down (no MPU6050 board pull-ups attached), IO17 and IO18 read 1; no short between SDA and SCL on either pair. Conclusion: the MPU6050's SDA and SCL wires do not reach IO8/IO9, or the module has no power.
 - Firmware v0.7.9 reflashed afterwards (saved settings kept); BMS and DASH confirmed.
 - What the student did: reseated the UART wires and the IMU wires, and moved the node to the laptop's USB.
+
+### 26 October 2026, about 17:30 to 18:00, new Pi 4, UART, first distance checks
+
+- Pi 4 board replaced (same SD card): no under-voltage at boot; rear camera 12.9 fps; all three rear ToF read (left had read nothing on the old board); Ethernet to the Pi 5 at 1000 Mb/s, 0.36 ms ping.
+- UART after the swap: pin 10 received continuous garbage at every baud (about 15 kHz pattern), silent when the wire was pulled; no reply to "!status" from the Pi. Clean (100 % printable, 0 bad lines, BMS 74.41 V, 57 %) as soon as the ESP32 was also plugged into the Pi 4's USB, which joined the grounds: the fault was the missing common ground. With the USB cable the Pi 4 logs under-voltage events again (0x50005, then 0x50000 with repeated detect/normalise), so a GND jumper (ESP32 GND to Pi pin 9) should replace the cable.
+- Front distance checks, student standing on the camera axis (approximate distances by the student; no frame saved):
+  - about 1.0 m from the ToF (1.2 m from the camera): front ToF ahead 1.06 m (n = 44); camera 2.15 m then 0.90 m, box touching the image edges, so not a valid range.
+  - 2.2 m: ToF no reading (beyond range, correct); camera 1.31 to 1.36 m (n = 53), box 221 to 228 px. With the specified focal length (about 634 px) the box is about 0.77 m wide, against the detector's assumed 0.50 m person width: the error is mainly the assumed width, so the focal length needs a fixed-width target (chair). Logged in BenchTest/logs/focal_cal.csv (person, --no-proof).
+- What the student did: replaced the Pi 4 board, rewired the UART, stood as the target at taped distances.
