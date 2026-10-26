@@ -37,7 +37,10 @@
 
 #define FIRMWARE_VERSION "v0.7.9"
 
-#if NODE_FRONT
+// NODE_ID_STR overrides the name (26 Oct 2026: the IMU-only build used as the rear node, -D NODE_ID_STR=\"rear\").
+#ifdef NODE_ID_STR
+#define NODE_ID NODE_ID_STR
+#elif NODE_FRONT
 #define NODE_ID "front"
 #else
 #define NODE_ID "rear"
