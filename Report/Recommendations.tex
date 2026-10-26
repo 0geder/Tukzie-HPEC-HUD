@@ -1,9 +1,9 @@
-\chapter{Recommendations}
+\chapter{Recommendations and Future Work}
 \label{chap:recs}
 
-Each recommendation answers a shortfall found in Chapter~\ref{chap:results} and discussed in Chapter~\ref{chap:discussion}, and names the section it comes from. The next steps come first, in order of priority, with those on which the validity of vehicle data depends at the top (Section~\ref{sec:recs-next}). A staged path towards autonomous operation, the wider value of the work and the hand-over follow.
+This chapter looks beyond the project in two parts. Section~\ref{sec:recs-next} gives recommendations drawn from building and testing this system: what should be done next so that its data can be relied on. Each answers a shortfall found in Chapters~\ref{chap:results} and~\ref{chap:discussion} and names its section; those on which the validity of vehicle data depends come first. Section~\ref{sec:recs-future} then suggests future work: directions and projects that go beyond what this project set out to do. Section~\ref{sec:recs-handover} describes how the work is handed on.
 
-\section{Next steps for this system}
+\section{Recommendations from this work}
 \label{sec:recs-next}
 
 \begin{enumerate}
@@ -20,7 +20,12 @@ Each recommendation answers a shortfall found in Chapter~\ref{chap:results} and 
 \item Enclosures (Section~\ref{sec:res-integration}). Log both computers' temperatures in the vented boxes over a full session, and test the printed display mounts before replacing the temporary ones.
 \end{enumerate}
 
-\section{Towards autonomous operation}
+\section{Suggestions for future work}
+\label{sec:recs-future}
+
+The directions below go beyond this project's objectives. Each builds on the system as it stands and could be taken up by the programme's team or by a future student project.
+
+\subsection{Towards autonomous operation}
 \label{sec:recs-autonomy}
 
 By the SAE taxonomy \cite{saej3016} the system is at level 0: it warns and controls nothing. The parts an automated vehicle needs are present in a first form: two cameras with ranging at both ends, time to contact, inertial and battery state, time-stamped logging, on-board processors and a wired network. Each step below builds the evidence the next needs.
@@ -32,12 +37,27 @@ By the SAE taxonomy \cite{saej3016} the system is at level 0: it warns and contr
 \item Control in a closed area, first at low speed in a depot yard. This needs a drive-by-wire interface, an emergency stop independent of the computers, and a safety case to the functional-safety and intended-function standards \cite{iso26262, iso21448}, with the control path on the deterministic microcontroller side of the split used here.
 \end{enumerate}
 
-\section{The bigger picture}
+\subsection{Fleet-scale road and battery monitoring}
 \label{sec:recs-bigger}
 
 Records from many vehicles, through the same store-and-forward link (Section~\ref{sec:db-sync}), would let an operator follow battery health, find faults from abnormal current or vibration, and map road condition from position-tagged detections on streets driven daily; the parts are low-cost and nothing is specific to this trike. Privacy has to be designed in (Section~\ref{sec:ethics}), and none of this holds until the repeatability that RQ1 asks about is shown on the road. That is the gap of Section~\ref{sec:lit-synthesis} at fleet scale: integration on a low-cost trike, measured.
+
+\subsection{Further projects}
+
+\begin{itemize}
+\item A road-condition map of the TUKZIE's daily routes from position-tagged vibration, checked against a section whose profile has been surveyed, so that the index of this work is tied to a reference.
+\item A glance-time study of the dashboard's warnings with drivers, under ethics approval, against the 2\,s single-glance limit (R12).
+\item Battery-health and range estimation from months of BMS current, voltage and temperature records.
+\item Radar or solid-state lidar compared with the camera and time-of-flight pair for warnings at road speed.
+\item A labelled dataset of road hazards on Cape Town streets (potholes, debris, kerbs) for training and testing detectors on light vehicles.
+\end{itemize}
 
 \section{Handing the project on}
 \label{sec:recs-handover}
 
 To let the next student or the programme's team continue without starting again, the repository keeps the wiring tables (Appendix~\ref{app:wiring}), the deploy and set-up scripts and their order (Section~\ref{sec:maintenance}), the road-test checklist, run sheet and outstanding register (\texttt{Planning/run2-readiness/}), the lab notebook, and the data index with the location and checksum of every recording (Section~\ref{sec:data-availability}).
+
+\section{Closing remarks}
+\label{sec:recs-closing}
+
+Building this system showed how much of a light electric vehicle's behaviour can be measured with low-cost parts, and how much of the engineering lies in making them work together on a platform that vibrates, runs on a limited supply and moves in and out of coverage. The author hopes that the system, its data and its record of what failed and why give the TUKZIE programme and the students who follow a firm place to start.

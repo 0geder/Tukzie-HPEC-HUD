@@ -260,10 +260,10 @@ Sensing is split by side. The Raspberry Pi~5 behind the dashboard runs the front
 
 \begin{figure}[htbp]
 \centering
-\subfigure[Surroundings, Front: the Raspberry Pi~5's camera and time-of-flight board (test image).]{\includegraphics[width=0.48\textwidth]{figures/ui/ui_dualcam_front.png}}
-\subfigure[Surroundings, Rear: mirrored, with a car approaching at 1.6\,s (test data).]{\includegraphics[width=0.48\textwidth]{figures/ui/ui_dualcam_rear_approaching.png}}
-\subfigure[On the Raspberry Pi~5 on 15 October: live front camera at 23.6\,frames/s, a rear warning in the banner.]{\includegraphics[width=0.48\textwidth]{figures/ui/ui_pi5_live_dualcam.png}}
-\subfigure[Front time-of-flight board on the Raspberry Pi~5: the same pins as on the Raspberry Pi~4.]{\includegraphics[width=0.48\textwidth]{figures/pi5_tof_wiring.png}}
+\subfigure[Surroundings, Front: the Raspberry Pi~5's camera and time-of-flight board (test image).]{\includegraphics[width=0.40\textwidth]{figures/ui/ui_dualcam_front.png}}
+\subfigure[Surroundings, Rear: mirrored, with a car approaching at 1.6\,s (test data).]{\includegraphics[width=0.40\textwidth]{figures/ui/ui_dualcam_rear_approaching.png}}
+\subfigure[On the Raspberry Pi~5 on 15 October: live front camera at 23.6\,frames/s, a rear warning in the banner.]{\includegraphics[width=0.40\textwidth]{figures/ui/ui_pi5_live_dualcam.png}}
+\subfigure[Front time-of-flight board on the Raspberry Pi~5: the same pins as on the Raspberry Pi~4.]{\includegraphics[width=0.40\textwidth]{figures/pi5_tof_wiring.png}}
 \caption[Two-sided layout: front sensing on the Raspberry Pi~5, rear sensing and the telemetry unit on the Raspberry Pi~4]{Two-sided layout: front sensing on the Raspberry Pi~5, rear sensing and the telemetry unit on the Raspberry Pi~4.}
 \label{fig:two-sided}
 \end{figure}
@@ -306,5 +306,5 @@ Each test leaves a record: a browser bench console reads the serial output and r
 \section{Maintenance design}
 \label{sec:maintenance}
 
-Firmware is built from the repository with the board settings fixed in \texttt{platformio.ini}, and every record carries its firmware version; the Raspberry Pis are set up by deploy scripts that record the deployed commit; every program runs as a service that restarts on failure; tests travel with the code; the display and pods come off without tools; and every wire is listed (Appendix~\ref{app:wiring}). There is no over-the-air update, and removal from the vehicle has not been timed (Section~\ref{sec:impl-maint}).
+Firmware is built from the repository with fixed board settings and every record carries its version; deploy scripts set up the Raspberry Pis and record the commit; every program restarts on failure; the display and pods come off without tools; and every wire is listed (Appendix~\ref{app:wiring}, Section~\ref{sec:impl-maint}).
 
