@@ -574,3 +574,13 @@ committed to git because of their size, kept on OneDrive).
 - Eye-to-screen distance (S1, R12), student seated in the driver's seat, tape: 62.2, 60.2, 62.5, 62.3 cm; mean 0.618 m, SD 0.011 m. At this distance (0.170 mm per pixel) ISO 15008's 20 and 16 arc minutes need 21.1 and 16.9 px capitals: speed digits 100 px = 94.5 arc min; alert banner 11 px = 10.4 (below the 12 minimum); page titles 15.4 px = 14.6; labels median 11.2 px = 10.6; 4 labels reach 16 (as at 0.70 m). Report updated from the assumed 0.70 m (Results 5.8, Table 5.3, Appendix K).
 - Person width 0.80 m deployed to both detectors (Pi 5 restarted; Pi 4 detector stopped and restarted by systemd), front 19 fps, rear 13 fps.
 - Rear unit at 18:15: camera 13.9 fps, ToF all three, UART 1,742 lines 0 bad, BMS 74.41 V 57 %, LTE every 10 s; rear IMU still 0 Hz; Pi 4 14 under-voltage events since the ESP32's USB cable went in, 70.1 C.
+
+### 26 October 2026, 19:00 to 20:35, rear IMU on its own board, system READY
+
+- Makerfabs board's IMU still not answering. The student moved the rear MPU6050 to a second bare ESP32-S3 dev board (CH343): its old firmware already showed "IMU1 found and configured", 200.0 Hz, 0 dropped. Flashed the front-node build named "rear" (env rear_imu_node, NODE_ID_STR); 200 Hz, 0 drops, raw stream and sync pulse on GPIO5.
+- Board on the Pi 4's USB (through a hub, /dev/ttyACM1). raw_capture.py runs there on :8083, writing ~/roadtest/raw_rear/, started at boot from crontab (start_rear_imu_capture.sh). Counters after plugging in: rdfail 450, late 200, reinit 4, then unchanged over 20 s (one-off while connecting).
+- Recorder on the Pi 5: rear_node source added; first 12 s of the new session, 6 of 6 sources answered 24 of 24 polls.
+- sw7_check now takes the rear IMU rate from the rear node: RESULT READY at 20:35. Remaining: Pi 4 under-voltage now (0x50005) while the Makerfabs board is also powered from its USB.
+- Phone back on MyHotspot (192.168.137.107), GPS fix with 12 satellites; the Pi 5 had been off and rebooted.
+- Person width set to 0.60 m on both detectors (student's choice; fit gave 0.80).
+- What the student did: moved the IMU to the second board, connected it and the hub to the Pi 4, powered the Pi 5 back up.

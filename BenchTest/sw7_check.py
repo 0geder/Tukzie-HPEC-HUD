@@ -457,7 +457,23 @@ def run(args):
             rep.add("telemetry /telemetry", FAIL, "no answer (%s)" % e, critical=True)
             d = None
         if d is not None:
+            # 26 Oct 2026: the rear IMU is on its own board on the Pi 4's USB (raw_capture.py on :8083). When it
+            # answers, its rate is the rear IMU rate and the telemetry unit's IMU1 (no longer fitted) is not checked.
+            rear_node = None
+            try:
+                rn, _ = get_json("http://%s:8083/telemetry" % host, timeout=2.0)
+                rear_node = rn.get("esp32") if isinstance(rn, dict) else None
+            except Exception:
+                rear_node = None
+            if isinstance(rear_node, dict) and isinstance(d.get("esp32"), dict):
+                d = dict(d, esp32=dict(d["esp32"], imu_hz=[(rear_node.get("imu_hz") or [0.0])[0], 0.0], imu_up=[1, -1]))
             first = check_telemetry(rep, d, ms)
+            if isinstance(rear_node, dict):
+                age = rear_node.get("age_ms")
+                ok = isinstance(age, (int, float)) and age < ESP32_MAX_AGE_MS
+                rep.add("rear IMU node (:8083)", PASS if ok else FAIL,
+                        "node %s, %s Hz, drops %s, age %s ms" % (rear_node.get("node"), rear_node.get("imu_hz"),
+                                                                rear_node.get("drops"), age), critical=True)
             check_tof(rep, d)
         check_camera(rep, host, cp)
         if args.no_ssh:
