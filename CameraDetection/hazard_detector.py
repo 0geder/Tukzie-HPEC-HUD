@@ -141,7 +141,10 @@ import numpy as np
 # per-instance measurements. Classes outside this map are still detected
 # and reported, just without a distance estimate.
 KNOWN_WIDTHS_M = {
-    "person": 0.5,
+    # Person: 0.80 m, fitted on 26 Oct 2026 (BenchTest/logs/focal_cal.csv): a standing person at 2.2 and 3.2 m on the
+    # front camera, distance x box width = 490 px m at the 600 px focal length (four readings within 3 %). 0.5 m read
+    # 38 % short. One person and stance, so treat person distances as about +/-10 %, wider across people and poses.
+    "person": 0.80,
     "bicycle": 0.6,
     "car": 1.8,
     "motorcycle": 0.8,
