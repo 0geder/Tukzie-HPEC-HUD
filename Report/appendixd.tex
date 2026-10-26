@@ -80,7 +80,7 @@ Until 21 October the board was powered and read over USB from the Pi (\texttt{/d
 
 \section{Front inertial node to the Raspberry Pi 5}
 
-From 22 October the second MPU6050 is on a separate ESP32-S3 board, the front node, wired to its GPIO8 (SDA) and GPIO9 (SCL) with short wires. The node connects to the Raspberry Pi~5 by USB at 921\,600\,baud, which also powers it, and its 500\,ms sync pulse goes from its GPIO5 to Pi~5 pin~11 (Figure~\ref{fig:pi5-gpio}). The rear board then keeps IMU1 only.
+From 22 October the second MPU6050 is on a separate ESP32-S3 board, the front node, wired to its GPIO8 (SDA) and GPIO9 (SCL) with short wires. The node connects to the Raspberry Pi~5 by USB at 921\,600\,baud, which also powers it, and its 500\,ms sync pulse goes from its GPIO5 to Pi~5 pin~11 (Figure~\ref{fig:pi5-gpio}). The rear board then keeps IMU1 only. On 26 October that IMU stopped answering on the rear board (no device at its address, its data lines open), and it moved to a third ESP32-S3 board of the front node's type, the rear IMU node: the MPU6050 on GPIO8 (SDA) and GPIO9 (SCL) with 3V3 and GND, connected to the Raspberry Pi~4 by USB through a hub and captured there by the same program as the front node; its GPIO5 sync output is wired to Pi~4 pin~11 when the camera-to-IMU timing is wanted, in place of the telemetry unit's. The telemetry unit keeps the battery, GNSS and cellular link and the UART of Table~\ref{tab:wiring-esp-pi}, on its own battery, with its ground joined to the Pi~4's.
 
 \section{Telemetry unit sensors and antennas}
 

@@ -23,6 +23,7 @@ written in summary.json under "skipped", so nothing is filled with a placeholder
 """
 import argparse
 import glob
+import shutil
 import os
 import sys
 
@@ -65,8 +66,95 @@ def _find_raw(session, cfg):
             continue
         b = os.path.basename(p).lower()
         node = "front" if "front" in b else "rear" if "rear" in b else os.path.splitext(b)[0]
-        out[node] = p
+        out.setdefault(node, []).append(p)
     return out
+
+
+def _raw_span(path):
+    """(first host_t, first t_us, last host_t, last t_us) of the RAW lines of one file, from its head and tail."""
+    def parse(line):
+        f = line.split()
+        if len(f) > 6 and f[1] == "RAW":
+            try:
+                return float(f[0]), int(f[6])
+            except ValueError:
+                return None
+        return None
+    first = last = None
+    with open(path, "rb") as fh:
+        for line in fh.read(200000).decode("utf-8", "replace").splitlines():
+            first = first or parse(line)
+        size = fh.seek(0, 2)
+        fh.seek(max(0, size - 200000))
+        for line in fh.read().decode("utf-8", "replace").splitlines():
+            last = parse(line) or last
+    if not first or not last:
+        return None
+    return first[0], first[1], last[0], last[1]
+
+
+def _pick_raw(paths, runs, workdir, node):
+    """26 Oct 2026: capture rotates its file every hour and a node may reboot, so join the files of one boot
+    (device time keeps rising from one file to the next) and keep the boot that overlaps the marked runs most.
+    Returns (path to read, note)."""
+    if len(paths) == 1:
+        return paths[0], None
+    spans = [(p, _raw_span(p)) for p in paths]
+    spans = sorted([s for s in spans if s[1]], key=lambda s: s[1][0])
+    groups = []
+    for p, sp in spans:
+        if groups and sp[1] > groups[-1][-1][1][3]:
+            groups[-1].append((p, sp))
+        else:
+            groups.append([(p, sp)])
+    wins = [(r.t0, r.t1) for r in runs if np.isfinite(r.t0) and np.isfinite(r.t1)] if runs else []
+
+    def score(g):
+        a, b = g[0][1][0], g[-1][1][2]
+        if wins:
+            return sum(max(0.0, min(b, w1) - max(a, w0)) for w0, w1 in wins)
+        return b - a
+    best = max(groups, key=score)
+    os.makedirs(workdir, exist_ok=True)
+    joined = os.path.join(workdir, f"{node}_raw_joined.txt")
+    with open(joined, "wb") as out:
+        for p, _ in best:
+            with open(p, "rb") as fh:
+                shutil.copyfileobj(fh, out)
+    note = (f"{node}: {len(paths)} raw files in {len(groups)} boot group(s); used {len(best)} file(s) "
+            f"({', '.join(os.path.basename(p) for p, _ in best)})")
+    return joined, note
+
+
+def _phone_speed_fn(session):
+    """Speed from the phone's NMEA log (phone_gps_bridge.py: '<Pi epoch> <sentence>'), RMC sentences with status A.
+    Returns (function of epoch time, number of fixes) or (None, 0)."""
+    tt, vv = [], []
+    for p in sorted(glob.glob(os.path.join(session, "*phone_gps*.txt"))):
+        with open(p, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                f = line.split(" ", 1)
+                if len(f) < 2 or "RMC," not in f[1]:
+                    continue
+                parts = f[1].split(",")
+                try:
+                    if parts[2] != "A" or parts[7] == "":
+                        continue
+                    tt.append(float(f[0])); vv.append(float(parts[7]) * 0.514444)
+                except (ValueError, IndexError):
+                    continue
+    if len(tt) < 2:
+        return None, 0
+    o = np.argsort(tt)
+    t, v = np.array(tt)[o], np.array(vv)[o]
+
+    def fn(x):
+        if x < t[0] - 2 or x > t[-1] + 2:
+            return np.nan
+        j = np.searchsorted(t, x)
+        near = min(abs(x - t[min(j, len(t) - 1)]), abs(x - t[max(j - 1, 0)]))
+        return float(np.interp(x, t, v)) if near <= 3.0 else np.nan
+    return fn, len(t)
 
 
 ROAD_KINDS = ("smooth", "rough", "bump", "obstacle", "coast", "other")
@@ -206,7 +294,10 @@ def analyse_session(session, out, cfg=None, labels=None, tz_h=2.0, make_figures=
     raw_paths = _find_raw(session, cfg)
     verts = {}
     S["raw"] = {}
-    for node, p in raw_paths.items():
+    for node, plist in raw_paths.items():
+        p, note = _pick_raw(plist, runs, os.path.join(out, "_raw"), node)
+        if note:
+            S["notes"].append(note)
         streams = rd.read_raw_stream(p, node)
         for (nd, imu), s in streams.items():
             key = f"{nd}{s.imu}"
@@ -229,7 +320,12 @@ def analyse_session(session, out, cfg=None, labels=None, tz_h=2.0, make_figures=
         rp.write_json(S, os.path.join(out, "summary.json"))
         return S
 
-    speed_fn = _speed_fn(rear, cfg)
+    phone_fn, n_phone = _phone_speed_fn(session)
+    if phone_fn is not None:
+        speed_fn, S["speed_source"] = phone_fn, f"phone GNSS (RMC, {n_phone} fixes)"
+    else:
+        speed_fn = _speed_fn(rear, cfg)
+        S["speed_source"] = "vehicle GNSS" if speed_fn is not None else None
     if speed_fn is None:
         S["notes"].append("no GNSS speed (no fix): speed index and speed-dependent threshold use no speed")
     passes = [r for r in runs if r.kind in ROAD_KINDS]
