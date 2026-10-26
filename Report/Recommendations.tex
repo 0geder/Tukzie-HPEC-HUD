@@ -1,7 +1,7 @@
 \chapter{Recommendations}
 \label{chap:recs}
 
-The recommendations are the next steps for this system in order of priority, those on which the validity of vehicle data depends first (Section~\ref{sec:recs-next}); a staged path towards autonomous operation (Section~\ref{sec:recs-autonomy}); the wider value of the work (Section~\ref{sec:recs-bigger}); and the hand-over (Section~\ref{sec:recs-handover}).
+The next steps come first, in order of priority, with those on which the validity of vehicle data depends at the top (Section~\ref{sec:recs-next}). A staged path towards autonomous operation, the wider value of the work and the hand-over follow.
 
 \section{Next steps for this system}
 \label{sec:recs-next}
@@ -14,10 +14,10 @@ The recommendations are the next steps for this system in order of priority, tho
 \item Connectivity. Measure latency to the database and completeness on the moving vehicle; move to an authenticated, encrypted broker that queues for a persistent subscriber, so that completeness no longer depends on reading the log back; and add over-the-air update and log rotation.
 \item Display. Enlarge the warnings to at least the ISO~15008 character height at the measured eye distance; mark each field stale by its own age; make the navigation buttons act on press; then measure single-glance durations to the banner in a low-risk trial under an ethics amendment, against the 2\,s limit.
 \item Ride analysis. Tap one motor Hall line through the optocoupler and count the pole pairs, so that the powertrain lines are followed continuously while driving.
-\item Approaching objects. Set the 2 and 4\,s thresholds from the measured time-to-contact error and the stopping distance, and add a car approaching the parked trike in a closed car park. Label a random sample of at least 200 road alerts against forward video, under a revised ethics application with faces and number plates removed before storage, and report precision and false alerts per kilometre.
+\item Approaching objects. Set the 2 and 4\,s thresholds from the measured time-to-contact error and the stopping distance, and add a car approaching the parked trike in a closed car park. Label a random sample of at least 200 road alerts against forward video, with faces and number plates blurred before storage, and report precision and false alerts per kilometre.
 \item Detection. Compile the detector for the Raspberry Pi~5's Hailo-8 accelerator and measure the gain; compare YOLO11n with the current detector; check daylight colour with an infrared-cut camera; and score the pothole model on its held-out tiles and on the vehicle's camera before it raises any alert.
-\item Sensing still to fit. Replace the 1.2\,m stand-in sensors with the VL53L5CX, then radar or lidar, so that warnings at road speed do not rest on the camera alone; fit a replacement SEN55 with its JST GH cable (GHR-06V-S) on the Raspberry Pi~4's I\textsuperscript{2}C bus, allowing 1 to 6\,h of warm-up for its gas indices; and use connector-based cables, never wires soldered to test pads.
-\item Enclosures. Log both computers' temperatures in the vented boxes over a full session, and print and test the dovetail coupon, display shell and bar clamp before replacing the temporary mounts.
+\item Sensing still to fit. Replace the 1.2\,m stand-in sensors with the VL53L5CX, then radar or lidar, so that warnings at road speed do not rest on the camera alone; and fit a replacement SEN55 on the Raspberry Pi~4's I\textsuperscript{2}C bus with its connector cable, never wires soldered to test pads.
+\item Enclosures. Log both computers' temperatures in the vented boxes over a full session, and test the printed display mounts before replacing the temporary ones.
 \end{enumerate}
 
 \section{Towards autonomous operation}
@@ -29,7 +29,7 @@ By the SAE taxonomy \cite{saej3016} the system is at level 0: it warns and contr
 \item Validated driver assistance (still level 0): the alert precision and time-to-contact tests above, and a test that an approaching object is on a collision course, so that parked cars ahead do not raise warnings.
 \item Knowing where the vehicle is and how it moves: add wheel speed (Section~\ref{sec:hall-tap}) and fuse it with the IMUs and GNSS into one estimate of position and motion in the vehicle's axes, with every unit on one time base.
 \item A dataset from the vehicle: synchronised camera, inertial, position and battery data from the TUKZIE's routes, which needs a revised ethics application because this project stores no frames.
-\item Control in a closed area, first at low speed in a depot yard. This needs a drive-by-wire interface, an emergency stop independent of the computers, and a safety case built to the functional-safety standard \cite{iso26262} and the standard on the safety of the intended function \cite{iso21448}, with the control path on the deterministic microcontroller side of the split used here.
+\item Control in a closed area, first at low speed in a depot yard. This needs a drive-by-wire interface, an emergency stop independent of the computers, and a safety case to the functional-safety and intended-function standards \cite{iso26262, iso21448}, with the control path on the deterministic microcontroller side of the split used here.
 \end{enumerate}
 
 \section{The bigger picture}

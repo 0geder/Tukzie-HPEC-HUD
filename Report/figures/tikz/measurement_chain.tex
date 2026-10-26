@@ -1,0 +1,20 @@
+% What an accelerometer on a vehicle measures (Literature, Sections 2.3 and 2.4): the road input filtered by the
+% vehicle, plus powertrain vibration and the mounting, changed by speed and payload. Literature concept only; the
+% project's own measured figures are in Chapter 5.
+\begin{tikzpicture}[x=1cm, y=1cm]
+  \node[swbox, text width=2.3cm] (road) at (0,0) {Road profile\\ (roughness, bumps)};
+  \node[swbox, text width=2.3cm] (tyre) at (3.1,0) {Tyres and suspension};
+  \node[swbox, text width=2.3cm] (body) at (6.2,0) {Chassis and body\\ (payload position)};
+  \node[swbox, text width=2.3cm] (mount) at (9.3,0) {Sensor mounting\\ and orientation};
+  \node[swbox, text width=2.3cm, fill=white, line width=1pt] (imu) at (12.4,0) {Measured\\ acceleration};
+  \node[swbox, text width=2.6cm] (pt) at (6.2,-1.6) {Motor and drivetrain\\ (narrow-band lines)};
+  \node[swlabel] (spd) at (3.1,1.25) {vehicle speed sets the frequency of each road feature};
+  \draw[swflow] (road) -- (tyre);
+  \draw[swflow] (tyre) -- (body);
+  \draw[swflow] (body) -- (mount);
+  \draw[swflow] (mount) -- (imu);
+  \draw[swflow] (pt) -- (body);
+  \draw[swflow, draw=swGrey, dashed] (spd.south) -- (tyre.north);
+  \node[swlabel, text=swGrey] at (12.4,-1.25) {gravity, noise,\\ sampling and timing};
+  \draw[swflow, draw=swGrey, dashed] (12.4,-0.95) -- (imu.south);
+\end{tikzpicture}

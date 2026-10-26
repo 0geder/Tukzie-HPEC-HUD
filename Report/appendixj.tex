@@ -47,6 +47,24 @@ Each camera unit carries an OV5647 camera module without an infrared-cut filter 
 \section{Firmware tasks and acquisition}
 \label{sec:impl-fw}
 
+\begin{table}[htbp]
+\centering
+\small
+\caption[Supporting firmware mechanisms (details in the sections named)]{Supporting firmware mechanisms (details in the sections named).}
+\label{tab:fw-mechanisms}
+\begin{tabular}{|p{2.6cm}|p{7.4cm}|p{4.2cm}|}
+\hline
+\textbf{Mechanism} & \textbf{Design} & \textbf{Reason} \\ \hline
+Sample record & Sensor identifier, 5\,ms slot sequence number, microsecond timestamp; no acquisition task prints & Missing numbers count losses; printing blocks for a variable time \\ \hline
+Statistics & Rate, interval range and drops per sensor every 2\,s & Acquisition is measured continuously \\ \hline
+Raw stream (\ref{sec:impl-raw}) & Every sample as hex text with a CRC-16 (36 bytes a sample) on the dashboard link; lowest-priority sender gives a line up rather than delay the dashboard line & Readable in a terminal; affordable at a third of the link \\ \hline
+Sensor health (\ref{sec:impl-health}) & Reads classed good, failed or stuck; consumer ages, highest queue fill, late slots and per-core idle counts in the dashboard line & Locates a stall: core, consumer or bus \\ \hline
+Recovery (\ref{sec:impl-health}) & After 1\,s of failed or identical reads, re-initialise the sensor without a reset & An MPU6050 that loses power returns asleep \\ \hline
+Command task (\ref{sec:impl-health}) & Local commands run at once, not behind the modem's timeouts & Commands were 20 to 25\,s late \\ \hline
+Front node (\ref{sec:impl-front}) & Same source, one IMU, no modem, BLE or GNSS; USB to the Raspberry Pi~5 with its own sync pulse & Two ends of the vehicle measured (RQ1, RQ4) \\ \hline
+\end{tabular}
+\end{table}
+
 The firmware is written with PlatformIO and the Arduino framework on FreeRTOS (Table~\ref{tab:config}); one source builds both nodes. Figure~\ref{fig:task-architecture} shows its tasks and queues. Each IMU task runs at the highest priority on core~1 and holds a 5\,ms period with \texttt{vTaskDelayUntil}, which schedules each wake-up from the previous target time so that variable execution time does not accumulate into drift. After a stall it returns at once for each missed period, so the missed samples are read in a burst about 1\,ms apart: none is lost, but they are unevenly spaced. Since v0.7.6 a task more than 20 periods (100\,ms) behind gives up the missed slots and counts them as late, so a slow bus cannot hold the core; the 33 to 44\,ms flash-write pause is still caught up as before (Section~\ref{sec:buffering}). The modem, BMS and dashboard-line tasks run on core~0. Up to v0.7.5 the statistics and ride-feature tasks ran on core~1 below the IMU tasks; v0.7.6 moved them to core~0 at priority~2, above every other task there, after the consumer-stall fault (Section~\ref{sec:inv-stall}), so core~1 now holds only the IMU tasks and the sync task.
 
 \begin{figure}[htbp]

@@ -80,6 +80,13 @@ Figure~\ref{fig:res-road} shows the 19 October session from the rear unit's tele
 
 The unit's own log of the session was read back on 22 October, before the unit was reflashed (\texttt{BenchTest/\allowbreak{}logs/\allowbreak{}flashlog\_\allowbreak{}2026-10-22/}): 2,000 of the 2,022 stored records after four passes, of which 1,998 parse; the other two had a bus error message printed into them during the read-back. Boot 109 (v0.7.4) holds the session: 1,154 records over 1.3 to 8.7\,h of uptime, which the recorder's records of the same boot place at 17:18 on 19 October to 00:44 on 20 October. Each record holds the battery state and, per IMU, the features of the latest 1\,s window (RMS, $\sigma$, peak-to-peak, crest factor, jerk), with the fused $\sigma$ and $D$. Records are meant to be 10\,s apart, but in this boot only 553 of 1,139 intervals were 10\,s and the rest up to 58\,s (mean 23\,s), so the log holds about one second in 23. The record is built in the modem task, which was also retrying MQTT with no broker reachable; that this stretched the interval is likely but not confirmed.
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/results/flashlog_run1.pdf}
+\caption[Run-1 flash log of the rear unit, boot 109, 19 to 20 October 2026 (\texttt{BenchTest/\allowbreak{}logs/\allowbreak{}flashlog\_\allowbreak{}2026-10-22/\allowbreak{}rear\_\allowbreak{}flash\_\allowbreak{}log\_\allowbreak{}dump.jsonl})]{Run-1 flash log of the rear unit, boot 109, 19 to 20 October 2026 (\texttt{BenchTest/\allowbreak{}logs/\allowbreak{}flashlog\_\allowbreak{}2026-10-22/\allowbreak{}rear\_\allowbreak{}flash\_\allowbreak{}log\_\allowbreak{}dump.jsonl}). (a) $\sigma$ of each IMU in the latest 1\,s window of each record, log scale; (b) battery current; green shading spans the first to the last record with a current above 1\,A. (c) IMU1 against IMU2 $\sigma$ in the same window, dotted line equal; parked, driving, and low-current records within the drive. (d) Disagreement $D$ (Equation~\ref{eq:disagreement}), box at the quartiles, whiskers at the 5th and 95th percentiles. Records are 10 to 58\,s apart; lines break at missing records.}
+\label{fig:res-flashlog}
+\end{figure}
+
 The battery current reached $-48.03$\,A, against $-46.9$\,A in the recorder, which missed a third of the seconds; the voltage fell from 74.58 to 72.66\,V and the state of charge from 60 to 58\,\%. Driving is taken as a current above 1\,A in magnitude: 26 records, from 18:10 to 18:54, median $-8.1$\,A. Parked is a current within 1\,A and a fused $\sigma$ of at most 0.3\,m/s\textsuperscript{2}: 1,046 records. The other 82, with $\sigma$ above 0.3\,m/s\textsuperscript{2} and no current, are kept apart: 18 fall within the drive, probably coasting or braking, and 64 outside it, between 18:04 and 00:43, when what moved the vehicle or the unit was not recorded. Table~\ref{tab:res-flashlog} and Figure~\ref{fig:res-flashlog} give the result (\texttt{Report/\allowbreak{}figures/\allowbreak{}results/\allowbreak{}flashlog\_\allowbreak{}run1.py}, numbers in \texttt{flashlog\_\allowbreak{}run1\_\allowbreak{}summary.txt}).
 
 \begin{table}[htbp]
@@ -150,6 +157,13 @@ Pothole model, run 2 (road-band tiles) & mAP@50 0.714 at 640 and 0.566 at 320, o
 Pothole path inside the detector (C10) & Found the pothole in a test picture (confidence 0.63); detector 13.9\,frames/s at one run per 4\,s, 10.9 to 13.3 at higher rates or with more threads; off by default \\ \hline
 \end{tabular}
 \end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/results/detector_latency.pdf}
+\caption[Detector latency from camera readout to detection result, per frame, for 60\,s runs of the TensorFlow Lite detector (\texttt{detect.tflite}, 300$\times$300 input, 640$\times$480 camera stream)]{Detector latency from camera readout to detection result, per frame, for 60\,s runs of the TensorFlow Lite detector (\texttt{detect.tflite}, 300$\times$300 input, 640$\times$480 camera stream). (a) Cumulative distribution; (b) box plots with the box at the quartiles, whiskers at the 5th and 95th percentiles and dots beyond them. Pi~4 runs on 30 September: four threads (1161 frames, 19.5 frames/s), four threads with the live view open in the Pi's browser (1031 frames, 17.3 frames/s), one thread (419 frames, 7.0 frames/s). Pi~5 run on 15 October: four threads with the live-view server running (1151 frames, 19.2 frames/s). Data from the detector's per-frame timing CSV files.}
+\label{fig:res-latency}
+\end{figure}
 
 Figure~\ref{fig:res-latency} compares the per-frame time from sensor readout to detection result. On the Pi~4 with four inference threads the median was 102\,ms (95th percentile 120\,ms, 1161 frames) and 105\,ms with the live view open (127\,ms, 1031 frames); with one thread it rose to 186\,ms (207\,ms, 419 frames) as inference went from 36 to 126\,ms. The Pi~5 on 15 October had a median of 53\,ms and a 95th percentile of 62\,ms over 1151 frames, with inference at 28\,ms and queue wait at 18\,ms against 52\,ms on the Pi~4. The 11 October whole-system log on the Pi~4 (bridge, fusion and preview running) recorded only per-interval summaries, median 118 to 122\,ms and 95th percentile 146 to 148\,ms, so it is not plotted.
 

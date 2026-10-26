@@ -6,7 +6,7 @@ This chapter describes the system as built on 23 October 2026 (phase~3, Section~
 \section{System overview and architecture selection}
 \label{sec:architecture}
 
-This section serves all thirteen requirements, R1 and R7 in particular. Figure~\ref{fig:system-architecture} shows the system. Two ESP32-S3 nodes each sample one inertial measurement unit (IMU) at one end of the vehicle; the rear node, beside the battery, also reads GNSS and the battery-management system (BMS), computes ride features, logs to flash and publishes over LTE. Two camera units each run the detector and fuse it with three time-of-flight sensors: a Raspberry Pi~5 behind the display faces forward, runs the dashboard and reads the front node; a Raspberry Pi~4 beside the battery faces backward and reads the rear node. An Ethernet cable joins the two.
+The architecture has to meet all thirteen requirements, but two decided it: R1, fixed-rate acquisition with no loss, and R7, detection at a useful frame rate. Figure~\ref{fig:system-architecture} shows the system. Two ESP32-S3 nodes each sample one inertial measurement unit (IMU) at one end of the vehicle; the rear node, beside the battery, also reads GNSS and the battery-management system (BMS), computes ride features, logs to flash and publishes over LTE. Two camera units each run the detector and fuse it with three time-of-flight sensors: a Raspberry Pi~5 behind the display faces forward, runs the dashboard and reads the front node; a Raspberry Pi~4 beside the battery faces backward and reads the rear node. An Ethernet cable joins the two.
 
 \begin{figure}[htbp]
 \centering
@@ -58,7 +58,7 @@ Delay search & 0.03 to 1.5\,s & Covers $L/v$ at 10 to 20\,km/h for wheelbases of
 \label{sec:hardware}
 \label{sec:camera-mount}
 
-This section serves R1, R4, R5, R6, R8 and R13. The rear node is a Makerfabs ESP32-S3 board whose A7670X LTE modem also contains the GNSS receiver \cite{makerfabsa7670x} (Figure~\ref{fig:makerfabs-pinout}, Appendix~\ref{app:figures}), so processor, modem and GNSS needed no separate circuit; the front node is a bare ESP32-S3 board. Each MPU6050 IMU has its own I\textsuperscript{2}C bus. Each camera unit has an OV5647 camera and three VL53L0X time-of-flight sensors in a casing printed in this project (Figure~\ref{fig:camera-casing}). Mounts are in Appendix~\ref{app:mechanical}, pins in Section~\ref{sec:impl-hardware}.
+The hardware was chosen to meet the sensing and installation requirements (R1, R4 to R6, R8 and R13). The rear node is a Makerfabs ESP32-S3 board whose A7670X LTE modem also contains the GNSS receiver \cite{makerfabsa7670x} (Figure~\ref{fig:makerfabs-pinout}, Appendix~\ref{app:figures}), so processor, modem and GNSS needed no separate circuit; the front node is a bare ESP32-S3 board. Each MPU6050 IMU has its own I\textsuperscript{2}C bus. Each camera unit has an OV5647 camera and three VL53L0X time-of-flight sensors in a casing printed in this project (Figure~\ref{fig:camera-casing}). Mounts are in Appendix~\ref{app:mechanical}, pins in Section~\ref{sec:impl-hardware}.
 
 \section{Firmware architecture}
 \label{sec:dual-imu-architecture}
@@ -67,7 +67,7 @@ This section serves R1, R4, R5, R6, R8 and R13. The rear node is a Makerfabs ESP
 \label{sec:imu-health}
 \label{sec:front-node}
 
-This section serves R1 and R6, and RQ1 and RQ3. One source builds both nodes (PlatformIO, Arduino on FreeRTOS). Each IMU task runs at the highest priority on core~1 and holds a 5\,ms period with \texttt{vTaskDelayUntil}, which schedules each wake-up from the previous target, so execution time does not accumulate into drift. Every consumer of samples and the modem, BMS and dashboard tasks run on core~0, so processing never shares a core with acquisition (Section~\ref{sec:inv-stall}). A full queue drops and counts the new sample rather than block. Table~\ref{tab:fw-mechanisms} lists the supporting mechanisms; the task diagram (Figure~\ref{fig:task-architecture}) is in Section~\ref{sec:impl-fw}.
+The firmware has to hold a fixed 200\,Hz sampling period with no silent loss (R1) and time-stamp each sample so that it can be aligned with the cameras (R6); both properties underpin RQ1 and RQ3. One source builds both nodes (PlatformIO, Arduino on FreeRTOS). Each IMU task runs at the highest priority on core~1 and holds a 5\,ms period with \texttt{vTaskDelayUntil}, which schedules each wake-up from the previous target, so execution time does not accumulate into drift. Every consumer of samples and the modem, BMS and dashboard tasks run on core~0, so processing never shares a core with acquisition (Section~\ref{sec:inv-stall}). A full queue drops and counts the new sample rather than block. The supporting mechanisms (Table~\ref{tab:fw-mechanisms}) and the task diagram (Figure~\ref{fig:task-architecture}) are in Section~\ref{sec:impl-fw}.
 
 \subsection{Sampling and anti-aliasing}
 \label{sec:sampling}
@@ -89,28 +89,10 @@ n_p = \lceil T_p f_s \rceil = \lceil 0.044 \times 200 \rceil = 9
 \end{equation}
 samples on top of its normal fill. The IMU queues hold 100 samples, eleven times $n_p$, so a consumer may stall for 0.5\,s before a sample is lost; the ride-feature and raw-stream queues hold 400 and 200. The catch-up limit of 20 periods is 2.3 times the longest pause, so the pause is caught up while a longer stall, such as a failing bus, gives up its slots. Writing the log once a minute makes the pause rarer, not shorter. The sensor's FIFO is not used, so the caught-up reads are new readings, not the missed instants: each pause leaves a hole of up to 44\,ms, 4.4\,\% of a window, visible in the timestamps. Reading the FIFO would fill it.
 
-\begin{table}[htbp]
-\centering
-\small
-\caption[Supporting firmware mechanisms (details in the sections named)]{Supporting firmware mechanisms (details in the sections named).}
-\label{tab:fw-mechanisms}
-\begin{tabular}{|p{2.6cm}|p{7.4cm}|p{4.2cm}|}
-\hline
-\textbf{Mechanism} & \textbf{Design} & \textbf{Reason} \\ \hline
-Sample record & Sensor identifier, 5\,ms slot sequence number, microsecond timestamp; no acquisition task prints & Missing numbers count losses; printing blocks for a variable time \\ \hline
-Statistics & Rate, interval range and drops per sensor every 2\,s & Acquisition is measured continuously \\ \hline
-Raw stream (\ref{sec:impl-raw}) & Every sample as hex text with a CRC-16 (36 bytes a sample) on the dashboard link; lowest-priority sender gives a line up rather than delay the dashboard line & Readable in a terminal; affordable at a third of the link \\ \hline
-Sensor health (\ref{sec:impl-health}) & Reads classed good, failed or stuck; consumer ages, highest queue fill, late slots and per-core idle counts in the dashboard line & Locates a stall: core, consumer or bus \\ \hline
-Recovery (\ref{sec:impl-health}) & After 1\,s of failed or identical reads, re-initialise the sensor without a reset & An MPU6050 that loses power returns asleep \\ \hline
-Command task (\ref{sec:impl-health}) & Local commands run at once, not behind the modem's timeouts & Commands were 20 to 25\,s late \\ \hline
-Front node (\ref{sec:impl-front}) & Same source, one IMU, no modem, BLE or GNSS; USB to the Raspberry Pi~5 with its own sync pulse & Two ends of the vehicle measured (RQ1, RQ4) \\ \hline
-\end{tabular}
-\end{table}
-
 \section{Ride-characterisation signal processing}
 \label{sec:ride-characterisation}
 
-This section serves R2 and R3, and RQ1 and RQ4. A task per IMU computes time-domain features from each one-second window of $N = 200$ samples ($\Delta t = 1/f_s$). The mounting has not been related to a vehicle frame, so the orientation-free magnitude is used:
+The ride features turn the raw samples into the measures that RQ1 and RQ4 need, and must be calibrated (R2) and computed correctly (R3). A task per IMU computes time-domain features from each one-second window of $N = 200$ samples ($\Delta t = 1/f_s$). The mounting has not been related to a vehicle frame, so the orientation-free magnitude is used:
 \begin{equation}
 a_k = s\,\sqrt{a_{x,k}^2 + a_{y,k}^2 + a_{z,k}^2} \approx g + a_{v,k} + \frac{\lvert \mathbf{a}_{h,k} \rvert^2}{2g},
 \label{eq:magnitude}
@@ -192,7 +174,7 @@ Worst-case sum & 5.3\,ms & \\ \hline
 \label{sec:environmental-sensing}
 \label{sec:hall-tap}
 
-This section serves R4 and R5, and RQ1, RQ3 and RQ4. Table~\ref{tab:vehicle-inputs} gives the design of each input. Two choices carry the rest: every parser checks its input before trusting it, because the documentation available did not match the hardware (Sections~\ref{sec:inv-gnss} and~\ref{sec:impl-bms}), and the rear node sits beside the pack because the BMS link did not reach the front (Section~\ref{sec:two-sided}).
+Position and battery state give the context for the ride data (R4, R5): speed for RQ1, delivery for RQ3 and motor load for RQ4. Table~\ref{tab:vehicle-inputs} gives the design of each input. Two choices carry the rest: every parser checks its input before trusting it, because the documentation available did not match the hardware (Sections~\ref{sec:inv-gnss} and~\ref{sec:impl-bms}), and the rear node sits beside the pack because the BMS link did not reach the front (Section~\ref{sec:two-sided}).
 
 \begin{table}[htbp]
 \centering
@@ -214,7 +196,7 @@ Motor Hall signal (\ref{sec:impl-other}) & Hardware pulse counter behind an opto
 \section{Camera subsystem}
 \label{sec:camera-subsystem}
 
-This section serves R6, R7, R8, R10 and R11, and RQ1, RQ2 and RQ3.
+The camera subsystem detects hazards (R7), measures their distance (R8) and passes them to the dashboard (R10, R11), with frames aligned to the inertial data (R6). It serves RQ2 directly, and RQ1 and RQ3 through its timing.
 
 \subsection{Capture and synchronisation}
 \label{sec:sync-pulse}
@@ -274,7 +256,7 @@ At the 4\,s threshold this is $6.8\varepsilon$ on the Raspberry Pi~5 (19.2\,fram
 \subsection{Two-sided layout}
 \label{sec:two-sided}
 
-Sensing is split by side. The Raspberry Pi~5 behind the dashboard runs the front camera, detector and time-of-flight board, so a front alert does not cross the network and has the Pi~5's lower latency (median 51 to 54\,ms beside the dashboard, against 118 to 122\,ms on the Raspberry Pi~4 with the whole system, Section~\ref{sec:res-hazard}). The Raspberry Pi~4 beside the battery looks backward and reads the rear node near the pack. A dedicated Ethernet cable joins them, leaving Wi-Fi for the internet. The dashboard switches between Front and Rear, the rear view mirrored, and its banner shows both sides (Figure~\ref{fig:two-sided}; Section~\ref{sec:impl-twosided}).
+Sensing is split by side. The Raspberry Pi~5 behind the dashboard runs the front camera, detector and time-of-flight board, so a front alert does not cross the network and has the Pi~5's lower latency (median 51 to 54\,ms beside the dashboard, against 118 to 122\,ms on the Raspberry Pi~4 with the whole system, Section~\ref{sec:res-hazard}). The Raspberry Pi~4 beside the battery looks backward and reads the rear node near the pack. A dedicated Ethernet cable joins them, leaving Wi-Fi for the internet. Figure~\ref{fig:two-sided} shows the result on the dashboard: one page switches between Front and Rear, the rear view mirrored, and the banner shows warnings from both sides (Section~\ref{sec:impl-twosided}).
 
 \begin{figure}[htbp]
 \centering
@@ -292,7 +274,7 @@ Sensing is split by side. The Raspberry Pi~5 behind the dashboard runs the front
 \label{sec:db-sync}
 \label{sec:pi-link}
 
-This section serves R9 and R10, and RQ3. Table~\ref{tab:comms-design} gives the design. The principle is that no link is trusted: every record is kept locally whatever the coverage, carries what is needed to detect its loss, and is confirmed rather than assumed delivered (Section~\ref{sec:impl-comms}). A published record of about 550 bytes every 10\,s is 0.44\,kbit/s, 1.6\,MB in an 8-hour day before protocol overhead, against about 26\,MB an hour for one raw stream (Table~\ref{tab:fw-mechanisms}), so features are sent and samples stay on the vehicle.
+Communications must keep every record through gaps in coverage (R9) and feed the dashboard locally (R10), the subject of RQ3. Table~\ref{tab:comms-design} gives the design. The principle is that no link is trusted: every record is kept locally whatever the coverage, carries what is needed to detect its loss, and is confirmed rather than assumed delivered (Section~\ref{sec:impl-comms}). A published record of about 550 bytes every 10\,s is 0.44\,kbit/s, 1.6\,MB in an 8-hour day before protocol overhead, against about 26\,MB an hour for one raw stream (Table~\ref{tab:fw-mechanisms}), so features are sent and samples stay on the vehicle.
 
 \begin{table}[htbp]
 \centering
@@ -314,7 +296,7 @@ Front node to Pi~5 & USB & No modem load \\ \hline
 \section{Fault investigations}
 \label{sec:faults-summary}
 
-This section serves R1, R4, R5, R8, R9 and R10, whose tests exposed the faults, and RQ3. Eight faults of Table~\ref{tab:faults} needed a diagnosis, told in Section~\ref{sec:investigations} as symptom, candidate causes, deciding test, cause and fix (Table~\ref{tab:investigations}). Four changed the design: the telemetry unit needs its own supply (Section~\ref{sec:inv-power}); a silent sensor is skipped with a timeout (Section~\ref{sec:inv-tof}); the record is read back in full (Section~\ref{sec:inv-json}); and processing does not share a core with acquisition (Section~\ref{sec:inv-stall}).
+The tests of R1, R4, R5, R8, R9 and R10 exposed faults that changed the design, which bears on RQ3. Eight faults of Table~\ref{tab:faults} needed a diagnosis, told in Section~\ref{sec:investigations} as symptom, candidate causes, deciding test, cause and fix (Table~\ref{tab:investigations}). Four changed the design: the telemetry unit needs its own supply (Section~\ref{sec:inv-power}); a silent sensor is skipped with a timeout (Section~\ref{sec:inv-tof}); the record is read back in full (Section~\ref{sec:inv-json}); and processing does not share a core with acquisition (Section~\ref{sec:inv-stall}).
 
 \section{Testing infrastructure}
 \label{sec:bench-tools}

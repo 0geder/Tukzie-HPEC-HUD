@@ -46,13 +46,15 @@ Most tests were run on the bench in the laboratory at UCT (Figure~\ref{fig:bench
 \label{sec:verification}
 \label{sec:experiments}
 
-The experiments match phases 4 to 6 of Figure~\ref{fig:vmodel}.
+The experiments follow the right arm of the V-model (Figure~\ref{fig:vmodel}, phases 4 to 6). Each interface is checked on its own, each requirement is then tested on the bench against its criterion, and the whole system is finally tested on the vehicle. Where a fault had more than one possible cause, a deciding test separated them (Section~\ref{sec:investigations}, Table~\ref{tab:investigations}).
+
+\subsection{Bench and integration tests}
+\label{sec:bench-tests}
+
 \begin{itemize}
 \item \emph{Start-up checks} (phase 4): pass or fail checks of each interface (Table~\ref{tab:startup-checks}, Appendix~\ref{app:wiring}); all passed, and the faults they exposed are in Table~\ref{tab:faults}.
 \item \emph{Bench acceptance tests} (phase 5): one or more per requirement, with procedures and criteria in \texttt{BenchTest/\allowbreak{}TEST\_\allowbreak{}PROCEDURES.md} (T1 to T15 telemetry unit, C1 to C11 camera units, B1 to B5 bench tools and dashboard) and raw output indexed in Appendix~\ref{app:evidence}. T14 on the Raspberry Pis, C5, C8 and the tape measurements of C9 and C11 have not been run.
 \item \emph{Integration tests} (phase 5): the whole chain on the bench, which exposed the Raspberry Pi~4's under-voltage from the modem (Section~\ref{sec:inv-power}).
-\item \emph{Vehicle tests} (phase 6), below.
-\item \emph{Fault investigations}: where more than one cause could explain a fault, a deciding test separated them (Section~\ref{sec:investigations}, Table~\ref{tab:investigations}).
 \end{itemize}
 
 \subsection{Vehicle tests}
@@ -70,7 +72,11 @@ A recorder on the Raspberry Pi~5 starts at boot and saves every reply of its sou
 \section{Data collection}
 \label{sec:data-collection}
 
-Data collection was designed into the system, so that each test leaves a record that can be checked later.
+A result is only as good as its record, so data collection was designed into the system. Every sample, record and alert carries what is needed to check it later, and every file is kept and indexed. Section~\ref{sec:what-recorded} describes what is recorded and how the clocks are aligned, and Section~\ref{sec:data-availability} where the data can be found.
+
+\subsection{What is recorded}
+\label{sec:what-recorded}
+
 \begin{itemize}
 \item \emph{Inertial samples.} Each sample carries a sensor identifier, a sequence number and a microsecond timestamp, and every 2\,s a statistics task reports each sensor's rate, interval range and drops (Section~\ref{sec:dual-imu-architecture}). Up to v0.7.4.1 only the 1\,s features were kept; from v0.7.5 every sample also goes to the Raspberry Pi as a CRC-checked line, with read-failure and stuck-sample counters.
 \item \emph{Front and rear nodes.} From 22 October each IMU has its own ESP32-S3 (Section~\ref{sec:front-node}), both on v0.7.8 since 15:00 that day. The rear node, on its own battery, sends to the Raspberry Pi~4 over a wired UART at 460\,800\,baud, the front node to the Raspberry Pi~5 over USB at 921\,600\,baud, and each Pi saves its node's raw stream to file.
@@ -88,7 +94,11 @@ The source code, firmware, test scripts, bench logs and figure data are in the p
 \section{Data analysis}
 \label{sec:data-analysis}
 
-Each record is turned into a figure comparable with the acceptance criterion of Table~\ref{tab:requirements-mapping}, fixed before the test, and each requirement is given a status in Table~\ref{tab:results-summary}. Results not measured are not estimated.
+Each record is turned into a figure comparable with the acceptance criterion of Table~\ref{tab:requirements-mapping}, fixed before the test. Chapter~\ref{chap:results} reports the requirements in the same order, from acquisition (Section~\ref{sec:res-acq}) to integration, and gives each a status in Table~\ref{tab:results-summary}. Results not measured are not estimated. Section~\ref{sec:bench-analysis} gives the analysis of the bench tests and the first road session, and Section~\ref{sec:road-analysis} the analysis written for RQ1 and RQ4.
+
+\subsection{Bench tests and the first road session}
+\label{sec:bench-analysis}
+
 \begin{itemize}
 \item \emph{Timing.} Latency and interval distributions are skewed and an alert is limited by its slow cases, so they are summarised by the median, 95th percentile and maximum, not the mean, answering the review's finding that edge systems are rarely reported by jitter. Acquisition is judged by rate, drops and gaps over 10\,ms placed against the flash writes (R1).
 \item \emph{Position, pulse, store-and-forward.} Fixes are compared with a phone's position (R4) and pulse intervals with 500 $\pm$ 20\,ms (R6). Records are counted by device, boot and sequence number for missing records, duplicates, replays and backlog time (\texttt{Server/sync\_report.py}), and the database is compared with the read-back log (R9).
@@ -115,6 +125,8 @@ During bench tests the records, including the unit's position on campus, went to
 
 \section{Summary of methods}
 \label{sec:methods-summary}
+
+This chapter set out an engineering design-research approach, run as a V-model in six phases, with a criterion fixed before each test, records kept so that every result can be checked, and the road analysis written before the second session. Table~\ref{tab:methods} summarises the methods for each research question; Chapter~\ref{chap:design} gives the design they test.
 
 {\footnotesize
 \begin{longtable}{|>{\raggedright\arraybackslash}p{2.4cm}|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}p{3.3cm}|>{\raggedright\arraybackslash}p{1.9cm}|}
