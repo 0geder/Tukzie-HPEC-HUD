@@ -524,3 +524,11 @@ committed to git because of their size, kept on OneDrive).
 - With publishing on: "[MQTT] Connected" 25 s after start; records received on the laptop's subscription, all from sw7-esp32-telemetry, none with a position; the backlog of an earlier boot (1881) replaying alongside the live records (boot 2034).
 - For Monday: the Pi 5 ingest must subscribe to broker.hivemq.com, not test.mosquitto.org; the node keeps its own battery.
 - What the student did: bought the data bundle and connected the node's battery.
+
+### 26 October 2026, about 12:00, Bluetooth speaker on the Pi 5 for voice
+
+- Paired, trusted and connected the student's Volkano Mamba 2.0 (F4:CE:50:3B:59:F4) to the Pi 5 (Pirate5); default output set to it. Test sounds and an espeak-ng phrase played.
+- The Pi 5 had no speech engine, so the dashboard's spoken alerts had been silent. Installed espeak-ng and libportaudio2 (apt), vosk and sounddevice (tukzie-env), and the Vosk small English model in ~/vosk-model-small-en-us-0.15.
+- The speaker offers the hands-free profile (HFP) with a microphone at 16 kHz. Switched to it so the speaker's mic is the voice input; playback in this mode is call quality.
+- Two-minute listening test with the voice module on its own (not inside the dashboard): only "one" and "oh" recognised. Mic level while the speaker played its own phrase: RMS 19, peak 396 of 32767, near silence (the speaker likely cancels its own output). Needs a test with a person speaking before any result is claimed.
+- What the student did: chose the speaker and put it in pairing mode.
