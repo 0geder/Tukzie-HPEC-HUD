@@ -859,3 +859,33 @@ DUAL_CAMERA_PATCHES = (
      "Dashboard = DashboardMain\n"),
 )
 PATCHES = PATCHES + DUAL_CAMERA_PATCHES
+
+AUDIO_FOLLOW_PATCHES = (
+    # app/asis/voice_manager.py: the player follows the current default output before every phrase (26 Oct 2026).
+    # QAudioOutput keeps the device it was created with; a Bluetooth speaker that sleeps or drops and reconnects
+    # comes back as a new PulseAudio sink, so speech went to a device that no longer existed ("Failed to get sink
+    # information: No such entity") until the dashboard was restarted. Re-selecting the default output on each
+    # phrase lets a reconnect take effect at once. No change when the device is the same.
+    ("app/asis/voice_manager.py",
+     "    from PySide6.QtMultimedia import QAudioOutput,QMediaPlayer\n",
+     "    from PySide6.QtMultimedia import QAudioOutput,QMediaPlayer\n"
+     "    try:\n"
+     "        from PySide6.QtMultimedia import QMediaDevices   # SW-7: follow the default output\n"
+     "    except Exception:\n"
+     "        QMediaDevices=None\n"),
+    ("app/asis/voice_manager.py",
+     "        def _play_slot(self,path,waiter,volume):\n"
+     "            self._finish(False,'superseded') if self._waiter else None;",
+     "        def _sw7_follow_default_output(self):\n"
+     "            # SW-7: a reconnected Bluetooth speaker is a new device; point the output at the current default.\n"
+     "            try:\n"
+     "                dev=QMediaDevices.defaultAudioOutput() if QMediaDevices is not None else None\n"
+     "                if dev is not None and not dev.isNull() and dev.id()!=self.output.device().id():\n"
+     "                    self.output.setDevice(dev)\n"
+     "            except Exception:\n"
+     "                pass\n"
+     "        def _play_slot(self,path,waiter,volume):\n"
+     "            self._sw7_follow_default_output()\n"
+     "            self._finish(False,'superseded') if self._waiter else None;"),
+)
+PATCHES = PATCHES + AUDIO_FOLLOW_PATCHES
