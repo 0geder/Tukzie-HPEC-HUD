@@ -547,3 +547,9 @@ committed to git because of their size, kept on OneDrive).
 - Phone (Samson's A06) joined the laptop's MyHotspot at 192.168.137.107; Share GPS served NMEA on TCP 50000 (14 satellites, fix). The bridge only looked at the gateway (the laptop), so it read nothing.
 - Added a systemd drop-in on the Pi 5 (/etc/systemd/system/sw7-phone-gps.service.d/laptop-hotspot.conf) with 192.168.137.107:50000 as an extra source; the gateway entries stay for the phone-hotspot setup on the road. Bridge: fix true, 14 satellites, 0 checksum errors. The phone's address can change if it reconnects.
 - Recheck at 12:25: still NOT READY (rear ESP32 not on the Pi 4's USB); Pi 4 under-voltage 0x50000, 70.1 C, up 29 min; rear-left ToF null.
+
+### 26 October 2026, 12:45 to 12:55, phone-speed fix deployed
+
+- The deployed dashboard (076ff49) built no live state when the ESP32 record was missing, so with the rear node off the Pi 4 the speedometer could not show the phone's speed. Deployed main (fa1b588, phone-speed fix of 25 Oct; voice commands included but off by default). tests/test_phone_gps.py: ALL PASS. Screenshots before and after in DashboardIntegration/screenshots/2026-10-26.
+- After: dashboard LIVE, 0 km/h from the phone (parked, 14 satellites), battery "no reading" (the BMS arrives through the rear ESP32, which is not on the Pi 4's USB).
+- The deploy had reset the online voice to gTTS; set back to auto (Leah), and apply_patches.py now sets it on every deploy.
