@@ -31,6 +31,9 @@ On 23 October both nodes were recalibrated in their mounted positions, with the 
 
 The feature self-test and all five fusion self-tests passed at every boot, and in a 150\,s bench session all 149 fused windows combined both sensors with a skew below 1\,ms; under a hand disturbance both sensors rose and decayed together (Section~\ref{sec:resx-ride}). R3 is met: the features are computed and combined as designed, which does not show how they respond to the road or the motor.
 
+\subsection{First road session}
+\label{sec:res-road1}
+
 On the road session (Figure~\ref{fig:res-road}), with seconds labelled as driving by current or vibration, so that the separation is partly by construction, the per-second vibration value had a median of 0.03\,m/s\textsuperscript{2} in 2,832 parked seconds and 1.39\,m/s\textsuperscript{2} in 605 driving seconds (95th percentile 3.2, maximum 5.09), with battery current up to 46.9\,A.
 
 \begin{figure}[htbp]
@@ -44,6 +47,9 @@ On the road session (Figure~\ref{fig:res-road}), with seconds labelled as drivin
 \label{sec:res-flashlog}
 
 The unit's own log of the session, read back on 22 October, holds the per-IMU features of one 1\,s window about every 23\,s (1,154 records; Figure~\ref{fig:res-flashlog} and Table~\ref{tab:res-flashlog} in Appendix~\ref{app:results}). In the 26 records identified as driving by current, $\sigma$ rose from about 0.03 to a median of about 2\,m/s\textsuperscript{2}, peak-to-peak from about 0.17 to 11 to 14\,m/s\textsuperscript{2}, crest factor from 1.01 to about 1.6 and jerk from about 7 to 250\,m/s\textsuperscript{3}. The two sensors, both on the rear unit that day, tracked each other closely: the ratio of their $\sigma$ had a median of 1.06 and a correlation of 0.97, and $D$ a median of 0.074. This shows the size of the response and that two sensors measuring the same motion agreed, not its repeatability, its dependence on speed (there was no GNSS antenna) or how the front and rear compare.
+
+\subsection{Stand runs}
+\label{sec:res-stands}
 
 The lab part of run 2 took place on 23 October with the drive wheel raised on stands; the road part moved to 26 October. In two stand runs (15:53:11 to 15:55:50 and 16:08:12 to 16:10:20) the motor drew a mean of 3.2 and 4.5\,A (peaks 4.4 and 6.2\,A). In the raw 200\,Hz streams, which had no gaps, the dynamic RMS of the rear acceleration magnitude rose from 0.027\,m/s\textsuperscript{2} at rest to 0.13 and 0.20, five to seven times, with the energy between about 40 and 70\,Hz. The front node rose only from 0.020 to 0.026 and 0.035, but in the second run it showed the same lines as the rear, at 42.75, 49.0 and 64.0\,Hz, so powertrain vibration reaches the front through the frame (Figure~\ref{fig:res-stands}). The throttle settings and wheel speed were not recorded, so the lines cannot yet be assigned to motor orders.
 

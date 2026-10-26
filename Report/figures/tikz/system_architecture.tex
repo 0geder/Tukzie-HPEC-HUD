@@ -6,29 +6,29 @@
 \begin{tikzpicture}[x=1cm, y=1cm]
   \def\tw{3.9cm}
   % ---- telemetry unit ----
-  \node[swbox, text width=\tw] (a1) at (2.2,-1.5) {%
+  \node[swbox, text width=\tw] (a1) at (2.2,-1.25) {%
     IMU1, MPU6050, I\textsuperscript{2}C, 200\,Hz\\
     GNSS receiver in the modem\\
     Battery BMS over Bluetooth LE};
-  \node[swplanned, text width=\tw] (a0) at (2.2,-3.0) {Motor Hall tap through an optocoupler (not yet wired)};
-  \node[swbox, text width=\tw] (a2) at (2.2,-4.5) {FreeRTOS tasks:\\ ride features, raw 200\,Hz stream,\\ buffered log in flash};
-  \node[swbox, text width=\tw] (a3) at (2.2,-6.2) {LTE modem (A7670X)};
+  \node[swplanned, text width=\tw] (a0) at (2.2,-2.85) {Motor Hall tap through an optocoupler (not yet wired)};
+  \node[swbox, text width=\tw] (a2) at (2.2,-4.6) {FreeRTOS tasks:\\ ride features, raw 200\,Hz stream,\\ buffered log in flash;\\ UART at 460\,800\,Bd to the Pi~4};
+  \node[swbox, text width=\tw] (a3) at (2.2,-6.55) {LTE modem (A7670X)};
   % ---- Raspberry Pi 4: rear unit ----
   \node[swbox, text width=\tw] (b1) at (7.7,-0.9) {Rear camera, OV5647 NoIR};
   \node[swbox, text width=\tw] (b2) at (7.7,-2.3) {\texttt{hazard\_detector.py}\\ :8080 video, alerts, detections};
-  \node[swbox, text width=\tw] (b4) at (7.7,-4.5) {\texttt{telemetry\_bridge.py} with \texttt{sensor\_fusion.py}\\ :8081 telemetry, rear hazards};
+  \node[swbox, text width=\tw] (b4) at (7.7,-4.6) {\texttt{telemetry\_bridge.py} with \texttt{sensor\_fusion.py}\\ :8081 telemetry, rear hazards,\\ served over Ethernet};
   \node[swbox, text width=\tw] (b3) at (7.7,-6.2) {3 ToF sensors, VL53L0X, I\textsuperscript{2}C};
-  \node[swbox, text width=\tw] (b5) at (7.7,-7.5) {\texttt{sync\_logger.py}, GPIO17 edges};
+  \node[swbox, text width=\tw] (b5) at (7.7,-7.5) {\texttt{sync\_logger.py}: 500\,ms sync pulse edges on GPIO17};
   % ---- Raspberry Pi 5: dashboard and front unit ----
   \node[swbox, text width=\tw] (c3) at (13.2,-2.3) {Pages on the 1280\,$\times$\,800 touch screen: driving, Surroundings (front or rear), map};
-  \node[swbox, text width=\tw] (c2) at (13.2,-4.5) {\texttt{live\_data\_provider.py}\\ polls every 0.5\,s};
+  \node[swbox, text width=\tw] (c2) at (13.2,-4.6) {\texttt{live\_data\_provider.py}\\ polls every 0.5\,s};
   \node[swbox, text width=\tw] (f1) at (13.2,-6.2) {Front camera, OV5647, and 3 ToF sensors, VL53L0X};
   \node[swbox, text width=\tw] (f2) at (13.2,-7.6) {\texttt{hazard\_detector.py} :8080 and ToF bridge with \texttt{sensor\_fusion.py} :8082};
   \node[swbox, text width=\tw] (p1) at (13.2,-9.0) {\texttt{phone\_gps\_bridge.py} :8084, phone GNSS over the hotspot};
   \node[swbox, text width=\tw] (c4) at (13.2,-10.4) {\texttt{sw7\_ingest.py}: SQLite database, one copy per record};
   \node[swbox, text width=\tw] (n1) at (13.2,-11.9) {Front node: ESP32-S3, one MPU6050 at 200\,Hz (v0.7.8), raw stream over USB to \texttt{raw\_capture.py} :8083; sync pulse to GPIO17};
   % ---- outside the vehicle ----
-  \node[swbox, draw=swGrey, fill=white, text width=\tw] (mq) at (2.2,-10.4) {Public MQTT test broker};
+  \node[swbox, draw=swGrey, fill=white, text width=\tw] (mq) at (2.2,-10.4) {Public MQTT broker};
   \node[swbox, draw=swGrey, fill=white, text width=\tw] (net) at (13.2,-0.6) {Internet: OpenStreetMap tiles, OSRM routes};
 
   % ---- lanes (drawn behind) ----
@@ -37,9 +37,9 @@
     \node[swlane, fit=(b1)(b2)(b4)(b3)(b5), minimum width=4.6cm] (lb) {};
     \node[swlane, fit=(c3)(c2)(f1)(f2)(p1)(c4)(n1), minimum width=4.6cm] (lc) {};
   \end{scope}
-  \node[swlanetitle] at (la.north west) {Telemetry unit, rear node (ESP32-S3, v0.7.8)};
-  \node[swlanetitle] at (lb.north west) {Raspberry Pi~4: rear, by the battery};
-  \node[swlanetitle] at (lc.north west) {Raspberry Pi~5: front};
+  \node[swlanetitle] at (la.north west) {Rear node (ESP32-S3)};
+  \node[swlanetitle] at (lb.north west) {Raspberry Pi~4 (rear)};
+  \node[swlanetitle] at (lc.north west) {Raspberry Pi~5 (front)};
 
   % ---- links inside each unit ----
   \draw[swflow] (a1) -- (a0);
@@ -50,16 +50,15 @@
   \draw[swflow] (b3) -- (b4);
   \draw[swflow] (c2) -- node[swlabel, right=1pt] {live state} (c3);
   \draw[swflow] (f1) -- (f2);
-  \draw[swflow] (f2.east) -- ++(0.25,0) |- node[swlabel, pos=0.25, right=1pt, align=left] {front video,\\ alerts, ToF} (c2.east);
+  \draw[swflow] (f2.east) -- ++(0.25,0) |- (c2.east);
   \draw[swflow] ($(net.south)+(1.3,0)$) -- ($(c3.north)+(1.3,0)$);
   \draw[swflow] (p1.east) -- ++(0.55,0) |- node[swlabel, pos=0.25, right=1pt, align=left] {speed,\\ position} ($(c2.east)+(0,-0.25)$);
 
   % ---- links between units ----
-  \draw[swlink] (a2.east) -- node[swlabel, above=2pt] {UART,\\ 460\,800\,Bd,\\ \texttt{DASH} 1\,Hz, raw} (b4.west);
-  \draw[swlink] ($(a2.east)+(0,-0.4)$) -- (4.95,-4.9) -- (4.95,-7.5) -- (b5.west);
-  \node[swlabel, rotate=90, anchor=south] at (4.95,-6.3) {sync pulse, 500\,ms};
-  \draw[swlink] ($(b4.east)+(0,0.15)$) -- node[swlabel, above=2pt] {Ethernet,\\ HTTP} ($(c2.west)+(0,0.15)$);
-  \draw[swlink] (b2.east) -- node[swlabel, above=2pt] {rear video,\\ alerts} (c3.west);
+  \draw[swlink] (a2.east) -- (b4.west);
+  \draw[swlink] ($(a2.east)+(0,-0.4)$) -- (4.95,-5.0) -- (4.95,-7.5) -- (b5.west);
+  \draw[swlink] ($(b4.east)+(0,0.15)$) -- ($(c2.west)+(0,0.15)$);
+  \draw[swlink] (b2.east) -- (c3.west);
   \draw[swlink] (a3) -- node[swlabel, left=1pt] {MQTT over LTE,\\ every 10\,s, replays} (mq);
   \draw[swlink] (mq.east) -- node[swlabel, above=2pt] {MQTT subscription over the Internet} (c4.west);
 \end{tikzpicture}

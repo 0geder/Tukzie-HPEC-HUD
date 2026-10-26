@@ -49,7 +49,7 @@ A single-Pi-5 setup (bridge and detector on the Pi 5) is being considered; the r
 |---|---|
 | Test procedures and results | `BenchTest/TEST_PROCEDURES.md`, raw logs in `BenchTest/logs/` |
 | Decisions, status and history | `PROJECT_LOG.md` (decisions D1 onwards), `CHANGELOG.md` (every change and why) |
-| Report source and PDF | `Report/` (`Project Report Template.tex` and its PDF) |
+| Report source and PDF | `Report/` (`Samson Okuthe - EEE4022S Final Report (2026).tex` and its PDF; the submitted copy is renamed to the course format) |
 | Evidence for the report | `Report/evidence/` (indexed in Appendix C) |
 | Presentation, poster, talking points, Q&A | `Presentation/` (built from `Presentation/source/`) |
 | Planning and brief compliance | `Planning/` (`brief-compliance.md`) |
