@@ -22,12 +22,14 @@ On 21 and 22 October, on its own battery and the wired link, the rear unit's dro
 \outstanding{run 2 (road part, 26 October): gap distribution of both nodes' raw 200\,Hz streams on the moving vehicle (sequence gaps and sample intervals), and the read-failure, stuck, late and raw-drop counts over the session.}
 
 \section{Calibration (R2)}
+\label{sec:res-cal}
 
 Before calibration the two IMUs read about 5.7\,\% above and 2.6\,\% below standard gravity at rest; after it both read 9.80 to 9.81\,m/s\textsuperscript{2}. On the target board a later session read 1.3\,\% and 2.9\,\% above gravity with the same factors, which suggests that a single factor holds only in the orientation in which it was measured. On the front node a recalibration on 22 October repeated the first factor within 0.01\,\% (1.0036 and 1.0035), with the board not yet mounted (Section~\ref{sec:resx-cal}).
 
 On 23 October both nodes were recalibrated in their mounted positions, with the vehicle on stands, the motor off and the wheel still (markers R2 RECAL). The front node read 9.886\,m/s\textsuperscript{2} at rest and stored a factor of 0.9919, against 1.0035 on the bench: the same sensor needs a factor 1.2\,\% different once mounted. The rear node reports its result only on its unconnected USB console, so its factor was computed from the raw stream of the 12.9\,s after its restart by the same method (2,580 samples, none missing): 0.9907\,g, or 9.715\,m/s\textsuperscript{2}, giving 1.0094, with a noise standard deviation of 0.003\,g; its pod sits within 1.5$^\circ$ of level. These are the factors' own definition, not an independent check: with the earlier bench factors the parked vehicle read 10.04 and 10.34\,m/s\textsuperscript{2} on 19 October (Table~\ref{tab:res-flashlog}), and whether the mounted factors hold is still to be checked.
 
 \section{Ride features and fusion (R3)}
+\label{sec:res-ride}
 
 The feature self-test and all five fusion self-tests passed at every boot, and in a 150\,s bench session all 149 fused windows combined both sensors with a skew below 1\,ms; under a hand disturbance both sensors rose and decayed together (Section~\ref{sec:resx-ride}). R3 is met: the features are computed and combined as designed, which does not show how they respond to the road or the motor.
 
@@ -72,6 +74,7 @@ With the antenna on the modem's GNSS connector (fitted 22 October), in more than
 \outstanding{run 2 (road part, 26 October): the vehicle receiver's time to first fix in the open, and the phone's speed (and the vehicle's, if it fixes) against the speed from the side video over the 50\,m section.}
 
 \section{Battery telemetry (R5)}
+\label{sec:res-battery}
 
 Once the unit was moved near the pack (Section~\ref{sec:two-sided}), the BMS link held, and on the road session it held throughout: the current reached 46.9\,A under load (48.03\,A in the unit's own log), the voltage fell from 74.6 to 72.8\,V and the state of charge from 60 to 58\,\%. The pack name gives 24 cells, consistent with 74.7\,V; the chemistry is not confirmed. R5 is partly met: the voltage has not been compared with a meter (Section~\ref{sec:resx-bms}).
 
@@ -104,6 +107,7 @@ The time-of-flight sensors answered and responded in the right order, so the fir
 \outstanding{run 2 (road part, 26 October): detections and alerts during the walking-pace approaches to a parked object and a cardboard target (block V5), checked against the forward video.}
 
 \section{Telemetry, logging and recovery (R9, R10)}
+\label{sec:res-telemetry}
 
 The unit published 47 times with no failures, detected a radio loss within 0.8\,s and, from v0.5.3, reconnected about 5\,s after coverage returned; a full read-back recovered all 6,020 stored records (Section~\ref{sec:resx-telemetry}). In the store-and-forward test T15 (Table~\ref{tab:res-sync}, Figure~\ref{fig:res-t15}) the radio was off for 10 minutes; the unit reconnected 5.2\,s after it returned and cleared its 60-record backlog, and every record of the boot was stored once, 24 of them only after a backfill from the unit's log. The public broker acknowledges a record with no subscriber present, so on it the log read-back is the safety net. R9 is met on the bench, including the database.
 
@@ -136,12 +140,14 @@ The dashboard line delivered 40 of 40 lines, at most 0.37\,s old at a laptop. Ov
 \outstanding{run 2 (road part, 26 October): share of DASH records received from each node over the session (by sequence number), and end-to-end latency from device UTC to the laptop ingest.}
 
 \section{Driver display (R11, R12)}
+\label{sec:res-display}
 
 On a laptop against the live detector, the camera page showed video within 0.6\,s at 14.2\,frames/s and listed a person alert 0.5\,s after it was opened with the person in view. In live-only mode every page showed ``-{}-'' or ``Unavailable'' with the bridge down, never a simulated value. On the Raspberry Pi~5 the Sensors page showed live distances in the right colours and the banner appeared over the driving page (Section~\ref{sec:resx-display}). R11 is partly met: alerts were seen to clear only in offline runs. R12, the glance demand, needs a participant and is not measured (Section~\ref{sec:ethics}), but its precondition, legibility, needs none. At an assumed 0.70\,m from the 10.1-inch panel (0.170\,mm per pixel), the speed digits are 100\,px tall, 84 arc minutes, far above the 20 recommended by ISO~15008; the alert banner's capitals are 11\,px, 9 arc minutes, and only 4 of 110 labels reach the acceptable 16. The median touch target is 10.9\,mm, and 5 of 26 reach 17.5\,mm (Section~\ref{sec:resx-display}). The speed is legible at a glance; the warnings are not.
 
 \outstanding{run 2 (road part, 26 October): display photographs from the eye point in sun and in shade with a grey card (block DISPLAY).}
 
 \section{Integration and power}
+\label{sec:res-integration}
 
 The chain from the telemetry unit through the Raspberry Pi~4 to the dashboard ran on the bench, and on 19 October the whole system was mounted on the vehicle: both detectors ran (front 17.5 to 22.0\,frames/s, 53 to 102\,ms; rear 14.4 to 14.5\,frames/s, 126 to 151\,ms), both time-of-flight boards answered, both IMUs held 200\,Hz and the Ethernet link ran at 1000\,Mb/s. The Raspberry Pi~4's under-voltage was traced to the modem on its USB port (Section~\ref{sec:inv-power}). On the road session the recorder ran for 108.6 minutes without restarting, though the rear unit stopped answering it for the last 15 minutes, cause not recorded. The estimated added load is about 20\,W from the 72\,V pack while driving, 0.28\,\% of a 7.2\,kWh pack an hour, but enough to empty it in about 15 days if left on, so the system must switch off with the vehicle (Table~\ref{tab:power-budget}, Section~\ref{sec:resx-power}). Only the Raspberry Pi~5's figure is measured.
 

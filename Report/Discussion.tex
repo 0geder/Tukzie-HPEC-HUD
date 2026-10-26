@@ -4,10 +4,12 @@
 This chapter interprets the results against the literature and the research questions; most results are from the bench.
 
 \section{Acquisition integrity and what it costs (RQ1, RQ3)}
+\label{sec:disc-acq}
 
 Edge-telemetry studies are rarely judged by jitter, queue behaviour or outage recovery; the results here report them directly. Buffering cut the flash-write pause's rate sixfold but not its length, because the pause comes from the flash itself. A 40\,ms gap is eight missing sample instants once a minute, small for 1\,s ride windows but significant for impact detection; logging elsewhere would remove it. Aliasing and clipping belong to the same requirement and are bounded in the design (Section~\ref{sec:sampling}). The stall of 21 and 22 October, in which drop counts rose while the rates still read 200\,Hz, makes the same point: the counters exposed a fault the headline rate hid. It was traced to the statistics and ride tasks being starved on one core, possibly by the second IMU's long wiring, and v0.7.6, which moved them, later rode through a real bus failure without a stall.
 
 \section{Ride characterisation (RQ1, RQ4)}
+\label{sec:disc-ride}
 
 The calibration result supports the review's warning that low-cost inertial measurements depend on the individual sensor and its mounting: two nominally identical units disagreed by about 8\% in one session and read 10.03 and 9.90\,m/s\textsuperscript{2} at calibration in the next (Section~\ref{sec:resx-cal}), and one magnitude factor holds for one orientation only. A ride measure compared across sessions therefore has to be calibrated in its final mounting. The on-board features are correct but computed on the magnitude, so they describe overall vibration exposure. The analysis for the second session adds what the review asks for: a vertical axis from the gravity direction, the ISO~2631-1 weighting kept separate from the response features, and repeatability expressed as a CV and an ICC with intervals. With one IMU on each node, front and rear are compared offline.
 
@@ -18,6 +20,7 @@ The first road session showed acquisition holding on the vehicle and the vibrati
 \outstanding{from run 2 (road part, 26 October): the CV and ICC of $a_w$, VDV and $\sigma$ over the six passes at each of 10, 15 and 20\,km/h; whether $I_v$ is speed-invariant over those speeds; the powertrain lines from the stand runs and their share of the road spectrum in powered and coasting passes; and the pothole and bump detections as counts.}
 
 \section{Hazard sensing (RQ2, RQ3)}
+\label{sec:disc-hazard}
 
 At the detector the camera pipeline is fast enough: an alert about 0.26\,s after an object appears is about 2.2\,m of travel at 30\,km/h, although the delay to the screen is unmeasured. The weak point is distance. The first fused hazard put the camera's width estimate 0.78\,m from the time-of-flight reading, a whole band wrong at close range, which is the case for fusion. The stand-in sensors' configured 1.2\,m range is about 0.14\,s of travel at 30\,km/h, so at road speed the camera is the only source. The pothole models show the dependence on local data that the review noted: a model with a mAP@50 of 0.597 on its own source found almost none of the potholes in South African footage (Table~\ref{tab:res-camera}), and training on that footage raised the validation score to 0.714, not yet claimed because no held-out or on-vehicle score exists.
 
@@ -26,17 +29,21 @@ Two later changes address these weaknesses. Time to contact from scale change (S
 \outstanding{from run 2 (road part, 26 October), if the forward video is taken: the alerts raised during the passes in the closed area checked against what the video shows.}
 
 \section{Data integrity and connectivity (RQ3)}
+\label{sec:disc-data}
 
 Logging independently of the connection gave the store-and-forward behaviour the review called for. The read-back recovered all 6,020 records on the bench (2,000 of 2,022 from the vehicle's unit) and found a fault, invalid JSON for missing values, that the live stream had not shown. After a 10-minute outage every logged record reached the database once and the backlog cleared within a minute, which gives the completeness, duplicate and recovery measures of Chapter~\ref{chap:lit}. On the public broker an acknowledgement does not mean a subscriber received the record, so completeness rests on comparing the database with the unit's log. Latency and completeness on the moving vehicle were not measured: the first session had no GNSS time and no reachable broker, and the modem reported no network from 21 October until it registered again on 23 October. They are future work (Chapter~\ref{chap:recs}).
 
 \section{Driver display (RQ2)}
+\label{sec:disc-display}
 
 The review supports the existing dashboard over a windshield HUD, which would add a competing channel. Of the five dashboard issues, data validity mattered most: the inherited dashboard showed simulated values without any sign when its link was down, which live-only mode with a 3\,s age limit removes. Layout and alert priority follow the guidance on few elements and a stable hierarchy, with only immediate hazards interrupting the driving page; the banner names the side of each warning and puts approaching objects first, and the Surroundings page shows one side at a time, so the second camera does not become a competing display. Contrast is the weakest issue: the design uses dark ink on a light ground with words beside every colour mark (Appendix~\ref{app:interface}), but it has not been measured against ISO~15008's minimum contrast ratios of 3:1 by day and 2:1 in sunlight \cite{iso15008}, and paint times only on the laptop. Glance time needs a participant and was not measured, but the legibility check that needs none found the hierarchy inverted: the speed, which the driver can read from the instrument cluster anyway, is four times larger than ISO~15008 asks, while the warnings, the reason for the system, are at half its acceptable size. Enlarging the banner to about 24\,px capitals is the first change before any glance study.
 
 \section{Integration and power}
+\label{sec:disc-power}
 
 The most consequential finding was in no single subsystem. The LTE modem, powered from the Raspberry Pi's USB port, pulled the supply into under-voltage whenever it transmitted, throttling the processor and slowing the detector; the Raspberry Pi~4 restarted three times in 20 minutes, against none in 4 hours once the unit was moved (Section~\ref{sec:inv-power}). It returned in the closed rear box, with heat and a brown-out restart (Section~\ref{sec:inv-power}), so enclosure, supply and cooling must be designed together; on its own LiPo the unit browned out during modem bursts, so it still needs a regulated supply. The added electronics draw about 20\,W (Table~\ref{tab:power-budget}), under 1\,\% of the motor's rated input; the real requirements are switching off with the vehicle and a converter for the pack's full voltage range, which depends on its unconfirmed chemistry. Only the Raspberry Pi~5's share is measured.
 
 \section{Validity and limitations}
+\label{sec:disc-validity}
 
 Almost all results come from one set of hardware on the bench, and most are single runs (one outage test, one 62-minute soak, 60\,s detector runs, one road session), so they show what the system does, not its spread. Uncalibrated: the camera's focal length (600\,px set, about 635\,px expected), the time-of-flight sensors against a tape, the side sensors' bearings and the GNSS speed units; the ISO~2631-1 weighting was checked against published derivations, not the standard itself.
