@@ -532,3 +532,12 @@ committed to git because of their size, kept on OneDrive).
 - The speaker offers the hands-free profile (HFP) with a microphone at 16 kHz. Switched to it so the speaker's mic is the voice input; playback in this mode is call quality.
 - Two-minute listening test with the voice module on its own (not inside the dashboard): only "one" and "oh" recognised. Mic level while the speaker played its own phrase: RMS 19, peak 396 of 32767, near silence (the speaker likely cancels its own output). Needs a test with a person speaking before any result is claimed.
 - What the student did: chose the speaker and put it in pairing mode.
+
+### 26 October 2026, 12:00 to 12:10, speaker as output only, voice fixed, system check
+
+- Student asked to hold the microphone: speaker switched back to A2DP (music quality); the dashboard's audio stream moved to it.
+- Why the map had not spoken: the dashboard started at 11:35 and the speaker connected only at about 11:55, so its audio went to a null output, then to the call-quality profile. The turn-by-turn guide (sw7_voice_guide) is installed and wired.
+- The robotic voice was espeak in my test, not the dashboard. edge-tts 7.2.8 was refused by Microsoft (403); upgraded to 7.3.1, Leah (en-ZA neural) works. Dashboard online voice changed from gTTS to auto (Leah, then gTTS); prefs backed up. Screenshot before the restart: DashboardIntegration/screenshots/2026-10-26/before_voice_restart.png. Dashboard restarted 12:03.
+- The Pi 5 ingest was still on test.mosquitto.org: sw7_ingest.env now points at broker.hivemq.com; the database grew 538 to 565 rows in 20 s (live v0.7.9 boot 2035 and backlog replays).
+- sw7_check: NOT READY. Rear ESP32 not on the Pi 4's USB (it publishes over LTE on its own battery); Pi 4 under-voltage 0x50000 and restarted at about 12:03. Everything else passes (Pi 4 cameras 10.5 fps, bridge and detector active, dashboard live-only).
+- All Pi 5 changes are in DashboardIntegration/deploy/pi5_audio_setup.sh; pre-run list in Planning/run2-readiness/run2-prerun-checklist-2026-10-26.md.
