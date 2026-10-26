@@ -541,3 +541,9 @@ committed to git because of their size, kept on OneDrive).
 - The Pi 5 ingest was still on test.mosquitto.org: sw7_ingest.env now points at broker.hivemq.com; the database grew 538 to 565 rows in 20 s (live v0.7.9 boot 2035 and backlog replays).
 - sw7_check: NOT READY. Rear ESP32 not on the Pi 4's USB (it publishes over LTE on its own battery); Pi 4 under-voltage 0x50000 and restarted at about 12:03. Everything else passes (Pi 4 cameras 10.5 fps, bridge and detector active, dashboard live-only).
 - All Pi 5 changes are in DashboardIntegration/deploy/pi5_audio_setup.sh; pre-run list in Planning/run2-readiness/run2-prerun-checklist-2026-10-26.md.
+
+### 26 October 2026, about 12:25, phone GPS on the laptop hotspot
+
+- Phone (Samson's A06) joined the laptop's MyHotspot at 192.168.137.107; Share GPS served NMEA on TCP 50000 (14 satellites, fix). The bridge only looked at the gateway (the laptop), so it read nothing.
+- Added a systemd drop-in on the Pi 5 (/etc/systemd/system/sw7-phone-gps.service.d/laptop-hotspot.conf) with 192.168.137.107:50000 as an extra source; the gateway entries stay for the phone-hotspot setup on the road. Bridge: fix true, 14 satellites, 0 checksum errors. The phone's address can change if it reconnects.
+- Recheck at 12:25: still NOT READY (rear ESP32 not on the Pi 4's USB); Pi 4 under-voltage 0x50000, 70.1 C, up 29 min; rear-left ToF null.
