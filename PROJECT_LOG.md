@@ -165,7 +165,7 @@ Status values: agreed (the student decided, or the supervisor confirmed), pendin
 | D40 | 2026-10-24 | LTE publishing: point the firmware back at the public test broker for Monday | LTE data works (csq 19 to 21) but Melo's broker accepts TLS only, which the firmware lacks; the public broker passed the bench tests and published records carry no position | Student with Claude | Proposed; needs a reflash with the student's agreement |
 | D41 | 2026-10-25 | Public broker changed to broker.hivemq.com; LTE publishing confirmed | test.mosquitto.org unreachable on 25 Oct; HiveMQ public broker answers; SIM data bought; records arrive without position | Student with Claude | Done; the Pi 5 ingest to follow |
 | D42 | 2026-10-25 | Voice commands built, off by default | Student request; fixed commands for predictability while driving; offline Vosk with a command-only recogniser; needs a USB microphone; deploy after screenshot approval | Student with Claude | Built and tested on the bench |
-| D43 | 2026-10-26 | Title changed to "Embedded Telemetry with Road-Surface Characterisation and Camera-Based Hazard Detection for the TUKZIE Electric Trike" | Simon's comments (26 Oct): a comma in the title can cause indexing problems, and "trike" is preferred to "tricycle". Applied to the report, README, CLAUDE.md and the deck and poster sources; Sunetra to be told |
+| D43 | 2026-10-26 | Title changed to "Embedded Telemetry with Road-Surface Characterisation and Camera-Based Hazard Detection for the TUKZIE Electric Trike" | Simon's comments (26 Oct): a comma in the title can cause indexing problems, and "trike" is preferred to "tricycle". Applied to the report, README, CLAUDE.md and the deck and poster sources; approved by Simon on 27 Oct; Sunetra told |
 
 ---
 
