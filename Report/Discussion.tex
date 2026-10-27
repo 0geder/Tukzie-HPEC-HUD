@@ -1,7 +1,7 @@
 \chapter{Discussion}
 \label{chap:discussion}
 
-This chapter interprets the results of Chapter~\ref{chap:results} against the literature of Chapter~\ref{chap:lit} and the research questions of Chapter~\ref{chap:intro}. Most of the evidence comes from the bench and the parked or raised vehicle, with one road session so far, so each section states how far its conclusion should hold on the road; Section~\ref{sec:disc-validity} draws the common limits together.
+This chapter interprets the results of Chapter~\ref{chap:results} against the literature of Chapter~\ref{chap:lit} and the research questions of Chapter~\ref{chap:intro}. Most of the evidence comes from the bench and the parked or raised vehicle, with two short low-speed road sessions, so each section states how far its conclusion should hold on the road; Section~\ref{sec:disc-validity} draws the common limits together.
 
 \section{Acquisition integrity and what it costs (RQ1, RQ3)}
 \label{sec:disc-acq}
@@ -31,7 +31,7 @@ No forward video of the session was kept, so the alerts on the vehicle remain un
 \section{Data integrity and connectivity (RQ3)}
 \label{sec:disc-data}
 
-Logging independently of the connection gave the store-and-forward behaviour the review called for. The read-back recovered all 6,020 records on the bench (2,000 of 2,022 from the vehicle's unit) and found a fault, invalid JSON for missing values, that the live stream had not shown. After a 10-minute outage every logged record reached the database once and the backlog cleared within a minute, which gives the completeness, duplicate and recovery measures of Chapter~\ref{chap:lit}. On the public broker an acknowledgement does not mean a subscriber received the record, so completeness rests on comparing the database with the unit's log. Latency and completeness on the moving vehicle were not measured: the first session had no GNSS time and no reachable broker. They are future work (Chapter~\ref{chap:recs}).
+Logging independently of the connection gave the store-and-forward behaviour the review called for. The read-back recovered all 6,020 records on the bench (2,000 of 2,022 from the vehicle's unit) and found a fault, invalid JSON for missing values, that the live stream had not shown. After a 10-minute outage every logged record reached the database once and the backlog cleared within a minute, which gives the completeness, duplicate and recovery measures of Chapter~\ref{chap:lit}. On the public broker an acknowledgement does not mean a subscriber received the record, so completeness rests on comparing the database with the unit's log. On the moving vehicle (27 October) latency rests on nine live records (median 0.44\,s), and recovery on the road is not shown, because the link did not reconnect after 11:51; the first session had no GNSS time and no reachable broker. Both are future work (Chapter~\ref{chap:recs}).
 
 \section{Driver display (RQ2)}
 \label{sec:disc-display}
@@ -46,4 +46,4 @@ The most consequential finding was in no single subsystem. The LTE modem, powere
 \section{Validity and limitations}
 \label{sec:disc-validity}
 
-Almost all results come from one set of hardware on the bench, and most are single runs (one outage test, one 62-minute soak, 60\,s detector runs, one road session), so they show what the system does, not its spread. Calibrated only in part: the person width (fitted on one person in one stance) and the time-of-flight sensor ahead (one approximate distance). Uncalibrated: the camera's focal length (600\,px set, about 635\,px expected), the side sensors' bearings and the GNSS speed units; the ISO~2631-1 weighting was checked against published derivations, not the standard itself.
+Almost all results come from one set of hardware on the bench, and most are single runs (one outage test, one 62-minute soak, 60\,s detector runs, two short road sessions), so they show what the system does, not its spread. Calibrated only in part: the person width (fitted on one person in one stance) and the time-of-flight sensor ahead (one approximate distance). Uncalibrated: the camera's focal length (600\,px set, about 635\,px expected), the side sensors' bearings and the GNSS speed units; the ISO~2631-1 weighting was checked against published derivations, not the standard itself.

@@ -1,7 +1,7 @@
 \chapter{Results}
 \label{chap:results}
 
-This chapter gives the measured results of the experiments of Section~\ref{sec:experiments}, analysed as in Section~\ref{sec:data-analysis}, against the requirements of Table~\ref{tab:requirements-mapping}. Bench results were measured between 25 September and 22 October 2026; results from the vehicle (the first road session, 19 October) are marked as such. It is structured by requirement, earlier results first and the road session last, and closes with a summary table (Section~\ref{sec:res-summary}). The headline result of each test is given here; the full run histories, per-run breakdowns and longer tables are in Appendix~\ref{app:results}, and the raw evidence is indexed in Appendix~\ref{app:evidence}. Results that the second road session will supply are marked as outstanding.
+This chapter gives the measured results of the experiments of Section~\ref{sec:experiments}, analysed as in Section~\ref{sec:data-analysis}, against the requirements of Table~\ref{tab:requirements-mapping}. Bench results were measured between 25 September and 22 October 2026; results from the vehicle (road sessions on 19 and 27 October) are marked as such. It is structured by requirement, earlier results first and the road session last, and closes with a summary table (Section~\ref{sec:res-summary}). The headline result of each test is given here; the full run histories, per-run breakdowns and longer tables are in Appendix~\ref{app:results}, and the raw evidence is indexed in Appendix~\ref{app:evidence}.
 
 \section{Inertial acquisition (R1)}
 \label{sec:res-acq}
@@ -135,7 +135,7 @@ End-to-end latency & Not measured (no GNSS time indoors) \\ \hline
 \label{fig:res-t15}
 \end{figure}
 
-The dashboard line delivered 40 of 40 lines, at most 0.37\,s old at a laptop. Over USB, 2 to 11\,\% of lines were lost over hours on the bench, and 38\,\% of the seconds on the road session. Since 21 October the line travels over the wired UART: none of the first 2,489 lines was bad, nor any of the 3,720 in the 62-minute soak. R10 is met on the bench over the wired link and untested on the vehicle since the change.
+The dashboard line delivered 40 of 40 lines, at most 0.37\,s old at a laptop. Over USB, 2 to 11\,\% of lines were lost over hours on the bench, and 38\,\% of the seconds on the road session. Since 21 October the line travels over the wired UART: none of the first 2,489 lines was bad, nor any of the 3,720 in the 62-minute soak. R10 is met on the bench over the wired link, and on the vehicle on 27 October (below).
 
 On 27 October the recorder received 4,196 of the telemetry unit's 4,201 per-second records over the wired serial link (99.9\,\%), against 62\,\% over USB on 19 October, and answered 100\,\% of its 8,391 polls of each of the six sources between 11:30 and 12:40. Over LTE, 153 records reached the database during the session, 37 live and 116 replayed from the unit's backlog when the link returned; the live records with GNSS time arrived a median of 0.44\,s after the unit stamped them (95th percentile 0.55\,s, n = 9). From 11:51 the cellular link did not reconnect, and the remaining records stayed in the unit's log.
 
