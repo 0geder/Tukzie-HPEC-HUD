@@ -63,7 +63,7 @@ New to this repository? These are the places to look, in order.
           | LTE, MQTT (broker.hivemq.com) --> Pi 5 ingest
 ```
 
-Changes since the bench design: the two IMUs are no longer fused on one board; each has its own node, compared rather than fused (from v0.7.6). The rear IMU moved to a bare ESP32-S3 board on 26 Oct after the Makerfabs board's IMU stopped answering; the Makerfabs board keeps BMS, GNSS, LTE and the DASH line, now on a wired UART to the Pi 4 (since 21 Oct). Vehicle speed comes from the phone's GNSS; the Makerfabs receiver updated only about every 25 s on the road.
+Changes since the bench design: the two IMUs are no longer fused on one board; each has its own node, compared rather than fused (from v0.7.6). The rear IMU moved to a bare ESP32-S3 board on 26 Oct after the Makerfabs board's IMU stopped answering; the Makerfabs board keeps BMS, GNSS, LTE and the DASH line, now on a wired UART to the Pi 4 (since 21 Oct). Vehicle speed comes from the phone's GNSS; the Makerfabs receiver lay 8 to 25 m from the phone's position and froze from 12:13 on the road.
 
 ### Where each part lives
 
@@ -116,21 +116,21 @@ Two road sessions: 19 Oct (first on-vehicle run, IMU data over USB) and 27 Oct (
 | R1 IMU at 200 Hz | Met on the bench; on the vehicle met at the front | 27 Oct: front 0 gaps, rear 0.08 % lost in transport |
 | R2 Calibration (about 9.81 m/s2) | Met at each calibration; not met on the vehicle | 27 Oct at rest: rear 9.845, front 9.941 |
 | R3 Self-test and fusion | Met for the fused design (to v0.7.6) | nodes now compared, not fused |
-| R4 GNSS | Partly met | bench median 2.7 m; on the vehicle 8 to 25 m from the phone, updating every 25 s |
+| R4 GNSS | Partly met | bench median 2.7 m; on the vehicle 8 to 25 m from the phone, position updated about every 4 s, stale from 12:13 |
 | R5 BMS over BLE | Partly met | 27 Oct peak 82.9 A, 74.0 to 71.2 V; no meter check |
 | R6 Sync pulse | Partly met | 500.06 ms median interval; camera-to-IMU offset not measured |
 | R7 Camera detection | Partly met | road: rear 12.1 fps, median 103 ms; front 23.3 fps, median 68 ms; onset not timed at the screen |
 | R8 ToF distance | Partly met | ahead 1.06 m at about 1.0 m; no flat-target series |
 | R9 LTE and store-and-forward | Met on the bench; partly met on the vehicle | 153 records over LTE (116 replayed), median 0.44 s (n=9), link lost from 11:51 |
-| R10 Link to the Pi | Met on the bench and on the vehicle | wired UART 4,196 of 4,201 records (99.9 %) |
+| R10 Link to the Pi | Met on the bench; partly met on the vehicle | wired UART 4,196 of 4,201 records (99.9 %), 5 missed |
 | R11 Dashboard alerts | Partly met | clearing seen only offline |
 | R12 Glance time | Not tested | no participants; alert banner below ISO 15008 legibility |
 | R13 Fit without modification | Partly met | mounted 19 Oct, removal not timed |
 
 Road results, 27 Oct:
-- Smooth loop at 10 km/h, CV of a_w across 5 passes: 5.0 % rear, 5.3 % front. The rough loop reads about twice the smooth loop's a_w.
-- Position-aligned ICC on the smooth loop: 0.16 (rear), against a criterion of 0.75: not met.
-- Powertrain lines carry 1 to 3 % of the road vibration energy.
+- Smooth loop at 10 km/h: a_w varied by only 5.0 % (rear) and 5.3 % (front) between 5 passes (coefficient of variation). The rough loop reads about twice the smooth loop's a_w.
+- Position-aligned ICC on the smooth loop: 0.16 (rear; at most 0.32 across cell sizes and GNSS lags), against a criterion of 0.75: not met. Whole passes repeat; place by place they do not.
+- Powertrain lines carry 0.9 to 3.1 % of the 0.5 to 80 Hz road vibration energy in powered passes (0.4 % coasting); 65 to 84 % lies between 4 and 8 Hz.
 
 Not delivered: the air-quality sensor (damaged), the optical HUD (replaced by dashboard integration by agreement), validated ToF and camera fusion, the time-to-contact test, and the glance study.
 
