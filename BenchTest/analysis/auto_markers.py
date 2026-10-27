@@ -43,6 +43,40 @@ def phone_speed(session):
     return np.array(tt)[o], np.array(vv)[o]
 
 
+def vehicle_speed(session):
+    """The vehicle receiver's speed (esp32.spd_raw, knots per the A76XX manual) from the recorder, with a fix only."""
+    tt, vv = [], []
+    for p in sorted(glob.glob(os.path.join(session, "*_roadtest.jsonl"))):
+        with open(p, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                if '"src":"rear"' not in line.replace(" ", ""):
+                    continue
+                try:
+                    d = json.loads(line)
+                    e = (d.get("data") or {}).get("esp32") or {}
+                    if e.get("fix") is True and e.get("spd_raw") is not None:
+                        tt.append(float(d["t"])); vv.append(float(e["spd_raw"]) * 1.852)
+                except (ValueError, KeyError, TypeError):
+                    continue
+    o = np.argsort(tt)
+    return np.array(tt)[o], np.array(vv)[o]
+
+
+def combined_speed(session):
+    """Phone speed where the phone has a fix; the vehicle receiver's where it does not (gaps over 3 s)."""
+    tp, vp = phone_speed(session)
+    tv, vv = vehicle_speed(session)
+    if not len(tv):
+        return tp, vp, 0
+    if len(tp):
+        gap = np.array([np.min(np.abs(tp - x)) > 3.0 for x in tv])
+    else:
+        gap = np.ones(len(tv), bool)
+    t = np.concatenate([tp, tv[gap]]); v = np.concatenate([vp, vv[gap]])
+    o = np.argsort(t)
+    return t[o], v[o], int(gap.sum())
+
+
 def battery_current(session):
     tt, ii = [], []
     for p in sorted(glob.glob(os.path.join(session, "*_roadtest.jsonl"))):
@@ -146,7 +180,9 @@ def find_still(t, v, it, iv):
 
 
 def build(session, t_from=None, t_to=None):
-    t, v = phone_speed(session)
+    t, v, n_vehicle = combined_speed(session)
+    if n_vehicle:
+        print(f"note: {n_vehicle} vehicle-receiver speed records fill gaps in the phone log")
     it, iv = battery_current(session)
     if t_from is not None:
         keep = (t >= t_from) & (t <= t_to); t, v = t[keep], v[keep]
