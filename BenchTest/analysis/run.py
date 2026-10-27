@@ -97,8 +97,6 @@ def _pick_raw(paths, runs, workdir, node):
     """26 Oct 2026: capture rotates its file every hour and a node may reboot, so join the files of one boot
     (device time keeps rising from one file to the next) and keep the boot that overlaps the marked runs most.
     Returns (path to read, note)."""
-    if len(paths) == 1:
-        return paths[0], None
     spans = [(p, _raw_span(p)) for p in paths]
     spans = sorted([s for s in spans if s[1]], key=lambda s: s[1][0])
     groups = []
@@ -116,14 +114,58 @@ def _pick_raw(paths, runs, workdir, node):
         return b - a
     best = max(groups, key=score)
     os.makedirs(workdir, exist_ok=True)
-    joined = os.path.join(workdir, f"{node}_raw_joined.txt")
-    with open(joined, "wb") as out:
-        for p, _ in best:
-            with open(p, "rb") as fh:
-                shutil.copyfileobj(fh, out)
+    pieces = _split_boots([p for p, _ in best], workdir, node)
+    if len(pieces) == 1:
+        joined, n_boots = pieces[0][0], 1
+    else:
+        joined = max(pieces, key=lambda c: score([(None, (c[1], 0, c[2], 0))]))[0]
+        n_boots = len(pieces)
     note = (f"{node}: {len(paths)} raw files in {len(groups)} boot group(s); used {len(best)} file(s) "
-            f"({', '.join(os.path.basename(p) for p, _ in best)})")
+            f"({', '.join(os.path.basename(p) for p, _ in best)})"
+            + (f"; a reboot inside the files split them into {n_boots} pieces, the one overlapping the runs kept"
+               if n_boots > 1 else ""))
     return joined, note
+
+
+def _split_boots(paths, workdir, node):
+    """Join files and cut wherever a RAW line's device time falls by more than 1 s (a reboot inside a file).
+    Header (RAWH) and sync (RAWS) lines go with the piece they appear in. Returns [(path, host_first, host_last)]."""
+    pieces, out, last_t, k = [], None, None, 0
+    first_h = last_h = None
+
+    def close():
+        if out is not None:
+            out.close()
+            pieces.append((out.name, first_h if first_h is not None else 0.0, last_h if last_h is not None else 0.0))
+    for p in paths:
+        with open(p, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                f = line.split(" ", 7)
+                if len(f) > 6 and f[1] == "RAW":
+                    try:
+                        h, tu = float(f[0]), int(f[6])
+                    except ValueError:
+                        h = tu = None
+                    if tu is not None and last_t is not None and tu < last_t - 1_000_000:
+                        close(); out = None
+                    if tu is not None:
+                        last_t = tu
+                        if out is None or first_h is None:
+                            pass
+                if out is None:
+                    k += 1
+                    out = open(os.path.join(workdir, f"{node}_raw_part{k}.txt"), "w", encoding="utf-8")
+                    first_h = last_h = None
+                if len(f) > 6 and f[1] == "RAW":
+                    try:
+                        h = float(f[0])
+                        first_h = h if first_h is None else first_h
+                        last_h = h
+                    except ValueError:
+                        pass
+                out.write(line)
+    close()
+    return pieces
 
 
 def _phone_speed_fn(session):
