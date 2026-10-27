@@ -9,7 +9,7 @@ Section~\ref{sec:recs-next} gives recommendations from building and testing this
 \begin{enumerate}
 \item Power (Sections~\ref{sec:res-integration} and~\ref{sec:disc-power}). Supply the telemetry unit from a regulated vehicle converter, never a Raspberry Pi's USB port or a bare LiPo, and measure each unit's current inline to replace the estimates in the power budget.
 \item Acquisition (Sections~\ref{sec:res-acq} and~\ref{sec:disc-acq}). Remove the flash-write pause rather than reduce it, by logging on the Raspberry Pi or reading the IMUs' hardware FIFOs, and set the accelerometer range from the peaks recorded on the vehicle.
-\item Connectivity (Sections~\ref{sec:res-telemetry} and~\ref{sec:disc-data}). Measure latency to the database and completeness on the moving vehicle; move to an authenticated, encrypted broker that queues for a persistent subscriber, so that completeness no longer depends on reading the log back; and add over-the-air update and log rotation.
+\item Connectivity (Sections~\ref{sec:res-telemetry} and~\ref{sec:disc-data}). Fix the reconnection lost from 11:51 and re-measure latency on the road; move to an authenticated, encrypted broker that queues for a persistent subscriber, so that completeness no longer depends on reading the log back; and add over-the-air update and log rotation.
 \item Ride analysis (Sections~\ref{sec:res-stands} and~\ref{sec:disc-ride}). Tap one motor Hall line through the optocoupler and count the pole pairs, so that the powertrain lines are followed continuously while driving. For a place-by-place ICC, drive marked straight sections with side video, three passes per speed.
 \item Display (Sections~\ref{sec:res-display} and~\ref{sec:disc-display}). Enlarge the warnings to at least the ISO~15008 character height at the measured eye distance; mark each field stale by its own age; make the navigation buttons act on press; then measure single-glance durations to the banner in a low-risk trial under an ethics amendment, against the 2\,s limit.
 \item Approaching objects (Sections~\ref{sec:ttc} and~\ref{sec:disc-hazard}). Set the 2 and 4\,s thresholds from the measured time-to-contact error and the stopping distance, and add a car approaching the parked trike in a closed car park. Label a random sample of at least 200 road alerts against forward video, with faces and number plates blurred before storage, and report precision and false alerts per kilometre.
@@ -40,14 +40,14 @@ By the SAE taxonomy \cite{saej3016} the system is at level 0: it warns and contr
 \subsection{Fleet-scale road and battery monitoring}
 \label{sec:recs-bigger}
 
-Records from many vehicles, through the same store-and-forward link (Section~\ref{sec:db-sync}), would let an operator follow battery health, find faults from abnormal current or vibration, and map road condition from position-tagged detections on streets driven daily; nothing is specific to this trike. Privacy has to be designed in (Section~\ref{sec:ethics}), and none of this holds until the repeatability that RQ1 asks about is shown on the road.
+Records from many vehicles, through the same store-and-forward link (Section~\ref{sec:db-sync}), would let an operator follow battery health, find faults from abnormal current or vibration, and map road condition from position-tagged detections on streets driven daily; nothing is specific to this trike. Privacy has to be designed in (Section~\ref{sec:ethics}), and none of this holds until place-by-place repeatability (RQ1) is shown on the road.
 
 \subsection{Further projects}
 
 \begin{itemize}
 \item A test bench that replays the recorded sessions (raw IMU streams, battery, GNSS, recorder files and ethics-approved video) into the nodes, Pis and dashboard, so that firmware, detectors and the interface can be developed and tested without the vehicle and several projects can proceed at once.
 \item A road-condition map of the TUKZIE's daily routes from position-tagged vibration, checked against a section whose profile has been surveyed, so that the index of this work is tied to a reference.
-\item A glance-time study of the dashboard's warnings with drivers, under ethics approval, against the 2\,s single-glance limit (R12).
+\item A glance-time study of the dashboard's warnings with drivers, under ethics approval, against the 2\,s single-glance target (R12).
 \item Battery-health and range estimation from months of BMS current, voltage and temperature records.
 \item Radar or solid-state lidar compared with the camera and time-of-flight pair for warnings at road speed.
 \item A labelled dataset of road hazards on Cape Town streets (potholes, debris, kerbs) for training and testing detectors on light vehicles.

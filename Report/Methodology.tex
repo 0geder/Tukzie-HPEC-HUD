@@ -1,7 +1,7 @@
 \chapter{Design}
 \label{chap:design}
 
-This chapter describes the system as built on 23 October 2026 (phase~3, Section~\ref{sec:phases}), with the analysis behind each parameter. Each section names the requirements of Table~\ref{tab:requirements-mapping} and the research questions it serves. Pins, formats, thresholds and version history are in Appendix~\ref{app:impl}, the firmware configuration in Table~\ref{tab:config} and every connection in Appendix~\ref{app:wiring}.
+This chapter describes the system as driven on 27 October 2026 (phase~3, Section~\ref{sec:phases}), with the analysis behind each parameter. Each section names the requirements of Table~\ref{tab:requirements-mapping} and the research questions it serves. Pins, formats, thresholds and version history are in Appendix~\ref{app:impl}, the firmware configuration in Table~\ref{tab:config} and every connection in Appendix~\ref{app:wiring}.
 
 \section{System overview and architecture selection}
 \label{sec:architecture}
@@ -45,7 +45,7 @@ IMU low-pass filter & 94\,Hz, 3.0\,ms delay & Widest setting below $f_s/2$; imag
 IMU queue depth & 100 samples (0.5\,s) & At least 9 samples for the 44\,ms flash pause (Equation~\ref{eq:buffer}) & R1 \\ \hline
 Catch-up limit & 20 periods (100\,ms) & Above the 44\,ms pause, so it is caught up; a longer stall gives up its slots & R1 \\ \hline
 Feature window & $N = 200$ (1\,s) & One feature record a second for the dashboard line & R3, R10 \\ \hline
-Rear link & 460\,800\,baud, about 46\,kB/s & Two raw streams and the dashboard line need about 15\,kB/s & R10 \\ \hline
+Rear link & 460\,800\,baud, about 46\,kB/s & At most two raw streams and the dashboard line need about 15\,kB/s & R10 \\ \hline
 Sync pulse & Edge every 500\,ms & Clock map with offset and drift (Section~\ref{sec:sync-pulse}) & R6 \\ \hline
 Alert onset, clear & 3 frames, 5 frames & Onset delayed by two frame intervals; one missed frame cannot clear & R7 \\ \hline
 Time-to-contact fit & 0.6\,s, at least 5 frames, growth at least 5\,\% & Error model (Equation~\ref{eq:ttc-error}); the growth gate admits $\tau \le 12$\,s & R7 \\ \hline
@@ -67,7 +67,7 @@ The hardware was chosen to meet the sensing and installation requirements (R1, R
 \label{sec:imu-health}
 \label{sec:front-node}
 
-The firmware has to hold a fixed 200\,Hz sampling period with no silent loss (R1) and time-stamp each sample so that it can be aligned with the cameras (R6); both properties underpin RQ1 and RQ3. One source builds both nodes (PlatformIO, Arduino on FreeRTOS). Each IMU task runs at the highest priority on core~1 and holds a 5\,ms period with \texttt{vTaskDelayUntil}, which schedules each wake-up from the previous target, so execution time does not accumulate into drift. Every consumer of samples and the modem, BMS and dashboard tasks run on core~0, so processing never shares a core with acquisition (Section~\ref{sec:inv-stall}). A full queue drops and counts the new sample rather than block. The supporting mechanisms (Table~\ref{tab:fw-mechanisms}) and the task diagram (Figure~\ref{fig:task-architecture}) are in Section~\ref{sec:impl-fw}.
+The firmware has to hold a fixed 200\,Hz sampling period with no silent loss (R1) and time-stamp each sample so that it can be aligned with the cameras (R6); both properties underpin RQ1 and RQ3. One source builds all three boards (PlatformIO, Arduino on FreeRTOS). Each IMU task runs at the highest priority on core~1 and holds a 5\,ms period with \texttt{vTaskDelayUntil}, which schedules each wake-up from the previous target, so execution time does not accumulate into drift. Every consumer of samples and the modem, BMS and dashboard tasks run on core~0, so processing never shares a core with acquisition (Section~\ref{sec:inv-stall}). A full queue drops and counts the new sample rather than block. The supporting mechanisms (Table~\ref{tab:fw-mechanisms}) and the task diagram (Figure~\ref{fig:task-architecture}) are in Section~\ref{sec:impl-fw}.
 
 \subsection{Sampling and anti-aliasing}
 \label{sec:sampling}
@@ -77,7 +77,7 @@ The MPU6050 low-pass filters its accelerometer and updates its output registers 
 f_a = \lvert f - k f_s \rvert, \qquad k = \operatorname{round}(f/f_s),
 \label{eq:alias}
 \end{equation}
-so anything between 100 and 200\,Hz folds to $200 - f$. The setting used, 94\,Hz bandwidth with 3.0\,ms delay \cite{invensense2012rm}, is the widest below the 100\,Hz Nyquist frequency; the next, 44\,Hz, would attenuate the top of the 80\,Hz ISO band and the powertrain lines that RQ4 needs. The register map does not give the filter's order. The lines measured on the stands at 42.75, 49.0 and 64.0\,Hz (Figure~\ref{fig:res-stands}) could be images of 157.25, 151.0 and 136.0\,Hz, which a first-order response at 94\,Hz attenuates by only 5.8, 5.5 and 4.9\,dB, and a second-order Butterworth response by 9.5, 8.8 and 7.3\,dB. A line 10\,dB above the floor, the powertrain criterion, could therefore be the image of a stronger component. Speed separates them: a motor order $f = k\Omega$ rises with wheel speed $\Omega$ while its image $f_s - k\Omega$ falls, which stand runs at three settings with a wheel video resolve (Section~\ref{sec:impl-run2}). The 3.0\,ms filter delay is the same on both nodes and cancels in the front-to-rear delay.
+so anything between 100 and 200\,Hz folds to $200 - f$. The setting used, 94\,Hz bandwidth with 3.0\,ms delay \cite{invensense2012rm}, is the widest below the 100\,Hz Nyquist frequency; the next, 44\,Hz, would attenuate the top of the 80\,Hz ISO band and the powertrain lines that RQ4 needs. The register map does not give the filter's order. The lines measured on the stands at 42.75, 49.0 and 64.0\,Hz (Figure~\ref{fig:res-stands}) could be images of 157.25, 151.0 and 136.0\,Hz, which a first-order response at 94\,Hz attenuates by only 5.8, 5.5 and 4.9\,dB, and a second-order Butterworth response by 9.5, 8.8 and 7.3\,dB. A line 10\,dB above the floor, the powertrain criterion, could therefore be the image of a stronger component. Speed separates them: a motor order $f = k\Omega$ rises with wheel speed $\Omega$ while its image $f_s - k\Omega$ falls, which stand runs at three settings with a wheel video would resolve (Section~\ref{sec:impl-run2}). The 3.0\,ms filter delay is the same on both nodes and cancels in the front-to-rear delay.
 
 \subsection{Riding through the flash-write pause}
 \label{sec:buffering}
@@ -174,7 +174,7 @@ Worst-case sum & 5.3\,ms & \\ \hline
 \label{sec:environmental-sensing}
 \label{sec:hall-tap}
 
-Position and battery state give the context for the ride data (R4, R5): speed for RQ1, delivery for RQ3 and motor load for RQ4. Table~\ref{tab:vehicle-inputs} gives the design of each input. Two choices carry the rest: every parser checks its input before trusting it, because the documentation available did not match the hardware (Sections~\ref{sec:inv-gnss} and~\ref{sec:impl-bms}), and the rear node sits beside the pack because the BMS link did not reach the front (Section~\ref{sec:impl-twosided}).
+Position and battery state give the context for the ride data (R4, R5): speed for RQ1, delivery for RQ3 and motor load for RQ4. Table~\ref{tab:vehicle-inputs} gives the design of each input. Two choices carry the rest: every parser checks its input before trusting it, because the documentation available did not match the hardware (Sections~\ref{sec:inv-gnss} and~\ref{sec:impl-bms}), and the telemetry unit sits beside the pack because the BMS link did not reach the front (Section~\ref{sec:impl-twosided}).
 
 \begin{table}[htbp]
 \centering
