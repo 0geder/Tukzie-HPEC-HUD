@@ -591,3 +591,4 @@ committed to git because of their size, kept on OneDrive).
 - Dashboard bug found and fixed: the map's simulated drive only ended on a vehicle GNSS fix, not on a phone fix, so with the phone GPS live the drive continued while the route logic re-planned from the real position ("Recalculating route" loop). sw7_sim_link.py now ends it on a phone fix too; deployed with screenshots (DashboardIntegration/screenshots/2026-10-27).
 - Speed source moved to a second phone ("MPfarie-A04", 192.168.137.164, Share GPS TCP server on 50000) at the student's request; sw7-phone-gps drop-in points at it. At 10:15 connected, NMEA arriving, no fix yet (indoors).
 - What the student did: brought the second phone, set up Share GPS on it.
+- 10:20: speed source moved back to the student's phone (Samson-s-A06, 192.168.137.107) at the student's request: fix, 11 satellites, 0 checksum errors.
