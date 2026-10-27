@@ -121,7 +121,7 @@ The unit published 47 times with no failures, detected a radio loss within 0.8\,
 Outage & Radio off (\texttt{AT+CFUN=4}) for 600\,s; 60 records built up, 0 lost \\ \hline
 Reconnection after the radio returned & 5.2\,s \\ \hline
 Backlog cleared & 37.3\,s for the 60 replays at the database (1.61 per second); unit's backlog zero 37.9\,s after reconnection (Figure~\ref{fig:res-t15}) \\ \hline
-Stored in the database & 112 of 112 records of the boot; 0 missing sequence numbers; 0 duplicates \\ \hline
+Stored in the database & 112 of 112 records of the boot; 0 missing sequence numbers; 0 duplicates (a unique key on device, boot and sequence number rejects repeats) \\ \hline
 Against the unit's log & 111 of 111 logged records stored (24 backfilled from the log) \\ \hline
 IMUs during the test & 200.0 to 200.5\,Hz, 0 dropped \\ \hline
 End-to-end latency & Not measured (no GNSS time indoors) \\ \hline
@@ -174,7 +174,7 @@ R3 & Self-tests pass; 149 of 149 windows fused; run-1 log: two IMUs agree while 
 R4 & Median 2.7\,m, 95\% within 11.0\,m of the phone; vehicle's receiver static 10\,min (24 Oct): scatter median 1.8\,m, 95\% 4.3\,m; 19 Oct: no antenna yet, no fix; 27 Oct: fixed in 98 to 100\,\% of each pass & Partly met: bench median within 10\,m; on the vehicle (27 Oct) 8 to 25\,m from the phone, updating only every 25\,s \\ \hline
 R5 & 19 Oct: up to 48.03\,A in the unit's log (46.9\,A in the recorder), 74.6 to 72.8\,V; 27 Oct: up to 82.9\,A, 74.0 to 71.2\,V; no meter check & Partly met: sustained under load on the vehicle; no meter check \\ \hline
 R6 & Median interval 500.06\,ms, range 499.72 to 500.41\,ms; front pulse on the Raspberry Pi~5 since 22 October; clock offset not measured & Partly met: the pulse meets its criterion; the camera-to-IMU offset is not yet measured \\ \hline
-R7 & Rear (Raspberry Pi~4): 14.6\,frames/s with the whole system (19.5 alone), onset at the detector about 0.26\,s. Front (Raspberry Pi~5): 19.2\,frames/s on the bench beside the dashboard, 17.5 to 22.0 on the vehicle & Partly met: rate and person class met; onset computed from rate and latency, not timed at the screen (C8) \\ \hline
+R7 & Rear (Raspberry Pi~4): 14.6\,frames/s with the whole system (19.5 alone), onset at the detector about 0.26\,s; on the road (27 Oct) 12.1\,frames/s, median 103\,ms. Front (Raspberry Pi~5): 19.2\,frames/s on the bench beside the dashboard; on the road 23.3\,frames/s, median 68\,ms & Partly met: rate and person class met; onset computed from rate and latency, not timed at the screen (C8) \\ \hline
 R8 & Sensors answer; ahead sensor 1.06\,m at about 1.0\,m; fused 0.47\,m at about 0.5\,m with a person as the target (n = 43) & Partly met: no flat-target or tape series \\ \hline
 R9 & 47 of 47 publishes; reconnection about 5\,s after coverage; bench read-back 6,020 of 6,020, run-1 log 2,000 of 2,022; after a 10-minute outage 112 of 112 records stored, backlog cleared 38\,s after reconnection & Met on the bench; partly met on the vehicle (153 records over LTE, 116 replayed, median 0.44\,s; link lost from 11:51) \\ \hline
 R10 & 40 of 40 lines, record 0.37\,s old at a laptop; 2 to 11\,\% of lines lost over hours on USB; wired UART since 21 October, 0 bad in 2,489 lines and in 3,720 over 62\,min & Met on the bench; on the vehicle 4,196 of 4,201 records (99.9\,\%) over the wired link \\ \hline

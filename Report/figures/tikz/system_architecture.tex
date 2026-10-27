@@ -1,4 +1,4 @@
-% System as built, 23 October 2026: two-sided layout (Pi 5 front, Pi 4 rear, Ethernet), rear ESP32 on a wired UART,
+% System as driven, 27 October 2026 (rear IMU on its own ESP32-S3 from 26 October): two-sided layout (Pi 5 front, Pi 4 rear, Ethernet), rear ESP32 on a wired UART,
 % front node (second ESP32-S3) on the Pi 5's USB, phone GNSS over the hotspot.
 % Sources: TelemetryUnit/src/main.cpp (v0.7.8), BenchTest/raw_capture.py, DashboardIntegration/phone_gps_bridge.py, Server/sw7_ingest.py, CameraDetection/telemetry_bridge.py,
 % hazard_detector.py, sensor_fusion.py, sync_logger.py, DashboardIntegration/deploy (pi5-hazard-detector,
@@ -7,11 +7,10 @@
   \def\tw{3.9cm}
   % ---- telemetry unit ----
   \node[swbox, text width=\tw] (a1) at (2.2,-1.25) {%
-    IMU1, MPU6050, I\textsuperscript{2}C, 200\,Hz\\
     GNSS receiver in the modem\\
     Battery BMS over Bluetooth LE};
   \node[swplanned, text width=\tw] (a0) at (2.2,-2.85) {Motor Hall tap through an optocoupler (not yet wired)};
-  \node[swbox, text width=\tw] (a2) at (2.2,-4.6) {FreeRTOS tasks:\\ ride features, raw 200\,Hz stream,\\ buffered log in flash;\\ UART at 460\,800\,Bd to the Pi~4};
+  \node[swbox, text width=\tw] (a2) at (2.2,-4.6) {FreeRTOS tasks:\\ 1\,s records, buffered log in flash;\\ UART at 460\,800\,Bd to the Pi~4};
   \node[swbox, text width=\tw] (a3) at (2.2,-6.55) {LTE modem (A7670X)};
   % ---- Raspberry Pi 4: rear unit ----
   \node[swbox, text width=\tw] (b1) at (7.7,-0.9) {Rear camera, OV5647 NoIR};
@@ -19,6 +18,7 @@
   \node[swbox, text width=\tw] (b4) at (7.7,-4.6) {\texttt{telemetry\_bridge.py} with \texttt{sensor\_fusion.py}\\ :8081 telemetry, rear hazards,\\ served over Ethernet};
   \node[swbox, text width=\tw] (b3) at (7.7,-6.2) {3 ToF sensors, VL53L0X, I\textsuperscript{2}C};
   \node[swbox, text width=\tw] (b5) at (7.7,-7.5) {\texttt{sync\_logger.py}: 500\,ms sync pulse edges on GPIO17};
+  \node[swbox, text width=\tw] (r1) at (7.7,-9.0) {Rear IMU node: ESP32-S3, one MPU6050 at 200\,Hz, raw stream over USB to \texttt{raw\_capture.py} :8083};
   % ---- Raspberry Pi 5: dashboard and front unit ----
   \node[swbox, text width=\tw] (c3) at (13.2,-2.3) {Pages on the 1280\,$\times$\,800 touch screen: driving, Surroundings (front or rear), map};
   \node[swbox, text width=\tw] (c2) at (13.2,-4.6) {\texttt{live\_data\_provider.py}\\ polls every 0.5\,s};
@@ -34,10 +34,10 @@
   % ---- lanes (drawn behind) ----
   \begin{scope}[on background layer]
     \node[swlane, fit=(a1)(a0)(a2)(a3), minimum width=4.6cm] (la) {};
-    \node[swlane, fit=(b1)(b2)(b4)(b3)(b5), minimum width=4.6cm] (lb) {};
+    \node[swlane, fit=(b1)(b2)(b4)(b3)(b5)(r1), minimum width=4.6cm] (lb) {};
     \node[swlane, fit=(c3)(c2)(f1)(f2)(p1)(c4)(n1), minimum width=4.6cm] (lc) {};
   \end{scope}
-  \node[swlanetitle] at (la.north west) {Rear node (ESP32-S3)};
+  \node[swlanetitle] at (la.north west) {Telemetry unit (ESP32-S3)};
   \node[swlanetitle] at (lb.north west) {Raspberry Pi~4 (rear)};
   \node[swlanetitle] at (lc.north west) {Raspberry Pi~5 (front)};
 
