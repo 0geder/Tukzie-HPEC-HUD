@@ -1,0 +1,9 @@
+stream,group,metric,cell_m,min_s,cells_per_pass,n_rows,bins_per_pass,k_passes,"ICC(2,1)","ICC(2,1) CI","ICC(3,1)","ICC(3,1) CI",status
+front1,smooth loop 10 km/h,a_w,6.0,1.0,30 25 18 17 23,2,2,5,,;,,;,"n too small for an ICC (rows 2, passes 5; needs at least 5 rows and 3 passes): CV only"
+front1,smooth loop 10 km/h,sigma,6.0,1.0,30 25 18 17 23,2,2,5,,;,,;,"n too small for an ICC (rows 2, passes 5; needs at least 5 rows and 3 passes): CV only"
+front1,rough strip 10 km/h,a_w,6.0,1.0,42 23 19 26,6,6,4,0.03344530364347574,-0.11930403837118596;0.5252137213302106,0.04994161226035316,-0.19817790570172547;0.6289173852523302,"ICC(2,1) with McGraw and Wong CI; neighbouring bins are not independent, so the CI is optimistic"
+front1,rough strip 10 km/h,sigma,6.0,1.0,42 23 19 26,6,6,4,0.033883842899691353,-0.11669051269932906;0.5225870746054364,0.051372782379061885,-0.19754080356850934;0.6303176244747712,"ICC(2,1) with McGraw and Wong CI; neighbouring bins are not independent, so the CI is optimistic"
+rear1,smooth loop 10 km/h,a_w,6.0,1.0,30 25 18 17 23,2,2,5,,;,,;,"n too small for an ICC (rows 2, passes 5; needs at least 5 rows and 3 passes): CV only"
+rear1,smooth loop 10 km/h,sigma,6.0,1.0,30 25 18 17 23,2,2,5,,;,,;,"n too small for an ICC (rows 2, passes 5; needs at least 5 rows and 3 passes): CV only"
+rear1,rough strip 10 km/h,a_w,6.0,1.0,42 23 19 26,6,6,4,-0.004015581389832392,-0.1580514849411455;0.4982945281250983,-0.00536124913188795,-0.22187946324645688;0.5694582567956655,"ICC(2,1) with McGraw and Wong CI; neighbouring bins are not independent, so the CI is optimistic"
+rear1,rough strip 10 km/h,sigma,6.0,1.0,42 23 19 26,6,6,4,-0.007981783873779255,-0.15705142011818812;0.48799108245344464,-0.010845447737984,-0.2241363849594308;0.5629310252537859,"ICC(2,1) with McGraw and Wong CI; neighbouring bins are not independent, so the CI is optimistic"
