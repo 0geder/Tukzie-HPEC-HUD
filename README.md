@@ -1,128 +1,146 @@
 # SW-7: Embedded Telemetry with Road-Surface Characterisation and Camera-Based Hazard Detection for the TUKZIE Electric Trike
 
-Final-year project (UCT EEE4022S, 2026) by Samson Okuthe (OKTSAM001), supervised by A/Prof. Simon Winberg with co-supervisor Sampath Jayalath. Official title since 26 Oct 2026: "Embedded Telemetry with Road-Surface Characterisation and Camera-Based Hazard Detection for the TUKZIE Electric Trike" (before that, from 2 Oct: "Development of an Embedded HPEC Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0 Platform").
+Final-year project (UCT EEE4022S, 2026) by Samson Okuthe (OKTSAM001), supervised by A/Prof. Simon Winberg with co-supervisor Sampath Jayalath. Official title since 26 Oct 2026 (PROJECT_LOG.md, D43); from 2 Oct to 26 Oct it was "Development of an Embedded HPEC Telemetry Unit and Dashboard Integration for the TUKZIE Rev 0 Platform".
 
-An ESP32-S3 telemetry unit (Makerfabs board with an A7670X LTE Cat 1 modem, firmware v0.7.0) samples two MPU6050 IMUs at 200 Hz, computes calibrated, fused ride-quality features, reads the JBD BMS over BLE and GNSS through the modem, logs to internal flash and publishes JSON over MQTT on LTE. Once a second it also prints a DASH line on USB to a Raspberry Pi 4, which runs a camera hazard detector and a telemetry bridge that adds three time-of-flight sensors. The driver display is the vehicle's existing PySide6 dashboard on the Raspberry Pi 5 (Pirate5), extended with our camera page, live-data provider (live-only mode), ride-quality card and Pi 4 finder. The original brief named a windshield HUD; on 1 to 2 Oct 2026 it was replaced by dashboard integration, agreed with the supervisor and recorded by the course coordinator (PROJECT_LOG.md, D26).
+The system measures ride quality with two 200 Hz IMU nodes, logs the battery (BMS over BLE), GNSS and LTE telemetry from a Makerfabs ESP32-S3 unit, runs camera hazard detection on two Raspberry Pis, and shows it all on the vehicle's existing PySide6 dashboard on the Pi 5. The original brief named a windshield HUD; on 1 to 2 Oct 2026 it was replaced by dashboard integration, agreed with the supervisor and recorded by the course coordinator (D26).
 
 The repository name (Tukzie-HPEC-HUD) predates the title change and is kept so that existing links keep working.
 
-## Architecture
+## Start here
+
+New to this repository? These are the places to look, in order.
+
+1. Read the report: `Report/EEE4022S 2026 FINAL REPORT OKTSAM001 OKUTHE S - WINBERG.pdf`. It explains what was built, how it was tested and what the results mean.
+2. Watch the system working: https://tuksense.site (the 27 October road test and the build journey).
+3. Check the status table below to see what works and what is still open.
+4. Look up any number in the report in `DATA_INDEX.md`, which points to the file it came from.
+
+### What each folder holds
+
+| Folder | What is in it |
+|---|---|
+| `Report/` | The final report (PDF and LaTeX source), its figures and appendices |
+| `TelemetryUnit/` | Firmware for the three ESP32-S3 boards (telemetry unit, front and rear IMU nodes) |
+| `CameraDetection/` | Camera hazard detector, time-of-flight sensors and the telemetry bridge on the Raspberry Pis |
+| `DashboardIntegration/` | Add-ons to the trike's existing dashboard: live data, camera page, phone GPS, voice commands |
+| `Server/` | The small database that stores telemetry sent over LTE |
+| `BenchTest/` | Test procedures, the pre-test check, the road recorder, all test logs and the analysis code |
+| `BenchTest/logs/` | Raw data from every test, including both road sessions (19 and 27 Oct) |
+| `CAD/`, `CameraMount/` | 3D-printed enclosures, pods and mounts (models and STL files) |
+| `VirtualTukzie/` | A browser view of a 3D scan of the trike with live IMU readings from a connected board |
+| `Planning/` | The lab notebook, test checklists and review notes |
+| `Research/` | The literature search database and its scripts |
+| `References/` | Papers, datasheets, course documents and hardware manuals used in the report |
+| `Presentation/` | Slide deck, poster, talking points and media |
+| `Photos/` | Photographs of the bench, the vehicle and reference parts |
+| `Vehicle Documentation/` | The trike's user manual |
+| `GA Tracking Form/` | The signed graduate attribute tracking form |
+| `tools/` | Small helper scripts (data index, report comparison, dashboard time-lapse) |
+
+### If you want to...
+
+- understand a result: find it in the report, then follow `DATA_INDEX.md` to the data and `BenchTest/analysis/` to the code that produced it;
+- see what happened on a given day: search `Planning/lab-notebook.md` for the date;
+- know why something was decided: see the decisions (D1 to D43) in `PROJECT_LOG.md`;
+- flash a board or run the system: follow "How to build, deploy and run" below;
+- continue the project: start with Chapter 8 of the report (recommendations and future work) and the status table below.
+
+## Architecture (as driven on 27 Oct 2026)
 
 ```
-                         sync-pulse wire (GPIO edges for time alignment)
-          +------------------------------------------------------+
-          |                                                      v
-  ESP32-S3 telemetry unit            USB serial        Raspberry Pi 4 (front enclosure)
-  (TelemetryUnit/, v0.7.0)  -------- DASH line, 1 Hz -->  telemetry bridge  HTTP :8081 /telemetry
-   2x MPU6050 @ 200 Hz                                     + 3x VL53L0X ToF (I2C)
-   JBD BMS over BLE                                       camera hazard detector HTTP :8080
-   GNSS via A7670X                                          /stream (MJPEG), /alerts (JSON)
-   LittleFS log                                           UDP beacon every 2 s, port 50808
-          |                                                      |
-          | LTE, MQTT                                            | wired 10.20.0.1 <-> 10.20.0.2,
-          v                                                      | beacon, mDNS or last good host
-        cloud broker                                             v
-                                               Raspberry Pi 5 (Pirate5): vehicle PySide6 dashboard
-                                               + camera page, live-data provider (live-only),
-                                                 ride-quality card, Pi 4 resolver
+ Front IMU node (ESP32-S3, MPU6050, 200 Hz) --USB--> Raspberry Pi 5 (front camera unit and dashboard)
+                                                     front camera hazard detector, recorder,
+ Phone GNSS (Share GPS, NMEA over hotspot) --------> phone GPS bridge (speed source), PySide6
+                                                     dashboard with SW-7 add-ons (live-only)
+                                                           ^
+                                                           | Ethernet, chrony time sync
+                                                           v
+ Rear IMU node (bare ESP32-S3, MPU6050, 200 Hz) --USB--> Raspberry Pi 4 (rear camera unit)
+                                                     raw_capture.py :8083, rear camera hazard
+ Makerfabs telemetry unit (ESP32-S3, v0.7.9) --UART--> detector :8080, telemetry bridge :8081,
+   JBD BMS over BLE, GNSS and LTE (A7670X)           three VL53L0X ToF sensors
+          |
+          | LTE, MQTT (broker.hivemq.com) --> Pi 5 ingest
 ```
 
-A single-Pi-5 setup (bridge and detector on the Pi 5) is being considered; the resolver already tries localhost first.
+Changes since the bench design: the two IMUs are no longer fused on one board; each has its own node, compared rather than fused (from v0.7.6). The rear IMU moved to a bare ESP32-S3 board on 26 Oct after the Makerfabs board's IMU stopped answering; the Makerfabs board keeps BMS, GNSS, LTE and the DASH line, now on a wired UART to the Pi 4 (since 21 Oct). Vehicle speed comes from the phone's GNSS; the Makerfabs receiver updated only about every 25 s on the road.
 
 ### Where each part lives
 
-| Part | Folder and main files | Tests | Deploy |
-|---|---|---|---|
-| Telemetry unit firmware | `TelemetryUnit/src/main.cpp`, `platformio.ini` | `BenchTest/v050_bench_test.py`, `v060_bench_test.py`, `log_dump.py`, `signal_loss_test.py`, `gnss_capture.py`, `bms_probe.py` | `pio run -t upload` (below) |
-| Telemetry bridge (Pi 4) | `CameraDetection/telemetry_bridge.py`, `tof_reader.py` | `CameraDetection/tests/test_telemetry_bridge.py` | `CameraDetection/deploy/telemetry-bridge.service`, `INSTALL.md` |
-| Camera hazard detector (Pi 4) | `CameraDetection/hazard_detector.py`, `detect.tflite`, `labelmap.txt`; YOLO trials in `yolo_bench.py`, `ncnn_bench.py`, `training/` | `BenchTest/TEST_PROCEDURES.md` C1 to C8 | `CameraDetection/deploy/hazard-detector.service`, `INSTALL.md` |
-| Sync logger (Pi 4) | `CameraDetection/sync_logger.py` | TEST_PROCEDURES C6 | copied by hand |
-| Dashboard add-ons (Pi 5) | `DashboardIntegration/front_camera_page.py`, `live_data_provider.py`, `ride_quality_card.py`, `sw7_endpoints.py`, `sw7_live_only.py` | `DashboardIntegration/tests/` | `DashboardIntegration/deploy/deploy_dashboard.sh`, `start_sw7_dashboard.sh`, `setup_sw7_link.sh` |
-| Link contract | `DashboardIntegration/TELEMETRY_LINK.md` | | |
-| Pre-test check | `BenchTest/sw7_check.py` | `BenchTest/tests/test_sw7_check.py` | |
-| Bench tools | `BenchTest/sw7_console.html`, `live_telemetry.html`, `VirtualTukzie/dashboard.html` | | local HTTP server |
-| Camera casing | `CameraMount/casing/` (STL) | | 3D print |
+| Part | Folder and main files | Deploy |
+|---|---|---|
+| Firmware (all three ESP32-S3 boards) | `TelemetryUnit/src/main.cpp`, `platformio.ini` (envs `esp32-s3-devkitc-1`, `front_node`, `rear_imu_node`) | `pio run -e ENV -t upload` |
+| Telemetry bridge, ToF (Pi 4) | `CameraDetection/telemetry_bridge.py`, `tof_reader.py`, `sensor_fusion.py` | `CameraDetection/deploy/`, `INSTALL.md` |
+| Camera hazard detector (both Pis) | `CameraDetection/hazard_detector.py`, `detect.tflite`, `labelmap.txt` | `CameraDetection/deploy/` |
+| Raw IMU capture, recorder | `BenchTest/raw_capture.py`, `road_logger.py`, `CameraDetection/sync_logger.py` | rear capture from crontab on the Pi 4 |
+| Dashboard add-ons (Pi 5) | `DashboardIntegration/` (camera page, live-data provider, ride card, phone GPS, voice, endpoints) | `DashboardIntegration/deploy/deploy_dashboard.sh` |
+| Link contract | `DashboardIntegration/TELEMETRY_LINK.md` | |
+| Pre-test check | `BenchTest/sw7_check.py` | |
+| Analysis | `BenchTest/analysis/`, `BenchTest/collect_session.sh` | laptop |
+| Camera casing | `CameraMount/casing/` (STL) | 3D print |
 
-### Where to find records
+## Analysis tools
 
-| Record | Location |
-|---|---|
-| Test procedures and results | `BenchTest/TEST_PROCEDURES.md`, raw logs in `BenchTest/logs/` |
-| Decisions, status and history | `PROJECT_LOG.md` (decisions D1 onwards), `CHANGELOG.md` (every change and why) |
-| Report source and PDF | `Report/` (`Samson Okuthe - EEE4022S Final Report (2026).tex` and its PDF; the submitted copy is renamed to the course format) |
-| Evidence for the report | `Report/evidence/` (indexed in Appendix C) |
-| Presentation, poster, talking points, Q&A | `Presentation/` (built from `Presentation/source/`) |
-| Planning and brief compliance | `Planning/` (`brief-compliance.md`) |
-| Literature and datasheets | `References/`, `Research/` (pipeline and gap ledger) |
-
-## Other folders
-
-| Folder | Contents |
-|---|---|
-| `GA Tracking Form/` | Graduate attributes tracking form (submitted) |
-| `Photos/` | Bench and vehicle photos |
-| `Vehicle Documentation/` | Manufacturer documentation for the trike |
-| `.claude/` | Project agents (progress-scribe) |
+- `BenchTest/collect_session.sh YYYY-MM-DD`: copies one day's recordings from both Pis into `BenchTest/logs/run2_road_YYYY-MM-DD` (files chosen by modification time).
+- `python -m BenchTest.analysis.run --session <folder> --out <folder>/analysis`: segments passes, computes a_w, VDV, sigma and the speed-normalised index, repeatability, spectra and powertrain lines.
+- `BenchTest/analysis/auto_markers.py`: derives pass, coast and still markers from the phone GNSS speed and the BMS current (vehicle GNSS speed as fallback), so no typed markers are needed.
+- `BenchTest/analysis/position_icc.py`: position-aligned ICC; places each IMU sample by the phone fix and uses 8 m ground cells crossed by every pass.
 
 ## How to build, deploy and run
 
-Firmware (laptop, board on COM10):
+Firmware (laptop): Makerfabs unit on COM10 (env `esp32-s3-devkitc-1`, 115200 baud), front node on COM11 (`front_node`), rear IMU node on COM15 (`rear_imu_node`); the two IMU nodes run at 921600 baud.
 ```
 cd TelemetryUnit
-pio run              # build
-pio run -t upload    # flash
-pio device monitor   # serial at 115200; !status, !dash on|off, !log dump, !recal
+pio run -e rear_imu_node -t upload
+pio device monitor -e rear_imu_node   # !status, !recal; Makerfabs unit also !dash, !log dump, !mqtt on|off
 ```
 
-Pi 4 detector and bridge: copy the files and install the two services as in `CameraDetection/deploy/INSTALL.md`, then on the Pi 4:
-```
-sudo systemctl enable --now hazard-detector telemetry-bridge
-curl -s http://localhost:8081/telemetry
-```
+Pi 4: install the detector and bridge services as in `CameraDetection/deploy/INSTALL.md`, then `sudo systemctl enable --now hazard-detector telemetry-bridge` and `curl -s http://localhost:8081/telemetry`. The rear capture (`raw_capture.py` on :8083) starts at boot from crontab.
 
-Wired link (once on each Pi): `sudo bash setup_sw7_link.sh pi4` or `pi5`.
+Wired link (once on each Pi): `sudo bash setup_sw7_link.sh pi4` or `pi5`. Chrony on the Pi 4 follows the Pi 5 and steps on any offset over 1 s.
 
-Pi 5 dashboard (laptop, Git Bash, from the repo root; never touches the team's `~/Dashboard`):
-```
-bash DashboardIntegration/deploy/deploy_dashboard.sh [--pi5 HOST]
-```
+Pi 5 dashboard (laptop, Git Bash, from the repo root; never touches the team's `~/Dashboard`): `bash DashboardIntegration/deploy/deploy_dashboard.sh [--pi5 HOST]`. Take screenshots before and after every deploy.
 
-Before every test session (laptop or Pi 5):
-```
-python BenchTest/sw7_check.py
-```
+Before every session: `python BenchTest/sw7_check.py` (must print READY). After it: `bash BenchTest/collect_session.sh YYYY-MM-DD`, then the analysis above.
 
-Tests (laptop):
-```
-python -m pytest -q CameraDetection/tests/test_telemetry_bridge.py BenchTest/tests/test_sw7_check.py
-python DashboardIntegration/tests/test_live_data_provider.py
-```
+Tests (laptop): `python -m pytest -q CameraDetection/tests/test_telemetry_bridge.py BenchTest/tests/test_sw7_check.py` and `python DashboardIntegration/tests/test_live_data_provider.py`.
 
-Report: build with Tectonic as described in PROJECT_LOG.md section 7.
+Report: `cd Report` then `latexmk -xelatex "Samson Okuthe - EEE4022S Final Report (2026).tex"`; `python wordcount.py` gives the body word count.
 
-## Status (3 Oct 2026)
+## Status (27 Oct 2026)
 
-| Item | State | Date |
+Two road sessions: 19 Oct (first on-vehicle run, IMU data over USB) and 27 Oct (laps in a car park at 10, 15 and 20 km/h, driver Yusuf Vadwa). Statuses follow Table 5.3 of the report (R1 to R13).
+
+| Requirement | Status | Evidence |
 |---|---|---|
-| Dual IMU 200 Hz, calibration, fusion | Tested on the bench (149/149 windows, 0 drops) | 25 Sep |
-| MQTT over LTE, reconnect, signal-loss recovery | Tested on the bench | 29 to 30 Sep |
-| GNSS fix (median 2.7 m from phone) | Tested outdoors (rooftop) | 30 Sep |
-| LittleFS log, buffered writes, read-back | Tested on the bench | 1 Oct |
-| BMS over BLE | Checksum fix confirmed from 14 logged records; sustained test outstanding | 30 Sep |
-| Firmware v0.7.0 DASH line | Tested on the bench (40/40 lines) | 2 Oct |
-| Telemetry bridge on the Pi 4, as a service | Tested live with the ESP32 and ToF | 2 Oct |
-| Camera detector (19.5 fps, 102 ms median) and colour fix | Tested on the bench | 30 Sep, 1 Oct |
-| Distance calibration, other object classes | Not yet tested | |
-| Dashboard camera page | Tested on a laptop against the live detector | 1 Oct |
-| Live-data provider, ride card, live-only mode, resolver | Tested offscreen on a laptop with a fake bridge | 3 Oct |
-| Integrated dashboard copy on the Pi 5 | Running, native map, no crash; live data on the Pi 5 not yet recorded | 2 Oct |
-| Beacon, wired link, pre-test check | Written and unit-tested; on-Pi results not yet recorded in TEST_PROCEDURES | 3 Oct |
-| On-vehicle and road test | Not yet done | |
+| R1 IMU at 200 Hz | Met on the bench; on the vehicle met at the front | 27 Oct: front 0 gaps, rear 0.08 % lost in transport |
+| R2 Calibration (about 9.81 m/s2) | Met at each calibration; not met on the vehicle | 27 Oct at rest: rear 9.845, front 9.941 |
+| R3 Self-test and fusion | Met for the fused design (to v0.7.6) | nodes now compared, not fused |
+| R4 GNSS | Partly met | bench median 2.7 m; on the vehicle 8 to 25 m from the phone, updating every 25 s |
+| R5 BMS over BLE | Partly met | 27 Oct peak 82.9 A, 74.0 to 71.2 V; no meter check |
+| R6 Sync pulse | Partly met | 500.06 ms median interval; camera-to-IMU offset not measured |
+| R7 Camera detection | Partly met | road: rear 12.1 fps, median 103 ms; front 23.3 fps, median 68 ms; onset not timed at the screen |
+| R8 ToF distance | Partly met | ahead 1.06 m at about 1.0 m; no flat-target series |
+| R9 LTE and store-and-forward | Met on the bench; partly met on the vehicle | 153 records over LTE (116 replayed), median 0.44 s (n=9), link lost from 11:51 |
+| R10 Link to the Pi | Met on the bench and on the vehicle | wired UART 4,196 of 4,201 records (99.9 %) |
+| R11 Dashboard alerts | Partly met | clearing seen only offline |
+| R12 Glance time | Not tested | no participants; alert banner below ISO 15008 legibility |
+| R13 Fit without modification | Partly met | mounted 19 Oct, removal not timed |
+
+Road results, 27 Oct:
+- Smooth loop at 10 km/h, CV of a_w across 5 passes: 5.0 % rear, 5.3 % front. The rough loop reads about twice the smooth loop's a_w.
+- Position-aligned ICC on the smooth loop: 0.16 (rear), against a criterion of 0.75: not met.
+- Powertrain lines carry 1 to 3 % of the road vibration energy.
+
+Not delivered: the air-quality sensor (damaged), the optical HUD (replaced by dashboard integration by agreement), validated ToF and camera fusion, the time-to-contact test, and the glance study.
 
 ## Key documents
 
-- `PROJECT_LOG.md`: status board, decisions, timeline.
-- `DashboardIntegration/README.md` and `TELEMETRY_LINK.md`: dashboard add-ons and the link contract.
-- `CameraDetection/README.md`: detector, ethics conditions, deployment.
-- `BenchTest/TEST_PROCEDURES.md`: every test and its result.
-- `Planning/brief-compliance.md`: brief items against current status.
+- Final report: `Report/EEE4022S 2026 FINAL REPORT OKTSAM001 OKUTHE S - WINBERG.pdf` (source `Samson Okuthe - EEE4022S Final Report (2026).tex`).
+- `Planning/lab-notebook.md`: every lab and road action, with what the student did.
+- `PROJECT_LOG.md`: status board, decisions (D1 to D43), timeline; `CHANGELOG.md`: every change and why.
+- `DATA_INDEX.md`: every data file, where the report cites it, and its checksum.
+- `BenchTest/TEST_PROCEDURES.md`: test procedures and results; raw logs in `BenchTest/logs/`.
+- `DashboardIntegration/README.md`, `CameraDetection/README.md`: dashboard add-ons, detector and ethics conditions.
+- `Presentation/`: deck, poster, talking points and Q&A.
+- Videos of the system on the road and of its development: https://tuksense.site (site source in a separate repo, 0geder/tuksense)
