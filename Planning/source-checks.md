@@ -91,3 +91,9 @@ Not in the preview: 4.5 Alphanumerical character dimensions and Annex C, so the 
 Source: DIN EN ISO 15008:2017-07, English translation (DIN, Beuth Verlag), the full 32-page document, which supersedes DIN EN ISO 15008:2011-06. Copy: References/Papers/HMI/DIN_EN_ISO_15008_2017_en.pdf (git-ignored: copyrighted).
 Checked: 4.5.2 Table 1, capital height as the angle subtended at the rearmost point of the cyclopean eyellipse: 20 arcmin recommended, 16 acceptable, 12 minimum (only where accuracy and speed of reading are modest). 4.3.2.1 minimum contrast ratio between symbol and background: 5:1 night, 3:1 twilight, 3:1 day, 2:1 direct sunlight.
 Report: the citation iso15008 now refers to the 2017 edition (Section 2.7 for character height, Section 6.5 for contrast). The 2003 preview gives the same contrast minimums for night, day and sunlight. Section 2.7 no longer cites you2021charsize (entry removed); reimer2014typeface stays for the typeface finding.
+
+## TUKZIE Vacation Work Programme 2026/2027 (27 Oct 2026)
+
+- Source: programme description PDF attached to Sampath Jayalath's call for applications, received 27 Oct 2026; filed as References/Papers/Tukzie/Tukzie_Vacation_Work_Programme_2026-2027.pdf.
+- Checked: the two focus areas (drive-by-wire autonomous driving; evaluation and improvement of the existing sensing testbed, including calibration, fusion, logging and a digital twin) and the dates (23 Nov to 10 Dec 2026, 18 Jan to 5 Feb 2027).
+- Used for: Section 8.2.1, the programme's next step along the staged path to autonomy; cited as tukzie2026vac.
