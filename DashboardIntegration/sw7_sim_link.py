@@ -236,8 +236,12 @@ def sim_view(main, live):
         marks = main._sw7_marks = _Indicators(main)
     m = getattr(getattr(main, "navigation", None), "map", None)
     simulating = bool(getattr(m, "simulating", False)) and getattr(m, "vehicle", None) is not None
+    # A real fix ends the simulated drive: the vehicle's GNSS, or (27 Oct 2026) the phone's position, which carries
+    # sw7_position_source "phone" with validity "gps" False. Without the phone case the drive went on while the route
+    # logic, fed the real parked position, re-planned again and again ("Recalculating route").
     real_fix = (_num(getattr(live, "latitude", None)) is not None and _num(getattr(live, "longitude", None)) is not None
-                and bool((getattr(live, "signal_validity", None) or {}).get("gps")))
+                and (bool((getattr(live, "signal_validity", None) or {}).get("gps"))
+                     or getattr(live, "sw7_position_source", None) == "phone"))
     if simulating and real_fix:
         m.stop_simulation()          # a real position always wins; every page goes back to live
         simulating = False
