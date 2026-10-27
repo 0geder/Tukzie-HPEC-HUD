@@ -27,6 +27,8 @@
 \input{figures/tikz/sw7styles}
 \usepackage{xurl}   % long URLs in the references break at any character (26 Oct 2026)
 \usepackage[pagebackref=true]{hyperref}
+\definecolor{linkblue}{HTML}{0F3B67}
+\hypersetup{colorlinks=true, linkcolor=linkblue, citecolor=linkblue, urlcolor=linkblue, filecolor=linkblue}
 \hypersetup{pdftitle={Embedded Telemetry with Road-Surface Characterisation and Camera-Based Hazard Detection for the TUKZIE Electric Trike}, pdfauthor={Samson Okuthe}, pdfsubject={EEE4022S Final Year Project, University of Cape Town, 2026}, pdfkeywords={telemetry, embedded systems, road roughness, IMU, hazard detection, electric trike, TUKZIE}}
 % Each reference ends with the pages that cite it, as links back to those pages.
 \renewcommand*{\backrefalt}[4]{\ifcase #1 \or {\small(Cited on page~#2.)}\else {\small(Cited on pages~#2.)}\fi}
