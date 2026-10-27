@@ -160,6 +160,28 @@ def is_replay(telemetry) -> bool:
     return isinstance(esp, dict) and str(esp.get("fw") or "").endswith("-replay")
 
 
+KNOTS_TO_KMH = 1.852
+SPEED_AGREE_KMH = 3.0      # two speeds agree when within 3 km/h or 25 % of the larger
+SPEED_AGREE_FRAC = 0.25
+
+
+def fuse_speed(phone_kmh, vehicle_kmh):
+    """Dashboard speed from the phone and the vehicle GNSS (27 Oct 2026). Both: their mean when they agree (within
+    3 km/h or 25 %), else the phone's, the one checked against video; one: that one; none: None.
+    Returns (km/h or None, source: "fused", "phone (sources disagree)", "phone", "vehicle" or None)."""
+    p = max(0.0, phone_kmh) if phone_kmh is not None else None
+    v = max(0.0, vehicle_kmh) if vehicle_kmh is not None else None
+    if p is not None and v is not None:
+        if abs(p - v) <= max(SPEED_AGREE_KMH, SPEED_AGREE_FRAC * max(p, v)):
+            return (p + v) / 2.0, "fused"
+        return p, "phone (sources disagree)"
+    if p is not None:
+        return p, "phone"
+    if v is not None:
+        return v, "vehicle"
+    return None, None
+
+
 def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=None, dual=False, front_telemetry=None,
                      phone_gps=None):
     """Map one /telemetry reply onto a new VehicleState.
@@ -225,6 +247,10 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     s.sw7_position_source = "vehicle" if gps_ok else None
     s.sw7_rear_live = rear_live
     phone_kmh = _num(phone.get("speed_kmh")) if phone else None
+    # 27 Oct 2026: the vehicle's own GNSS speed, in knots per the A76XX manual (not yet confirmed on the road), used
+    # only with a vehicle fix in a fresh record. fuse_speed() combines it with the phone's.
+    spd_raw = _num(esp.get("spd_raw")) if gps_ok else None
+    vehicle_kmh = spd_raw * KNOTS_TO_KMH if spd_raw is not None and spd_raw >= 0 else None
     if phone and not gps_ok:
         s.latitude, s.longitude, s.gps_timestamp = _num(phone["lat"]), _num(phone["lon"]), time.time()
         gps_ok = True
@@ -235,8 +261,10 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     s.sw7_cell_position = (clat, clon, cacc) if not gps_ok and clat is not None and clon is not None else None
     s.heading = crs % 360.0 if crs is not None else None
     s.altitude_m = alt
-    if phone_kmh is not None:
-        s.speed_kmh = max(0.0, phone_kmh)
+    speed, s.sw7_speed_source = fuse_speed(phone_kmh, vehicle_kmh)
+    s.sw7_speed_phone_kmh, s.sw7_speed_vehicle_kmh = phone_kmh, vehicle_kmh
+    if speed is not None:
+        s.speed_kmh = speed
 
     if dual:
         front = front_tof_m(front_telemetry) if isinstance(front_telemetry, dict) else None
@@ -247,10 +275,9 @@ def build_live_state(telemetry, driver_inputs=None, previous=None, live_only=Non
     if dual:
         s.rear_obstacle_distance_m = rear
 
-    # spd_raw is deliberately not mapped: without a fresh phone fix speed_kmh keeps its default of 0
-    # (None in live-only mode).
+    # Without a speed from either source speed_kmh keeps its default of 0 (None in live-only mode).
     s.signal_validity = {
-        "speed": phone_kmh is not None, "soc": soc is not None, "battery_temp": False,
+        "speed": speed is not None, "soc": soc is not None, "battery_temp": False,
         "gps": gps_ok, "heading": s.heading is not None, "front_obstacle": front is not None,
         "rear_obstacle": rear is not None, "weather": False, "road_surface": False,
         "door": False, "seatbelt": False, "tyres": False,

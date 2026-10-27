@@ -206,3 +206,18 @@ prov.apply({"esp32": ESP_STALE, "tof": None})
 assert prov.link == "stale" and len(m.ingested) == 4                # both stale: nothing ingested
 print("4 phone only: speed and position from the phone with the Pi 4 stale or gone, battery absent; both stale: no data")
 print("ALL PASS")
+
+# 27 Oct 2026: speed fusion of the phone and the vehicle GNSS (spd_raw in knots)
+assert ldp.fuse_speed(20.0, 21.0) == (20.5, "fused")
+assert ldp.fuse_speed(20.0, 30.0) == (20.0, "phone (sources disagree)")
+assert ldp.fuse_speed(None, 15.0) == (15.0, "vehicle") and ldp.fuse_speed(12.0, None) == (12.0, "phone")
+assert ldp.fuse_speed(None, None) == (None, None) and ldp.fuse_speed(1.0, 2.5) == (1.75, "fused")
+s = st(dict(ESP_FIX, spd_raw=10.0), PHONE)                     # 18.52 km/h against 18.5: agree, mean
+assert abs(s.speed_kmh - (18.5 + 18.52) / 2) < 1e-9 and s.sw7_speed_source == "fused" and s.signal_validity["speed"]
+s = st(dict(ESP_FIX, spd_raw=10.0))                            # vehicle only
+assert abs(s.speed_kmh - 18.52) < 1e-9 and s.sw7_speed_source == "vehicle" and s.signal_validity["speed"]
+s = st(dict(ESP_NOFIX, spd_raw=10.0), PHONE)                   # no vehicle fix: its speed is not used
+assert s.speed_kmh == 18.5 and s.sw7_speed_source == "phone"
+s = st(dict(ESP_FIX, spd_raw=30.0), PHONE)                     # 55.6 km/h against 18.5: the phone wins
+assert s.speed_kmh == 18.5 and s.sw7_speed_source == "phone (sources disagree)"
+print("5 speed fusion: mean when they agree, phone when they disagree, either alone, none without a fix")
