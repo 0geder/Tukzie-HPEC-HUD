@@ -584,3 +584,10 @@ committed to git because of their size, kept on OneDrive).
 - Phone back on MyHotspot (192.168.137.107), GPS fix with 12 satellites; the Pi 5 had been off and rebooted.
 - Person width set to 0.60 m on both detectors (student's choice; fit gave 0.80).
 - What the student did: moved the IMU to the second board, connected it and the hub to the Pi 4, powered the Pi 5 back up.
+
+### 27 October 2026, 09:50 to 10:15, before run 2
+
+- sw7_check READY at 09:57 (rear IMU node 200 Hz, 0 drops; telemetry unit UART fresh; front node, cameras, recorder 6 of 6 sources, LTE, speaker). Pi 4 under-voltage now (0x50005, 28 events in 21 min) with the telemetry unit still on its USB; rear camera throttled to 7.7 frames/s.
+- Dashboard bug found and fixed: the map's simulated drive only ended on a vehicle GNSS fix, not on a phone fix, so with the phone GPS live the drive continued while the route logic re-planned from the real position ("Recalculating route" loop). sw7_sim_link.py now ends it on a phone fix too; deployed with screenshots (DashboardIntegration/screenshots/2026-10-27).
+- Speed source moved to a second phone ("MPfarie-A04", 192.168.137.164, Share GPS TCP server on 50000) at the student's request; sw7-phone-gps drop-in points at it. At 10:15 connected, NMEA arriving, no fix yet (indoors).
+- What the student did: brought the second phone, set up Share GPS on it.
