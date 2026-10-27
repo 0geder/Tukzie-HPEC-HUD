@@ -148,7 +148,7 @@ v = \frac{L}{\tau_d}, \qquad
 \frac{\delta \tau_d}{\tau_d} = \frac{v\,\delta t}{L},
 \label{eq:delay-speed}
 \end{equation}
-with no GNSS. The timing error $\delta t$ (Table~\ref{tab:delay-budget}) is budgeted at 5.3\,ms, provisional until the fixed offsets are measured, 1.8\,\% of a 0.3\,s delay, growing in proportion to speed; a wheelbase taped to $\pm 1$\,cm adds 1\,\% for a 1\,m wheelbase, less for a longer one. Both are well inside the proposed 10\,\% criterion against the video speed, so timing does not limit the method; correlation does, because the front wheel and the two rear wheels run on different tracks and only full-width features such as a speed bump are used (Section~\ref{sec:impl-road}).
+with no GNSS. The timing error $\delta t$ (Table~\ref{tab:delay-budget}) is budgeted at 5.3\,ms, provisional until the fixed offsets are measured, 1.8\,\% of a 0.3\,s delay, growing in proportion to speed; a wheelbase taped to $\pm 1$\,cm adds 1\,\% for a 1\,m wheelbase, less for a longer one. Both are inside the proposed 10\,\% criterion against the video speed if the unknown offsets are within their proposed bound, which is not yet measured; correlation is the larger risk, because the front wheel and the two rear wheels run on different tracks and only full-width features such as a speed bump are used (Section~\ref{sec:impl-road}).
 
 \begin{table}[htbp]
 \centering

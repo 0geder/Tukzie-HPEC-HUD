@@ -11,7 +11,7 @@ The engineering problem \cite{winberg2026} is to acquire synchronised data relia
 
 \section{Deliverables and scope change}
 
-The project started from a brief set by the supervisors, and its scope changed as the work showed what the vehicle needed. The brief \cite{winberg2026} asked for (1) an HPEC telemetry unit with a deterministic multi-threaded architecture; (2) a driver interface, originally a windshield head-up display (HUD); (3) synchronisation with a central database over 4G/LTE; and (4) a technical report validating the data and the system. With the supervisor's agreement, the HUD was replaced by integration with the existing dashboard, because a second display would compete for the same attention \cite{zhu2021} (Section~\ref{sec:lit-display}). The title was changed on 2 and 23 October to follow the work. The supervisor then asked for a camera hazard detector, later joined by time-of-flight proximity sensing and, in October, a second camera and sensor board at the rear that warns of approaching objects. The aim is a prototype demonstrated on the vehicle at Technology Readiness Level 6 \cite{kimmel2020}, not a product for unrestricted road use.
+The project started from a brief set by the supervisors, and its scope changed as the work showed what the vehicle needed. The brief \cite{winberg2026} asked for (1) a telemetry module with environmental, air-quality and inertial sensors and an optical windshield head-up display (HUD); (2) a deterministic multi-threaded software architecture for sensor fusion, ride metrics and the display; and (3) a technical report validating the data, edge latency and synchronisation with a central database over 4G/LTE. With the supervisor's agreement, the HUD was replaced by integration with the existing dashboard, because a second display would compete for the same attention \cite{zhu2021} (Section~\ref{sec:lit-display}). The title was changed on 2 and 23 October to follow the work. The supervisor then asked for a camera hazard detector, later joined by time-of-flight proximity sensing and, in October, a second camera and sensor board at the rear that warns of approaching objects. The aim is a prototype demonstrated on the vehicle at Technology Readiness Level 6 \cite{kimmel2020}, not a product for unrestricted road use.
 
 \section{Research questions}
 
@@ -24,7 +24,7 @@ The literature search found no system that does all of the following on a light 
 \item[RQ4] Which time- and frequency-domain features most effectively separate road-induced vibration from repeatable motor and powertrain vibration?
 \end{enumerate}
 
-In RQ1, accuracy means the accuracy of the instrument: its sampling rate, sample loss, calibration and feature computation. No reference profile or reference accelerometer was available for the ride itself, so the road part of RQ1 is answered by repeatability.
+In RQ1, accuracy means the accuracy of the instrument: its sampling rate, sample loss, calibration and feature computation. No reference profile or reference accelerometer was available for the ride itself, so for the road part of RQ1 only repeatability can be assessed, not accuracy.
 
 \section{Engineering requirements and acceptance criteria}
 \label{sec:requirements-mapping}
@@ -50,7 +50,7 @@ R8 & Proximity range & Three sensors answer and respond to the matching hand; wi
 R9 & Store-and-forward telemetry & Acknowledged publishes; loss reported and reconnection without intervention after coverage returns; every stored record read back intact and parsing; every record stored once in the database after an outage & 3 & T5, T6, T10, T15 \\ \hline
 R10 & Local dashboard link & One line per second, no missing sequence numbers, valid JSON; record under 3\,s old at the dashboard; IMUs unaffected & 2, 3 & T11, T12 \\ \hline
 R11 & Driver display shows only valid data & Only live values, ``-{}-'' when missing, never simulated values; camera alerts listed and cleared; offline state shown & 2 & B2, B3 \\ \hline
-R12 & Glance demand & Single glances within the 2\,s NHTSA guidance \cite{nhtsa2013} & 2 & none (Section~\ref{sec:ethics}) \\ \hline
+R12 & Glance demand & Single glances within 2\,s, a project target based on the NHTSA criteria \cite{nhtsa2013} & 2 & none (Section~\ref{sec:ethics}) \\ \hline
 R13 & Removable installation & No drilling or permanent change; vehicle back to standard in about 20\,min & all & VIT-001 \\ \hline
 \end{tabular}
 \end{table}
