@@ -81,3 +81,10 @@ CAD/**/*.bmp
 TelemetryUnit/include/mqtt_secrets.melo.h
 References/Papers/HMI/ISO_15008_2003_preview_iTeh.pdf
 References/Papers/HMI/DIN_EN_ISO_15008_2017_en.pdf
+
+# run 2 road session, 27 Oct 2026: files too large for GitHub stay local (listed in the data index)
+BenchTest/logs/run2_road_2026-10-27/_full_recorder/
+BenchTest/logs/run2_road_2026-10-27/screens/
+BenchTest/logs/run2_road_2026-10-27/_excluded_wrong_clock/
+BenchTest/logs/run2_road_2026-10-27/analysis_v1/
+BenchTest/logs/run2_road_2026-10-27/analysis/_raw/

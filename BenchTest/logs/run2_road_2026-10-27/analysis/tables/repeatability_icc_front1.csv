@@ -1,0 +1,6 @@
+metric,rows,n_rows,passes,"ICC(2,1)","ICC(2,1) CI","ICC(3,1)","ICC(3,1) CI",status
+a_w,sections,3,0,,;,,;,n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only
+vdv,sections,3,0,,;,,;,n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only
+sigma,sections,3,0,,;,,;,n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only
+sigma_1s_median,sections,3,0,,;,,;,n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only
+index_sigma2_per_v,sections,3,0,,;,,;,n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only

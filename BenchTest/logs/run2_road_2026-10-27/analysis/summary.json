@@ -1,0 +1,2155 @@
+{
+  "session": "C:\\Users\\0geda\\OneDrive - University of Cape Town\\Documents\\PlatformIO\\Projects\\Tukzie-HPEC-HUD\\BenchTest\\logs\\run2_road_2026-10-27",
+  "config": {
+    "fs": 200.0,
+    "accel_range_g": 8.0,
+    "clip_fraction": 0.98,
+    "max_gap_s": 0.05,
+    "drive_current_a": 1.0,
+    "drive_vib": 0.3,
+    "drive_join_s": 10.0,
+    "readable_fields": [
+      "vib",
+      "i",
+      "v",
+      "imu_hz",
+      "drops"
+    ],
+    "start_word": "start",
+    "stop_word": [
+      "stop",
+      "end"
+    ],
+    "road_blocks": {
+      "A": "smooth",
+      "R": "rough",
+      "B": "bump",
+      "P": "obstacle"
+    },
+    "stands_block": "STANDS",
+    "coast_words": [
+      "coast"
+    ],
+    "gravity_lp_hz": 0.2,
+    "band_lo_hz": 2.0,
+    "band_hi_hz": 40.0,
+    "band_order": 4,
+    "jerk_lp_hz": 20.0,
+    "window_s": 1.0,
+    "spd_raw_to_mps": 0.514444,
+    "v_min_mps": 1.0,
+    "wheelbase_m": null,
+    "delay_min_s": 0.03,
+    "delay_max_s": 1.5,
+    "delay_window_s": 5.0,
+    "n_boot": 2000,
+    "seed": 1,
+    "icc_bin_m": 5.0,
+    "section_length_m": 50.0,
+    "section_lengths_m": {},
+    "icc_min_rows": 5,
+    "icc_min_passes": 3,
+    "icc_metrics": [
+      "a_w",
+      "sigma"
+    ],
+    "welch_seg_s": 4.0,
+    "peak_prominence_db": 10.0,
+    "peak_background_hz": 5.0,
+    "peak_halfwidth_hz": 1.0,
+    "pt_band_lo_hz": 0.5,
+    "pt_band_hi_hz": 80.0,
+    "pt_sub_bands": [
+      [
+        0.5,
+        4.0
+      ],
+      [
+        4.0,
+        8.0
+      ],
+      [
+        8.0,
+        16.0
+      ],
+      [
+        16.0,
+        40.0
+      ],
+      [
+        40.0,
+        80.0
+      ]
+    ],
+    "pt_stand_lines_hz": [
+      42.75,
+      49.0,
+      64.0
+    ],
+    "wheel_circumference_m": null,
+    "stand_wheel_hz": {},
+    "pt_orders": [],
+    "coast_match_mps": 0.2777777777777778,
+    "ph_window_s": 0.3,
+    "ph_min_dur_s": 0.02,
+    "ph_max_dur_s": 0.3,
+    "ph_drop_fraction": 0.25,
+    "ph_refractory_s": 0.5,
+    "ph_fa_per_km": 1.0,
+    "ph_label_tol_s": 0.5,
+    "ph_threshold_a": null,
+    "ph_threshold_b": 0.0,
+    "smooth_words": [
+      "smooth"
+    ],
+    "obstacle_words": [
+      "plank",
+      "obstacle",
+      "pothole"
+    ],
+    "stationary_words": [
+      "stationary",
+      "static",
+      "parked"
+    ],
+    "motor_words": [
+      "low",
+      "med",
+      "high"
+    ],
+    "raw_files": {},
+    "sync_edges": {},
+    "labels_csv": null,
+    "crossings_csv": null
+  },
+  "skipped": {
+    "pothole_threshold": "needs marked smooth and obstacle passes (or ph_threshold_a in config)"
+  },
+  "notes": [
+    "front: 3 raw files in 1 boot group(s); used 3 file(s) (front_raw_2026-10-27_103629.txt, front_raw_2026-10-27_113629.txt, front_raw_2026-10-27_123629.txt)",
+    "rear: 3 raw files in 2 boot group(s); used 2 file(s) (rear_raw2026-10-27_112905.txt, rear_raw2026-10-27_122905.txt)",
+    "no crossings.csv (video times of the section lines): pass windows are the marker intervals, which include the run-up and braking",
+    "wheelbase_m not set: delay reported, speed not computed",
+    "no stand run in this session: RQ4 lines are the 23 Oct stand lines [42.75, 49.0, 64.0] Hz"
+  ],
+  "outputs": [
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\driving_segments",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\runs",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\figures\\session",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\runs_dash",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\pass_metrics",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\repeatability_cv_front1",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\repeatability_icc_front1",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\repeatability_bin_icc_front1",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\figures\\pass_aw_front1",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\repeatability_cv_rear1",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\repeatability_icc_rear1",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\repeatability_bin_icc_rear1",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\figures\\pass_aw_rear1",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\front_rear_delay",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\powertrain_ratios",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\powertrain_coast",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\figures\\psd",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\tables\\pothole_sweep",
+    "BenchTest/logs/run2_road_2026-10-27/analysis\\figures\\pothole_sweep"
+  ],
+  "recorder_files": [
+    "2026-10-27_112000_roadtest.jsonl"
+  ],
+  "dash": {
+    "rear": {
+      "src": "rear",
+      "rows": 12275,
+      "rows_with_record": 11769,
+      "unique": 5886,
+      "bad_json_lines": 0,
+      "boots": 1,
+      "seq_first": 402,
+      "seq_last": 6293,
+      "seq_span": 5892,
+      "missing": 6,
+      "per_boot": [
+        {
+          "boot": 0,
+          "unique": 5886,
+          "seq_first": 402,
+          "seq_last": 6293,
+          "seq_span": 5892,
+          "missing": 6
+        }
+      ]
+    }
+  },
+  "driving": {
+    "rule": "|i| > 1.0 A or vib > 0.3; segments at most 10.0 s apart joined",
+    "records_driving": 685,
+    "records_driving_readable": 685,
+    "records_parked_readable": 5201,
+    "vib_median_parked": null,
+    "vib_median_driving": null,
+    "vib_p95_driving": null,
+    "vib_max_driving": null,
+    "current_max_abs": 82.93,
+    "segments": 49,
+    "segment_seconds_inclusive": 848.3180003166199,
+    "gnss_fix_records": 5381
+  },
+  "markers": [
+    {
+      "t": 1793093556.0,
+      "text": "R2 S0 still p1 start"
+    },
+    {
+      "t": 1793093616.0,
+      "text": "R2 S0 still p1 end"
+    },
+    {
+      "t": 1793093860.156,
+      "text": "R2 A v10 p1 start"
+    },
+    {
+      "t": 1793093947.194,
+      "text": "R2 A v10 p1 end"
+    },
+    {
+      "t": 1793093955.29,
+      "text": "R2 A v10 p2 start"
+    },
+    {
+      "t": 1793094015.146,
+      "text": "R2 A v10 p2 end"
+    },
+    {
+      "t": 1793094330.139,
+      "text": "R2 A v10 p3 start"
+    },
+    {
+      "t": 1793094373.132,
+      "text": "R2 A v10 p3 end"
+    },
+    {
+      "t": 1793094855.136,
+      "text": "R2 A coast v10 p4 start"
+    },
+    {
+      "t": 1793094884.151,
+      "text": "R2 A coast v10 p4 end"
+    },
+    {
+      "t": 1793095174.116,
+      "text": "R2 A v10 p4 start"
+    },
+    {
+      "t": 1793095219.236,
+      "text": "R2 A v10 p4 end"
+    },
+    {
+      "t": 1793095262.168,
+      "text": "R2 A v15 p2 start"
+    },
+    {
+      "t": 1793095355.126,
+      "text": "R2 A v15 p2 end"
+    },
+    {
+      "t": 1793095443.133,
+      "text": "R2 A v10 p5 start"
+    },
+    {
+      "t": 1793095494.131,
+      "text": "R2 A v10 p5 end"
+    },
+    {
+      "t": 1793095527.148,
+      "text": "R2 A v15 p3 start"
+    },
+    {
+      "t": 1793095562.128,
+      "text": "R2 A v15 p3 end"
+    },
+    {
+      "t": 1793095591.135,
+      "text": "R2 A v20 p1 start"
+    },
+    {
+      "t": 1793095624.134,
+      "text": "R2 A v20 p1 end"
+    },
+    {
+      "t": 1793096030.156,
+      "text": "R2 A v10 p6 start"
+    },
+    {
+      "t": 1793096047.865,
+      "text": "R2 A v10 p6 end"
+    },
+    {
+      "t": 1793096130.168,
+      "text": "R2 A v10 p7 start"
+    },
+    {
+      "t": 1793096256.126,
+      "text": "R2 A v10 p7 end"
+    },
+    {
+      "t": 1793096289.126,
+      "text": "R2 A coast v10 p6 start"
+    },
+    {
+      "t": 1793096326.204,
+      "text": "R2 A coast v10 p6 end"
+    },
+    {
+      "t": 1793096463.24,
+      "text": "R2 A coast v10 p7 start"
+    },
+    {
+      "t": 1793096472.364,
+      "text": "R2 A coast v10 p7 end"
+    },
+    {
+      "t": 1793096548.117,
+      "text": "R2 A v10 p8 start"
+    },
+    {
+      "t": 1793096598.146,
+      "text": "R2 A v10 p8 end"
+    },
+    {
+      "t": 1793096635.159,
+      "text": "R2 A v10 p9 start"
+    },
+    {
+      "t": 1793096682.219,
+      "text": "R2 A v10 p9 end"
+    },
+    {
+      "t": 1793096841.135,
+      "text": "R2 A v10 p10 start"
+    },
+    {
+      "t": 1793096916.142,
+      "text": "R2 A v10 p10 end"
+    },
+    {
+      "t": 1793097419.851,
+      "text": "R2 S0 still p2 start"
+    },
+    {
+      "t": 1793097479.851,
+      "text": "R2 S0 still p2 end"
+    }
+  ],
+  "markers_untimed": [
+    "# Run 2 road session, 27 Oct 2026, laps at 10, 15, 20 km/h; driver Yusuf Vadwa.",
+    "# Derived by auto_markers.py from phone GNSS speed (vehicle receiver where the phone had no fix) and BMS current;",
+    "# creeping below 8 km/h and windows under 8 s removed. No markers were typed during the session."
+  ],
+  "runs": [
+    {
+      "name": "R2 S0 still p1",
+      "t0": 1793093556.0,
+      "t1": 1793093616.0,
+      "duration_s": 60.0,
+      "closed": true,
+      "section": "S0",
+      "kind": "event",
+      "setting": "",
+      "pass_no": 1
+    },
+    {
+      "name": "R2 A v10 p1",
+      "t0": 1793093860.156,
+      "t1": 1793093947.194,
+      "duration_s": 87.03800010681152,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "10kmh",
+      "pass_no": 1
+    },
+    {
+      "name": "R2 A v10 p2",
+      "t0": 1793093955.29,
+      "t1": 1793094015.146,
+      "duration_s": 59.85599994659424,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "10kmh",
+      "pass_no": 2
+    },
+    {
+      "name": "R2 A v10 p3",
+      "t0": 1793094330.139,
+      "t1": 1793094373.132,
+      "duration_s": 42.99300003051758,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "10kmh",
+      "pass_no": 3
+    },
+    {
+      "name": "R2 A coast v10 p4",
+      "t0": 1793094855.136,
+      "t1": 1793094884.151,
+      "duration_s": 29.015000104904175,
+      "closed": true,
+      "section": "A",
+      "kind": "coast",
+      "setting": "10kmh",
+      "pass_no": 4
+    },
+    {
+      "name": "R2 A v10 p4",
+      "t0": 1793095174.116,
+      "t1": 1793095219.236,
+      "duration_s": 45.12000012397766,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "10kmh",
+      "pass_no": 4
+    },
+    {
+      "name": "R2 A v15 p2",
+      "t0": 1793095262.168,
+      "t1": 1793095355.126,
+      "duration_s": 92.95799994468689,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "15kmh",
+      "pass_no": 2
+    },
+    {
+      "name": "R2 A v10 p5",
+      "t0": 1793095443.133,
+      "t1": 1793095494.131,
+      "duration_s": 50.998000144958496,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "10kmh",
+      "pass_no": 5
+    },
+    {
+      "name": "R2 A v15 p3",
+      "t0": 1793095527.148,
+      "t1": 1793095562.128,
+      "duration_s": 34.980000019073486,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "15kmh",
+      "pass_no": 3
+    },
+    {
+      "name": "R2 A v20 p1",
+      "t0": 1793095591.135,
+      "t1": 1793095624.134,
+      "duration_s": 32.99900007247925,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "20kmh",
+      "pass_no": 1
+    },
+    {
+      "name": "R2 A v10 p6",
+      "t0": 1793096030.156,
+      "t1": 1793096047.865,
+      "duration_s": 17.70900011062622,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "10kmh",
+      "pass_no": 6
+    },
+    {
+      "name": "R2 A v10 p7",
+      "t0": 1793096130.168,
+      "t1": 1793096256.126,
+      "duration_s": 125.95799994468689,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "10kmh",
+      "pass_no": 7
+    },
+    {
+      "name": "R2 A coast v10 p6",
+      "t0": 1793096289.126,
+      "t1": 1793096326.204,
+      "duration_s": 37.07800006866455,
+      "closed": true,
+      "section": "A",
+      "kind": "coast",
+      "setting": "10kmh",
+      "pass_no": 6
+    },
+    {
+      "name": "R2 A coast v10 p7",
+      "t0": 1793096463.24,
+      "t1": 1793096472.364,
+      "duration_s": 9.124000072479248,
+      "closed": true,
+      "section": "A",
+      "kind": "coast",
+      "setting": "10kmh",
+      "pass_no": 7
+    },
+    {
+      "name": "R2 A v10 p8",
+      "t0": 1793096548.117,
+      "t1": 1793096598.146,
+      "duration_s": 50.02899980545044,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "10kmh",
+      "pass_no": 8
+    },
+    {
+      "name": "R2 A v10 p9",
+      "t0": 1793096635.159,
+      "t1": 1793096682.219,
+      "duration_s": 47.06000018119812,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "10kmh",
+      "pass_no": 9
+    },
+    {
+      "name": "R2 A v10 p10",
+      "t0": 1793096841.135,
+      "t1": 1793096916.142,
+      "duration_s": 75.00699996948242,
+      "closed": true,
+      "section": "A",
+      "kind": "smooth",
+      "setting": "10kmh",
+      "pass_no": 10
+    },
+    {
+      "name": "R2 S0 still p2",
+      "t0": 1793097419.851,
+      "t1": 1793097479.851,
+      "duration_s": 60.0,
+      "closed": true,
+      "section": "S0",
+      "kind": "event",
+      "setting": "",
+      "pass_no": 2
+    }
+  ],
+  "raw": {
+    "front1": {
+      "file": "front_raw_part1.txt",
+      "format": "RAW v2",
+      "lines": 179119,
+      "lines_seen": {
+        "RAW": 179119,
+        "RAWH": 1791,
+        "RAWS": 17912
+      },
+      "lines_rejected": {
+        "RAW": 0,
+        "RAWH": 0,
+        "RAWS": 0
+      },
+      "scale_source": "RAWH",
+      "clipped_counts": 0,
+      "rate_hz": 200.0,
+      "dlpf_hz": 94.0,
+      "fw": "0.7.8",
+      "rawdrop": 0,
+      "rdfail": 0,
+      "stuck": 0,
+      "duplicates": 0,
+      "samples": 1791190,
+      "seq_gaps_samples": 0,
+      "stuck_flagged": 0,
+      "chunks": 1,
+      "filled_samples": 0,
+      "fs_measured": [
+        200.005
+      ],
+      "clock": "host receive time stamps on the raw lines"
+    },
+    "rear1": {
+      "file": "rear_raw_part1.txt",
+      "format": "RAW v2",
+      "lines": 118478,
+      "lines_seen": {
+        "RAW": 118482,
+        "RAWH": 1185,
+        "RAWS": 11847
+      },
+      "lines_rejected": {
+        "RAW": 4,
+        "RAWH": 0,
+        "RAWS": 0
+      },
+      "scale_source": "RAWH",
+      "clipped_counts": 0,
+      "rate_hz": 200.0,
+      "dlpf_hz": 94.0,
+      "fw": "0.7.9",
+      "rawdrop": 0,
+      "rdfail": 0,
+      "stuck": 1,
+      "duplicates": 0,
+      "samples": 1184780,
+      "seq_gaps_samples": 910,
+      "stuck_flagged": 1,
+      "chunks": 4,
+      "filled_samples": 0,
+      "fs_measured": [
+        200.006,
+        200.006,
+        200.006,
+        200.006
+      ],
+      "clock": "host receive time stamps on the raw lines"
+    }
+  },
+  "speed_source": "phone GNSS (RMC, 14181 fixes)",
+  "bands": {
+    "ride_hz": [
+      2.0,
+      40.0
+    ],
+    "ride_used_for": "sigma, crest, p2p, jerk, sigma^2/v, pothole detector, front-to-rear delay",
+    "wk": "ISO 2631-1 Wk (0.4 to 100 Hz analogue band limiting) on the unfiltered vertical, up to fs/2: a_w, VDV",
+    "rq4_hz": [
+      0.5,
+      80.0
+    ],
+    "rq4_used_for": "powertrain peaks, line energy share, sub-band energies, coasting against powered",
+    "rq4_sub_bands_hz": [
+      [
+        0.5,
+        4.0
+      ],
+      [
+        4.0,
+        8.0
+      ],
+      [
+        8.0,
+        16.0
+      ],
+      [
+        16.0,
+        40.0
+      ],
+      [
+        40.0,
+        80.0
+      ]
+    ]
+  },
+  "crossings": {
+    "file": null,
+    "runs": 0
+  },
+  "repeatability": {
+    "front1": {
+      "per_section": [
+        {
+          "section": "A 10kmh",
+          "metric": "a_w",
+          "n": 10,
+          "mean": 1.5750948609411357,
+          "sd": 0.6676093006678349,
+          "cv": 0.4238533927213319,
+          "cv_ci_lo": 0.22196275658072592,
+          "cv_ci_hi": 0.5057592328151926
+        },
+        {
+          "section": "A 10kmh",
+          "metric": "vdv",
+          "n": 10,
+          "mean": 6.503141112326878,
+          "sd": 3.172246918762333,
+          "cv": 0.4878022580117866,
+          "cv_ci_lo": 0.2944083890208846,
+          "cv_ci_hi": 0.5771609163304231
+        },
+        {
+          "section": "A 10kmh",
+          "metric": "sigma",
+          "n": 10,
+          "mean": 1.7384125940782489,
+          "sd": 0.7661783239637794,
+          "cv": 0.4407344531290783,
+          "cv_ci_lo": 0.24048793440341473,
+          "cv_ci_hi": 0.522887528005903
+        },
+        {
+          "section": "A 10kmh",
+          "metric": "sigma_1s_median",
+          "n": 10,
+          "mean": 1.5887510239961857,
+          "sd": 0.6759393930734466,
+          "cv": 0.4254533170170718,
+          "cv_ci_lo": 0.24111714385117947,
+          "cv_ci_hi": 0.5101054322014084
+        },
+        {
+          "section": "A 10kmh",
+          "metric": "index_sigma2_per_v",
+          "n": 10,
+          "mean": 1.5010104390372727,
+          "sd": 1.2936315926154256,
+          "cv": 0.8618405035511565,
+          "cv_ci_lo": 0.5199754304830816,
+          "cv_ci_hi": 1.10961997985515
+        },
+        {
+          "section": "A 15kmh",
+          "metric": "a_w",
+          "n": 2,
+          "mean": 1.5022437714842507,
+          "sd": 0.02257167897664521,
+          "cv": 0.015025310409071548,
+          "cv_ci_lo": 0.0,
+          "cv_ci_hi": 0.015025310409071548
+        },
+        {
+          "section": "A 15kmh",
+          "metric": "vdv",
+          "n": 2,
+          "mean": 6.001143225191825,
+          "sd": 1.3488293472942083,
+          "cv": 0.22476206560644008,
+          "cv_ci_lo": 0.0,
+          "cv_ci_hi": 0.22476206560644008
+        },
+        {
+          "section": "A 15kmh",
+          "metric": "sigma",
+          "n": 2,
+          "mean": 1.6253536725943372,
+          "sd": 0.02176899569334291,
+          "cv": 0.013393390042055241,
+          "cv_ci_lo": 0.0,
+          "cv_ci_hi": 0.013393390042055241
+        },
+        {
+          "section": "A 15kmh",
+          "metric": "sigma_1s_median",
+          "n": 2,
+          "mean": 1.4644485582834157,
+          "sd": 0.13145789161583005,
+          "cv": 0.08976613816324228,
+          "cv_ci_lo": 0.0,
+          "cv_ci_hi": 0.08976613816324228
+        },
+        {
+          "section": "A 15kmh",
+          "metric": "index_sigma2_per_v",
+          "n": 2,
+          "mean": 0.7675583490098221,
+          "sd": 0.04484734986471915,
+          "cv": 0.058428587119889776,
+          "cv_ci_lo": 0.0,
+          "cv_ci_hi": 0.058428587119889776
+        },
+        {
+          "section": "A 20kmh",
+          "metric": "a_w",
+          "n": 1,
+          "mean": 2.4044323977315476,
+          "sd": null,
+          "cv": null,
+          "cv_ci_lo": null,
+          "cv_ci_hi": null
+        },
+        {
+          "section": "A 20kmh",
+          "metric": "vdv",
+          "n": 1,
+          "mean": 9.213367030670437,
+          "sd": null,
+          "cv": null,
+          "cv_ci_lo": null,
+          "cv_ci_hi": null
+        },
+        {
+          "section": "A 20kmh",
+          "metric": "sigma",
+          "n": 1,
+          "mean": 2.59932616283453,
+          "sd": null,
+          "cv": null,
+          "cv_ci_lo": null,
+          "cv_ci_hi": null
+        },
+        {
+          "section": "A 20kmh",
+          "metric": "sigma_1s_median",
+          "n": 1,
+          "mean": 2.221617480941256,
+          "sd": null,
+          "cv": null,
+          "cv_ci_lo": null,
+          "cv_ci_hi": null
+        },
+        {
+          "section": "A 20kmh",
+          "metric": "index_sigma2_per_v",
+          "n": 1,
+          "mean": 1.352800991167044,
+          "sd": null,
+          "cv": null,
+          "cv_ci_lo": null,
+          "cv_ci_hi": null
+        }
+      ],
+      "icc": {
+        "a_w": {
+          "n_sections": 3,
+          "k_passes": 0,
+          "icc2_1": null,
+          "icc2_1_ci": [
+            null,
+            null
+          ],
+          "icc3_1": null,
+          "icc3_1_ci": [
+            null,
+            null
+          ],
+          "passes_used": [],
+          "status": "n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only"
+        },
+        "vdv": {
+          "n_sections": 3,
+          "k_passes": 0,
+          "icc2_1": null,
+          "icc2_1_ci": [
+            null,
+            null
+          ],
+          "icc3_1": null,
+          "icc3_1_ci": [
+            null,
+            null
+          ],
+          "passes_used": [],
+          "status": "n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only"
+        },
+        "sigma": {
+          "n_sections": 3,
+          "k_passes": 0,
+          "icc2_1": null,
+          "icc2_1_ci": [
+            null,
+            null
+          ],
+          "icc3_1": null,
+          "icc3_1_ci": [
+            null,
+            null
+          ],
+          "passes_used": [],
+          "status": "n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only"
+        },
+        "sigma_1s_median": {
+          "n_sections": 3,
+          "k_passes": 0,
+          "icc2_1": null,
+          "icc2_1_ci": [
+            null,
+            null
+          ],
+          "icc3_1": null,
+          "icc3_1_ci": [
+            null,
+            null
+          ],
+          "passes_used": [],
+          "status": "n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only"
+        },
+        "index_sigma2_per_v": {
+          "n_sections": 3,
+          "k_passes": 0,
+          "icc2_1": null,
+          "icc2_1_ci": [
+            null,
+            null
+          ],
+          "icc3_1": null,
+          "icc3_1_ci": [
+            null,
+            null
+          ],
+          "passes_used": [],
+          "status": "n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only"
+        }
+      },
+      "bins": [
+        {
+          "group": "A 10kmh",
+          "metric": "a_w",
+          "bins_method": "23 bins of 5 m by integrated speed from the start marker; 24 bins of 5 m by integrated speed from the start marker; 25 bins of 5 m by integrated speed from the start marker; 29 bins of 5 m by integrated speed from the start marker; 31 bins of 5 m by integrated speed from the start marker; 33 bins of 5 m by integrated speed from the start marker; 43 bins of 5 m by integrated speed from the start marker; 48 bins of 5 m by integrated speed from the start marker; 8 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 8,
+          "bins_per_pass": 8,
+          "k_passes": 10,
+          "ICC(2,1)": 0.002327896584431732,
+          "ICC(2,1) CI": [
+            -0.02279528748809258,
+            0.11973923653964819
+          ],
+          "ICC(3,1)": 0.005962737910423733,
+          "ICC(3,1) CI": [
+            -0.06104306858824551,
+            0.25948105712417446
+          ],
+          "status": "ICC(2,1) with McGraw and Wong CI; neighbouring bins are not independent, so the CI is optimistic"
+        },
+        {
+          "group": "A 15kmh",
+          "metric": "a_w",
+          "bins_method": "25 bins of 5 m by integrated speed from the start marker; 64 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 25,
+          "bins_per_pass": 25,
+          "k_passes": 2,
+          "ICC(2,1)": null,
+          "ICC(2,1) CI": [
+            null,
+            null
+          ],
+          "ICC(3,1)": null,
+          "ICC(3,1) CI": [
+            null,
+            null
+          ],
+          "status": "n too small for an ICC (rows 25, passes 2; needs at least 5 rows and 3 passes): CV only"
+        },
+        {
+          "group": "A 20kmh",
+          "metric": "a_w",
+          "bins_method": "32 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 32,
+          "bins_per_pass": 32,
+          "k_passes": 1,
+          "ICC(2,1)": null,
+          "ICC(2,1) CI": [
+            null,
+            null
+          ],
+          "ICC(3,1)": null,
+          "ICC(3,1) CI": [
+            null,
+            null
+          ],
+          "status": "n too small for an ICC (rows 32, passes 1; needs at least 5 rows and 3 passes): CV only"
+        },
+        {
+          "group": "A 10kmh",
+          "metric": "sigma",
+          "bins_method": "23 bins of 5 m by integrated speed from the start marker; 24 bins of 5 m by integrated speed from the start marker; 25 bins of 5 m by integrated speed from the start marker; 29 bins of 5 m by integrated speed from the start marker; 31 bins of 5 m by integrated speed from the start marker; 33 bins of 5 m by integrated speed from the start marker; 43 bins of 5 m by integrated speed from the start marker; 48 bins of 5 m by integrated speed from the start marker; 8 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 8,
+          "bins_per_pass": 8,
+          "k_passes": 10,
+          "ICC(2,1)": -0.0023601097704779197,
+          "ICC(2,1) CI": [
+            -0.022582501414363222,
+            0.09442864114465258
+          ],
+          "ICC(3,1)": -0.006763904387431359,
+          "ICC(3,1) CI": [
+            -0.06681038998016824,
+            0.2286140689636448
+          ],
+          "status": "ICC(2,1) with McGraw and Wong CI; neighbouring bins are not independent, so the CI is optimistic"
+        },
+        {
+          "group": "A 15kmh",
+          "metric": "sigma",
+          "bins_method": "25 bins of 5 m by integrated speed from the start marker; 64 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 25,
+          "bins_per_pass": 25,
+          "k_passes": 2,
+          "ICC(2,1)": null,
+          "ICC(2,1) CI": [
+            null,
+            null
+          ],
+          "ICC(3,1)": null,
+          "ICC(3,1) CI": [
+            null,
+            null
+          ],
+          "status": "n too small for an ICC (rows 25, passes 2; needs at least 5 rows and 3 passes): CV only"
+        },
+        {
+          "group": "A 20kmh",
+          "metric": "sigma",
+          "bins_method": "32 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 32,
+          "bins_per_pass": 32,
+          "k_passes": 1,
+          "ICC(2,1)": null,
+          "ICC(2,1) CI": [
+            null,
+            null
+          ],
+          "ICC(3,1)": null,
+          "ICC(3,1) CI": [
+            null,
+            null
+          ],
+          "status": "n too small for an ICC (rows 32, passes 1; needs at least 5 rows and 3 passes): CV only"
+        }
+      ]
+    },
+    "rear1": {
+      "per_section": [
+        {
+          "section": "A 10kmh",
+          "metric": "a_w",
+          "n": 10,
+          "mean": 2.4776578845208403,
+          "sd": 1.0752970561567334,
+          "cv": 0.433997390388176,
+          "cv_ci_lo": 0.2413452715245799,
+          "cv_ci_hi": 0.5041876864977959
+        },
+        {
+          "section": "A 10kmh",
+          "metric": "vdv",
+          "n": 10,
+          "mean": 10.424250609886997,
+          "sd": 4.93991094823205,
+          "cv": 0.4738864339607047,
+          "cv_ci_lo": 0.3121306274301291,
+          "cv_ci_hi": 0.5510128867361368
+        },
+        {
+          "section": "A 10kmh",
+          "metric": "sigma",
+          "n": 10,
+          "mean": 2.441600656493871,
+          "sd": 1.072258165191712,
+          "cv": 0.4391619744776243,
+          "cv_ci_lo": 0.25073629349950854,
+          "cv_ci_hi": 0.510005442056529
+        },
+        {
+          "section": "A 10kmh",
+          "metric": "sigma_1s_median",
+          "n": 10,
+          "mean": 2.0556032181764676,
+          "sd": 0.955744244363093,
+          "cv": 0.4649458786170499,
+          "cv_ci_lo": 0.25620891188535716,
+          "cv_ci_hi": 0.5516719149367132
+        },
+        {
+          "section": "A 10kmh",
+          "metric": "index_sigma2_per_v",
+          "n": 10,
+          "mean": 2.9820203649842534,
+          "sd": 2.5552257306352377,
+          "cv": 0.8568773575926705,
+          "cv_ci_lo": 0.5314311860503772,
+          "cv_ci_hi": 1.0964207340297112
+        },
+        {
+          "section": "A 15kmh",
+          "metric": "a_w",
+          "n": 2,
+          "mean": 2.4057453790567314,
+          "sd": 0.027686620034280223,
+          "cv": 0.01150854129256849,
+          "cv_ci_lo": 0.0,
+          "cv_ci_hi": 0.01150854129256849
+        },
+        {
+          "section": "A 15kmh",
+          "metric": "vdv",
+          "n": 2,
+          "mean": 9.946567549949721,
+          "sd": 2.4778665152513746,
+          "cv": 0.24911774869149708,
+          "cv_ci_lo": 0.0,
+          "cv_ci_hi": 0.24911774869149708
+        },
+        {
+          "section": "A 15kmh",
+          "metric": "sigma",
+          "n": 2,
+          "mean": 2.351339334829553,
+          "sd": 0.031441697918882704,
+          "cv": 0.013371824922565629,
+          "cv_ci_lo": 0.0,
+          "cv_ci_hi": 0.013371824922565629
+        },
+        {
+          "section": "A 15kmh",
+          "metric": "sigma_1s_median",
+          "n": 2,
+          "mean": 1.9702883140047853,
+          "sd": 0.05960382472987321,
+          "cv": 0.030251321243804752,
+          "cv_ci_lo": 0.0,
+          "cv_ci_hi": 0.030251321243804752
+        },
+        {
+          "section": "A 15kmh",
+          "metric": "index_sigma2_per_v",
+          "n": 2,
+          "mean": 1.5887511985723664,
+          "sd": 0.06253475293583831,
+          "cv": 0.03936094776326924,
+          "cv_ci_lo": 0.0,
+          "cv_ci_hi": 0.03936094776326924
+        },
+        {
+          "section": "A 20kmh",
+          "metric": "a_w",
+          "n": 1,
+          "mean": 3.5908334711052454,
+          "sd": null,
+          "cv": null,
+          "cv_ci_lo": null,
+          "cv_ci_hi": null
+        },
+        {
+          "section": "A 20kmh",
+          "metric": "vdv",
+          "n": 1,
+          "mean": 12.415022101714749,
+          "sd": null,
+          "cv": null,
+          "cv_ci_lo": null,
+          "cv_ci_hi": null
+        },
+        {
+          "section": "A 20kmh",
+          "metric": "sigma",
+          "n": 1,
+          "mean": 3.52714741915337,
+          "sd": null,
+          "cv": null,
+          "cv_ci_lo": null,
+          "cv_ci_hi": null
+        },
+        {
+          "section": "A 20kmh",
+          "metric": "sigma_1s_median",
+          "n": 1,
+          "mean": 2.5618138074036745,
+          "sd": null,
+          "cv": null,
+          "cv_ci_lo": null,
+          "cv_ci_hi": null
+        },
+        {
+          "section": "A 20kmh",
+          "metric": "index_sigma2_per_v",
+          "n": 1,
+          "mean": 2.4407861119781136,
+          "sd": null,
+          "cv": null,
+          "cv_ci_lo": null,
+          "cv_ci_hi": null
+        }
+      ],
+      "icc": {
+        "a_w": {
+          "n_sections": 3,
+          "k_passes": 0,
+          "icc2_1": null,
+          "icc2_1_ci": [
+            null,
+            null
+          ],
+          "icc3_1": null,
+          "icc3_1_ci": [
+            null,
+            null
+          ],
+          "passes_used": [],
+          "status": "n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only"
+        },
+        "vdv": {
+          "n_sections": 3,
+          "k_passes": 0,
+          "icc2_1": null,
+          "icc2_1_ci": [
+            null,
+            null
+          ],
+          "icc3_1": null,
+          "icc3_1_ci": [
+            null,
+            null
+          ],
+          "passes_used": [],
+          "status": "n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only"
+        },
+        "sigma": {
+          "n_sections": 3,
+          "k_passes": 0,
+          "icc2_1": null,
+          "icc2_1_ci": [
+            null,
+            null
+          ],
+          "icc3_1": null,
+          "icc3_1_ci": [
+            null,
+            null
+          ],
+          "passes_used": [],
+          "status": "n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only"
+        },
+        "sigma_1s_median": {
+          "n_sections": 3,
+          "k_passes": 0,
+          "icc2_1": null,
+          "icc2_1_ci": [
+            null,
+            null
+          ],
+          "icc3_1": null,
+          "icc3_1_ci": [
+            null,
+            null
+          ],
+          "passes_used": [],
+          "status": "n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only"
+        },
+        "index_sigma2_per_v": {
+          "n_sections": 3,
+          "k_passes": 0,
+          "icc2_1": null,
+          "icc2_1_ci": [
+            null,
+            null
+          ],
+          "icc3_1": null,
+          "icc3_1_ci": [
+            null,
+            null
+          ],
+          "passes_used": [],
+          "status": "n too small for an ICC with sections as rows (3 section(s); needs at least 5): CV only"
+        }
+      },
+      "bins": [
+        {
+          "group": "A 10kmh",
+          "metric": "a_w",
+          "bins_method": "23 bins of 5 m by integrated speed from the start marker; 24 bins of 5 m by integrated speed from the start marker; 25 bins of 5 m by integrated speed from the start marker; 29 bins of 5 m by integrated speed from the start marker; 31 bins of 5 m by integrated speed from the start marker; 33 bins of 5 m by integrated speed from the start marker; 43 bins of 5 m by integrated speed from the start marker; 48 bins of 5 m by integrated speed from the start marker; 8 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 8,
+          "bins_per_pass": 8,
+          "k_passes": 10,
+          "ICC(2,1)": 0.006737360563293589,
+          "ICC(2,1) CI": [
+            -0.021756348753508528,
+            0.13752668112297523
+          ],
+          "ICC(3,1)": 0.016519068123513874,
+          "ICC(3,1) CI": [
+            -0.056194743412097486,
+            0.2838147886450166
+          ],
+          "status": "ICC(2,1) with McGraw and Wong CI; neighbouring bins are not independent, so the CI is optimistic"
+        },
+        {
+          "group": "A 15kmh",
+          "metric": "a_w",
+          "bins_method": "25 bins of 5 m by integrated speed from the start marker; 64 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 25,
+          "bins_per_pass": 25,
+          "k_passes": 2,
+          "ICC(2,1)": null,
+          "ICC(2,1) CI": [
+            null,
+            null
+          ],
+          "ICC(3,1)": null,
+          "ICC(3,1) CI": [
+            null,
+            null
+          ],
+          "status": "n too small for an ICC (rows 25, passes 2; needs at least 5 rows and 3 passes): CV only"
+        },
+        {
+          "group": "A 20kmh",
+          "metric": "a_w",
+          "bins_method": "32 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 29,
+          "bins_per_pass": 32,
+          "k_passes": 1,
+          "ICC(2,1)": null,
+          "ICC(2,1) CI": [
+            null,
+            null
+          ],
+          "ICC(3,1)": null,
+          "ICC(3,1) CI": [
+            null,
+            null
+          ],
+          "status": "n too small for an ICC (rows 29, passes 1; needs at least 5 rows and 3 passes): CV only"
+        },
+        {
+          "group": "A 10kmh",
+          "metric": "sigma",
+          "bins_method": "23 bins of 5 m by integrated speed from the start marker; 24 bins of 5 m by integrated speed from the start marker; 25 bins of 5 m by integrated speed from the start marker; 29 bins of 5 m by integrated speed from the start marker; 31 bins of 5 m by integrated speed from the start marker; 33 bins of 5 m by integrated speed from the start marker; 43 bins of 5 m by integrated speed from the start marker; 48 bins of 5 m by integrated speed from the start marker; 8 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 8,
+          "bins_per_pass": 8,
+          "k_passes": 10,
+          "ICC(2,1)": 0.0055687778311356816,
+          "ICC(2,1) CI": [
+            -0.021275112324094517,
+            0.1299127428685891
+          ],
+          "ICC(3,1)": 0.01423133212136997,
+          "ICC(3,1) CI": [
+            -0.05725048399011653,
+            0.27863456556989136
+          ],
+          "status": "ICC(2,1) with McGraw and Wong CI; neighbouring bins are not independent, so the CI is optimistic"
+        },
+        {
+          "group": "A 15kmh",
+          "metric": "sigma",
+          "bins_method": "25 bins of 5 m by integrated speed from the start marker; 64 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 25,
+          "bins_per_pass": 25,
+          "k_passes": 2,
+          "ICC(2,1)": null,
+          "ICC(2,1) CI": [
+            null,
+            null
+          ],
+          "ICC(3,1)": null,
+          "ICC(3,1) CI": [
+            null,
+            null
+          ],
+          "status": "n too small for an ICC (rows 25, passes 2; needs at least 5 rows and 3 passes): CV only"
+        },
+        {
+          "group": "A 20kmh",
+          "metric": "sigma",
+          "bins_method": "32 bins of 5 m by integrated speed from the start marker",
+          "n_rows": 29,
+          "bins_per_pass": 32,
+          "k_passes": 1,
+          "ICC(2,1)": null,
+          "ICC(2,1) CI": [
+            null,
+            null
+          ],
+          "ICC(3,1)": null,
+          "ICC(3,1) CI": [
+            null,
+            null
+          ],
+          "status": "n too small for an ICC (rows 29, passes 1; needs at least 5 rows and 3 passes): CV only"
+        }
+      ]
+    }
+  },
+  "delay": [
+    {
+      "run": "R2 A v10 p1",
+      "t0": 1793093860.156,
+      "t1": 1793093947.194,
+      "overlap_s": 87.04,
+      "delay_s": 0.08808720865984712,
+      "corr": 0.424519714523056,
+      "windows": 33,
+      "windows_used": 27,
+      "delay_median_s": 0.08735337124073685,
+      "delay_ci_lo": 0.08582976196841699,
+      "delay_ci_hi": 0.09035267397625311,
+      "delay_window_sd_s": 0.005831246710321747
+    },
+    {
+      "run": "R2 A v10 p2",
+      "t0": 1793093955.29,
+      "t1": 1793094015.146,
+      "overlap_s": 59.86,
+      "delay_s": 0.0892727727118344,
+      "corr": 0.4169527219037828,
+      "windows": 22,
+      "windows_used": 16,
+      "delay_median_s": 0.08890143202804657,
+      "delay_ci_lo": 0.0884559279781606,
+      "delay_ci_hi": 0.09181147265496913,
+      "delay_window_sd_s": 0.004511547875520586
+    },
+    {
+      "run": "R2 A v10 p3",
+      "t0": 1793094330.139,
+      "t1": 1793094373.132,
+      "overlap_s": 42.995,
+      "delay_s": 0.08563873999310445,
+      "corr": 0.4315219241967153,
+      "windows": 16,
+      "windows_used": 14,
+      "delay_median_s": 0.08589278568969881,
+      "delay_ci_lo": 0.08324277838513502,
+      "delay_ci_hi": 0.10405830489162468,
+      "delay_window_sd_s": 0.060233163633076126
+    },
+    {
+      "run": "R2 A coast v10 p4",
+      "t0": 1793094855.136,
+      "t1": 1793094884.151,
+      "overlap_s": 29.02,
+      "delay_s": 0.08696957866579011,
+      "corr": 0.44279729177238064,
+      "windows": 10,
+      "windows_used": 8,
+      "delay_median_s": 0.08715335144366901,
+      "delay_ci_lo": 0.08460185180514042,
+      "delay_ci_hi": 0.09634297927887815,
+      "delay_window_sd_s": 0.006364068550779856
+    },
+    {
+      "run": "R2 A v10 p4",
+      "t0": 1793095174.116,
+      "t1": 1793095219.236,
+      "overlap_s": 45.125,
+      "delay_s": 0.08771073721680234,
+      "corr": 0.533656627066352,
+      "windows": 17,
+      "windows_used": 17,
+      "delay_median_s": 0.08805215154202856,
+      "delay_ci_lo": 0.0866365936271985,
+      "delay_ci_hi": 0.08921798162590389,
+      "delay_window_sd_s": 0.0028904608581280305
+    },
+    {
+      "run": "R2 A v15 p2",
+      "t0": 1793095262.168,
+      "t1": 1793095355.126,
+      "overlap_s": 92.96,
+      "delay_s": 0.0854904603792643,
+      "corr": 0.4643886877684076,
+      "windows": 36,
+      "windows_used": 33,
+      "delay_median_s": 0.0855860896346294,
+      "delay_ci_lo": 0.0822116950713447,
+      "delay_ci_hi": 0.08815738020265292,
+      "delay_window_sd_s": 0.033680612148734745
+    },
+    {
+      "run": "R2 A v10 p5",
+      "t0": 1793095443.133,
+      "t1": 1793095494.131,
+      "overlap_s": 51.0,
+      "delay_s": 0.0860535089326336,
+      "corr": 0.4015116693966865,
+      "windows": 19,
+      "windows_used": 15,
+      "delay_median_s": 0.08637705788339847,
+      "delay_ci_lo": 0.08339877568703641,
+      "delay_ci_hi": 0.08831042664168458,
+      "delay_window_sd_s": 0.005076163010683066
+    },
+    {
+      "run": "R2 A v15 p3",
+      "t0": 1793095527.148,
+      "t1": 1793095562.128,
+      "overlap_s": 34.985,
+      "delay_s": 0.0890906088901618,
+      "corr": 0.43803202898802995,
+      "windows": 12,
+      "windows_used": 12,
+      "delay_median_s": 0.08896349843685458,
+      "delay_ci_lo": 0.0829540233703725,
+      "delay_ci_hi": 0.09429287483568727,
+      "delay_window_sd_s": 0.007005682600699645
+    },
+    {
+      "run": "R2 A v20 p1",
+      "t0": 1793095591.135,
+      "t1": 1793095624.134,
+      "overlap_s": 30.845,
+      "delay_s": 0.08846366011346199,
+      "corr": 0.47421839393130416,
+      "windows": 10,
+      "windows_used": 10,
+      "delay_median_s": 0.08462414441994588,
+      "delay_ci_lo": 0.08294962516777121,
+      "delay_ci_hi": 0.08995545998910998,
+      "delay_window_sd_s": 0.005043298887673916
+    },
+    {
+      "run": "R2 A v10 p6",
+      "t0": 1793096030.156,
+      "t1": 1793096047.865,
+      "overlap_s": 17.71,
+      "delay_s": 0.0859257929813533,
+      "corr": 0.44832769775968256,
+      "windows": 6,
+      "windows_used": 6,
+      "delay_median_s": 0.08610820770003748,
+      "delay_ci_lo": 0.07254313241695359,
+      "delay_ci_hi": 0.16955861522553126,
+      "delay_window_sd_s": 0.06803722746908998
+    },
+    {
+      "run": "R2 A v10 p7",
+      "t0": 1793096130.168,
+      "t1": 1793096256.126,
+      "overlap_s": 125.96,
+      "delay_s": 0.09157017788439692,
+      "corr": 0.46961546295797096,
+      "windows": 49,
+      "windows_used": 39,
+      "delay_median_s": 0.09069491053528388,
+      "delay_ci_lo": 0.08909712348579493,
+      "delay_ci_hi": 0.09406561679430014,
+      "delay_window_sd_s": 0.029765420096729178
+    },
+    {
+      "run": "R2 A coast v10 p6",
+      "t0": 1793096289.126,
+      "t1": 1793096326.204,
+      "overlap_s": 37.08,
+      "delay_s": 0.0928478559253135,
+      "corr": 0.4686665887126782,
+      "windows": 13,
+      "windows_used": 12,
+      "delay_median_s": 0.09196553182332057,
+      "delay_ci_lo": 0.09002123048957254,
+      "delay_ci_hi": 0.0977577106684981,
+      "delay_window_sd_s": 0.007512720865182194
+    },
+    {
+      "run": "R2 A coast v10 p7",
+      "t0": 1793096463.24,
+      "t1": 1793096472.364,
+      "overlap_s": 9.125,
+      "delay_s": 0.09186316058135834,
+      "corr": 0.4967844713294517,
+      "windows": 2,
+      "windows_used": 2,
+      "delay_median_s": null,
+      "delay_ci_lo": null,
+      "delay_ci_hi": null
+    },
+    {
+      "run": "R2 A v10 p8",
+      "t0": 1793096548.117,
+      "t1": 1793096598.146,
+      "overlap_s": 50.03,
+      "delay_s": 0.09087377110091815,
+      "corr": 0.45002437966521236,
+      "windows": 19,
+      "windows_used": 16,
+      "delay_median_s": 0.09001262730225826,
+      "delay_ci_lo": 0.08802251838546432,
+      "delay_ci_hi": 0.0955246026761691,
+      "delay_window_sd_s": 0.04725968262107801
+    },
+    {
+      "run": "R2 A v10 p9",
+      "t0": 1793096635.159,
+      "t1": 1793096682.219,
+      "overlap_s": 47.065,
+      "delay_s": 0.08772253552884333,
+      "corr": 0.4537049660725559,
+      "windows": 17,
+      "windows_used": 17,
+      "delay_median_s": 0.08970725945434267,
+      "delay_ci_lo": 0.08293040742267718,
+      "delay_ci_hi": 0.093177435701888,
+      "delay_window_sd_s": 0.0077970507094892155
+    },
+    {
+      "run": "R2 A v10 p10",
+      "t0": 1793096841.135,
+      "t1": 1793096916.142,
+      "overlap_s": 75.01,
+      "delay_s": 0.10068814577883557,
+      "corr": 0.37138793574450757,
+      "windows": 29,
+      "windows_used": 21,
+      "delay_median_s": 0.10166904509714289,
+      "delay_ci_lo": 0.09642402427234426,
+      "delay_ci_hi": 0.10525588531057924,
+      "delay_window_sd_s": 0.008371751136448698
+    }
+  ],
+  "powertrain": {
+    "stream": "rear1",
+    "band_hz": [
+      0.5,
+      80.0
+    ],
+    "peaks": {},
+    "lines_hz": [],
+    "fixed_lines_hz": [
+      42.75,
+      49.0,
+      64.0
+    ],
+    "fixed_lines_source": "stand runs of 23 Oct (config pt_stand_lines_hz)",
+    "orders": [],
+    "orders_source": "none (no pt_orders and no stand wheel rate)",
+    "ratios": [
+      {
+        "pass": "R2 A v10 p1",
+        "band_hz": "0.5-80",
+        "band_energy": 3.525791070443952,
+        "line_energy": 0.08296397789870363,
+        "line_share": 0.023530599584920153,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.13245520281980908,
+        "share_0.5-4": 0.03756751326820137,
+        "E_4-8": 2.279878762230821,
+        "share_4-8": 0.6466290023089056,
+        "E_8-16": 0.30267330578309687,
+        "share_8-16": 0.08584550239529241,
+        "E_16-40": 0.13056185147290755,
+        "share_16-40": 0.037030512830831974,
+        "E_40-80": 0.5827354744533092,
+        "share_40-80": 0.16527793701058235,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 2.4737386238149166,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v10 p2",
+        "band_hz": "0.5-80",
+        "band_energy": 3.8991972408251407,
+        "line_energy": 0.12209888834619519,
+        "line_share": 0.03131385277661841,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.1445521787921083,
+        "share_0.5-4": 0.03707229202940204,
+        "E_4-8": 2.5186201007945574,
+        "share_4-8": 0.6459329819031088,
+        "E_8-16": 0.3475383538528289,
+        "share_8-16": 0.08913074471177136,
+        "E_16-40": 0.14410982420815918,
+        "share_16-40": 0.036958844425542044,
+        "E_40-80": 0.6701103653081324,
+        "share_40-80": 0.17185854521335395,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 2.8293286816110603,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v10 p3",
+        "band_hz": "0.5-80",
+        "band_energy": 3.217094042703863,
+        "line_energy": 0.06149948221550874,
+        "line_share": 0.01911647014329131,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.12185604265313457,
+        "share_0.5-4": 0.03787767501838974,
+        "E_4-8": 2.261690139830076,
+        "share_4-8": 0.703022699929903,
+        "E_8-16": 0.27734922041456633,
+        "share_8-16": 0.08621110130229931,
+        "E_16-40": 0.1367002491191408,
+        "share_16-40": 0.04249184117858385,
+        "E_40-80": 0.33204235597935666,
+        "share_40-80": 0.10321188985208708,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 2.706794440388819,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A coast v10 p4",
+        "band_hz": "0.5-80",
+        "band_energy": 3.653193976223372,
+        "line_energy": 0.05406283677795248,
+        "line_share": 0.014798786248367243,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.12333684649250973,
+        "share_0.5-4": 0.03376137355290777,
+        "E_4-8": 2.7024557899530914,
+        "share_4-8": 0.7397515181350589,
+        "E_8-16": 0.3070592597427619,
+        "share_8-16": 0.0840522736381483,
+        "E_16-40": 0.13592173935546872,
+        "share_16-40": 0.03720627490357985,
+        "E_40-80": 0.30775528114344447,
+        "share_40-80": 0.08424279771248232,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 2.5939343652199027,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v10 p4",
+        "band_hz": "0.5-80",
+        "band_energy": 4.12148089245972,
+        "line_energy": 0.08782837059440976,
+        "line_share": 0.021309906047385155,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.14667825579551233,
+        "share_0.5-4": 0.035588726388095425,
+        "E_4-8": 2.902578998948322,
+        "share_4-8": 0.7042563279278115,
+        "E_8-16": 0.23413105223122488,
+        "share_8-16": 0.0568075064134276,
+        "E_16-40": 0.1177230319702793,
+        "share_16-40": 0.028563284664416242,
+        "E_40-80": 0.6512102278860872,
+        "share_40-80": 0.158003941999945,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 2.8785585815090466,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v15 p2",
+        "band_hz": "0.5-80",
+        "band_energy": 6.207390067193591,
+        "line_energy": 0.09557948622306216,
+        "line_share": 0.015397692941548037,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.16259177166257954,
+        "share_0.5-4": 0.026193258342485398,
+        "E_4-8": 4.475333632333723,
+        "share_4-8": 0.7209686492856499,
+        "E_8-16": 0.6091909281554431,
+        "share_8-16": 0.09813962415138879,
+        "E_16-40": 0.2342404097086863,
+        "share_16-40": 0.03773573227605917,
+        "E_40-80": 0.5953857057267259,
+        "share_40-80": 0.0959156262586708,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 3.483935986879197,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v10 p5",
+        "band_hz": "0.5-80",
+        "band_energy": 3.8271930907475142,
+        "line_energy": 0.06899855749436437,
+        "line_share": 0.018028501791867473,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.132466473674001,
+        "share_0.5-4": 0.03461191283874525,
+        "E_4-8": 2.577346592557731,
+        "share_4-8": 0.6734299867933583,
+        "E_8-16": 0.37388149484239264,
+        "share_8-16": 0.09769078433650898,
+        "E_16-40": 0.12214544761468323,
+        "share_16-40": 0.03191515157935922,
+        "E_40-80": 0.5239567881244898,
+        "share_40-80": 0.13690367214321875,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 3.057261564549195,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v15 p3",
+        "band_hz": "0.5-80",
+        "band_energy": 6.554477366890184,
+        "line_energy": 0.08714100061836119,
+        "line_share": 0.013294881611545762,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.19395767740448752,
+        "share_0.5-4": 0.029591631269376407,
+        "E_4-8": 4.876162135851432,
+        "share_4-8": 0.7439436987734935,
+        "E_8-16": 0.5923217077814557,
+        "share_8-16": 0.09036902175809734,
+        "E_16-40": 0.1825819026796467,
+        "share_16-40": 0.02785605815071628,
+        "E_40-80": 0.5253914100602958,
+        "share_40-80": 0.08015763586495855,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 3.6794913035198866,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v20 p1",
+        "band_hz": "0.5-80",
+        "band_energy": 15.140136143137227,
+        "line_energy": 0.13394930801614546,
+        "line_share": 0.008847298779203018,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.3903745401912938,
+        "share_0.5-4": 0.025784083874849706,
+        "E_4-8": 11.4530213171535,
+        "share_4-8": 0.756467525052274,
+        "E_8-16": 1.5036591791794602,
+        "share_8-16": 0.09931609365752263,
+        "E_16-40": 0.6488343566468948,
+        "share_16-40": 0.042855252456960286,
+        "E_40-80": 0.8744950290542148,
+        "share_40-80": 0.057760050556124556,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 4.9480259593241085,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v10 p6",
+        "band_hz": "0.5-80",
+        "band_energy": 2.7706604169455367,
+        "line_energy": 0.06694289859478068,
+        "line_share": 0.024161350913072432,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.09644248820451798,
+        "share_0.5-4": 0.03480848378771702,
+        "E_4-8": 1.9820861984425988,
+        "share_4-8": 0.7153840240832231,
+        "E_8-16": 0.20784140012784977,
+        "share_8-16": 0.07501511150795617,
+        "E_16-40": 0.08665139845458894,
+        "share_16-40": 0.0312746368788551,
+        "E_40-80": 0.3368475428081993,
+        "share_40-80": 0.12157662510642521,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 2.306298877647045,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v10 p7",
+        "band_hz": "0.5-80",
+        "band_energy": 10.379954324024506,
+        "line_energy": 0.16310656328152204,
+        "line_share": 0.015713610887863955,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.4160542048354813,
+        "share_0.5-4": 0.04008246971496972,
+        "E_4-8": 7.626245214077993,
+        "share_4-8": 0.734708937632507,
+        "E_8-16": 0.7317085585049149,
+        "share_8-16": 0.07049246419238746,
+        "E_16-40": 0.5252389156416949,
+        "share_16-40": 0.05060127426823298,
+        "E_40-80": 0.8824779181548095,
+        "share_40-80": 0.08501751458696746,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 1.9241054376398627,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A coast v10 p6",
+        "band_hz": "0.5-80",
+        "band_energy": 19.332457099858345,
+        "line_energy": 0.24353362793575314,
+        "line_share": 0.012597137894982713,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.7052875452676537,
+        "share_0.5-4": 0.03648204372701396,
+        "E_4-8": 14.410169361069695,
+        "share_4-8": 0.7453873704018349,
+        "E_8-16": 1.1890561455830204,
+        "share_8-16": 0.06150569166873946,
+        "E_16-40": 1.3516097803045102,
+        "share_16-40": 0.06991401937803415,
+        "E_40-80": 1.264307804051152,
+        "share_40-80": 0.06539819524857064,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 2.8306524494525585,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A coast v10 p7",
+        "band_hz": "0.5-80",
+        "band_energy": 3.738766813818702,
+        "line_energy": 0.016512602578780698,
+        "line_share": 0.004416590657044764,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.09188001700381117,
+        "share_0.5-4": 0.024574952538954083,
+        "E_4-8": 3.1489151806571947,
+        "share_4-8": 0.8422336394499436,
+        "E_8-16": 0.3200851432063092,
+        "share_8-16": 0.08561249180431786,
+        "E_16-40": 0.08032869216131738,
+        "share_16-40": 0.02148534427566272,
+        "E_40-80": 0.06541007887218139,
+        "share_40-80": 0.017495094540376763,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 2.298433459172279,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v10 p8",
+        "band_hz": "0.5-80",
+        "band_energy": 17.86421849343405,
+        "line_energy": 0.2715424009826609,
+        "line_share": 0.015200351534127602,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.7348351684424173,
+        "share_0.5-4": 0.04113447048985122,
+        "E_4-8": 13.105396219613427,
+        "share_4-8": 0.7336115052796899,
+        "E_8-16": 1.0872463508706327,
+        "share_8-16": 0.06086168008246471,
+        "E_16-40": 1.1469026589425664,
+        "share_16-40": 0.06420111013331525,
+        "E_40-80": 1.4472633815199107,
+        "share_40-80": 0.08101464847465054,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 2.5124600119811475,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v10 p9",
+        "band_hz": "0.5-80",
+        "band_energy": 21.82325849345007,
+        "line_energy": 0.2275463924097853,
+        "line_share": 0.010426783538218182,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.8359979499459708,
+        "share_0.5-4": 0.03830765924331984,
+        "E_4-8": 16.544107307215043,
+        "share_4-8": 0.7580951906050379,
+        "E_8-16": 1.491927254398221,
+        "share_8-16": 0.06836409213802792,
+        "E_16-40": 1.1966640924781924,
+        "share_16-40": 0.054834345331030813,
+        "E_40-80": 1.36536286257253,
+        "share_40-80": 0.06256457361682828,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 2.6457242971637873,
+        "speed_source": "GNSS"
+      },
+      {
+        "pass": "R2 A v10 p10",
+        "band_hz": "0.5-80",
+        "band_energy": 10.20832489497763,
+        "line_energy": 0.2352776531216467,
+        "line_share": 0.023047625887906487,
+        "lines_hz": [
+          42.75,
+          49.0,
+          64.0
+        ],
+        "line_halfwidth_hz": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "E_0.5-4": 0.5210146794335639,
+        "share_0.5-4": 0.05103821486813147,
+        "E_4-8": 6.615344780557091,
+        "share_4-8": 0.648034310096435,
+        "E_8-16": 0.9024863107945306,
+        "share_8-16": 0.08840689536032915,
+        "E_16-40": 0.694528302371831,
+        "share_16-40": 0.0680354817775765,
+        "E_40-80": 1.2102345895981896,
+        "share_40-80": 0.11855369044862689,
+        "line_method": "fixed stand lines +-1 Hz (no orders, no wheel circumference; valid only near the stand wheel speed)",
+        "speed_mps": 1.9764047197681824,
+        "speed_source": "GNSS"
+      }
+    ],
+    "coast_vs_powered": [
+      {
+        "coast_pass": "R2 A coast v10 p4",
+        "section": "A",
+        "speed_mps": 2.5939343652199027,
+        "match_tol_mps": 0.2777777777777778,
+        "powered_passes": [
+          "R2 A v10 p1",
+          "R2 A v10 p2",
+          "R2 A v10 p3",
+          "R2 A v10 p8",
+          "R2 A v10 p9"
+        ],
+        "n_powered": 5,
+        "dB_band_energy": 4.401803907584591,
+        "dB_line_energy": 4.52162100003735,
+        "dB_E_0.5-4": 5.0433647818920635,
+        "dB_E_4-8": 4.340521446837309,
+        "dB_E_8-16": 3.5871068131115056,
+        "dB_E_16-40": 6.0785300829532165,
+        "dB_E_40-80": 4.560317556112149
+      },
+      {
+        "coast_pass": "R2 A coast v10 p6",
+        "section": "A",
+        "speed_mps": 2.8306524494525585,
+        "match_tol_mps": 0.2777777777777778,
+        "powered_passes": [
+          "R2 A v10 p2",
+          "R2 A v10 p3",
+          "R2 A v10 p4",
+          "R2 A v10 p5",
+          "R2 A v10 p9"
+        ],
+        "n_powered": 5,
+        "dB_band_energy": -4.183693158506574,
+        "dB_line_energy": -3.3120225278577213,
+        "dB_E_0.5-4": -4.069693286267611,
+        "dB_E_4-8": -4.294339204155523,
+        "dB_E_8-16": -3.388333723210793,
+        "dB_E_16-40": -5.949643754818684,
+        "dB_E_40-80": -2.5149057874226988
+      },
+      {
+        "coast_pass": "R2 A coast v10 p7",
+        "section": "A",
+        "speed_mps": 2.298433459172279,
+        "match_tol_mps": 0.2777777777777778,
+        "powered_passes": [
+          "R2 A v10 p1",
+          "R2 A v10 p6",
+          "R2 A v10 p8"
+        ],
+        "n_powered": 3,
+        "dB_band_energy": 3.3325933934634326,
+        "dB_line_energy": 9.298085303744699,
+        "dB_E_0.5-4": 5.436143453395006,
+        "dB_E_4-8": 2.644516188495356,
+        "dB_E_8-16": 2.2112506012702946,
+        "dB_E_16-40": 7.528593229187695,
+        "dB_E_40-80": 10.814041469078916
+      }
+    ]
+  },
+  "pothole": {
+    "stream": "rear1"
+  }
+}

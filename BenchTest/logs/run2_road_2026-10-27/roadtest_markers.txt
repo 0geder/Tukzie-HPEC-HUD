@@ -1,0 +1,39 @@
+# Run 2 road session, 27 Oct 2026, laps at 10, 15, 20 km/h; driver Yusuf Vadwa.
+# Derived by auto_markers.py from phone GNSS speed (vehicle receiver where the phone had no fix) and BMS current;
+# creeping below 8 km/h and windows under 8 s removed. No markers were typed during the session.
+1793093556.000 R2 S0 still p1 start
+1793093616.000 R2 S0 still p1 end
+1793093860.156 R2 A v10 p1 start
+1793093947.194 R2 A v10 p1 end
+1793093955.290 R2 A v10 p2 start
+1793094015.146 R2 A v10 p2 end
+1793094330.139 R2 A v10 p3 start
+1793094373.132 R2 A v10 p3 end
+1793094855.136 R2 A coast v10 p4 start
+1793094884.151 R2 A coast v10 p4 end
+1793095174.116 R2 A v10 p4 start
+1793095219.236 R2 A v10 p4 end
+1793095262.168 R2 A v15 p2 start
+1793095355.126 R2 A v15 p2 end
+1793095443.133 R2 A v10 p5 start
+1793095494.131 R2 A v10 p5 end
+1793095527.148 R2 A v15 p3 start
+1793095562.128 R2 A v15 p3 end
+1793095591.135 R2 A v20 p1 start
+1793095624.134 R2 A v20 p1 end
+1793096030.156 R2 A v10 p6 start
+1793096047.865 R2 A v10 p6 end
+1793096130.168 R2 A v10 p7 start
+1793096256.126 R2 A v10 p7 end
+1793096289.126 R2 A coast v10 p6 start
+1793096326.204 R2 A coast v10 p6 end
+1793096463.240 R2 A coast v10 p7 start
+1793096472.364 R2 A coast v10 p7 end
+1793096548.117 R2 A v10 p8 start
+1793096598.146 R2 A v10 p8 end
+1793096635.159 R2 A v10 p9 start
+1793096682.219 R2 A v10 p9 end
+1793096841.135 R2 A v10 p10 start
+1793096916.142 R2 A v10 p10 end
+1793097419.851 R2 S0 still p2 start
+1793097479.851 R2 S0 still p2 end
