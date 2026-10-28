@@ -1,0 +1,24 @@
+TukSense overview video (tuksense_overview_60s.mp4, tuksense_overview_60s_web.mp4)
+Samson Okuthe, EEE4022S, University of Cape Town, 2026
+
+MUSIC
+Title:   Inspired
+Artist:  Kevin MacLeod (incompetech.com)
+Source:  https://incompetech.com/music/royalty-free/mp3-royaltyfree/Inspired.mp3
+         (track page: https://incompetech.com/music/royalty-free/ , search "Inspired")
+Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
+         https://creativecommons.org/licenses/by/4.0/
+Credit line (shown on the end card and to be kept in any description):
+  "Inspired" Kevin MacLeod (incompetech.com)
+  Licensed under Creative Commons: By Attribution 4.0 License
+  http://creativecommons.org/licenses/by/4.0/
+Use: first 60 s of the track, 1 s fade in, 2 s fade out, loudness normalised to about -18 LUFS.
+(FreePD.com, the preferred CC0 source, is offline as of October 2026, so a CC BY track was used.)
+
+FONTS
+Space Grotesk (Florian Karsten) and Inter (Rasmus Andersson), SIL Open Font License 1.1,
+from https://github.com/google/fonts
+
+FOOTAGE AND PHOTOS
+All footage and photos by Samson Okuthe, 2026. Original audio removed.
+Faces of people other than the author and readable number plates were cropped or excluded.
