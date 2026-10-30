@@ -1,189 +1,233 @@
-// SW7 A1 portrait poster, in the style of the UCT poster template
-// (campus banner header, light-blue content panels, UCT crest).
-// Updated 20 Oct 2026 with the two-sided layout, the Pi 5 detector, the approaching-object warning,
-// the power budget and the first road session; numbers from the report.
-// Updated 24 Oct 2026: one IMU per node, phone GNSS, legibility, stand runs of 23 Oct, R1 status on the vehicle.
+// EEE4022S A1 portrait poster (true A1, 594 x 841 mm), in the style of the UCT poster template
+// (campus banner header, light-blue numbered panels, UCT crest).
+// Rebuilt 30 Oct 2026 for the poster session: true A1 page, report title, road results of 27 October,
+// system as driven on 27 October, QR code to the video site. Every number is from the final report
+// (Results.tex, Table 5.3, Conclusions.tex) or run2_summary_numbers.txt.
+// Earlier version (A0-sized canvas, "pending" road items) backed up in ../backup_2026-10-30.
 const pptxgen = require("pptxgenjs");
 const path = require("path");
 const A = (f) => path.join(__dirname, "assets", f);
 const R = (f) => path.join(__dirname, "..", "..", "Report", "figures", f);
 
 const C = {
-  navy: "14305C", sky: "1565C0", panel: "E8F0FA", accent: "D4700C",
-  text: "1B1F24", muted: "4A5566", white: "FFFFFF",
+  navy: "14305C", sky: "1565C0", panel: "E8F0FA", accent: "B45309", green: "1B7F3B",
+  text: "1B1F24", muted: "3F4A5A", white: "FFFFFF", line: "B9C7DA",
 };
 const FONT = "Calibri";
 const NB = " ";   // keeps a number and its unit on one line
 
-const W = 33.11, H = 46.81;            // A1 portrait, inches
-const M = 1.2, GAP = 0.9;              // outer margin, gap between columns/panels
+const W = 594 / 25.4, H = 841 / 25.4;   // A1 portrait, inches (23.39 x 33.11)
+const M = 0.8, GAP = 0.55;              // outer margin, gap between columns/panels
 const COLW = (W - 2 * M - GAP) / 2;
 const XL = M, XR = M + COLW + GAP;
+
+// type scale at A1 (Lecture 2: title 70, headings 56, body 32; floor 24)
+const T = { title: 82, head: 48, body: 28, small: 25, cap: 24, big: 50 };
 
 const pres = new pptxgen();
 pres.defineLayout({ name: "A1P", width: W, height: H });
 pres.layout = "A1P";
-pres.title = "SW7 poster: Embedded telemetry, road-surface characterisation and camera-based hazard detection for the TUKZIE electric tricycle";
+pres.title = "Embedded Telemetry with Road-Surface Characterisation and Camera-Based Hazard Detection for the TUKZIE Electric Trike";
+pres.author = "Samson Okuthe";
 const s = pres.addSlide();
 s.background = { color: C.white };
 
-// ---- header: campus banner with the title on the sky ----
-const BANNER_H = 10.6;
+// ---------------- header: campus banner, darkened, with crest, title and names ----------------
+const BANNER_H = 7.55;
 s.addImage({ path: A("uct_banner.jpg"), x: 0, y: 0, w: W, h: BANNER_H, sizing: { type: "cover", w: W, h: BANNER_H } });
-s.addText("EEE4022S Final Year Project 2026, Department of Electrical Engineering, University of Cape Town", {
-  x: M, y: 0.45, w: W - 2 * M, h: 0.8, fontFace: FONT, fontSize: 30, color: C.white, align: "center", isTextBox: true, margin: 0,
+s.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: BANNER_H, fill: { color: "0B1F3F", transparency: 35 }, line: { type: "none" } });
+// crest on a white card
+s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: M, y: 0.35, w: 2.45, h: 2.45, rectRadius: 0.2, fill: { color: C.white }, line: { color: C.white } });
+s.addImage({ path: A("uct_logo.png"), x: M + 0.12, y: 0.47, w: 2.21, h: 2.21 * 424 / 417, altText: "University of Cape Town crest" });
+s.addText([
+  { text: "Department of Electrical Engineering, University of Cape Town", options: { bold: true, breakLine: true } },
+  { text: "EEE4022S Final Year Project 2026" },
+], { x: M + 2.85, y: 0.65, w: W - 2 * M - 2.85, h: 1.85, fontFace: FONT, fontSize: 30, color: C.white, valign: "middle", isTextBox: true, margin: 0 });
+s.addText("Embedded Telemetry with Road-Surface Characterisation and Camera-Based Hazard Detection for the TUKZIE Electric Trike", {
+  x: M - 0.2, y: 2.95, w: W - 2 * M + 0.4, h: 3.55, fontFace: FONT, fontSize: T.title, bold: true, color: C.white, align: "center", valign: "middle",
+  isTextBox: true, margin: 0, lineSpacingMultiple: 0.92, shadow: { type: "outer", color: "000000", blur: 8, offset: 3, angle: 45, opacity: 0.55 },
 });
-s.addText("Embedded Telemetry with Road-Surface Characterisation\nand Camera-Based Hazard Detection for the TUKZIE Electric Trike", {
-  x: M, y: 1.35, w: W - 2 * M, h: 3.3, fontFace: FONT, fontSize: 78, bold: true, color: C.white, align: "center", valign: "middle",
-  isTextBox: true, margin: 0, shadow: { type: "outer", color: "000000", blur: 8, offset: 3, angle: 45, opacity: 0.55 },
-});
-s.addText("Samson Okuthe (OKTSAM001)   |   Supervisor: A/Prof. Simon Winberg   |   Co-supervisor: Sampath Jayalath", {
-  x: M, y: 4.85, w: W - 2 * M, h: 0.9, fontFace: FONT, fontSize: 34, bold: true, color: C.white, align: "center", isTextBox: true, margin: 0,
-  shadow: { type: "outer", color: "000000", blur: 6, offset: 2, angle: 45, opacity: 0.6 },
-});
+s.addText([
+  { text: "Samson Okuthe", options: { bold: true } },
+  { text: "   |   Supervisor: A/Prof Simon Winberg   |   Co-supervisor: Sampath Jayalath" },
+], { x: M, y: 6.6, w: W - 2 * M, h: 0.7, fontFace: FONT, fontSize: 32, color: C.white, align: "center", valign: "middle", isTextBox: true, margin: 0,
+  shadow: { type: "outer", color: "000000", blur: 6, offset: 2, angle: 45, opacity: 0.6 } });
 
-// ---- panel helper: rounded light-blue card with a numbered heading ----
-function panel(n, title, x, y, h) {
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: COLW, h, fill: { color: C.panel }, line: { color: C.panel }, rectRadius: 0.35 });
-  s.addShape(pres.shapes.OVAL, { x: x + 0.55, y: y + 0.5, w: 1.25, h: 1.25, fill: { color: C.navy }, line: { color: C.navy } });
-  s.addText(String(n), { x: x + 0.55, y: y + 0.5, w: 1.25, h: 1.25, fontFace: FONT, fontSize: 44, bold: true, color: C.white,
+// ---------------- helpers ----------------
+function panel(n, title, x, y, w, h) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, fill: { color: C.panel }, line: { color: C.panel }, rectRadius: 0.3 });
+  s.addShape(pres.shapes.OVAL, { x: x + 0.4, y: y + 0.35, w: 1.0, h: 1.0, fill: { color: C.navy }, line: { color: C.navy } });
+  s.addText(String(n), { x: x + 0.4, y: y + 0.35, w: 1.0, h: 1.0, fontFace: FONT, fontSize: 40, bold: true, color: C.white,
     align: "center", valign: "middle", isTextBox: true, margin: 0 });
-  s.addText(title, { x: x + 2.15, y: y + 0.45, w: COLW - 2.6, h: 1.35, fontFace: FONT, fontSize: 56, bold: true, color: C.navy,
+  s.addText(title, { x: x + 1.65, y: y + 0.3, w: w - 2.0, h: 1.1, fontFace: FONT, fontSize: T.head, bold: true, color: C.navy,
     valign: "middle", isTextBox: true, margin: 0 });
-  return { x: x + 0.7, y: y + 2.2, w: COLW - 1.4 };   // content box
+  return { x: x + 0.5, y: y + 1.65, w: w - 1.0 };   // content box
 }
-function bullets(items, box, h, size = 32, color = C.text) {
-  s.addText(items.map((t, i) => ({ text: t, options: { bullet: { indent: 32 }, breakLine: i < items.length - 1, paraSpaceAfter: 14 } })), {
-    x: box.x, y: box.y, w: box.w, h, fontFace: FONT, fontSize: size, color, valign: "top", isTextBox: true, margin: 0,
+// split "a_w" into a + subscript w, carrying the run options
+function rich(text, opts = {}) {
+  const parts = text.split("a_w"), runs = [];
+  parts.forEach((p, i) => {
+    if (p) runs.push({ text: p, options: { ...opts } });
+    if (i < parts.length - 1) { runs.push({ text: "a", options: { ...opts } }); runs.push({ text: "w", options: { ...opts, subscript: true } }); }
   });
+  return runs;
 }
-function caption(t, x, y, w, h = 1.0) {
-  s.addText(t, { x, y, w, h, fontFace: FONT, fontSize: 24, italic: true, color: C.muted, valign: "top", isTextBox: true, margin: 0 });
+// mark the first run as a bullet and the last as the end of the paragraph
+function para(runs, last, extra = {}) {
+  runs[0].options = { ...runs[0].options, bullet: { indent: 28 } };
+  runs[runs.length - 1].options = { ...runs[runs.length - 1].options, breakLine: !last, paraSpaceAfter: 10, ...extra };
+  return runs;
+}
+function bullets(items, box, h, size = T.body, color = C.text) {
+  // items: string, or [boldLead, rest]
+  const runs = [];
+  items.forEach((it, i) => {
+    const last = i === items.length - 1;
+    const r = Array.isArray(it) ? [...rich(it[0], { bold: true, color: C.navy }), ...rich(it[1])] : rich(it);
+    runs.push(...para(r, last));
+  });
+  s.addText(runs, { x: box.x, y: box.y, w: box.w, h, fontFace: FONT, fontSize: size, color, valign: "top", isTextBox: true, margin: 0 });
+}
+function caption(t, x, y, w, h = 0.5, align = "left") {
+  s.addText(t, { x, y, w, h, fontFace: FONT, fontSize: T.cap, italic: true, color: C.muted, valign: "top", align, isTextBox: true, margin: 0 });
+}
+function photo(file, x, y, w, h, alt) {
+  s.addImage({ path: file, x, y, w, h, sizing: { type: "cover", w, h }, altText: alt });
+  s.addShape(pres.shapes.RECTANGLE, { x, y, w, h, fill: { type: "none" }, line: { color: C.white, width: 3 } });
 }
 
-const TOP = BANNER_H + 0.9, BOTTOM = H - 3.1;
+const TOP = BANNER_H + 0.55, BOTTOM = H - M;
 
 // ================= left column =================
-// 1 Background
-let yL = TOP, h1 = 6.6;
-let b = panel(1, "Background", XL, yL, h1);
-bullets([
-  "Electric cargo trikes are a low-cost route to last-mile freight in African cities, but their ride and road conditions go unmeasured.",
-  "Head-down displays draw the driver's eyes off the road; single glances should stay under 2" + NB + "s.",
-  "Aim: a low-cost unit that characterises the ride at the edge and gives the driver only safety-relevant alerts, each stage tested before the next.",
-], b, h1 - 2.4, 30);
-
-// 2 System: two sides joined by Ethernet
-yL += h1 + GAP;
-const h2 = 10.0;
-b = panel(2, "System: front and rear", XL, yL, h2);
+// 1 Problem and aim
+let yL = TOP;
+const h1 = 6.6;
+let b = panel(1, "Problem and aim", XL, yL, COLW, h1);
 {
-  const cw = (b.w - 3.0) / 2, ch = 6.3, cy = b.y;
+  const pw = 3.55, ph = pw * 890 / 1070;
+  bullets([
+    "Electric cargo trikes such as the TUKZIE carry last-mile freight cheaply, but their ride and the roads they use go unmeasured.",
+    ["Aim: ", "a low-cost unit that measures the ride at both ends, warns the driver of hazards and keeps its data through coverage gaps."],
+  ], { x: b.x, y: b.y, w: b.w - pw - 0.35 }, h1 - 1.9);
+  photo(A("road_test_1027.jpg"), b.x + b.w - pw, b.y + 0.05, pw, ph, "The trike on the road test of 27 October 2026, side view");
+  caption("Road test, 27 Oct", b.x + b.w - pw, b.y + ph + 0.1, pw, 0.5, "center");
+}
+
+// 2 System as driven on 27 October
+yL += h1 + GAP;
+const h2 = 10.4;
+b = panel(2, "System on the trike, 27 Oct", XL, yL, COLW, h2);
+{
+  const cw = 4.05, ch = 4.15, cy = b.y;
   const side = (x, head, items) => {
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: cy, w: cw, h: ch, rectRadius: 0.2, fill: { color: C.white }, line: { color: C.sky, width: 3 } });
-    s.addText(head, { x: x + 0.35, y: cy + 0.25, w: cw - 0.7, h: 1.3, fontFace: FONT, fontSize: 30, bold: true, color: C.navy, valign: "top", isTextBox: true, margin: 0 });
-    bullets(items, { x: x + 0.35, y: cy + 1.65, w: cw - 0.7 }, ch - 1.8, 24);
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: cy, w: cw, h: ch, rectRadius: 0.15, fill: { color: C.white }, line: { color: C.sky, width: 3 } });
+    s.addText(head, { x: x + 0.25, y: cy + 0.15, w: cw - 0.5, h: 0.6, fontFace: FONT, fontSize: 28, bold: true, color: C.navy, valign: "top", isTextBox: true, margin: 0 });
+    s.addText(items.map((t, i) => ({ text: t, options: { bullet: { indent: 22 }, breakLine: i < items.length - 1, paraSpaceAfter: 6 } })), {
+      x: x + 0.25, y: cy + 0.85, w: cw - 0.4, h: ch - 0.95, fontFace: FONT, fontSize: T.cap, color: C.text, valign: "top", isTextBox: true, margin: 0 });
   };
-  side(b.x, "Front: Raspberry Pi 5,\nbehind the dashboard", [
-    "Front camera, detector and time-of-flight board",
-    "Front node: ESP32-S3 with one IMU at 200" + NB + "Hz",
-    "Dashboard on the 10.1" + NB + "in touchscreen",
-    "Phone GNSS for speed; road recorder",
+  side(b.x, "Front: Raspberry Pi 5", [
+    "Front camera, detector",
+    "Dashboard, 10.1" + NB + "in screen",
+    "Front node: ESP32-S3, IMU at 200" + NB + "Hz",
+    "Recorder; phone GNSS",
   ]);
   const xr = b.x + b.w - cw;
-  side(xr, "Rear: Raspberry Pi 4,\nbeside the battery", [
-    "Rear camera, detector and time-of-flight board",
-    "Rear node: ESP32-S3 with one IMU at 200" + NB + "Hz",
-    "LTE, GNSS, battery over Bluetooth",
-    "Local log and LTE uplink to a database",
+  side(xr, "Rear: Raspberry Pi 4", [
+    "Rear camera, detector",
+    "Rear node: ESP32-S3, IMU at 200" + NB + "Hz",
+    "Telemetry unit: ESP32-S3 with battery, GNSS and LTE",
   ]);
-  const lx = b.x + cw + 0.2, lw = xr - lx - 0.2, ly = cy + ch / 2;
+  const lx = b.x + cw + 0.1, lw = xr - lx - 0.1, ly = cy + ch / 2;
   s.addShape(pres.shapes.LINE, { x: lx, y: ly, w: lw, h: 0, line: { color: C.navy, width: 5, beginArrowType: "triangle", endArrowType: "triangle" } });
-  s.addText("Ethernet", { x: lx, y: ly - 0.95, w: lw, h: 0.7, fontFace: FONT, fontSize: 28, bold: true, color: C.navy, align: "center", isTextBox: true, margin: 0 });
-  s.addText("1000" + NB + "Mb/s\n0.22 to 0.25" + NB + "ms", { x: lx, y: ly + 0.25, w: lw, h: 1.2, fontFace: FONT, fontSize: 22, color: C.muted, align: "center", valign: "top", isTextBox: true, margin: 0 });
-  caption("Two sides since 15 October: the battery's Bluetooth did not reach the front, and the Pi 5 runs the detector more than twice as fast.",
-    b.x, cy + ch + 0.25, b.w, 1.1);
+  s.addText("Ethernet", { x: lx - 0.2, y: ly - 0.65, w: lw + 0.4, h: 0.5, fontFace: FONT, fontSize: T.cap, bold: true, color: C.navy, align: "center", isTextBox: true, margin: 0 });
+  // photos
+  const py = cy + ch + 0.35, pg = 0.25, pw = (b.w - 2 * pg) / 3, ph = 3.65;
+  photo(R("road1/front_install_1023.jpg"), b.x, py, pw, ph, "Front: Raspberry Pi 5 and front node under the dashboard");
+  photo(R("road1/front_camera_1022.jpg"), b.x + pw + pg, py, pw, ph, "Front camera in its printed housing on the frame");
+  photo(R("road1/rear_system_1022.jpg"), b.x + 2 * (pw + pg), py, pw, ph, "Rear unit in its printed enclosure on the cargo bed");
+  caption("Front computer", b.x, py + ph + 0.08, pw, 0.45, "center");
+  caption("Front camera", b.x + pw + pg, py + ph + 0.08, pw, 0.45, "center");
+  caption("Rear unit", b.x + 2 * (pw + pg), py + ph + 0.08, pw, 0.45, "center");
 }
 
-// 3 Hazard warnings on the dashboard
+// 3 Method
 yL += h2 + GAP;
 const h3 = BOTTOM - yL;
-b = panel(3, "Hazard warnings on the dashboard", XL, yL, h3);
-{
-  const iw = (b.w - 0.5) / 2, ih = iw * 800 / 1280;
-  s.addImage({ path: R("ui/ui_dualcam_front.png"), x: b.x, y: b.y, w: iw, h: ih });
-  s.addImage({ path: R("ui/ui_dualcam_rear_approaching.png"), x: b.x + iw + 0.5, y: b.y, w: iw, h: ih });
-  caption("Front | Rear switch on the existing dashboard (test images).", b.x, b.y + ih + 0.15, iw, 0.9);
-  caption("Rear view mirrored; a car approaching at 1.6" + NB + "s.", b.x + iw + 0.5, b.y + ih + 0.15, iw, 0.9);
-  const by = b.y + ih + 1.25;
-  bullets([
-    "Detection on the Pi 5 beside the display: 51 to 54" + NB + "ms median from sensor readout at 19.2" + NB + "fps, against 118 to 122" + NB + "ms on the Pi 4 with the whole system.",
-    "Approaching objects: time to contact from the growth of the box, τ = w / (dw/dt), with no focal length or object size (Lee 1976). Warning under 4" + NB + "s, immediate under 2" + NB + "s.",
-    "Synthetic tests within 2" + NB + "%; not yet tested on a real approach. Live data only; frames never stored.",
-    "Legibility at 0.70" + NB + "m (ISO 15008: 16 arc minutes acceptable, 20 recommended): speed digits 84, alert banner 9, labels a median of 9. The speed is legible at a glance; the warnings are not. Glance time needs a participant.",
-  ], { x: b.x, y: by, w: b.w }, yL + h3 - by - 0.4, 28);
-}
+b = panel(3, "Method", XL, yL, COLW, h3);
+bullets([
+  ["Requirements first: ", "thirteen requirements, each with a criterion fixed before its test; bench tests, then the vehicle."],
+  ["Road, 27 Oct: ", "five passes of a smooth loop and four of a rough strip at 10" + NB + "km/h; phone GNSS as the speed reference."],
+  ["Analysis: ", "ISO" + NB + "2631-1 weighted vibration a_w per pass; CV over passes (criterion 10" + NB + "%); ICC in 8" + NB + "m cells (0.75); share of the stand-run motor lines in the road spectrum."],
+], b, h3 - 1.9);
 
 // ================= right column =================
-// 4 Bench results: six tiles
+// 4 Key results
 let yR = TOP;
-const statH = 2.85, statG = 0.35;
-const h4 = 2.2 + 3 * statH + 2 * statG + 0.5;
-b = panel(4, "Bench results", XR, yR, h4);
+const h4 = 14.4;
+b = panel(4, "Key results on the road", XR, yR, COLW, h4);
 {
-  const stats = [
-    ["200" + NB + "Hz", "both IMUs, no samples dropped; 149 of 149 windows fused"],
-    ["51 to 54" + NB + "ms", "median detection on the Pi 5 at 19.2 fps (Pi 4: about 120" + NB + "ms)"],
-    ["2.7" + NB + "m", "median GNSS error against a phone, 104 fixes"],
-    ["112 / 112", "records stored in the database across a 10-minute LTE outage"],
-    ["within 2" + NB + "%", "time to contact in 40 synthetic tests; 0.27" + NB + "ms per frame"],
-    ["about 20" + NB + "W", "power budget, 0.27" + NB + "A from the 72" + NB + "V pack; only the Pi 5 measured"],
+  // chart: a_w smooth vs rough, rear and front
+  const chH = 3.75;
+  s.addChart(pres.charts.BAR, [
+    { name: "Rear", labels: ["Smooth loop (5 passes)", "Rough strip (4 passes)"], values: [1.78, 3.61] },
+    { name: "Front", labels: ["Smooth loop (5 passes)", "Rough strip (4 passes)"], values: [1.16, 2.26] },
+  ], {
+    x: b.x, y: b.y - 0.1, w: b.w, h: chH, barDir: "col", barGapWidthPct: 60,
+    chartColors: [C.navy, "5B9BD5"], showLegend: true, legendPos: "r", legendFontSize: 24, legendFontFace: FONT, legendColor: C.text,
+    showTitle: true, title: "Mean weighted vibration per pass, 10 km/h (m/s²)", titleFontSize: 26, titleFontFace: FONT, titleColor: C.navy,
+    showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 24, dataLabelFontFace: FONT, dataLabelColor: C.text, dataLabelFormatCode: "0.00",
+    catAxisLabelFontSize: 24, catAxisLabelFontFace: FONT, catAxisLabelColor: C.text,
+    valAxisHidden: true, valAxisMinVal: 0, valAxisMaxVal: 4.4, valGridLine: { style: "none" }, catGridLine: { style: "none" },
+    plotArea: { fill: { color: C.panel } }, chartArea: { fill: { color: C.panel } },
+  });
+  // tiles
+  const tiles = [
+    ["5.0" + NB + "% / 5.3" + NB + "%", "CV of a_w over 5 passes, rear / front; criterion 10" + NB + "%: met", C.green],
+    ["about 2" + NB + "×", "rough strip against the smooth loop, at both ends", C.navy],
+    ["ICC 0.16 vs 0.75", "not met: repeats over whole passes, not place by place", C.accent],
+    ["0.9 to 3.1" + NB + "%", "of road vibration energy in the motor lines, powered passes", C.navy],
+    ["0 gaps", "front IMU at 200" + NB + "Hz; rear 0.08" + NB + "% of samples lost", C.green],
+    ["99.9" + NB + "%", "of records over the wired link to the Raspberry Pi 4", C.green],
+    ["153 records", "over LTE, 116 replayed after the drop; median 0.44" + NB + "s (n" + NB + "=" + NB + "9)", C.navy],
+    ["23.3 / 12.1 fps", "detection, front / rear; median 68" + NB + "/" + NB + "103" + NB + "ms", C.navy],
   ];
-  const statW = (b.w - 0.5) / 2;
-  stats.forEach(([big, small], i) => {
-    const x = b.x + (i % 2) * (statW + 0.5), y = b.y + Math.floor(i / 2) * (statH + statG);
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: statW, h: statH, rectRadius: 0.2, fill: { color: C.white }, line: { color: C.white } });
-    s.addText(big, { x: x + 0.3, y: y + 0.15, w: statW - 0.6, h: 1.35, fontFace: FONT, fontSize: 60, bold: true, color: C.navy, isTextBox: true, margin: 0, valign: "middle" });
-    s.addText(small, { x: x + 0.3, y: y + 1.55, w: statW - 0.6, h: 1.2, fontFace: FONT, fontSize: 24, color: C.muted, valign: "top", isTextBox: true, margin: 0 });
+  const ty0 = b.y + chH + 0.15, tg = 0.22, tw = (b.w - tg) / 2, th = 1.95;
+  tiles.forEach(([big, small, col], i) => {
+    const x = b.x + (i % 2) * (tw + tg), y = ty0 + Math.floor(i / 2) * (th + tg);
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: tw, h: th, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.white } });
+    s.addText(big, { x: x + 0.2, y: y + 0.1, w: tw - 0.4, h: 0.8, fontFace: FONT, fontSize: 42, bold: true, color: col, isTextBox: true, margin: 0, valign: "middle" });
+    s.addText(rich(small), { x: x + 0.2, y: y + 0.92, w: tw - 0.35, h: th - 0.97, fontFace: FONT, fontSize: T.cap, color: C.text, valign: "top", isTextBox: true, margin: 0 });
   });
 }
 
-// 5 Faults found and fixed
+// 5 Limitations
 yR += h4 + GAP;
-const h5 = 6.6;
-b = panel(5, "Fault investigations", XR, yR, h5);
+const h5 = 4.5;
+b = panel(5, "Limitations", XR, yR, COLW, h5);
 bullets([
-  "Seven faults diagnosed as symptom, candidate causes, deciding test, cause and fix, from a flash-mode boot loop to a battery checksum off by 3.",
-  "The one that mattered most: Pi 4 reboots. Power flags logged every 2" + NB + "s showed under-voltage 14" + NB + "s after the modem came up on its USB port; it returned in the closed box (76.9" + NB + "°C), so the unit needs its own supply.",
-], b, h5 - 2.4, 28);
+  "One vehicle, two short low-speed sessions; no reference accelerometer, so repeatability, not accuracy.",
+  "LTE did not reconnect after 11:51; the vehicle's GNSS lay 8 to 25" + NB + "m from the phone's.",
+  "Warnings below ISO" + NB + "15008 legibility; the driver's glance time was not measured.",
+], b, h5 - 1.75, T.small);
 
-// 6 Road session and conclusions
+// 6 Conclusion and QR code
 yR += h5 + GAP;
 const h6 = BOTTOM - yR;
-b = panel(6, "On the vehicle: road and stands", XR, yR, h6);
-bullets([
-  "Road session, 19 Oct: 108.6" + NB + "min recorded, about 16" + NB + "min driving. 200" + NB + "Hz with no counted drops, but one 2" + NB + "s stall: R1 not met on the vehicle. Battery link held at up to 46.9" + NB + "A. No GNSS fix (no antenna).",
-], b, 2.0, 28);
+b = panel(6, "Conclusion", XR, yR, COLW, h6);
 {
-  const fw = 11.6, fh = fw * 396 / 1100, fy = b.y + 2.1;
-  s.addImage({ path: R("results/stand_spectra_1023.png"), x: b.x + (b.w - fw) / 2, y: fy, w: fw, h: fh });
-  caption("Stand runs, 23 Oct, drive wheel raised: rear vibration 5 to 7 times rest, energy 40 to 70" + NB + "Hz; the same lines at the front (42.75, 49.0, 64.0" + NB + "Hz). Throttle settings not recorded.",
-    b.x, fy + fh + 0.1, b.w, 0.9);
-  const oy = fy + fh + 1.1;
+  const qr = 2.55;
+  bullets([
+    "The unit ran on the trike; its ride reading repeats over whole passes, separates two surfaces and is dominated by the road.",
+    "Next: own supply, larger warnings, glance time.",
+  ], { x: b.x, y: b.y, w: b.w - qr - 0.95 }, h6 - 1.8, T.small);
+  const qx = b.x + b.w - qr, qy = yR + 0.35;
+  s.addShape(pres.shapes.RECTANGLE, { x: qx, y: qy, w: qr, h: qr, fill: { color: C.white }, line: { color: C.white } });
+  s.addImage({ path: A("qr_tuksense.png"), x: qx + 0.1, y: qy + 0.1, w: qr - 0.2, h: qr - 0.2, altText: "QR code to https://tuksense.site" });
   s.addText([
-    ["Pending, road run 26 Oct: ", "repeatability over passes (RQ1) and the stand lines' share of the road spectrum (RQ4)."],
-    ["Next: ", "enlarge the warnings, then glance time; the real approach test; a regulated supply for the telemetry unit."],
-  ].flatMap(([k, t], i, a) => [
-    { text: k, options: { bold: true, color: C.accent, bullet: { indent: 32 } } },
-    { text: t, options: { breakLine: i < a.length - 1, paraSpaceAfter: 10 } },
-  ]), { x: b.x, y: oy, w: b.w, h: yR + h6 - oy - 0.3, fontFace: FONT, fontSize: 26, color: C.text, valign: "top", isTextBox: true, margin: 0 });
+    { text: "Videos of the system on the road", options: { bold: true, breakLine: true } },
+    { text: "tuksense.site" },
+  ], { x: qx - 0.9, y: qy + qr + 0.08, w: qr + 1.0, h: 0.85, fontFace: FONT, fontSize: T.cap, color: C.navy, align: "center", valign: "top", isTextBox: true, margin: 0 });
 }
-
-// ---- footer ----
-s.addImage({ path: A("uct_logo.png"), x: M, y: H - 2.75, w: 2.3, h: 2.34 });
-s.addText("Department of Electrical Engineering, University of Cape Town   |   EEE4022S 2026   |   Project SW-7", {
-  x: M + 2.9, y: H - 2.1, w: W - 2 * M - 2.9, h: 1.0, fontFace: FONT, fontSize: 28, color: C.navy, valign: "middle", isTextBox: true, margin: 0,
-});
 
 const out = process.argv[2] || path.join(__dirname, "..", "SW7_Poster_A1.pptx");
 pres.writeFile({ fileName: out }).then((f) => console.log("wrote", f));

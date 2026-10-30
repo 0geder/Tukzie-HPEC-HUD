@@ -1,61 +1,57 @@
-# SW7 final presentation: talking points
+# Final presentation: talking points
 
-Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here. The timed version with cuts is SW7_Speaker_Script.md.
+Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here.
 
-14 slides, 10 minutes plus questions. 1449 words in total, about 10.4 minutes at 140 words a minute.
+13 slides, 10 minutes plus 5 minutes of questions. 1340 words in total, about 9.6 minutes at 140 words a minute.
 
-## Slide 1: Title (56 words)
+## Slide 1: Title (52 words, about 22 s)
 
-Good morning. I'm Samson Okuthe, and my project is SW-7, supervised by Associate Professor Simon Winberg with Sampath Jayalath. It is part of TUKZIE, a 72 volt electric cargo trike for last-mile freight. I built its on-board electronics: a telemetry unit that measures how the trike rides, and safety alerts on the dashboard it already has.
+Good morning. I'm Samson Okuthe. My project gives the TUKZIE electric cargo trike embedded telemetry: it measures how the trike rides, warns the driver of hazards on the dashboard it already has, and keeps its data when coverage drops. I was supervised by Associate Professor Simon Winberg, with Sampath Jayalath as co-supervisor.
 
-## Slide 2: Why this matters (78 words)
+## Slide 2: Why this matters (88 words, about 38 s)
 
-Electric trikes make economic sense for freight in African cities: on delivery routes in Dar es Salaam, an electric cargo tricycle cut the operating cost per kilometre by 45.5 percent against a motorcycle. But anything that takes the driver's eyes off the road is a risk; NHTSA guidance limits a single glance to two seconds. So the problem is to combine edge telemetry with short, safety-only alerts on a low-cost trike, and to measure whether each part works.
+Electric cargo trikes make sense for freight in African cities: in Dar es Salaam an electric cargo tricycle cost 45.5 percent less per kilometre to run than a motorcycle, and 86 percent less than a light car. But anything that takes the driver's eyes off the road is a risk; NHTSA guidance wants glances away from the road to mostly last two seconds or less. So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. 
 
-## Slide 3: Aim and research questions (96 words)
+## Slide 3: Aim, research questions and approach (74 words, about 32 s)
 
-Four research questions, and where each honestly stands. RQ1, how accurately and repeatably a low-cost unit characterises the ride: verified on the bench; road repeatability waits for Monday's run. RQ2, alerts on the existing dashboard with the least distraction: this replaced the head-up display with my supervisor's agreement. It is built and its legibility measured; glance time needs a participant. RQ3, latency, loss and recovery: loss and recovery pass a ten-minute outage test; latency needs GNSS time. RQ4, road against powertrain vibration: the stands found the powertrain's lines; their road share waits for the road run.
+The aim is on the slide. Four research questions follow from it: how accurately and repeatably the ride can be measured; how alerts should appear with the least distraction; what latency, loss and recovery the data chain achieves; and which features separate road from powertrain vibration. The approach was a V-model: thirteen requirements with criteria fixed before each test, every part tested on the bench, then on the vehicle on 19 and 27 October.
 
-## Slide 4: The system: front and rear, joined by one cable (120 words)
+## Slide 4: The system as driven on 27 October (114 words, about 49 s)
 
-Since the fifteenth of October the system has two sides, joined by one Ethernet cable. At the front, a Raspberry Pi 5 behind the dashboard runs its own camera, the detector, a time-of-flight board and the fusion, so a front alert never crosses the network. At the rear, beside the battery, the Pi 4 runs the rear camera and sensors and carries the telemetry unit: an ESP32-S3 with LTE, GNSS, the battery link and one IMU at 200 hertz. A second node with its own IMU now sits at the front, so both ends are measured. Two findings drove this: the battery's Bluetooth did not reach the front, and the Pi 5 runs the detector more than twice as fast.
+This is the system as driven on 27 October. It has two sides joined by one Ethernet cable, which also shares the clock. At the front, a Raspberry Pi 5 behind the display runs the dashboard, the front camera and detector, three time-of-flight sensors and the front IMU node; a phone streams its GNSS for speed. At the rear, a Raspberry Pi 4 beside the battery runs the rear camera and reads two boards: the rear IMU node, and the telemetry unit, which reads the battery, GNSS and LTE and logs to flash. So there are three ESP32-S3 boards. Run from a portable power station, the whole system drew 27 watts at its output.
 
-## Slide 5: Firmware: deterministic acquisition first (83 words)
+## Slide 5: Deterministic acquisition: a 33 to 44 ms gap found and removed (109 words, about 47 s)
 
-The firmware runs on FreeRTOS across two cores. Core 1 holds one task per IMU at the highest priority, on a fixed 5 millisecond period. They never block: each sample is time-stamped into a bounded queue, and if it is full the sample is dropped and counted. Core 0 does the modem, GNSS, MQTT and the flash log, in one task because the modem's serial line has no lock. Version 0.7.4 adds sequence numbers, backlog replay and a 94 hertz filter against aliasing.
+Ride measurement needs a fixed sample rate. Under FreeRTOS the IMU task runs at top priority on a 5 millisecond period and never blocks: if its queue is full, the sample is dropped and counted. Counting exposed the one timing fault. Every flash write paused reading for 33 to 44 milliseconds, the spikes in this plot. Buffering made the pauses rarer, not shorter. The fix was to take logging off the IMU nodes: on the vehicle they held 200 hertz with no interval over 5.2 milliseconds. On the road the front node lost nothing in 1.8 million samples; the rear lost 0.08 percent in transport, none at the node.
 
-## Slide 6: Result: 200 Hz acquisition and dual-IMU fusion (124 words)
+## Slide 6: Fault investigations: symptom, test, cause, fix (108 words, about 46 s)
 
-Both IMUs run at 200 hertz with no dropped samples, counted, not assumed. Flash writes cause one gap of under 45 milliseconds a minute, and the queue holds the samples through it. A gravity factor per sensor brings both to 9.80 or 9.81, but only in that orientation: with bench factors the parked vehicle read 10.04 and 10.34, so both were recalibrated mounted, not yet rechecked. In a 150 second session all 149 windows fused with under a millisecond of skew. One limit: the 94 hertz filter only partly suppresses aliasing, so a line at 40 to 70 hertz could be an image of one at 136 to 157. A speed sweep tells them apart: a motor line rises with speed, its image falls.
+Because each stage was tested before the next, each fault could be traced to one change. The one that mattered most is power. The Pi 4 kept throttling and restarting. Logging its power flags every two seconds showed under-voltage starting fourteen seconds after the telemetry unit's modem came up on its USB port. Moved off, it went from three restarts in twenty minutes to none in four hours. The others: a task stall hidden behind a healthy-looking rate, a dead sensor connection that led to the third board, a flash-mode boot loop, a battery checksum off by three, and invalid JSON found only by reading the log back.
 
-## Slide 7: Seven fault investigations: symptom, test, cause, fix (109 words)
+## Slide 7: Telemetry: log first, then store and forward (115 words, about 49 s)
 
-Because each stage was tested before the next, every fault could be traced to one change. Seven needed a real diagnosis; here is the one that mattered most. The Pi 4 kept throttling and rebooting. A logger recorded its power flags every two seconds: clear with nothing attached, then under-voltage fourteen seconds after the telemetry unit's modem came up on its USB port. Moved off, no restarts in four hours. It came back in the closed box: 76.9 degrees and a brown-out restart. So the unit needs its own supply, and the lids gained vents. The Pi 5's restarts while mounting were different: abrupt power loss, not a brown-out.
+Every record is written to flash whatever the coverage, then sent over LTE and replayed when the link returns. On the bench I switched the radio off for ten minutes. The unit reconnected 5.2 seconds after it came back, cleared its 60-record backlog in about 38 seconds, and the database held 112 of 112 records, none missing or doubled. On the road the wired link to the Pi carried 4,196 of 4,201 records, 99.9 percent, against 62 percent over USB on the first session. Over LTE 153 records arrived, 116 of them replays, with a median delay of 0.44 seconds; but only nine records carry that figure, and from 11:51 the link did not reconnect.
 
-## Slide 8: Result: timing, position, and no data lost in an outage (113 words)
+## Slide 8: Hazard detection on the road: front and rear (113 words, about 48 s)
 
-The sync wire gives a median interval of 500.06 milliseconds over 121 edges, with under 0.7 of spread, so camera and IMU clocks line up. On a rooftop, GNSS was a median 2.7 metres from a phone. On the vehicle it has not fixed yet, so a phone now streams its GNSS over its hotspot as the speed reference. The outage test: I switched the radio off for ten minutes. The unit reconnected 5.2 seconds after it came back and cleared 60 records in about 40 seconds; the database holds 112 of 112. The public test broker does not queue, so the log read-back is the safety net, and latency needs GNSS time.
+Each camera runs a pretrained 8-bit SSD-MobileNet detector. On the road the front, on the Pi 5, took a median of 68 milliseconds from readout to result at 23.3 frames per second; the rear, on the Pi 4, 103 milliseconds at 12.1. An alert is raised after three frames and cleared after five, and no frame is ever stored. Distance bands do not say whether something is closing, so the system also estimates time to contact from how fast a box grows; it is within 2 percent in 40 synthetic tests but has not met a real approach. No forward video was kept, so how many road alerts were correct is still unknown.
 
-## Slide 9: Hazard detection: twice as fast at the front (98 words)
+## Slide 9: The existing dashboard: live alerts, honest legibility (120 words, about 51 s)
 
-The detector is a pretrained 8-bit SSD-MobileNet. On the Pi 4 with the whole system running it takes 118 to 122 milliseconds from sensor readout to result, at 14.6 frames per second. On the Pi 5 beside the dashboard it is 51 to 54 milliseconds at 19.2 frames per second, with no throttling. At 30 kilometres an hour that is about 0.6 metres less travel before an alert. An alert needs three frames to raise and five to clear, and no frame is ever stored. My pothole model works on a test image but is off by default.
+RQ2 lands on the dashboard the team already runs, here on the vehicle. It shows only live data, never a simulated value, and an immediate hazard appears as a banner over every page. Glance time needs a participant and an ethics amendment, so it was not tested; but legibility needs neither, so I measured it at the driver's eye distance of 0.62 metres. The speed digits subtend 94 arc minutes, far above the 20 that ISO 15008 recommends. The alert banner subtends 10, below even its minimum of 12. So the hierarchy is inverted: the warnings must be enlarged before any glance study. Spoken commands work offline, 15 to 18 of 18 on the bench, but no driver was tested.
 
-## Slide 10: Approaching objects: time to contact from box growth (119 words)
+## Slide 10: Road test, 27 October: repeatable per pass, not per place (118 words, about 51 s)
 
-Distance bands say how near an object is, not whether it is coming closer. For an object closing at constant speed, the inverse of its box width falls in a straight line to zero at contact. So time to contact is the width over its rate of growth, after Lee in 1976, and it needs no focal length or object size. I fit that line robustly over the last 0.6 seconds, and warn below 4 seconds, immediate below 2. A one percent jitter in box width gives about plus or minus 0.3 seconds at 4 seconds. In 40 synthetic tests it is within 2 percent, at 0.27 milliseconds a frame. It has not been tested on a real approach.
+This is the main road result. On a smooth loop at 10 kilometres an hour, five passes gave a weighted acceleration, a w, that varied by 5.0 percent at the rear and 5.3 at the front, inside the 10 percent criterion. On a rougher strip it read about twice as high at the same speed, so the measurement responds to the road. But aligned by position in 8 metre cells, the passes did not agree place by place: an ICC of 0.16, at most 0.32 in the sensitivity checks, against 0.75. With one-second phone positions I cannot separate this from the line each lap took. The speed index also rose with speed, so it is not speed-invariant here.
 
-## Slide 11: The existing dashboard: both cameras, and legibility (107 words)
+## Slide 11: Powertrain against road: the road dominates (110 words, about 47 s)
 
-This is where RQ2 lands, on the dashboard the team already runs. A Front and Rear switch moves the picture, alerts and distances together, the rear mirrored; the banner names the side and puts an approaching object first; only live data is shown. Glance time needs a participant, but legibility does not, so I measured it. At 0.70 metres the speed digits subtend 84 arc minutes, far above the 20 ISO 15008 recommends; the alert banner subtends 9, and the labels a median of 9, against 16 acceptable. So the speed is legible at a glance; the warnings are not. Enlarging them comes before any glance study.
+RQ4 asks what is road and what is powertrain. With the drive wheel raised on stands, the motor shook the body between about 40 and 70 hertz, with the same lines at the front as at the rear, so the front sensor does not escape it. On the road, those lines held only 0.9 to 3.1 percent of the energy in powered passes, while 65 to 84 percent lay between 4 and 8 hertz, the body's response to the road. A coasting pass gave the same reading as a powered one, 1.80 against 1.78. So at these low speeds the road dominates; at higher power the motor's share would grow.
 
-## Slide 12: On the vehicle: enclosures, heat and power (88 words)
+## Slide 12: Conclusions: each question answered in part (114 words, about 49 s)
 
-The enclosures were modelled from scripts in SOLIDWORKS, each checked for interference, fasteners and thin walls: a display mount, a front pod for the Pi 5 and its AI HAT, and a screwless IMU pod. After the Pi 4 reached 76.9 degrees in its closed box, both lids gained an exhaust grille under a rain hood. The power budget is about 20 watts, 0.27 amps from the 72 volt pack, under one percent of the motor's rated input. Only the Pi 5 is measured; the rest are estimates.
+So, honestly, each question is answered in part. RQ1: the instrument is verified on the bench, and on the road it repeats over whole passes but not yet place by place. RQ2: the alerts are built and live-only, but the warning text is too small and glance time was not measured. RQ3: on the bench every record survived a ten-minute outage; on the road the wired link carried 99.9 percent, but LTE latency rests on nine records. RQ4: at these speeds the road dominates. Of thirteen requirements, five are met on the bench, seven partly and one, glance time, was not tested. On the vehicle R1 was met at the front, R2 was not.
 
-## Slide 13: On the vehicle: road session and stand runs (156 words)
+## Slide 13: Contribution and next steps (105 words, about 45 s)
 
-On the nineteenth of October the whole system was mounted and the first road session run. A recorder on the Pi 5 ran for 108.6 minutes, about 16 of them driving, with no laptop on board. One IMU stall of about 2 seconds, not in the drop count, means R1 is not met on the vehicle, and 38 percent of the records were lost on USB, now replaced by wires. The battery link held at up to 46.9 amps. With no GNSS antenna and no raw samples, RQ1 and RQ4 stayed open. On the twenty-third, with the drive wheel raised, the rear vibration rose five to seven times, between about 40 and 70 hertz, and the front showed the same lines, so the powertrain reaches the front through the frame. Throttle settings were not recorded, so the lines are not yet assigned to motor orders. Monday's road run answers RQ1 and RQ4; the analysis is ready.
-
-## Slide 14: Conclusions and next steps (102 words)
-
-To conclude. Every subsystem runs together, now on the vehicle: two nodes at 200 hertz with no counted drops; a database that lost nothing across an outage; detection in about 50 milliseconds at the front; an approaching-object warning; and both cameras on the existing dashboard. On the stands the powertrain showed at 40 to 70 hertz, at both ends; the dashboard's warnings are too small. What remains is Monday's road run for RQ1 and RQ4, larger warnings and then glance time for RQ2, the real approach test, and a separate supply for the telemetry unit. Thank you, I'm happy to take questions.
+The contribution is an integrated low-cost architecture, a measured account of its timing and loss, and road evidence that the ride measurement repeats over whole passes. Four steps would make it dependable. First, a regulated supply for the telemetry unit, never a Pi's USB port. Second, fix the LTE reconnection and measure latency on the road. Third, marked sections with side video and three passes per speed, for a place-by-place ICC. Fourth, validate the fusion and time to contact against a flat target, a real approaching car and labelled video. Videos of the road test are at tuksense.site. Thank you; I'm happy to take questions.

@@ -1,8 +1,8 @@
-# SW-7 examiner, second marker and Open Day preparation
+# Examiner, second marker and Open Day preparation
 
-State of the evidence: 20 October 2026 (firmware v0.7.4; two-sided layout since 15 October; first road session on 19 October, data checked on 20 October). Section K covers the work since 11 October. Older answers that said "before the road test" have been updated where the road session changed them; update again after the second session.
+State of the evidence: 30 October 2026, the submitted final report (Embedded Telemetry with Road-Surface Characterisation and Camera-Based Hazard Detection for the TUKZIE Electric Trike) and the 27 October road analysis (BenchTest/logs/run2_road_2026-10-27/analysis/run2_summary_numbers.txt). Section 0 lists what the final report changed; where an older answer below disagrees with Section 0, Section 0 is right. The 20 October version is in backup_2026-10-30/. Say the project title or "the system", not the old project code.
 
-This file builds on Presentation/SW7_QA_Prep.md and SW7_Talking_Points.md; it does not replace them. It adds first-principles theory, what the cited papers actually say, the hostile questions from the two report reviews, the graduate attributes, and a list of things not to say.
+This file builds on Presentation/SW7_QA_Prep.md (the 20 hardest questions, rewritten 30 October), SW7_Talking_Points.md (15 numbers) and SW7_Speaker_Script.md; it does not replace them. It adds first-principles theory, what the cited papers actually say, the hostile questions from the report reviews, the graduate attributes, and a list of things not to say. Section numbers like "5.3" are the final report's; older "Report 4.x" references below point to the draft numbering.
 
 How to answer any question, in three moves: the number, how and where it was measured, and its limit. Example: "102 ms median from the sensor's own readout timestamp to the detection, over a one-minute bench run on 30 September with nothing else running on the Pi; the integrated Pi with the bridge and live view gave about 120 ms."
 
@@ -29,26 +29,50 @@ Contents
 
 ---
 
+## 0. Read first: what the final report changed (30 October)
+
+Road session 2, 27 October, 11:30 to 12:40, laps of a car park at 10, 15 and 20 km/h, phone GNSS as the speed reference, no typed markers (pass windows derived from phone speed and battery current), no stand runs, bump passes or video on the day (5.3).
+
+- R1 (5.1): front node 200.005 Hz, 1,791,190 samples, no sequence gap; rear 200.006 Hz, 1,184,780 samples, 910 missing in transport (0.08 %); no read failures, raw drops or clipping; one stuck value, four lines rejected by checksum. Met at the front; at the rear the zero-loss clause fails in transport though the node dropped none. Inertial nodes keep no flash log: 200.00 Hz, no interval over 5.2 ms at rest.
+- Flash-write gap: 33 to 44 ms, not filled by catch-up reads (7.1).
+- R2 (5.2): not met on the vehicle. At rest on 27 October 9.845 (rear, new board not recalibrated) and 9.941 m/s2 (front) against 9.81.
+- RQ1 on the road (5.3): smooth loop, 5 passes at 10 km/h, a_w rear 1.78 m/s2 CV 5.0 % (95 % CI 1.9 to 6.2), front 1.16 CV 5.3 %; rough strip 3.61 and 2.26, about twice; 15 km/h only 2 passes, 20 km/h only 1 (car park too small, trike unstable in corners without its body; phone up to 28.3 km/h). Place by place, 8 m cells: ICC(2,1) rear 0.16 smooth (CI -0.09 to 0.75), 0.01 rough, front 0.00 to 0.02, against 0.75; at most 0.32 in sensitivity checks; within-cell spread about 30 %, between-cell about 18 %. I_v rose with speed (1.14, 1.59, 2.44), not speed-invariant.
+- RQ4 (5.3, 6.2): stand runs 23 October, lines 42.75, 49.0 and 64.0 Hz, rear RMS up 5 to 7 times, energy 40 to 70 Hz, same lines at the front. On the road these lines held 0.9 to 3.1 % of 0.5 to 80 Hz energy in powered passes (0.4 % coasting); 65 to 84 % at 4 to 8 Hz; coasting a_w 1.80 against 1.78 powered. At these speeds the road dominates.
+- Front-to-rear delay: not estimated; correlation peak 0.37 to 0.53 at 0.09 to 0.10 s at every speed, so body motion or clock offset, not the wheelbase.
+- R4 (5.4): vehicle GNSS fixed outdoors from 11:36; position updated about every 4 s (near the 3 s poll), not every 25 s; 8 to 25 m from the phone; pass-mean speed read as knots 0.9 to 1.4 times the phone's; stale position and zero speed from 12:13 while flagged fixed. Phone: 14,181 fixes until 12:29. Partly met.
+- R5 (5.5): up to 82.9 A on the 20 km/h pass, 74.0 to 71.2 V, 55 to 52 %; no meter check. Partly met.
+- R7 (Table 5.3): road, front Pi 5 23.3 fps, median 68 ms; rear Pi 4 12.1 fps, 103 ms. No forward video kept, so no alert checked. Partly met.
+- R9 and R10 (5.7): recorder got 4,196 of 4,201 per-second records over the wired link (99.9 %; 62 % over USB on 19 October), so R10 is partly met on the vehicle (5 missed). All about 8,391 polls of six sources answered. LTE: 153 records, 37 live and 116 replayed; live latency median 0.44 s (95th 0.55 s, n = 9); no reconnection from 11:51.
+- R12 (5.8): at the measured eye distance of 0.62 m (not 0.70 m), speed 94 arc minutes, alert banner 10, labels 11, 4 of 110 labels reach 16; ISO 15008 20 recommended, 16 acceptable, 12 minimum. Touch targets median 10.9 mm.
+- Power (K.9, 5.9): whole system 27 W at the portable power station (EcoFlow) display, between the 17 W typical and 31 W peak estimates; about 20 W from the 72 V pack in the budget. On 26 October the Pi 4 stopped booting and was replaced; on 27 October the Pi 4 flagged under-voltage and restarted once (11:21) with the telemetry unit on its USB port.
+- Requirements (7.2): 5 met on the bench (R1 to R3, R9, R10), 7 partly (R4 to R8, R11, R13), R12 not tested. R13: removal not timed.
+- SEN55 (J.9): wires soldered to its test pads in place of the missing cable, the supply pad lifted, the sensor never powered up; no environmental data.
+- Ethics (3.7): approved with conditions on 6 October 2026, EBE/03305/2026, no human subjects; the risk assessment was signed before the 19 October session.
+- Level reached (7.3): a prototype run on the vehicle, short of the TRL 6 demonstration set as the target. Do not say "TRL 4" or "bench prototype" any more.
+- Report body: 18,079 words (declaration page), above the 10,000 to 15,000 guide (GA template, as recorded in Planning/brief-compliance.md).
+- Videos of the system on the road and of its development: tuksense.site (abstract).
+
+---
+
 ## 1. The story
 
 ### 60-second version
 
-TUKZIE is UCT's programme for an electric cargo trike for last-mile freight; the test vehicle is a 72 V trike. When I started, its dashboard ran entirely on simulated data and nothing measured how the trike rides. I built an ESP32-S3 telemetry unit with a built-in LTE modem: it samples two IMUs at a fixed 200 Hz, reads the battery over Bluetooth and position from GNSS, computes ride-vibration features on the board, logs everything locally and sends it over LTE to a database, replaying the backlog after a coverage loss. A Raspberry Pi 4 runs a camera object detector and three time-of-flight distance sensors, fuses them, and feeds the vehicle's existing dashboard, which now shows only live data and hazard alerts. With my supervisor's agreement this replaced the windshield HUD in the brief. Everything is verified on the bench, each stage against a pass criterion; seven faults were found by testing and fixed. Since 15 October the system has two sides: a Pi 5 at the front runs its own camera and detector beside the dashboard (51 to 54 ms), the Pi 4 and the telemetry unit sit at the rear by the battery, and both cameras show on one dashboard page with a warning for approaching objects. On 19 October the whole system was mounted and recorded on the road for 108.6 minutes: the IMUs and the battery link held, but GNSS had no fix and no raw samples were kept, so the ride questions wait for a second session.
+TUKZIE is UCT's programme for a 72 V electric cargo trike for last-mile freight. When I started, its dashboard showed only simulated values and nothing measured how the trike rides. I built three ESP32-S3 boards: an inertial node at each end, sampling at 200 Hz and streaming every sample with a checksum, and a telemetry unit that reads the battery over Bluetooth and GNSS, logs every record to flash and publishes it over LTE, replaying what was not acknowledged. A Raspberry Pi 4 at the rear and a Pi 5 at the front each run a camera detector beside time-of-flight sensors, and the Pi 5 runs the existing dashboard, which now shows live data only; with my supervisor's agreement that replaced the windshield HUD. On the bench a 10-minute outage lost no record end to end. On the road on 27 October, 99.9 percent of records crossed the wired link, five passes at 10 km/h repeated within about 5 percent over whole passes but not place by place (ICC 0.16), and the motor's lines carried only 1 to 3 percent of the vibration energy. The warnings on the dashboard are too small to read at a glance, and glance time is not measured.
 
 ### 2-minute version
 
-The problem. A vehicle meant for fleets and later autonomy needs to know how it rides, what state its battery is in and where it is, and its driver needs hazard information without being distracted. The trike vibrates hard, has little power and computing, and loses mobile coverage. The brief asked for an HPEC telemetry unit, a windshield HUD, LTE synchronisation with a central database, and a report validating it.
+The problem. A vehicle meant for fleets and later autonomy needs to know how it rides, what its battery is doing and where it is, and its driver needs hazard information without distraction. The trike vibrates hard, has little power and loses coverage. The brief asked for an HPEC telemetry unit, a windshield HUD, LTE synchronisation with a database and a report validating it.
 
-What I built. On the ESP32-S3, FreeRTOS keeps acquisition on its own core: one task per IMU at the highest priority, each on a 5 ms period with vTaskDelayUntil, samples time-stamped in microseconds and pushed into bounded queues that drop and count rather than block. In every session both IMUs ran at 200.0 to 200.5 Hz with zero dropped samples. Each IMU is calibrated against gravity, which removed an 8 percent disagreement between two identical sensors, and the two are fused with a disagreement figure. Over LTE the unit publishes with MQTT QoS 1; in the outage test on 11 October a 10-minute radio cut built a backlog of 60 records, the modem reconnected 5.2 s after the radio returned, and the database ended with 112 of 112 records, none missing, none duplicated. GNSS agreed with a phone to a median of 2.7 m.
+What I built. Deterministic acquisition first: each IMU has its own highest-priority FreeRTOS task on a 5 ms period, with bounded queues that drop and count rather than block. On the bench both IMUs held 200 Hz with no dropped samples, but each flash write left a 33 to 44 ms gap that later reads do not fill; the inertial-only nodes, which keep no log, removed it. The telemetry unit logs every record and replays the backlog: after a 10-minute radio outage the database held 112 of 112 records, 24 only after a backfill from the log.
 
-The driver side. The dashboard already showed speed and battery, so a second display would compete for attention; the supervisor agreed on 1 October and the title changed on 2 October. The Pi 4 detector runs a pretrained 8-bit SSD-MobileNet: 102 ms median from sensor readout to result at 19.5 frames per second on the bench, about 120 ms on the fully loaded Pi. Three time-of-flight sensors give close-range distance, fused with the camera's class and bearing. On the dashboard I added a camera page, a Sensors page and an immediate-hazard banner, and a live-only mode so that missing data shows as "--" and is never replaced by simulated values.
+The driver side. The existing dashboard became the display, with live-only data, a hazard banner and both cameras. Detection takes 51 to 54 ms on the Pi 5 and 118 to 122 ms on the loaded Pi 4. Legibility at the measured 0.62 m: the speed is 94 arc minutes, the alert banner 10, below ISO 15008's minimum of 12.
 
-What testing found. Seven investigations, each told as symptom, candidate causes, deciding test, cause and fix: for example flash writes stalling both IMUs, a battery checksum failing by exactly three, and the Pi 4 browning out because the LTE modem drew its transmit current through the Pi's USB port.
+What testing found. Seven fault investigations, above all the LTE modem browning out the Pi 4 through its USB port, which recurred on the road day.
 
-What changed after 11 October. Detection moved to the Pi 5 beside the display (51 to 54 ms against 118 to 122 ms); a time-to-contact warning for approaching objects was added (synthetic tests within 2 percent, not tested on a real approach); enclosures and a power budget (about 20 W) were designed; and the first road session on 19 October met R1 and R5 on the vehicle but recorded no GNSS fix, raw samples or run markers.
+The road, 27 October. Front node 1,791,190 samples with no gap; 4,196 of 4,201 records over the wired link. Smooth loop at 10 km/h: CV of a_w 5.0 and 5.3 percent; a rough strip read about twice as high; ICC place by place 0.16 against 0.75. Powertrain lines 0.9 to 3.1 percent of the energy in powered passes. Calibration did not hold on the vehicle (9.845 and 9.941 against 9.81), and LTE stopped reconnecting at 11:51.
 
-What is left. A second, shorter road session with the raw stream, GNSS and timed runs answers RQ1 and RQ4 on the vehicle; glance time (RQ2), the approach test C11, the fusion calibration test C9, the database latency and a separate supply for the telemetry unit also remain.
-
+What is left. A regulated supply for the telemetry unit, a fixed LTE reconnection, larger warnings and a glance study, marked sections with side video for a place-by-place answer, and road alerts checked against video.
 ---
 
 ## 2. Question bank
@@ -64,7 +88,7 @@ Evidence: Report 1.1 and 2.2; dashboard inspection of 2 Oct in Methodology "Dash
 
 A2. What did the brief ask for?
 Answer: Four things: an HPEC telemetry unit with a deterministic multi-threaded architecture for polling, signal processing, display rendering and networking; a windshield HUD; logging and LTE transmission to a central database; and a report validating ingestion accuracy, edge latency and remote synchronisation. It also listed environmental and air-quality sensing (microclimate, "plastic burning" anomalies) and fleet notifications.
-Follow-up: "Which of those did you not deliver?" The HUD (replaced by agreement), the SEN55 air-quality sensor (received, cable missing), the 8x8 ToF sensor (three VL53L0X stand in), the motor Hall tap, fleet notifications (never defined), and route optimisation (not in SW-7).
+Follow-up: "Which of those did you not deliver?" The HUD (replaced by agreement), the SEN55 air-quality sensor (received, cable missing), the 8x8 ToF sensor (three VL53L0X stand in), the motor Hall tap, fleet notifications (never defined), and route optimisation (outside this project). The SEN55 was damaged when wires were soldered to its test pads (J.9).
 Evidence: Planning/EEE4022S 2026 Topics Winberg_Taken By Samson.pdf pp. 20 to 22; Report 1.2 and 1.5; Planning/brief-compliance.md.
 
 A3. Why did you drop the windshield HUD?
@@ -83,18 +107,18 @@ Follow-up: "Then why use the term?" It is the brief's term; I defined it in Chap
 Evidence: Report 2.5; Barnell 2018 cited for HPEC (not opened by me).
 
 A6. What are your research questions, and which are answered?
-Answer: RQ1, accuracy and repeatability of the dynamic-response measurement: answered for the instrument on the bench, not yet for the vehicle. RQ2, information hierarchy, layout and update strategy on the dashboard: answered for hierarchy and update strategy, not for glance time. RQ3, latency, loss and recovery: answered on the bench up to the database (T15), latency to the database not yet measured. RQ4, features that separate road from powertrain vibration: not answered; it needs vehicle data and the Hall tap.
+Answer (final report, 7.1): RQ1 partly answered: the instrument's rate, calibration and features are verified on the bench; on the road it repeats over whole passes (CV 5.0 and 5.3 percent) but not place by place (ICC 0.16, at most 0.32), and with no reference accelerometer only repeatability, not road accuracy, can be assessed. RQ2 partly: the design and its legibility (warnings below ISO 15008), not its effect on the driver. RQ3 partly: recovery measured on the bench; on the road 99.9 percent over the wired link and LTE latency a median of 0.44 s on nine records, no reconnection after 11:51. RQ4: at these speeds the powertrain lines hold 1 to 3 percent of the road energy, so the road dominates.
 Follow-up: see G1 for the mismatch between RQs and requirements.
 Evidence: Report Chapter 6.
 
 A7. What were the requirements and acceptance criteria?
-Answer: Thirteen, R1 to R13, each with a pass criterion fixed before the test and a test ID: for example R1, both IMUs at 195 Hz or more with zero drops; R4, a parsed position within 10 m of a phone; R9, acknowledged publishes, recovery without intervention and a full read-back; R11, only live values on the display; R12, glances within 2 s. Met on the bench: R1, R3, R6, R7 (person class), R9 (to a test broker), R10, R11. Partly met: R2, R4, R5, R8. Outstanding: R12, R13.
-Follow-up: "R4 is marked partly met, why?" The median (2.7 m) passes but the 95th percentile (11.0 m) is just over 10 m.
+Answer: Thirteen, R1 to R13, each with a pass criterion fixed before its test (except T1) and a test ID: for example R1, both IMUs at 195 Hz or more with zero drops; R4, a parsed position within 10 m of a phone; R12, single glances within 2 s. Final tally (7.2, Table 5.3): met on the bench R1 to R3, R9, R10; partly met R4 to R8, R11, R13; R12 not tested. On the road R1 met at the front (rear 0.08 percent lost in transport), R10 for 99.9 percent of records, R4 and R9 in part, R2 not.
+Follow-up: "R4 is marked partly met, why?" On the bench the median (2.7 m) passes but the 95th percentile (11.0 m) does not; on the vehicle the fix lay 8 to 25 m from the phone and went stale from 12:13 (5.4).
 Evidence: Report Tables 1.1 and 4.4 (results summary).
 
 A8. What TRL did you target and reach?
-Answer: The target was TRL 6, a prototype demonstrated in a relevant environment (the vehicle). I have reached an integrated system validated on the bench, which on the NASA scale is about TRL 4 (validation in the laboratory); TRL 5 and 6 need the vehicle tests. The report's Conclusions say this in words ("a working bench prototype rather than the demonstration in a relevant environment").
-Follow-up: "Why not state the TRL number in the report?" Fair; the critical review flagged it and it should be added.
+Answer: The target was TRL 6, a prototype demonstrated in a relevant environment. The final report says the work "has reached a prototype run on the vehicle, short of the demonstration in a relevant environment set as the target" (7.3): two short low-speed sessions on one vehicle, not a demonstration in service.
+Follow-up: "So which TRL?" Do not give a number the report does not give; describe the evidence (one vehicle, one hardware set, two sessions).
 Evidence: Report 1.2 and Conclusions "Overall"; Kimmel 2020 cited (not opened by me; TRL definitions from the standard NASA scale).
 
 A9. What is the vehicle exactly?
@@ -103,7 +127,7 @@ Follow-up: "Why do 2.5 kW and 3.9 kW differ?" They come from different plates (m
 Evidence: Report 1.1; Adams and Rasara 2026 vacation-work report.
 
 A10. What is in scope but not delivered?
-Answer: SEN55 air-quality sensor (received, no 6-way JST GH cable), VL53L5CX 8x8 ToF (not arrived; three VL53L0X stand in), the motor Hall tap (counter built and loopback-tested, tap not wired), the HUD (replaced), and a partner broker (data go to a public test broker and my own database on the Pi 5).
+Answer (1.5): the SEN55 air-quality sensor (damaged when wires were soldered to its test pads in place of the missing cable), the VL53L5CX 8x8 ToF (not received; three VL53L0X stand in), the motor Hall tap, LTE publishing that recovers on the moving vehicle, and the HUD (replaced by agreement).
 Evidence: Report 1.5; REMAINING_WORK.md.
 
 A11. Why was the camera added? The brief does not mention one.
@@ -760,11 +784,11 @@ Answer: I cannot compare alternatives with the evidence I have. What I can answe
 Evidence: critical review item 1; Report Discussion "Driver display".
 
 G3. RQ4 asks for time- and frequency-domain features. You have none in the frequency domain.
-Answer: Correct. Only time-domain features are implemented, and the firmware stores per-window features, not raw 200 Hz samples, so I cannot compute spectra offline from current logs. Either RQ4 narrows to the time domain, or I add a raw capture mode for a session (streaming samples over USB to the Pi) or an on-board band-energy feature. The method for separation is designed: Hall motor speed as a reference, stationary motor runs at several speeds, coast-down.
+Answer (updated): The inertial nodes now stream every raw 200 Hz sample, so the frequency-domain analysis was done offline: Welch spectra of the stand runs found the powertrain lines (42.75, 49.0, 64.0 Hz), and their share of each road pass was computed: 0.9 to 3.1 percent powered, 0.4 percent coasting (5.3). The on-board features are still time-domain. The Hall tap, to follow the lines continuously, is Recommendation 4.
 Evidence: Report Recommendation 7; main.cpp commands (no raw IMU logging command); critical review questions.
 
 G4. You have no vehicle data. Isn't this just a bench project?
-Answer: Most results are bench results and I label them so. The first road session (19 October) gave vehicle data: 108.6 minutes recorded, about 16 minutes of driving, both IMUs at 200 Hz with no drops and one 2 s stall but a third of the per-second records lost on the USB link (R1 partly met on the vehicle), and the battery link held under load up to 46.9 A (R5 partly met (no meter check)). It did not give GNSS, raw samples or run markers, so RQ1 and RQ4 are not answered on the vehicle yet; a second, shorter session is planned (see K4).
+Answer: Most results are bench results and I label them so, but there are two road sessions. On 27 October: front node 1,791,190 samples with no gap, 4,196 of 4,201 records over the wired link, whole-pass CV 5.0 and 5.3 percent at 10 km/h, a rough strip about twice as high, ICC 0.16 place by place, powertrain 0.9 to 3.1 percent of the energy. The limits are short, low-speed sessions on one vehicle (7.4).
 Follow-up: "Why so late?" Vehicle access depended on lab scheduling, and I chose to verify each interface before mounting. In hindsight I should have pushed for a stationary powertrain run much earlier (see G16).
 Evidence: Report 3.13; PROJECT_LOG "Waiting on someone".
 
@@ -803,7 +827,7 @@ Follow-up: "Then drop the word?" Either drop it or add the BOM before submission
 Evidence: QA_Prep section 12; critical review item 8.
 
 G12. What is the power budget against the 72 V battery?
-Answer: About 20 W typical (0.27 A from the 72 V pack), 35 W peak, under 1 percent of the motor's rated input; only the Pi 5 is measured, the rest are datasheet and published estimates. Details and the converter requirements are in K6. The main power finding stands: the modem must not be powered from a Pi's USB port.
+Answer: The total is measured: 27 W at the portable power station's display with everything running, between the 17 W typical and 31 W peak estimates at 5 V; the per-load split is still estimated (K.9). From the pack that is about 20 W typical, 0.28 percent of a 7.2 kWh pack an hour, but enough to empty it in about 15 days if left on (5.9). The main power finding stands: the modem must not be powered from a Pi's USB port.
 Evidence: Report Results power-budget table; Recommendation 3.
 
 G13. What about the hardware debuggers the brief mentions?
@@ -839,7 +863,7 @@ Answer: It proves no record was lost end to end in that test, with 60 replayed a
 Evidence: TEST_PROCEDURES T15; Server/README.
 
 G21. The SEN55 and air quality were in the brief. Why drop them?
-Answer: Not dropped, not delivered: the sensor arrived but needs a six-way JST GH cable; the wiring and a simple anomaly rule (PM2.5 with a VOC rise above a rolling baseline, tagged with position) are planned. I note that VOC and NOx indices take up to 1 and 6 hours to meet specification after switch-on, so short drives give indicative values only.
+Answer: Not delivered. It arrived without its six-way JST GH cable; to avoid waiting I soldered wires to its test pads, the supply pad lifted and the sensor never powered up, so no environmental data were recorded (J.9). A replacement with its cable fits the Pi 4's existing I2C bus; the lesson is to wait for the connector (Recommendation 10).
 Evidence: Report 3.7 "Other vehicle inputs"; REMAINING_WORK 3.3; brief-compliance section 3.
 
 G22. Is the alert hysteresis tested on live data, or only offline?
@@ -851,7 +875,7 @@ Answer: No. Only person has been confirmed on live frames (confidence 0.50 to 0.
 Evidence: Report 4.6.
 
 G24. The report says R13 removability is met in one place and outstanding in another.
-Answer: Outstanding is right: removable mounting is planned (no drilling, return to standard in about 20 minutes in the plan) but nothing is installed yet. The Methodology wording should say "planned".
+Answer: Partly met (Table 5.3): the system was mounted on 19 October with no drilling or permanent change, but removal and return to standard were not timed.
 Evidence: critical review item 7.
 
 ### H. Graduate attributes
@@ -894,7 +918,7 @@ Follow-up: "Is the dashboard look yours?" No: the visual language is the team's 
 Evidence: Report 3.5, 3.8.4 and Acknowledgments; DashboardIntegration/README.md.
 
 I2. Who are Melokuhle and Sharaav, and how do you work with them?
-Answer: Two other students building onto the same trike. Melokuhle Bango (JBM11) builds a gateway that sends telemetry over MQTT to a remote server; my firmware and database take any broker from configuration, so pointing at that broker is a settings change once its details (host, port, user, TLS, topic) are known; we are also coordinating the road test. Sharaav (SW-6) and I agreed a preliminary UART link (115200 8N1, CSV speed and battery percent from SW-6 to SW-7); it became optional when the dashboard took battery from my BMS link, and it was not implemented.
+Answer: Two other students building onto the same trike. Melokuhle Bango (JBM11) builds a gateway that sends telemetry over MQTT to a remote server; my firmware and database take any broker from configuration, so pointing at that broker is a settings change once its details (host, port, user, TLS, topic) are known; we are also coordinating the road test. Sharaav (SW-6) and I agreed a preliminary UART link (115200 8N1, CSV speed and battery percent from the other project to mine); it became optional when the dashboard took battery from my BMS link, and it was not implemented.
 Follow-up: "Did you share mounting?" Positions are to be confirmed on the trike with both of them and the lab (Yusuf Vawda for access).
 Evidence: Server/README; Planning/central-database-sync-prompt.md; Planning/sharaav-interface-definition.md; mounting-and-enclosures.md.
 
@@ -920,12 +944,12 @@ J9. Is that a real drive on the screen? When the yellow "SIMULATED" strip is sho
 J10. How far can the distance sensors see? About a metre in this version, for close manoeuvring; the camera covers further away.
 J11. How much does it cost? I have not added it up yet; the parts are all off-the-shelf hobby-grade boards. (Better: total the BOM before Open Day.)
 J12. What did you learn? That testing each piece against a clear pass mark finds problems you would never guess, like the mobile modem browning out the camera computer through a USB cable.
-J13. What next? A second drive with the raw motion data and working GPS, then using it to tell road bumps apart from the motor's own vibration.
+J13. What next? A proper supply for the electronics, bigger warnings on the screen, and more drives on marked stretches of road with video, so we can say how well it measures each spot.
 J14. Is this a head-up display? It was going to be, but the trike already has a dashboard, so the warnings go there instead of adding a second screen.
 J15. Who made it? I did, as my final-year project, building on the dashboard and vehicle work of earlier student teams.
 J16. Why two cameras? There is a camera at the front and one at the back; the driver flips between them on one page, and the rear view is mirrored like a car's reversing camera.
 J17. Can it tell if something is coming at you? It watches how fast an object's outline grows in the picture; growing fast means it will reach you soon, and it warns under 4 seconds. That part is tested on simulated data so far, not on a real approaching car.
-J18. Has it been on the road? Yes, once, on 19 October, for about 20 minutes of driving; the motion sensors and the battery reading worked, the GPS did not get a fix, so a second drive is planned.
+J18. Has it been on the road? Yes, twice, in October. On the second drive it recorded almost every second of data, measured the same smooth loop within about 5 percent pass to pass, and found the road shakes the trike far more than its motor. Videos are at tuksense.site.
 
 ### K. New since 11 October: two sides, approaching objects, power, the first road session
 
@@ -945,18 +969,18 @@ Follow-up: "Did it work on the road?" The front detector marked 261 car alerts a
 Evidence: Report Methodology "Approaching objects: time to contact", Results (approaching-object row; road alerts), Discussion "Hazard sensing"; lab notebook 19 Oct "Camera focal-length calibration".
 
 K3. Why was there no GNSS fix on the road?
-Answer: No GNSS antenna had been connected to the board, so the receiver could not see any satellites. That was an installation omission, not a receiver fault: on the bench the same receiver gave a fix 105 s after a cold start and a 2.7 m median against a phone. There is no position or speed for that drive, so R4 is untested on the vehicle rather than failed. The antenna is now fitted for the second session.
+Answer: On 19 October no GNSS antenna had been connected, so there was no fix. On 27 October it was fitted and the receiver held a fix outdoors from 11:36, but its position updated about every 4 s, lay 8 to 25 m from the phone, and from 12:13 it held a stale position and zero speed while flagged fixed (5.4; GNSS hang in E.3.9). The phone was therefore the speed reference.
 Follow-up: "What will you do?" Check the antenna connector and give the patch a clear view of the sky with no metal above it, confirm a fix outdoors before driving (it is on the checklist), and log the raw GNSS replies so a missing fix can be diagnosed.
 Follow-up: "What did losing it cost?" Speed (needed for the speed-normalised index and the speed dependence in RQ4), GNSS time for aligning the logs and video, and the latency measurement. Driving was identified instead from battery current and vibration.
 Evidence: Report Results "Position (R4)"; lab notebook 20 Oct "Not captured".
 
 K4. Why is RQ4 not answered yet, when you drove for about 16 minutes?
-Answer: Separating powertrain from road vibration needs three things the first session did not have: the raw 200 Hz samples for spectra (firmware v0.7.4 stores one-second features, and the live record carries only one vibration number a second), a speed reference (no GNSS fix, and the Hall tap is not fitted), and marked runs, including the stationary powertrain baseline on stands (only the "drive session starting" marker was written). What the session does show is that parked and driving separate clearly: one-second vibration median 0.031 parked against a 95th percentile of 2.0 and a maximum of 5.09 while driving, together with battery current up to 46.9 A. The same gaps stop RQ1's repeatability over repeated traversals.
-Follow-up: "So what next?" A second, shorter session with the raw stream (firmware v0.7.5, being bench-tested so that the IMU timing is unchanged), a working GNSS antenna, timed runs written as markers, and the stationary baseline at each motor setting.
+Answer (updated): It is answered for these speeds. The second session had the raw stream and the phone's speed, and the 23 October stand runs gave the powertrain baseline. On the road the powertrain lines held 0.9 to 3.1 percent of the energy in powered passes (0.4 percent coasting), 65 to 84 percent lay at 4 to 8 Hz, and a coasting pass read a_w 1.80 against 1.78 powered (5.3, 6.2).
+Follow-up: "Does that hold at speed?" Not shown: at higher power the 40 to 70 Hz energy of the stand runs would weigh more, and only three passes were driven above 10 km/h.
 Evidence: Report Results R3 and Discussion "Ride characterisation"; lab notebook 19 Oct 17:55 and 20 Oct.
 
 K5. Is R1 really met on the vehicle?
-Answer: Partly. No samples were dropped, and the rate held in all but six of 3,437 readable records; one, while driving, shows IMU1 stalled for about 2 s. But the recorder received only 3,464 distinct one-second records over a 5,557 s span: a third of the seconds were lost on the USB link, which is why the unit now uses a wired serial link. The gap distribution on the moving vehicle is not shown, because that needs the raw sample stream (v0.7.5).
+Answer: On 19 October no (a 2 s stall lost about 396 samples, 38 percent of seconds lost over USB). On 27 October met at the front (200.005 Hz, no gap) and at the rear for rate and spacing, with 910 samples (0.08 percent) lost in transport (5.1).
 Evidence: Report Results R1 and the summary table.
 
 K6. Power: what is the budget, and what caused the brown-outs?
@@ -1054,10 +1078,10 @@ Evidence: Report Methodology "Vehicle tests"; Results "Integration and power"; l
 | Hall counter | 666 edges in 333.3 s = 2.00/s; filter 12.5 us; rpm = edge rate x 60 / (2 x pole pairs) | T9; Report 3.7 |
 | Vehicle | 72 V; motor 72 V 35 A, controller 90 A, about 2.5 kW; plate L2e-U, 3.9 kW, 42 km/h | Report 1.1 |
 | Literature | 733 records, 3 runs from 19 Sep; 47 cited references | research.db; References.tex |
-| Report | 13,476 body words (declaration, 11 Oct); 50-page limit | Report front matter |
+| Report | 18,079 body words (declaration page); guide 10,000 to 15,000 (GA template) | Report front matter; brief-compliance.md |
 | Display guidance | 2 s glance, 12 s task (NHTSA); 20 arcmin, about 24 px at 70 cm (ISO 15008); 10x10 mm touch, 4 mm gap (Euro NCAP); 40 s destination entry (Strayer); 10.6 percent (Reimer); fewer than 6 symbols (Park) | Report 2.6; papers |
 | Economics | 45.5 percent vs motorcycle, 62.5 vs tuk-tuk, 86 vs light car (Sebwa); 51 to 72 percent GHG (Saenz) | Sebwa PDF; Report 2.2 |
-| Course | talk 10 min, Q&A 5 min; deck now 14 slides, 1,275 words (about 9:08 spoken); report 90 percent, oral 10 percent | Lecture 2; brief-compliance.md; SW7_Speaker_Script.md |
+| Course | talk 10 min, Q&A 5 min; script 1,287 words (about 9:54 at 130 words a minute); timekeeper alerts at 5 and 8 min; report 90 percent, oral 10 percent | Lecture 2; brief-compliance.md; SW7_Speaker_Script.md |
 | Detector, Pi 5 front (15 Oct, 60 s) | 19.2 fps; 51 to 54 ms median readout to result, 61 to 63 ms p95, inference 28 ms; CPU 64 to 73 percent, 53 to 54 C | Report hazard-sensing table |
 | Detector, Pi 4 whole system (11 Oct) | 14.6 to 14.7 fps; 118 to 122 ms median, 146 to 148 ms p95 | Report hazard-sensing table |
 | On the vehicle (19 Oct, lab check) | front 17.5 to 22.0 fps, 53 to 102 ms; rear 14.4 to 14.5 fps, 126 to 151 ms (Pi 4 throttled) | Report Results "Integration and power" |
@@ -1069,10 +1093,20 @@ Evidence: Report Methodology "Vehicle tests"; Results "Integration and power"; l
 | Road: vibration | median 0.03 parked; driving median 1.39, p95 3.2, max 5.09 (each record counted once) | Results R3 |
 | Road: alerts | front 1,342 (person 815, car 513, 261 car approaching); rear 741 (car 201, 36 approaching); not checked against video | Results hazard sensing |
 | Road: GNSS | no fix in any of 3,464 records (no antenna fitted) | Results R4 |
-| Power budget | 17 W typical, 31 W peak at 5 V; 20 W (0.27 A) typical, 35 W (0.5 A) peak from 72 V at 88 percent; about 0.8 percent of 2.5 kW; Pi 5 measured 2.2 to 3.0 W | Results power-budget table |
+| Power budget | 17 W typical, 31 W peak at 5 V (estimates); measured total 27 W at the portable power station; about 20 W from 72 V; Pi 5 measured 2.2 to 3.0 W | K.9, Table K.5 |
 | Pack | DB24SA01L24S150ABU: 24 cells, 150 A BMS; 74.7 V at 60 percent (3.11 V per cell), about 60 to 88 V | Results R5 |
 | Closed box (16 Oct) | Pi 4 68.6 to 76.9 C over about 70 min; flags 0xD0000, brown-out restart at 0x50005; lost dashboard lines 2 to 10 percent | Methodology Pi 4 investigation |
 | Pi 5 restarts (19 Oct) | 4 during mounting; last readings 4.95 to 5.08 V, flags clean, 57 to 59 C; lowest 4.89 to 4.97 V in the 2 min before | Methodology Pi 4 investigation (recurrence) |
+| Road 27 Oct: IMUs | front 200.005 Hz, 1,791,190 samples, 0 gaps; rear 200.006 Hz, 1,184,780, 910 lost in transport (0.08 %) | 5.1 |
+| Road 27 Oct: ride | smooth 10 km/h a_w rear 1.78 (CV 5.0 %), front 1.16 (CV 5.3 %); rough 3.61 and 2.26; 15 km/h 2 passes, 20 km/h 1 | 5.3 |
+| Road 27 Oct: ICC | rear 0.16 smooth (CI -0.09 to 0.75), 0.01 rough; front 0.00 to 0.02; max 0.32; criterion 0.75 | 5.3 |
+| Road 27 Oct: powertrain | 0.9 to 3.1 % powered, 0.4 % coasting; 65 to 84 % at 4 to 8 Hz; coasting 1.80 vs 1.78 | 5.3 |
+| Road 27 Oct: links | 4,196 of 4,201 records (99.9 %); LTE 153 (37 live, 116 replayed), 0.44 s median n = 9, lost from 11:51 | 5.7 |
+| Road 27 Oct: GNSS | updated about every 4 s; 8 to 25 m from phone; stale from 12:13; phone 14,181 fixes | 5.4 |
+| Road 27 Oct: calibration | 9.845 rear, 9.941 front at rest vs 9.81; R2 not met | 5.2 |
+| Road 27 Oct: detectors | front 23.3 fps, 68 ms; rear 12.1 fps, 103 ms | Table 5.3 |
+| Road 27 Oct: battery | up to 82.9 A; 74.0 to 71.2 V | 5.5 |
+| Legibility | eye 0.62 m; speed 94, banner 10, labels 11 arc minutes; ISO 15008 20 / 16 / 12 | 5.8 |
 
 ---
 
@@ -1177,15 +1211,15 @@ Evidence: Report Methodology "Vehicle tests"; Results "Integration and power"; l
 
 | Do not say | Why | Say instead |
 |---|---|---|
-| "It works on the trike." or "The road test is done." | One road session: R1 and R5 met on the vehicle, but no GNSS, raw samples or run markers. | "The first road session met R1 and R5 on the vehicle; the ride questions need the second session." |
+| "It works on the trike." | Two short low-speed sessions; R2 not met on the vehicle; LTE lost from 11:51. | "It ran on the vehicle in two short sessions; this is what held and what did not." |
 | "The approaching-object warning works." | Synthetic tests only; C11 not run; road alerts not checked against video. | "It is within 2 percent on synthetic data; a real approach test is next." |
 | "261 cars approached the trike." | Not checked against video; a still object ahead counts while driving. | "The front detector marked 261 car alerts as approaching; I have not checked them against video." |
 | "The Pi 5 browned out." | Its logger showed normal values just before each restart. | "Abrupt power loss, probably a connector, the source or the supply's protection, not a brown-out." |
-| "The power budget is 20 W." (as measured) | Only the Pi 5 is measured. | "About 20 W, of which only the Pi 5 share is measured." |
+| "The power budget is 20 W, measured." | The measured figure is the 27 W total at the power station; the split by load is estimated. | "27 W in total at the power station; the share of each load is still an estimate." |
 | "The enclosures are on the vehicle." | Only the rear box and a first IMU pod are printed. | "Designed and checked in CAD; the rear box and an IMU pod are printed so far." |
 | "Reverse gear switches to the rear camera." | There is no gear signal from the vehicle. | "The dashboard's own gear state does; a vehicle gear signal is not wired." |
 | "Detection takes 50 ms." (for the whole system) | Front only, on the Pi 5; the rear Pi 4 is about 120 ms or more. | "51 to 54 ms at the front on the Pi 5; the rear is still the Pi 4." |
-| "The IMUs are calibrated." | Calibration holds only in the orientation measured; on 11 Oct they read about 10.87 and 10.12 m/s2 at rest. | "Calibrated at the time; must be redone once mounted, which the firmware does with one command." |
+| "The IMUs are calibrated." | On 27 Oct at rest 9.845 and 9.941 against 9.81; R2 not met on the vehicle. | "Calibrated at each calibration; the factor did not hold once mounted, so it needs a per-axis calibration in place." |
 | "Calibration reduced an 8 percent error to noise." | At calibration they were 1.3 percent apart; the 8 percent was an earlier session. | "An 8 percent disagreement seen earlier; after calibration both read 9.80 to 9.81 in that orientation." |
 | "Zero dropped samples, so no gaps." | 33 to 40 ms pauses at each flush. | "Zero lost samples; one 37 to 40 ms pause a minute at the log flush, then bunched samples." |
 | "The detector latency is 102 ms." (alone) | Best case with nothing else running. | "102 ms on the bench alone, about 120 ms on the fully loaded Pi." |
@@ -1195,11 +1229,11 @@ Evidence: Report Methodology "Vehicle tests"; Results "Integration and power"; l
 | "It detects hazards / vehicles." | Only the person class confirmed live. | "It reports seven road-user classes; only person has been confirmed on live frames." |
 | "GNSS is accurate to 2.7 m." | Agreement with a phone; p95 11 m. | "A median of 2.7 m from a phone's position, 95 percent within 11 m." |
 | "The network position is 30 m accurate." | One reading; stated accuracy 550 m. | "Stated to 550 m; it happened to be about 30 m off once." |
-| "Speed is in km/h" or "speed is unknown." | The manual says knots; not confirmed on this modem. | "The manual says knots; I will confirm against a known speed on the road." |
+| "The GNSS updated every 25 s." | Wrong. | "Its position updated about every 4 s, near the 3 s poll, and went stale from 12:13." |
 | "No data is ever lost." | T15 needed 24 records backfilled from the log; the public broker acks without delivering; a power cut loses up to a minute of unflushed records. | "In the outage test nothing was lost end to end, with the device log as the safety net on this broker." |
 | "Synchronised with the central database." (unqualified) | It is my SQLite on the Pi 5 via a public broker; latency unmeasured. | "Stored in a database on the Pi 5 through MQTT, completeness tested; latency and the partner broker are next." |
 | "The dashboard is safe to use while driving." | Glance time not measured. | "Designed against the 2 s guidance; glance time is the open part of RQ2." |
-| "RQ4 is answered." | No vehicle data, no frequency-domain features. | "The method is designed; RQ4 needs the Hall tap and vehicle data." |
+| "The motor does not matter." | Shown only at these low speeds. | "At 10 to 20 km/h the powertrain lines hold 1 to 3 percent of the energy; at higher power they would weigh more." |
 | "Low-cost" as a proven claim | No BOM. | "Commodity parts; I have not totalled the cost yet" (or give the BOM once done). |
 | "AI only helped with wording." | The repository records much wider use. | "I used an AI assistant for code, test analysis, literature search and wording; I made the decisions, ran the tests and can defend every result." |
 | "The ToF sensors are accurate to 5 percent." | No tape check yet. | "They respond correctly to a hand; accuracy against a tape is in test C9." |
@@ -1208,9 +1242,11 @@ Evidence: Report Methodology "Vehicle tests"; Results "Integration and power"; l
 | "My features measure ride comfort." | No ISO weighting, magnitude not vertical. | "They measure vibration exposure, a vehicle-specific response, not comfort or IRI." |
 | "The two IMUs measure the same thing, so averaging is optimal." | They are at different points. | "The average is an exposure across two points; D shows when they differ, and per-sensor values are kept." |
 | "The flash stall is fixed." | Only less frequent; same length. | "Six times less often, same length; removing it needs IRAM, the IMU FIFO or logging elsewhere." |
-| "The power problem is solved." | The powered hub and 5.1 V 3 A supply are open items; no long run shown. | "The cause is found; the fix is a separate supply, still to be proven on a long run." |
-| "TRL 6." | Not demonstrated in a relevant environment. | "A bench-validated integrated prototype, about TRL 4; TRL 6 needs the vehicle." |
+| "The power problem is solved." | The Pi 4 restarted on 27 Oct with the unit on its USB port. | "The cause is found; the fix, a regulated supply for the telemetry unit, is not yet fitted." |
+| "TRL 6." or "TRL 4." | The report gives no number. | "A prototype run on the vehicle, short of the demonstration in a relevant environment set as the target." |
 | "Nobody has done this before." | The gap is bounded by a search and narrowed twice. | "My search found no system integrating these on this vehicle class; the contribution is the integration and its measurement." |
+| "R10 is met on the vehicle." | 5 of 4,201 records missed. | "99.9 percent on the vehicle, so partly met." |
+| "The ICC proves the instrument is unreliable." | Whole-pass CV is 5 percent. | "It repeats over whole passes but not place by place; with 1 Hz positions the cells cannot be separated from the line each lap took." |
 | Any number you are unsure of | Guessing loses more than admitting. | "I don't have that number; this is how I would measure it." |
 
 ---
@@ -1220,6 +1256,7 @@ Evidence: Report Methodology "Vehicle tests"; Results "Integration and power"; l
 - Papers cited but not opened by me (statements rely on the report, the project's notes or abstracts): Li et al. 2018 (the project verified it from the abstract), Caroleo 2026, Gonzalez 2008, Sattar 2018, FHWA 2016, ISO 2631-1, ISO 15008, Shi 2016, Barnell 2018, Liu 2003, Smith 2016, Zhu 2021, Park 2020, Hauslschmid 2015 and 2016, Mareska 2022, De Simone 2018, Noomwongs 2025, Saenz 2016, Kimmel 2020 (TRL definitions given from the standard NASA scale), the Electronics 2026 motorcycle paper (reviewed by the project from its abstract).
 - Opened and checked: the brief, Sebwa 2025, Yiliguoqi 2026, Bui 2026, Alatoom 2025 (title and abstract only), Perez-Gonzalez (preprint version), NHTSA 2013, Reimer 2014, Strayer 2017, Euro NCAP 2026, Kim (2011 KIIE version, not the 2014 paper cited), Qin 2017 (title), SSD, MobileNets, Jacob 2018, COCO, Alqahtani, Zhu 2019, Tanveer 2026 (abstract), SIMCom A76XX manual v1.09 (CMQTTPUB and GNSS speed sections).
 - General engineering facts not in the repository and stated from general knowledge: MPU6050 internal rates and filter delays, LTE Cat 1 data rates, MQTT QoS 2 handshake names, ESP32-S3 built-in USB JTAG, A7670X TLS support, the I2C read-time estimate, the clock-rate difference from the 500.06 ms median, the focal-length and width-error arithmetic, and the end-to-end alert latency sum.
-- Not found in the repository: a bill of materials or any cost figure; a power measurement other than the Pi 5's internal readings; the venue, the people present and the signed risk assessment for the 19 October session; SW-6's own project topic; the ethics approval letter itself (the application PDF and the log record of approval on 23 September are present).
+- 30 October check: every number in Section 0 was checked against the final report and run2_summary_numbers.txt. The 10,000 to 15,000 word guide is from Planning/brief-compliance.md (GA template), not the report. The date of the 27 W reading is not stated separately in the report (it sits in the 19 October integration paragraph of K.9).
+- Not found in the repository: a bill of materials or any cost figure; a per-load power measurement other than the Pi 5's internal readings; the venue, the people present and the signed risk assessment for the 19 October session; SW-6's own project topic; the ethics approval letter itself (the application PDF and the log record of approval on 23 September are present).
 - PROJECT_LOG.md's status board stops around 1 October; later facts come from TEST_PROCEDURES.md, REMAINING_WORK.md, the 10 to 11 October logs and the current report.
 - Readings from logs that are my own analysis, not in the report: the 11 October resting magnitudes (10.87, 10.12), the T15 gap count (10 of 368 windows over 10 ms, worst 44.1 ms), and the D = 1.68 sensor values.
