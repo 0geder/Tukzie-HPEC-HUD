@@ -76,7 +76,7 @@ On the twenty-seventh we drove laps of a car park at 10, 15 and 20 kilometres an
 
 On a smooth loop, five passes at 10 kilometres an hour gave a weighted acceleration that varied by only 5.0 percent at the rear and 5.3 at the front, half the 10 percent allowed. A rougher strip read about twice as high. Only three passes were driven at 15 and 20, too few to judge: the car park was short and the trike, without its body, was unstable in the corners. And at rest the sensors read 9.845 and 9.941 against 9.81, so the calibration did not hold once mounted. Place by place, in 8 metre cells, the passes did not agree: an intraclass correlation of 0.16 at the rear, against 0.75.
 
-> 8-MINUTE ALERT: you should be here, starting "For RQ4". If you are not yet on the powertrain, skip it and say only "the motor carries 1 to 3 percent of the road's vibration energy", then go to the conclusions.
+> 8-MINUTE ALERT: you should be here, starting "For RQ4". If you are not yet on the powertrain, skip it and say only "the motor carries 0.9 to 3.1 percent of the road's vibration energy", then go to the conclusions.
 
 ## 10. Powertrain against road
 
