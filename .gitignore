@@ -94,3 +94,6 @@ Presentation/media/tuksense_overview_60s.mp4
 
 # Narrated preview video, 112 MB, over the GitHub file limit
 Presentation/media/SW7_Final_Presentation_narrated.mp4
+
+# Local agent worktree copies, never published
+.claude/worktrees/
