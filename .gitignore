@@ -97,3 +97,6 @@ Presentation/media/SW7_Final_Presentation_narrated.mp4
 
 # Local agent worktree copies, never published
 .claude/worktrees/
+
+# Trial reels, 50 to 80 MB each, kept local
+Presentation/media/reels/*.mp4
