@@ -110,13 +110,13 @@ let b = panel(1, "Problem and aim", XL, yL, COLW, h1);
     ["Aim: ", "a low-cost unit that measures the ride at both ends, warns the driver of hazards and keeps its data through coverage gaps."],
   ], { x: b.x, y: b.y, w: b.w - pw - 0.35 }, h1 - 1.9);
   photo(A("road_test_1027.jpg"), b.x + b.w - pw, b.y + 0.05, pw, ph, "The trike on the road test of 27 October 2026, side view");
-  caption("Road test, 27 Oct", b.x + b.w - pw, b.y + ph + 0.1, pw, 0.5, "center");
+  caption("On the road test", b.x + b.w - pw, b.y + ph + 0.1, pw, 0.5, "center");
 }
 
 // 2 System as driven on 27 October
 yL += h1 + GAP;
 const h2 = 10.4;
-b = panel(2, "System on the trike, 27 Oct", XL, yL, COLW, h2);
+b = panel(2, "System on the trike", XL, yL, COLW, h2);
 {
   const cw = 4.05, ch = 4.15, cy = b.y;
   const side = (x, head, items) => {
@@ -155,59 +155,49 @@ yL += h2 + GAP;
 const h3 = BOTTOM - yL;
 b = panel(3, "Method", XL, yL, COLW, h3);
 bullets([
-  ["Requirements first: ", "thirteen requirements, each with a criterion fixed before its test; bench tests, then the vehicle."],
-  ["Road, 27 Oct: ", "five passes of a smooth loop and four of a rough strip at 10" + NB + "km/h; phone GNSS as the speed reference."],
-  ["Analysis: ", "ISO" + NB + "2631-1 weighted vibration a_w per pass; CV over passes (criterion 10" + NB + "%); ICC in 8" + NB + "m cells (0.75); share of the stand-run motor lines in the road spectrum."],
+  ["Requirements first: ", "13 requirements, each with a pass mark set before its test; bench first, then the trike."],
+  ["Road test: ", "front and rear IMUs measured vertical vibration as the trike drove a smooth loop (5 passes) and a rough strip (4 passes) at 10" + NB + "km/h."],
+  ["Analysis: ", "one vibration score per pass (a_w, ISO" + NB + "2631-1), compared across repeat passes and against the motor's own vibration."],
 ], b, h3 - 1.9);
 
 // ================= right column =================
 // 4 Key results
 let yR = TOP;
-const h4 = 14.4;
-b = panel(4, "Key results on the road", XR, yR, COLW, h4);
+const h4 = 13.9;
+b = panel(4, "What the road test showed", XR, yR, COLW, h4);
 {
-  // chart: a_w smooth vs rough, rear and front
-  const chH = 3.75;
-  s.addChart(pres.charts.BAR, [
-    { name: "Rear", labels: ["Smooth loop (5 passes)", "Rough strip (4 passes)"], values: [1.78, 3.61] },
-    { name: "Front", labels: ["Smooth loop (5 passes)", "Rough strip (4 passes)"], values: [1.16, 2.26] },
-  ], {
-    x: b.x, y: b.y - 0.1, w: b.w, h: chH, barDir: "col", barGapWidthPct: 60,
-    chartColors: [C.navy, "5B9BD5"], showLegend: true, legendPos: "r", legendFontSize: 24, legendFontFace: FONT, legendColor: C.text,
-    showTitle: true, title: "Mean weighted vibration per pass, 10 km/h (m/s²)", titleFontSize: 26, titleFontFace: FONT, titleColor: C.navy,
-    showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 24, dataLabelFontFace: FONT, dataLabelColor: C.text, dataLabelFormatCode: "0.00",
-    catAxisLabelFontSize: 24, catAxisLabelFontFace: FONT, catAxisLabelColor: C.text,
-    valAxisHidden: true, valAxisMinVal: 0, valAxisMaxVal: 4.4, valGridLine: { style: "none" }, catGridLine: { style: "none" },
-    plotArea: { fill: { color: C.panel } }, chartArea: { fill: { color: C.panel } },
-  });
-  // tiles
+  // rear IMU trace, one smooth and one rough pass (make_poster_imu_trace.py, 10 x 5 in at 300 dpi)
+  const fH = b.w * 5 / 10;
+  s.addImage({ path: A("imu_smooth_rough.png"), x: b.x, y: b.y - 0.15, w: b.w, h: fH,
+    altText: "Rear IMU vertical vibration over 40 s of a smooth-loop pass and a rough-strip pass at 10 km/h; the rough trace is about twice as large" });
+  caption("Rear IMU, one pass of each. Over all passes the rear score averaged 1.78" + NB + "m/s² on the smooth loop and 3.61" + NB + "m/s² on the rough strip.",
+    b.x, b.y - 0.1 + fH, b.w, 0.8);
+  // tiles: the number, then what it means
   const tiles = [
-    ["5.0" + NB + "% / 5.3" + NB + "%", "CV of a_w over 5 passes, rear / front; criterion 10" + NB + "%: met", C.green],
-    ["about 2" + NB + "×", "rough strip against the smooth loop, at both ends", C.navy],
-    ["ICC 0.16 vs 0.75", "not met: repeats over whole passes, not place by place", C.accent],
-    ["0.9 to 3.1" + NB + "%", "of road vibration energy in the motor lines, powered passes", C.navy],
-    ["0 gaps", "front IMU at 200" + NB + "Hz; rear 0.08" + NB + "% of samples lost", C.green],
-    ["99.9" + NB + "%", "of records over the wired link to the Raspberry Pi 4", C.green],
-    ["153 records", "over LTE, 116 replayed after the drop; median 0.44" + NB + "s (n" + NB + "=" + NB + "9)", C.navy],
-    ["23.3 / 12.1 fps", "detection, front / rear; median 68" + NB + "/" + NB + "103" + NB + "ms", C.navy],
+    ["about 2" + NB + "×", "more vibration on the rough strip, at both ends of the trike", C.green],
+    ["5.0" + NB + "% / 5.3" + NB + "%", "pass-to-pass spread, rear / front; target 10" + NB + "%: met", C.green],
+    ["ICC 0.16", "spot-by-spot repeat; target 0.75: not met", C.accent],
+    ["0.9 to 3.1" + NB + "%", "of the vibration at motor frequencies; the rest is road", C.navy],
+    ["0 gaps", "front IMU at 200" + NB + "Hz; the rear lost 0.08" + NB + "% of samples", C.green],
+    ["23.3 / 12.1 fps", "hazard detection, front / rear camera", C.navy],
   ];
-  const ty0 = b.y + chH + 0.15, tg = 0.22, tw = (b.w - tg) / 2, th = 1.95;
+  const ty0 = b.y + fH + 0.85, tg = 0.22, tw = (b.w - tg) / 2, th = 1.95;
   tiles.forEach(([big, small, col], i) => {
     const x = b.x + (i % 2) * (tw + tg), y = ty0 + Math.floor(i / 2) * (th + tg);
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: tw, h: th, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.white } });
-    s.addText(big, { x: x + 0.2, y: y + 0.1, w: tw - 0.4, h: 0.8, fontFace: FONT, fontSize: 42, bold: true, color: col, isTextBox: true, margin: 0, valign: "middle" });
+    s.addText(big, { x: x + 0.2, y: y + 0.1, w: tw - 0.4, h: 0.75, fontFace: FONT, fontSize: 40, bold: true, color: col, isTextBox: true, margin: 0, valign: "middle" });
     s.addText(rich(small), { x: x + 0.2, y: y + 0.92, w: tw - 0.35, h: th - 0.97, fontFace: FONT, fontSize: T.cap, color: C.text, valign: "top", isTextBox: true, margin: 0 });
   });
 }
 
 // 5 Limitations
 yR += h4 + GAP;
-const h5 = 4.5;
+const h5 = 5.0;
 b = panel(5, "Limitations", XR, yR, COLW, h5);
 bullets([
-  "One vehicle, two short low-speed sessions; no reference accelerometer, so repeatability, not accuracy.",
-  "LTE did not reconnect after 11:51; the vehicle's GNSS lay 8 to 25" + NB + "m from the phone's.",
-  "Warnings below ISO" + NB + "15008 legibility; the driver's glance time was not measured.",
+  "One trike, two short low-speed sessions and no reference sensor: this shows the score repeats, not that it is accurate.",
+  "The LTE link dropped at 11:51 and did not reconnect for the rest of the test.",
+  "Dashboard warnings are below ISO" + NB + "15008 legibility size; the driver's glance time was not measured.",
 ], b, h5 - 1.75, T.small);
 
 // 6 Conclusion and QR code
@@ -217,8 +207,8 @@ b = panel(6, "Conclusion", XR, yR, COLW, h6);
 {
   const qr = 2.55;
   bullets([
-    "The unit ran on the trike; its ride reading repeats over whole passes, separates two surfaces and is dominated by the road.",
-    "Next: own supply, larger warnings, glance time.",
+    "The unit works on the trike: its score tells smooth road from rough and repeats pass to pass.",
+    "Next: own power supply, larger warnings, glance time.",
   ], { x: b.x, y: b.y, w: b.w - qr - 0.95 }, h6 - 1.8, T.small);
   const qx = b.x + b.w - qr, qy = yR + 0.35;
   s.addShape(pres.shapes.RECTANGLE, { x: qx, y: qy, w: qr, h: qr, fill: { color: C.white }, line: { color: C.white } });
