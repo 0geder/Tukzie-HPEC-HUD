@@ -33,24 +33,22 @@ const s = pres.addSlide();
 s.background = { color: C.white };
 
 // ---------------- header: campus banner, darkened, with crest, title and names ----------------
-const BANNER_H = 7.55;
+// (department and course lines dropped 14 Nov: the crest says it, and the space went to results)
+const BANNER_H = 4.75;
 s.addImage({ path: A("uct_banner.jpg"), x: 0, y: 0, w: W, h: BANNER_H, sizing: { type: "cover", w: W, h: BANNER_H } });
 s.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: BANNER_H, fill: { color: "0B1F3F", transparency: 35 }, line: { type: "none" } });
-// crest on a white card
-s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: M, y: 0.35, w: 2.45, h: 2.45, rectRadius: 0.2, fill: { color: C.white }, line: { color: C.white } });
-s.addImage({ path: A("uct_logo.png"), x: M + 0.12, y: 0.47, w: 2.21, h: 2.21 * 424 / 417, altText: "University of Cape Town crest" });
-s.addText([
-  { text: "Department of Electrical Engineering, University of Cape Town", options: { bold: true, breakLine: true } },
-  { text: "EEE4022S Final Year Project 2026" },
-], { x: M + 2.85, y: 0.65, w: W - 2 * M - 2.85, h: 1.85, fontFace: FONT, fontSize: 30, color: C.white, valign: "middle", isTextBox: true, margin: 0 });
+// crest on a white card, title and names beside it
+const CREST = 3.3, TX = M + CREST + 0.5;
+s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: M, y: 0.7, w: CREST, h: CREST, rectRadius: 0.25, fill: { color: C.white }, line: { color: C.white } });
+s.addImage({ path: A("uct_logo.png"), x: M + 0.16, y: 0.86, w: CREST - 0.32, h: (CREST - 0.32) * 424 / 417, altText: "University of Cape Town crest" });
 s.addText("Embedded Telemetry with Road-Surface Characterisation and Camera-Based Hazard Detection for the TUKZIE Electric Trike", {
-  x: M - 0.2, y: 2.95, w: W - 2 * M + 0.4, h: 3.55, fontFace: FONT, fontSize: T.title, bold: true, color: C.white, align: "center", valign: "middle",
+  x: TX, y: 0.35, w: W - M - TX, h: 3.2, fontFace: FONT, fontSize: 68, bold: true, color: C.white, align: "left", valign: "middle",
   isTextBox: true, margin: 0, lineSpacingMultiple: 0.92, shadow: { type: "outer", color: "000000", blur: 8, offset: 3, angle: 45, opacity: 0.55 },
 });
 s.addText([
   { text: "Samson Okuthe", options: { bold: true } },
   { text: "   |   Supervisor: A/Prof Simon Winberg   |   Co-supervisor: Sampath Jayalath" },
-], { x: M, y: 6.6, w: W - 2 * M, h: 0.7, fontFace: FONT, fontSize: 32, color: C.white, align: "center", valign: "middle", isTextBox: true, margin: 0,
+], { x: TX, y: 3.65, w: W - M - TX, h: 0.7, fontFace: FONT, fontSize: 32, color: C.white, align: "left", valign: "middle", isTextBox: true, margin: 0,
   shadow: { type: "outer", color: "000000", blur: 6, offset: 2, angle: 45, opacity: 0.6 } });
 
 // ---------------- helpers ----------------
@@ -101,7 +99,7 @@ const TOP = BANNER_H + 0.55, BOTTOM = H - M;
 // ================= left column =================
 // 1 Problem and aim
 let yL = TOP;
-const h1 = 6.6;
+const h1 = 6.3;
 let b = panel(1, "Problem and aim", XL, yL, COLW, h1);
 {
   const pw = 3.55, ph = pw * 890 / 1070;
@@ -115,7 +113,7 @@ let b = panel(1, "Problem and aim", XL, yL, COLW, h1);
 
 // 2 System as driven on 27 October
 yL += h1 + GAP;
-const h2 = 10.4;
+const h2 = 13.2;
 b = panel(2, "System on the trike", XL, yL, COLW, h2);
 {
   const cw = 4.05, ch = 4.15, cy = b.y;
@@ -141,13 +139,23 @@ b = panel(2, "System on the trike", XL, yL, COLW, h2);
   s.addShape(pres.shapes.LINE, { x: lx, y: ly, w: lw, h: 0, line: { color: C.navy, width: 5, beginArrowType: "triangle", endArrowType: "triangle" } });
   s.addText("Ethernet", { x: lx - 0.2, y: ly - 0.65, w: lw + 0.4, h: 0.5, fontFace: FONT, fontSize: T.cap, bold: true, color: C.navy, align: "center", isTextBox: true, margin: 0 });
   // photos
-  const py = cy + ch + 0.35, pg = 0.25, pw = (b.w - 2 * pg) / 3, ph = 3.65;
+  const py = cy + ch + 0.35, pg = 0.25, pw = (b.w - 2 * pg) / 3, ph = 2.6;
   photo(R("road1/front_install_1023.jpg"), b.x, py, pw, ph, "Front: Raspberry Pi 5 and front node under the dashboard");
   photo(R("road1/front_camera_1022.jpg"), b.x + pw + pg, py, pw, ph, "Front camera in its printed housing on the frame");
   photo(R("road1/rear_system_1022.jpg"), b.x + 2 * (pw + pg), py, pw, ph, "Rear unit in its printed enclosure on the cargo bed");
   caption("Front computer", b.x, py + ph + 0.08, pw, 0.45, "center");
   caption("Front camera", b.x + pw + pg, py + ph + 0.08, pw, 0.45, "center");
   caption("Rear unit", b.x + 2 * (pw + pg), py + ph + 0.08, pw, 0.45, "center");
+  // the dashboard: driving page live on the Pi 5, with what it shows beside it
+  const dy = py + ph + 0.7, dw = 5.4, dh = dw * 800 / 1280;
+  photo(R("ui/ui_pi5_live_drive.png"), b.x, dy, dw, dh, "Dashboard driving page live on the Raspberry Pi 5, with an obstacle banner and distances around the trike");
+  caption("Driving page, live on the Pi 5", b.x, dy + dh + 0.08, dw, 0.45, "center");
+  bullets([
+    ["Dashboard: ", "the trike's own screen, safety alerts only"],
+    "Obstacle banner over every page",
+    "Distances around the trike",
+    "Voice commands (bench)",
+  ], { x: b.x + dw + 0.35, y: dy, w: b.w - dw - 0.35 }, dh + 0.5, T.cap);
 }
 
 // 3 Method
@@ -155,7 +163,7 @@ yL += h2 + GAP;
 const h3 = BOTTOM - yL;
 b = panel(3, "Method", XL, yL, COLW, h3);
 bullets([
-  ["Requirements first: ", "13 requirements, each with a pass mark set before its test; bench first, then the trike."],
+  ["Requirements first: ", "13 requirements, each with a pass mark set before its test; bench first, then the trike. 5 met, 7 partly met, 1 not tested."],
   ["Road test: ", "front and rear IMUs measured vertical vibration as the trike drove a smooth loop (5 passes) and a rough strip (4 passes) at 10" + NB + "km/h."],
   ["Analysis: ", "one vibration score per pass (a_w, ISO" + NB + "2631-1), compared across repeat passes and against the motor's own vibration."],
 ], b, h3 - 1.9);
@@ -163,7 +171,7 @@ bullets([
 // ================= right column =================
 // 4 Key results
 let yR = TOP;
-const h4 = 13.9;
+const h4 = 15.6;
 b = panel(4, "What the road test showed", XR, yR, COLW, h4);
 {
   // rear IMU trace, one smooth and one rough pass (make_poster_imu_trace.py, 10 x 5 in at 300 dpi)
@@ -180,8 +188,10 @@ b = panel(4, "What the road test showed", XR, yR, COLW, h4);
     ["0.9 to 3.1" + NB + "%", "of the vibration at motor frequencies; the rest is road", C.navy],
     ["0 gaps", "front IMU at 200" + NB + "Hz; the rear lost 0.08" + NB + "% of samples", C.green],
     ["23.3 / 12.1 fps", "hazard detection, front / rear camera", C.navy],
+    ["112 / 112", "records kept through a 10-minute LTE outage (bench)", C.green],
+    ["99.9" + NB + "%", "of records reached the dashboard over the wired link", C.green],
   ];
-  const ty0 = b.y + fH + 0.85, tg = 0.22, tw = (b.w - tg) / 2, th = 1.95;
+  const ty0 = b.y + fH + 0.85, tg = 0.18, tw = (b.w - tg) / 2, th = 1.85;
   tiles.forEach(([big, small, col], i) => {
     const x = b.x + (i % 2) * (tw + tg), y = ty0 + Math.floor(i / 2) * (th + tg);
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: tw, h: th, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.white } });
@@ -192,9 +202,10 @@ b = panel(4, "What the road test showed", XR, yR, COLW, h4);
 
 // 5 Limitations
 yR += h4 + GAP;
-const h5 = 4.75;
-b = panel(5, "Limitations", XR, yR, COLW, h5);
+const h5 = 5.95;
+b = panel(5, "Scope and limitations", XR, yR, COLW, h5);
 bullets([
+  "The brief's windshield HUD became alerts on the existing dashboard, as agreed; the air-quality sensor was damaged and not delivered.",
   "One trike, two short low-speed sessions and no reference sensor: this shows the score repeats, not that it is accurate.",
   "The LTE link dropped at 11:51 and did not reconnect for the rest of the test.",
   "Dashboard warnings are below ISO" + NB + "15008 legibility size; the driver's glance time was not measured.",
