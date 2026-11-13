@@ -192,7 +192,7 @@ b = panel(4, "What the road test showed", XR, yR, COLW, h4);
 
 // 5 Limitations
 yR += h4 + GAP;
-const h5 = 5.0;
+const h5 = 4.75;
 b = panel(5, "Limitations", XR, yR, COLW, h5);
 bullets([
   "One trike, two short low-speed sessions and no reference sensor: this shows the score repeats, not that it is accurate.",
@@ -208,7 +208,7 @@ b = panel(6, "Conclusion", XR, yR, COLW, h6);
   const qr = 2.55;
   bullets([
     "The unit works on the trike: its score tells smooth road from rough and repeats pass to pass.",
-    "Next: own power supply, larger warnings, glance time.",
+    "Next: own power supply, larger warnings, voice commands on the road, steps to autonomy.",
   ], { x: b.x, y: b.y, w: b.w - qr - 0.95 }, h6 - 1.8, T.small);
   const qx = b.x + b.w - qr, qy = yR + 0.35;
   s.addShape(pres.shapes.RECTANGLE, { x: qx, y: qy, w: qr, h: qr, fill: { color: C.white }, line: { color: C.white } });
