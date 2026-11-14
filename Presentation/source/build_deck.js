@@ -474,8 +474,12 @@ function content(title, notes) {
   const cy = ry + rh + 0.25;
   txt(s, "Thank you. Questions?", { x: M, y: cy, w: W - 2 * M, h: 0.55, fontSize: 28, bold: true, color: C.navy, align: "center", valign: "middle" });
   txt(s, [{ text: "Videos of the system on the road: " },
-          { text: "https://tuksense.site", options: { hyperlink: { url: "https://tuksense.site" }, color: C.sky, bold: true } }],
+          { text: "https://tuksense.site", options: { hyperlink: { url: "https://tuksense.site" }, color: C.sky, bold: true } },
+          { text: ", or scan the code" }],
     { x: M, y: cy + 0.55, w: W - 2 * M, h: 0.4, fontSize: 16, color: C.text, align: "center", valign: "middle" });
+  const qr = 1.2;
+  s.addImage({ path: A("qr_tuksense.png"), x: W - M - qr, y: cy - 0.05, w: qr, h: qr,
+    hyperlink: { url: "https://tuksense.site" }, altText: "QR code to https://tuksense.site" });
 }
 
 // ---------------- talking points ----------------
