@@ -244,34 +244,42 @@ b = panel(4, "Plan and method", XL, y, COLW, h4);
 // ================= right column =================
 // 5 Results: trace, then six tiles tinted by subsystem
 y = TOP;
-const h5 = 12.15;
+const h5 = 13.15;
 b = panel(5, "What the road test showed", XR, y, COLW, h5);
 {
-  const fw = b.w * 0.92, fH = fw * 5 / 10;
+  const tile = (k, big, small, x, ty, tw, th, bigSize = 34) => {
+    box(x, ty, tw, th, SYS[k].t, SYS[k].t);
+    txt(big, x + 0.18, ty + 0.06, tw - 0.3, 0.62, { fontSize: bigSize, bold: true, color: SYS[k].c, valign: "middle" });
+    txt(small, x + 0.18, ty + 0.72, tw - 0.3, th - 0.76);
+  };
+  // ride: rear IMU trace, then three tiles
+  const fw = b.w * 0.8, fH = fw * 5 / 10;
   s.addImage({ path: A("imu_smooth_rough.png"), x: b.x + (b.w - fw) / 2, y: b.y - 0.1, w: fw, h: fH,
     altText: "Rear IMU vertical vibration over 40 s of a smooth-loop pass and a rough-strip pass at 10 km/h; the rough trace is about twice as large" });
-  txt("Rear IMU, one pass of each. Over all passes the rear score averaged 1.78" + NB + "m/s² on the smooth loop and 3.61" + NB + "m/s² on the rough strip.",
-    b.x, b.y - 0.05 + fH, b.w, 0.8, { italic: true, color: C.muted });
-  const tiles = [
-    ["sense", "about 2" + NB + "×", "more vibration on the rough strip, at both ends of the trike"],
-    ["sense", "5.0" + NB + "% / 5.3" + NB + "%", "pass-to-pass spread, rear / front; target 10" + NB + "%: met"],
-    ["sense", "ICC 0.16", "spot-by-spot repeat; target 0.75: not met"],
-    ["hazard", "23.3 / 12.1 fps", "hazard detection on the road, front / rear camera"],
-    ["telem", "112 / 112", "records kept through a 10-minute LTE outage (bench)"],
-    ["display", "99.9" + NB + "%", "of records reached the recorder over the wired link"],
-  ];
-  const ty0 = b.y + fH + 0.85, tg = 0.15, tw = (b.w - tg) / 2, th = 1.75;
-  tiles.forEach(([k, big, small], i) => {
-    const x = b.x + (i % 2) * (tw + tg), ty = ty0 + Math.floor(i / 2) * (th + tg);
-    box(x, ty, tw, th, SYS[k].t, SYS[k].t);
-    txt(big, x + 0.2, ty + 0.08, tw - 0.4, 0.7, { fontSize: 38, bold: true, color: SYS[k].c, valign: "middle" });
-    txt(small, x + 0.2, ty + 0.83, tw - 0.35, th - 0.88);
-  });
+  txt("Rear IMU, one pass of each (all passes: 1.78 against 3.61" + NB + "m/s²)",
+    b.x, b.y - 0.08 + fH, b.w, 0.45, { italic: true, color: C.muted, align: "center" });
+  const tg = 0.15, t3 = (b.w - 2 * tg) / 3, ry1 = b.y + fH + 0.45, th1 = 1.95;
+  tile("sense", "about 2" + NB + "×", "more vibration on the rough strip, both ends", b.x, ry1, t3, th1);
+  tile("sense", "5.0 / 5.3" + NB + "%", "pass-to-pass spread; target 10" + NB + "%: met", b.x + t3 + tg, ry1, t3, th1);
+  tile("sense", "ICC 0.16", "spot-by-spot repeat; target 0.75: not met", b.x + 2 * (t3 + tg), ry1, t3, th1);
+  // cameras: the dashboard on the road with a truck and people detected
+  const cy = ry1 + th1 + 0.25, cw = 6.25, ch = cw * 590 / 1280;
+  photo(A("road_truck_detect_1027.jpg"), b.x, cy, cw, ch,
+    "Dashboard on the road at 12:32 on 27 October: the front camera boxes a truck 7.3 m to the right as a warning and lists three people ahead; the banner shows a person alert from the rear");
+  const sx = b.x + cw + 0.18, sw = b.w - cw - 0.18;
+  tile("hazard", "23.3 / 12.1", "frames/s on the road, front / rear", sx, cy, sw, 1.5, 32);
+  txt("Truck 7.3" + NB + "m right: a warning; people ahead; rear alert in the banner",
+    sx, cy + 1.6, sw, ch - 1.6, { color: C.text });
+  txt("Front camera on the dashboard, 12:32 on 27 Oct (screen capture)", b.x, cy + ch + 0.05, b.w, 0.45, { italic: true, color: C.muted });
+  // links
+  const ry3 = cy + ch + 0.6, t2 = (b.w - tg) / 2, th3 = 1.55;
+  tile("telem", "112 / 112", "records kept through a 10-minute LTE outage (bench)", b.x, ry3, t2, th3);
+  tile("display", "99.9" + NB + "%", "of records reached the recorder over the wired link", b.x + t2 + tg, ry3, t2, th3);
 }
 
 // 6 Requirements scorecard: R1 to R13 by subsystem, coloured by verdict
 y += h5 + GAP;
-const h6 = 6.15;
+const h6 = 5.9;
 b = panel(6, "Requirements scorecard", XR, y, COLW, h6);
 {
   const V = { m: C.green, p: C.amber, n: C.grey };
@@ -299,7 +307,7 @@ b = panel(6, "Requirements scorecard", XR, y, COLW, h6);
       txt(t, cx, ry, cw, rh, { color: C.white, bold: true, align: "center", valign: "middle" });
     });
   });
-  txt("Verdicts as in the report. On the trike, R2 was not met and R9 and R10 were partly met.",
+  txt("On the trike, R2 was not met and R9 and R10 were partly met.",
     b.x, b.y + 0.7 + 5 * (rh + 0.1) + 0.05, b.w, 0.8, { italic: true, color: C.muted });
 }
 
@@ -321,11 +329,11 @@ b = panel(7, "Conclusion", XR, y, COLW, h7);
     ["Pi" + NB + "4 restarted once on low voltage", "Regulated supply from the vehicle"],
     ["Warnings below ISO" + NB + "15008 size", "Enlarge them, then a glance study (R12)"],
   ];
-  const py0 = b.y + 1.8, hw = (b.w - 0.6) / 2, rh = 0.85;
+  const py0 = b.y + 1.6, hw = (b.w - 0.6) / 2, rh = 0.8;
   txt("Limited by", b.x, py0, hw, 0.42, { bold: true, color: C.accent });
   txt("Next", b.x + hw + 0.6, py0, hw, 0.42, { bold: true, color: C.green });
   pairs.forEach(([l, n], i) => {
-    const py = py0 + 0.5 + i * (rh + 0.12);
+    const py = py0 + 0.45 + i * (rh + 0.1);
     box(b.x, py, hw, rh, C.white, C.accent);
     txt(l, b.x + 0.15, py, hw - 0.25, rh, { valign: "middle" });
     s.addShape(pres.shapes.LINE, { x: b.x + hw + 0.08, y: py + rh / 2, w: 0.44, h: 0, line: { color: C.navy, width: 3, endArrowType: "triangle" } });
