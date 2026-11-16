@@ -113,14 +113,14 @@ function content(title, notes) {
 // ---------------- 2 Why ----------------
 {
   const s = content("Why this matters",
-    "Electric cargo trikes make sense for freight in African cities: in Dar es Salaam an electric cargo tricycle cost 45.5 percent less per kilometre to run than a motorcycle, and 86 percent less than a light car. " +
+    "Electric cargo trikes make sense for freight in African cities: in Dar es Salaam an electric cargo tricycle cost 45.5 percent less to run than a motorcycle, and 86 percent less than a light car. " +
     "But anything that takes the driver's eyes off the road is a risk; NHTSA guidance wants glances away from the road to mostly last two seconds or less. " +
     "So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. ");
   const ph = 4.85, pw = ph * 1080 / 930;
   s.addImage({ path: A("road_test_1027.jpg"), x: M, y: 1.4, w: pw, h: ph });
   caption(s, "The TUKZIE Rev 0 on the road test, 27 October 2026", M, 1.4 + ph + 0.08, pw);
   const rx = M + pw + 0.45, rw = W - M - rx;
-  stat(s, rx, 1.4, rw, 1.75, "45.5 to 86 %", "lower running cost per km for an electric cargo tricycle than a motorcycle or a light car, Dar es Salaam (Sebwa et al., 2025)", { bigSize: 36, size: 15 });
+  stat(s, rx, 1.4, rw, 1.75, "45.5 to 86 %", "lower running cost for an electric cargo tricycle than a motorcycle or a light car, Dar es Salaam (Sebwa et al., 2025)", { bigSize: 36, size: 15 });
   stat(s, rx, 3.45, rw, 1.75, "2 s", "glances away from the road should mostly last 2 s or less (NHTSA, 2013), so alerts must be short and safety-only", { bigSize: 36, size: 15 });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: rx, y: 5.5, w: rw, h: BOTTOM - 5.5, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
   txt(s, [{ text: "The problem: ", options: { bold: true, color: C.navy } },
@@ -205,7 +205,7 @@ function content(title, notes) {
 
 // ---------------- 5 Deterministic acquisition ----------------
 {
-  const s = content("Deterministic acquisition: a 33 to 44 ms gap found and removed",
+  const s = content("Deterministic acquisition: a 33 to 44 ms gap found, removed on the IMU nodes",
     "Ride measurement needs a fixed sample rate. Under FreeRTOS the IMU task runs at top priority on a 5 millisecond period and never blocks: if its queue is full, the sample is dropped and counted. " +
     "Counting exposed the one timing fault. Every flash write paused reading for 33 to 44 milliseconds, the spikes in this plot. Buffering made the pauses rarer, not shorter. " +
     "The fix was to take logging off the IMU nodes: on the vehicle they held 200 hertz with no interval over 5.2 milliseconds. " +
@@ -281,13 +281,14 @@ function content(title, notes) {
 // ---------------- 8 Hazard detection ----------------
 {
   const s = content("Hazard detection on the road: front and rear",
+    "This is the dashboard's own screen on the road, with the rear camera tracking a person behind the trike. " +
     "Each camera runs a pretrained 8-bit SSD-MobileNet detector. On the road the front, on the Pi 5, took a median of 68 milliseconds from readout to result at 23.3 frames per second; the rear, on the Pi 4, 103 milliseconds at 12.1. " +
     "An alert is raised after three frames and cleared after five, and no frame is ever stored. " +
     "Distance bands do not say whether something is closing, so the system also estimates time to contact from how fast a box grows; it is within 2 percent in 40 synthetic tests but has not met a real approach. " +
     "No forward video was kept, so how many road alerts were correct is still unknown.");
   const iw = 6.3, ih = iw * 800 / 1280;
-  s.addImage({ path: R("ui/ui_dualcam_rear_approaching.png"), x: M, y: 1.4, w: iw, h: ih });
-  caption(s, "Dashboard, rear view mirrored, with an approaching-object warning (test image)", M, 1.4 + ih + 0.08, iw);
+  s.addImage({ path: A("road_rear_person_1027.jpg"), x: M, y: 1.4, w: iw, h: ih });
+  caption(s, "Dashboard on the road, 27 Oct (screen capture): rear camera tracking a person behind the trike", M, 1.4 + ih + 0.08, iw);
   const ty = 1.4 + ih + 0.5;
   card(s, M, ty, iw, BOTTOM - ty);
   txt(s, [{ text: "Time to contact ", options: { bold: true, color: C.navy } },
@@ -417,7 +418,7 @@ function content(title, notes) {
   const rows = [
     ["RQ1", "Bench: rate, calibration and features verified. Road: repeats over whole passes (CV 5 %), not place by place (ICC 0.16).", "Partly"],
     ["RQ2", "Sparse, live-only alerts on the existing dashboard; warning text below ISO 15008; glance time not measured.", "Partly"],
-    ["RQ3", "Bench: every record replayed after a 10-minute outage. Road: 99.9 % over the wired link; LTE latency rests on 9 records.", "Partly"],
+    ["RQ3", "Bench: every record kept through a 10-minute outage. Road: 99.9 % over the wired link; LTE latency rests on 9 records.", "Partly"],
     ["RQ4", "Powertrain lines at 40 to 70 Hz on the stands; 0.9 to 3.1 % of the road energy; one coasting pass did not lower a_w.", "Road dominates"],
   ];
   const lw = 8.2, rh = 1.12, gap = 0.2;
