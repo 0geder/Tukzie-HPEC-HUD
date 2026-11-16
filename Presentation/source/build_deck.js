@@ -167,7 +167,7 @@ function content(title, notes) {
     "From that problem comes one aim: measure how the trike responds to the road and to its own motor, warn the driver of hazards on the dashboard it already has, and keep the data even when the network drops. " +
     "I broke that into four research questions. One: how accurately and repeatably can a low-cost unit measure the ride? Two: how should the alerts appear on the dashboard so they distract the driver as little as possible? " +
     "Three: how fast does data get from the sensor to the database over LTE, how much is lost, and how does it recover? Four: which features tell road vibration apart from the motor's own vibration? " +
-    "To answer them I followed a V-model. I wrote thirteen requirements, each with a pass mark fixed before its test. I tested every part on the bench first, then on the trike itself, in road sessions on 19 and 27 October.");
+    "To answer them I followed a V-model. Down the left side I defined the system: the questions, then thirteen requirements, each with a pass mark fixed before its test, then the design, one subsystem at a time. Up the right side I checked it at the same levels: start-up checks for each interface, bench tests for each requirement, and finally tests on the trike itself, on the road on 19 and 27 October.");
   card(s, M, 1.4, W - 2 * M, 0.9);
   txt(s, [{ text: "Aim: ", options: { bold: true, color: C.navy } },
           { text: "measure the trike's response to the road and its powertrain, warn of hazards on the existing dashboard, and keep the data through gaps in coverage." }],
@@ -178,24 +178,39 @@ function content(title, notes) {
     ["RQ3", "What latency, data loss and recovery can be achieved from sensor to the LTE database?"],
     ["RQ4", "Which features separate road vibration from powertrain vibration?"],
   ];
-  const y0 = 2.6, rh = 0.92, gap = 0.16, lw = 8.0;
+  const y0 = 2.6, rh = 0.92, gap = 0.16, lw = 6.0;
   rows.forEach(([id, q], i) => {
     const y = y0 + i * (rh + gap);
     card(s, M, y, lw, rh);
-    txt(s, id, { x: M + 0.25, y, w: 0.9, h: rh, fontSize: 22, bold: true, color: C.navy, valign: "middle" });
-    txt(s, q, { x: M + 1.2, y, w: lw - 1.45, h: rh, fontSize: 17, valign: "middle" });
+    txt(s, id, { x: M + 0.2, y, w: 0.85, h: rh, fontSize: 21, bold: true, color: C.navy, valign: "middle" });
+    txt(s, q, { x: M + 1.05, y, w: lw - 1.25, h: rh, fontSize: 16, valign: "middle" });
   });
-  const ax = M + lw + 0.4, aw = W - M - ax;
-  txt(s, "Approach", { x: ax, y: y0, w: aw, h: 0.4, fontSize: 18, bold: true, color: C.navy });
-  const steps = [["13 requirements", "criterion fixed before each test"], ["Bench", "each part tested before the next"], ["Vehicle", "road sessions, 19 and 27 Oct"]];
-  const sh = 0.95, sg = 0.33;
-  steps.forEach(([h, b], i) => {
-    const y = y0 + 0.5 + i * (sh + sg);
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: ax, y, w: aw, h: sh, rectRadius: 0.1, fill: { color: i === 2 ? C.navy : C.white }, line: { color: C.navy, width: 1.5 } });
-    txt(s, h, { x: ax + 0.2, y: y + 0.08, w: aw - 0.4, h: 0.4, fontSize: 17, bold: true, color: i === 2 ? C.white : C.navy, align: "center" });
-    txt(s, b, { x: ax + 0.2, y: y + 0.47, w: aw - 0.4, h: 0.4, fontSize: 14, color: i === 2 ? C.white : C.text, align: "center" });
-    if (i < 2) s.addShape(pres.shapes.LINE, { x: ax + aw / 2, y: y + sh, w: 0, h: sg, line: { color: C.navy, width: 2, endArrowType: "triangle" } });
-  });
+  // 16 Nov: the approach drawn as the V-model of the report (Method chapter, Figure vmodel): the left arm defines the
+  // system going down, the right arm checks it going up at the matching level (dashed links).
+  const ax = M + lw + 0.35, aw = W - M - ax;
+  txt(s, "Approach: a V-model", { x: ax, y: y0 - 0.05, w: aw, h: 0.4, fontSize: 18, bold: true, color: C.navy });
+  const bw = 1.8, bh = 0.92, inset = [0, 0.47, 0.94], ly = [3.1, 4.3, 5.5];
+  const L = [["1  Questions", "four, from the aim"], ["2  13 requirements", "pass mark fixed first"], ["3  Design and build", "each subsystem"]];
+  const R = [["6  Vehicle tests", "road, 19 and 27 Oct"], ["5  Bench tests", "each requirement"], ["4  Start-up checks", "each interface"]];
+  const box = (x, y, [h, b], dark) => {
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: bw, h: bh, rectRadius: 0.1, fill: { color: dark ? C.navy : C.white }, line: { color: C.navy, width: 1.5 } });
+    txt(s, [{ text: h, options: { bold: true, color: dark ? C.white : C.navy, breakLine: true } },
+            { text: b, options: { fontSize: 13, color: dark ? C.white : C.text } }],
+      { x: x + 0.04, y, w: bw - 0.08, h: bh, fontSize: 14, align: "center", valign: "middle" });
+  };
+  const lx = (i) => ax + inset[i], rxx = (i) => ax + aw - inset[i] - bw;
+  for (let i = 0; i < 3; i++) { box(lx(i), ly[i], L[i], false); box(rxx(i), ly[i], R[i], i === 0); }
+  for (let i = 0; i < 2; i++) {
+    // left arm down, right arm up
+    s.addShape(pres.shapes.LINE, { x: lx(i) + bw / 2, y: ly[i] + bh, w: inset[i + 1] - inset[i], h: ly[i + 1] - ly[i] - bh,
+      line: { color: C.navy, width: 2, endArrowType: "triangle" } });
+    s.addShape(pres.shapes.LINE, { x: rxx(i + 1) + bw / 2, y: ly[i] + bh, w: inset[i + 1] - inset[i], h: ly[i + 1] - ly[i] - bh, flipH: true,
+      line: { color: C.navy, width: 2, beginArrowType: "triangle" } });
+    // dashed link: each test level checks the matching definition level
+    s.addShape(pres.shapes.LINE, { x: lx(i) + bw, y: ly[i] + bh / 2, w: rxx(i) - lx(i) - bw, h: 0,
+      line: { color: C.sky, width: 1.5, dashType: "dash" } });
+  }
+  s.addShape(pres.shapes.LINE, { x: lx(2) + bw, y: ly[2] + bh / 2, w: rxx(2) - lx(2) - bw, h: 0, line: { color: C.navy, width: 2, endArrowType: "triangle" } });
 }
 
 // ---------------- 4 System as driven ----------------
