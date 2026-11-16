@@ -130,24 +130,29 @@ function content(title, notes) {
     "A little background on the TUKZIE. It is a UCT flagship programme building an electric cargo trike for last-mile deliveries in growing cities, with autonomy as the long-term goal. " +
     "Why a trike, here in South Africa? Delivery here runs on motorbikes: 43,144 were sold in 2025, 70 percent for commercial use. " +
     "That costs lives: motorcyclists' share of road deaths rose from 1.9 to 3.9 percent between 2023 and 2024, and in a Pretoria survey nearly one in five delivery riders had crashed in the past year. " +
-    "Electric trikes are a better tool for the job: GreenCape finds electric two- and three-wheelers 30 to 50 percent cheaper per kilometre to run, an electric three-wheeler carries 250 to 400 kilograms, and Spar already delivers with them. " +
+    "Electric trikes are a better tool for the job: GreenCape finds electric two- and three-wheelers 30 to 50 percent cheaper per kilometre to run, an electric three-wheeler carries 250 to 400 kilograms, and Takealot, Spar, Woolworths and DHL already deliver with electric trikes made by MellowVans in Stellenbosch. " +
     "A trike also has room for sensors and a screen to warn its driver, and that is what this project adds. When I started, nothing on the TUKZIE did that: its dashboard showed only simulated values. " +
     "A lidar was too expensive on a budget of about 2,000 rand, so I used what we learned on the micromouse: a Raspberry Pi camera to detect objects, and three time-of-flight sensors from a micromouse board. " +
     "The brief also asked for a windshield head-up display, but glances away from the road should mostly last two seconds or less, so, with my supervisor's agreement, the alerts go on the dashboard the trike already has. " +
     "So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. ");
-  const ph = 4.85, pw = ph * 1080 / 930;
-  // 16 Nov: the trike itself (the render used as the tuksense.site icon), not the road-test photo with the rider
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: M, y: 1.4, w: pw, h: ph, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
-  fit(s, A("tukzie_three_quarter_front_crop.png"), 1107 / 904, M + 0.2, 1.6, pw - 0.4, ph - 0.4,
+  // 16 Nov: two pictures, the trike already in use in South Africa (Takealot, MellowVans) and the TUKZIE itself
+  // (the render used as the tuksense.site icon), in place of the road-test photo with the rider
+  const ty = 1.4, th = 4.6, tw1 = th * 474 / 632, tw2 = 3.45, tx2 = M + tw1 + 0.25;
+  s.addImage({ path: A("takealot_mellowvans_trike.jpg"), x: M, y: ty, w: tw1, h: th, rounding: false,
+    altText: "Takealot delivery trike built by MellowVans, parked on a Cape Town street" });
+  s.addShape(pres.shapes.RECTANGLE, { x: M, y: ty, w: tw1, h: th, fill: { type: "none" }, line: { color: C.sky, width: 1.5 } });
+  caption(s, "In use now: Takealot delivers with electric trikes built by MellowVans in Stellenbosch (CBN, 2025)", M, ty + th + 0.08, tw1, 0.55);
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: tx2, y: ty, w: tw2, h: th, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
+  fit(s, A("tukzie_three_quarter_front_crop.png"), 1107 / 904, tx2 + 0.15, ty + 0.15, tw2 - 0.3, th - 0.3,
     { altText: "TUKZIE electric cargo trike, three-quarter front view (render)" });
-  caption(s, "The TUKZIE, UCT's electric cargo trike (render)", M, 1.4 + ph + 0.08, pw);
-  const rx = M + pw + 0.45, rw = W - M - rx;
-  stat(s, rx, 1.4, rw, 1.75, "30 to 50 %", "lower running cost per km for electric two- and three-wheelers than petrol delivery motorbikes in South Africa (GreenCape, 2026); Spar2U already delivers by electric trike", { bigSize: 36, size: 15 });
-  stat(s, rx, 3.45, rw, 1.75, "1.9 → 3.9 %", "motorcyclists' share of South African road deaths, 2023 to 2024; 18 % of Pretoria delivery riders crashed in a year (Kwange and Dube, CSIR)", { bigSize: 36, size: 15 });
+  caption(s, "The TUKZIE, UCT's electric cargo trike (render)", tx2, ty + th + 0.08, tw2, 0.55);
+  const rx = tx2 + tw2 + 0.4, rw = W - M - rx;
+  stat(s, rx, 1.4, rw, 1.75, "30 to 50 %", "lower running cost per km than petrol delivery motorbikes (GreenCape, 2026)", { bigSize: 34, size: 15 });
+  stat(s, rx, 3.35, rw, 1.95, "1.9 → 3.9 %", "motorcyclists' share of SA road deaths, 2023 to 2024; 18 % of Pretoria delivery riders crashed in a year (CSIR)", { bigSize: 34, size: 15 });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: rx, y: 5.5, w: rw, h: BOTTOM - 5.5, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
   txt(s, [{ text: "The problem: ", options: { bold: true, color: C.navy } },
-          { text: "edge telemetry and hazard alerts the driver reads in a glance of 2 s or less (NHTSA), on the TUKZIE, UCT's low-cost electric trike in Cape Town, with each part measured." }],
-    { x: rx + 0.25, y: 5.5, w: rw - 0.5, h: BOTTOM - 5.5, fontSize: 16, valign: "middle" });
+          { text: "telemetry and hazard alerts read in a 2 s glance (NHTSA), on UCT's low-cost TUKZIE, each part measured." }],
+    { x: rx + 0.2, y: 5.5, w: rw - 0.4, h: BOTTOM - 5.5, fontSize: 15, valign: "middle" });
 }
 
 // ---------------- 3 Aim and research questions ----------------

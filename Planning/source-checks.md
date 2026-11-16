@@ -121,3 +121,11 @@ For the student's safety argument on slide 2.
 - Not found: any study showing a three-wheeler is safer than a motorcycle for delivery. The slides do not claim it; the argument is that motorbike delivery is risky and a trike has room for sensors and a screen to warn the driver.
 
 Used in: deck slide 2 (second stat card and notes).
+
+## MellowVans electric trikes in Takealot's fleet (deck slide 2, 16 Nov 2026)
+
+- Source: L. Claasen, "Electric Delivery Vehicles: MellowVans gains traction with major brands", Cape Business News (CBN), 18 March 2025, https://cbn.co.za/industry-news/transport-logistics-freight-news/electric-delivery-vehicles-mellowvans-gains-traction-with-major-brands/
+- File: References/Papers/Urban Electric Cargo Trike/MellowVans_major_brands_CBN.html
+- Checked: "The Stellenbosch company ..."; "large corporations like DHL, Takealot, Spar and Woolworths have all deployed them as part of their delivery fleets"; founder Neil du Preez describes the vehicles as a modernised electric tuk-tuk.
+- Photo on the slide: TakealotTuktuk.webp, supplied by the student (Takealot-branded MellowVans trike); its original source and photographer are not recorded, so credit it if asked.
+
