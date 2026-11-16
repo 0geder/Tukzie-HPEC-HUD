@@ -184,7 +184,7 @@ b = panel(3, "System on the trike", XL, y, COLW, h3);
     [A("imu_board.jpg"), "IMU board", "sense", "MPU6050 IMU board, one at each end of the trike"],
     [R("road1/front_camera_1022.jpg"), "Front camera", "hazard", "Front camera in its printed housing on the frame"],
     [R("road1/rear_system_1022.jpg"), "Rear unit", "telem", "Rear unit in its printed enclosure on the cargo bed"],
-    [R("ui/ui_pi5_live_drive.png"), "Dashboard, live", "display", "Dashboard driving page live on the Raspberry Pi 5, with an obstacle banner"],
+    [A("road_battery_page_1027.jpg"), "Battery page", "display", "Dashboard battery page on the road at 11:37 on 27 October, live from the BMS: 55 percent, 74.0 V"],
   ];
   pics.forEach(([f, cap, k, alt], i) => {
     const px = b.x + i * (pw + pg);
