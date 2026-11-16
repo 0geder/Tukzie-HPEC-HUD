@@ -2,15 +2,15 @@
 
 Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here.
 
-13 slides, 10 minutes plus 5 minutes of questions. 1522 words in total, about 10.9 minutes at 140 words a minute.
+13 slides, 10 minutes plus 5 minutes of questions. 1442 words in total, about 10.3 minutes at 140 words a minute.
 
 ## Slide 1: Title (37 words, about 16 s)
 
 Good morning. My name is Samson, and my project is embedded telemetry with road-surface characterisation and camera-based hazard detection for the TUKZIE electric trike. I was supervised by Associate Professor Winberg, with Sampath Jayalath as my co-supervisor.
 
-## Slide 2: Why this matters (266 words, about 114 s)
+## Slide 2: Why this matters (186 words, about 80 s)
 
-A little background on the TUKZIE. It is a UCT flagship programme building an electric cargo trike for last-mile deliveries in growing cities, with autonomy as the long-term goal. Why a trike, here in South Africa? Delivery here runs on motorbikes: 43,144 were sold in 2025, 70 percent for commercial use. That costs lives: motorcyclists' share of road deaths rose from 1.9 to 3.9 percent between 2023 and 2024, and in a Pretoria survey nearly one in five delivery riders had crashed in the past year. Electric trikes are a better tool for the job: GreenCape finds electric two- and three-wheelers 30 to 50 percent cheaper per kilometre to run, an electric three-wheeler carries 250 to 400 kilograms, and Takealot, Spar, Woolworths and DHL already deliver with electric trikes made by MellowVans in Stellenbosch. A trike also has room for sensors and a screen to warn its driver, and that is what this project adds. When I started, nothing on the TUKZIE did that: its dashboard showed only simulated values. A lidar was too expensive on a budget of about 2,000 rand, so I used what we learned on the micromouse: a Raspberry Pi camera to detect objects, and three time-of-flight sensors from a micromouse board. The brief also asked for a windshield head-up display, but glances away from the road should mostly last two seconds or less, so, with my supervisor's agreement, the alerts go on the dashboard the trike already has. So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. 
+A little background on the TUKZIE. It is a UCT flagship programme building an electric cargo trike for last-mile deliveries in growing cities, with autonomy as the long-term goal. But why a trike in South Africa, when deliveries already run on motorbikes? Motorcyclists' share of road deaths rose from 1.9 to 3.9 percent between 2023 and 2024, and more riders keep joining them: over 43 thousand motorbikes were sold in 2025, and 70 percent of those went into commercial use. Electric trikes are a better tool for the job. They are more stable at low speed, and the driver sits inside a frame. GreenCape finds electric two- and three-wheelers 30 to 50 percent cheaper per kilometre to run, and an electric three-wheeler carries 250 to 400 kilograms, against 120 to 180 for a two-wheeler. Takealot already uses trikes for delivery. With this, we add road-surface characterisation and a camera-based hazard detection unit, to alert the driver and warn of nearby or fast-approaching objects. So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. 
 
 ## Slide 3: Aim, research questions and approach (74 words, about 32 s)
 
