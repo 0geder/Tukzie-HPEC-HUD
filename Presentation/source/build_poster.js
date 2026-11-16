@@ -139,7 +139,8 @@ b = panel(2, "Scope", XL, y, COLW, h2);
 
 // 3 System: block diagram, front and rear computers, blocks coloured by subsystem, photos tagged the same way
 y += h2 + GAP;
-const h3 = 8.5;
+const H5 = 13.15, H6 = 5.9;   // right-column heights, so panel 4 starts level with panel 7
+const h3 = H5 + H6 - h1 - h2 - GAP;
 b = panel(3, "System on the trike", XL, y, COLW, h3);
 {
   // legend
@@ -179,7 +180,7 @@ b = panel(3, "System on the trike", XL, y, COLW, h3);
   txt("Ethernet", ax - 0.3, ay - 0.6, aw + 0.6, 0.45, { bold: true, color: C.navy, align: "center" });
   txt("time sync", ax - 0.3, ay + 0.15, aw + 0.6, 0.45, { color: C.navy, align: "center" });
   // photos, one per subsystem
-  const py = zy + zh + 0.3, pg = 0.2, pw = (b.w - 2 * pg) / 3, ph = 2.0;
+  const py = zy + zh + 0.3, pg = 0.2, pw = (b.w - 2 * pg) / 3, ph = h3 - PH - (py - b.y) - 0.75;
   const pics = [
     [R("road1/front_camera_1022.jpg"), "Front camera", "hazard", "Front camera in its printed housing on the frame"],
     [R("road1/rear_system_1022.jpg"), "Rear unit", "telem", "Rear unit in its printed enclosure on the cargo bed"],
@@ -243,7 +244,7 @@ b = panel(4, "Plan and method", XL, y, COLW, h4);
 // ================= right column =================
 // 5 Results: trace, then six tiles tinted by subsystem
 y = TOP;
-const h5 = 13.15;
+const h5 = H5;
 b = panel(5, "What the road test showed", XR, y, COLW, h5);
 {
   const tile = (k, big, small, x, ty, tw, th, bigSize = 34) => {
@@ -278,7 +279,7 @@ b = panel(5, "What the road test showed", XR, y, COLW, h5);
 
 // 6 Requirements scorecard: R1 to R13 by subsystem, coloured by verdict
 y += h5 + GAP;
-const h6 = 5.9;
+const h6 = H6;
 b = panel(6, "Requirements scorecard", XR, y, COLW, h6);
 {
   const V = { m: C.green, p: C.amber, n: C.grey };
