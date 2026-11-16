@@ -158,7 +158,7 @@ function content(title, notes) {
   stat(s, rx, 3.35, rw, 1.95, "1.9 → 3.9 %", "motorcyclists' share of SA road deaths, 2023 to 2024; 18 % of Pretoria delivery riders crashed in a year (CSIR)", { bigSize: 34, size: 15 });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: rx, y: 5.5, w: rw, h: BOTTOM - 5.5, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
   txt(s, [{ text: "The problem: ", options: { bold: true, color: C.navy } },
-          { text: "telemetry and hazard alerts read in a 2 s glance (NHTSA), on UCT's low-cost TUKZIE, each part measured." }],
+          { text: "the TUKZIE could not measure its ride or warn its driver. This project adds low-cost telemetry and hazard alerts read in a glance of 2 s or less (NHTSA)." }],
     { x: rx + 0.2, y: 5.5, w: rw - 0.4, h: BOTTOM - 5.5, fontSize: 15, valign: "middle" });
 }
 
