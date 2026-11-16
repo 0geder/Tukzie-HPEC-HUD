@@ -136,8 +136,11 @@ function content(title, notes) {
     "The brief also asked for a windshield head-up display, but glances away from the road should mostly last two seconds or less, so, with my supervisor's agreement, the alerts go on the dashboard the trike already has. " +
     "So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. ");
   const ph = 4.85, pw = ph * 1080 / 930;
-  s.addImage({ path: A("road_test_1027.jpg"), x: M, y: 1.4, w: pw, h: ph });
-  caption(s, "The TUKZIE Rev 0 on the road test in Cape Town, 27 October 2026", M, 1.4 + ph + 0.08, pw);
+  // 16 Nov: the trike itself (the render used as the tuksense.site icon), not the road-test photo with the rider
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: M, y: 1.4, w: pw, h: ph, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
+  fit(s, A("tukzie_three_quarter_front_crop.png"), 1107 / 904, M + 0.2, 1.6, pw - 0.4, ph - 0.4,
+    { altText: "TUKZIE electric cargo trike, three-quarter front view (render)" });
+  caption(s, "The TUKZIE, UCT's electric cargo trike (render)", M, 1.4 + ph + 0.08, pw);
   const rx = M + pw + 0.45, rw = W - M - rx;
   stat(s, rx, 1.4, rw, 1.75, "30 to 50 %", "lower running cost per km for electric two- and three-wheelers than petrol delivery motorbikes in South Africa (GreenCape, 2026); Spar2U already delivers by electric trike", { bigSize: 36, size: 15 });
   stat(s, rx, 3.45, rw, 1.75, "1.9 → 3.9 %", "motorcyclists' share of South African road deaths, 2023 to 2024; 18 % of Pretoria delivery riders crashed in a year (Kwange and Dube, CSIR)", { bigSize: 36, size: 15 });
