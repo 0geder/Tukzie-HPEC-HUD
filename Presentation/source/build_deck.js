@@ -135,17 +135,24 @@ function content(title, notes) {
     "A lidar was too expensive on a budget of about 2,000 rand, so I used what we learned on the micromouse: a Raspberry Pi camera to detect objects, and three time-of-flight sensors from a micromouse board. " +
     "The brief also asked for a windshield head-up display, but glances away from the road should mostly last two seconds or less, so, with my supervisor's agreement, the alerts go on the dashboard the trike already has. " +
     "So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. ");
-  // 16 Nov: two pictures, the trike already in use in South Africa (Takealot, MellowVans) and the TUKZIE itself
-  // (the render used as the tuksense.site icon), in place of the road-test photo with the rider
-  const ty = 1.4, th = 4.6, tw1 = th * 474 / 632, tw2 = 3.45, tx2 = M + tw1 + 0.25;
-  s.addImage({ path: A("takealot_mellowvans_trike.jpg"), x: M, y: ty, w: tw1, h: th, rounding: false,
-    altText: "Takealot delivery trike built by MellowVans, parked on a Cape Town street" });
-  s.addShape(pres.shapes.RECTANGLE, { x: M, y: ty, w: tw1, h: th, fill: { type: "none" }, line: { color: C.sky, width: 1.5 } });
-  caption(s, "In use now: Takealot delivers with electric trikes built by MellowVans in Stellenbosch (CBN, 2025)", M, ty + th + 0.08, tw1, 0.55);
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: tx2, y: ty, w: tw2, h: th, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
-  fit(s, A("tukzie_three_quarter_front_crop.png"), 1107 / 904, tx2 + 0.15, ty + 0.15, tw2 - 0.3, th - 0.3,
+  // 16 Nov: triptych (Planning/slide2-triptych-prompt.md). Narrow column: Takealot's MellowVans trike (top) and the
+  // TUKZIE Rev 0 on our road test (bottom); beside it the TUKZIE render, the tuksense.site icon view, as the hero.
+  const ty = 1.4, sh = 2.1, sw = sh * 1.21, cg = 0.2, capH = 0.45, hx = M + sw + 0.25, hw = 4.4;
+  const hh = 2 * sh + capH + cg;                                  // hero spans from the top tile to the bottom tile
+  const tile = (file, y, cap, alt) => {
+    s.addImage({ path: A(file), x: M, y, w: sw, h: sh, altText: alt });
+    s.addShape(pres.shapes.RECTANGLE, { x: M, y, w: sw, h: sh, fill: { type: "none" }, line: { color: C.sky, width: 1.25 } });
+    txt(s, cap, { x: M, y: y + sh + 0.04, w: sw, h: capH, fontSize: 11, italic: true, color: C.muted, valign: "top", margin: 0 });
+  };
+  tile("takealot_mellowvans_trike_tile.jpg", ty, "Takealot's electric trike by MellowVans, Stellenbosch (CBN, 2025)",
+    "Takealot delivery trike built by MellowVans, parked on a city street");
+  tile("road_test_1027_tile.jpg", ty + sh + capH + cg, "The TUKZIE Rev 0 on our road test, Cape Town, 27 Oct 2026",
+    "The TUKZIE Rev 0 with its driver on the road test");
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: hx, y: ty, w: hw, h: hh, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
+  fit(s, A("tukzie_three_quarter_front_crop.png"), 1107 / 904, hx + 0.15, ty + 0.15, hw - 0.3, hh - 0.3,
     { altText: "TUKZIE electric cargo trike, three-quarter front view (render)" });
-  caption(s, "The TUKZIE, UCT's electric cargo trike (render)", tx2, ty + th + 0.08, tw2, 0.55);
+  caption(s, "The TUKZIE, UCT's electric cargo trike (render)", hx, ty + hh + 0.04, hw, 0.3);
+  const tx2 = hx, tw2 = hw;
   const rx = tx2 + tw2 + 0.4, rw = W - M - rx;
   stat(s, rx, 1.4, rw, 1.75, "30 to 50 %", "lower running cost per km than petrol delivery motorbikes (GreenCape, 2026)", { bigSize: 34, size: 15 });
   stat(s, rx, 3.35, rw, 1.95, "1.9 → 3.9 %", "motorcyclists' share of SA road deaths, 2023 to 2024; 18 % of Pretoria delivery riders crashed in a year (CSIR)", { bigSize: 34, size: 15 });
