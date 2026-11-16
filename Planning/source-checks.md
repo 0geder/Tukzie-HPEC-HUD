@@ -109,3 +109,15 @@ Asked for by the student so that slide 2 rests on South African evidence, not on
 - Not used: Checkers Sixty60's fleet type (Shoprite pages refused download; a second-hand claim that Sixty60 stays on petrol bikes could not be checked) and MellowVans trials with Checkers, DHL and Takealot (Engineering News, 2020, paywalled). Neither is said on the slides.
 
 Used in: deck slide 2 (stat card and speaker notes). Not yet in the report.
+
+## Delivery-motorbike safety in South Africa (16 Nov 2026)
+
+For the student's safety argument on slide 2.
+
+- L. Kwange and M. Dube (CSIR), "Road safety risks among motorcycle food delivery riders in South Africa's gig economy: findings from a survey in Pretoria", CSIR ResearchSpace, https://researchspace.csir.co.za/bitstreams/3a2eecd7-e06a-4508-81f6-dd6f05d914e5/download, downloaded 16 Nov 2026 (cites sources accessed Feb 2026; venue not printed on the paper). Copy: References/Papers/Urban Electric Cargo Trike/Kwange_Dube_CSIR_motorcycle_delivery_riders_Pretoria.pdf.
+  Checked: abstract, motorcycle fatalities rose from 1.9% to 3.9% of total road deaths between 2023 and 2024 (the paper's figure, attributed to RTMC; the RTMC tables themselves not yet checked); survey of 109 delivery riders; Table 3 and 4.2.1, 18% reported at least one crash in the past 12 months, 37% a near miss; literature section, motorists commonly say they "did not see" the motorcycle.
+- J. M. Ward, S. W. Klopper, F. Louw and M. H. T. Schmieschek, "The cost of convenience: initial costs to the state healthcare system of orthopaedic injuries in uninsured delivery motorcyclists in Cape Town", SA Orthopaedic Journal, vol. 23, no. 4, pp. 174-179, 2024, doi: 10.17159/2309-8309/2024/v23n4a3. Copy: Ward_etal_2024_SAOJ_delivery_motorcyclists_Cape_Town.pdf.
+  Checked: abstract, 44 delivery motorcyclists in one year in one Cape Town health district needed orthopaedic surgery, mean R52 061 each, R3.99 million in total; injuries consistent with being struck by another vehicle. Held for questions; not on the slide.
+- Not found: any study showing a three-wheeler is safer than a motorcycle for delivery. The slides do not claim it; the argument is that motorbike delivery is risky and a trike has room for sensors and a screen to warn the driver.
+
+Used in: deck slide 2 (second stat card and notes).

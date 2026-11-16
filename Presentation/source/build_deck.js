@@ -128,24 +128,22 @@ function content(title, notes) {
 {
   const s = content("Why this matters",
     "A little background on the TUKZIE. It is a UCT flagship programme building an electric cargo trike for last-mile deliveries in growing cities, with autonomy as the long-term goal. " +
-    "Why a trike, here in South Africa? Delivery here runs on motorbikes: 43,144 new motorcycles were sold in 2025, 70 percent of them for commercial use, driven by on-demand grocery and e-commerce. " +
-    "GreenCape's 2026 brief finds electric two- and three-wheelers cost 30 to 50 percent less per kilometre to run than petrol motorbikes, and Spar already delivers its Spar2U orders with electric three-wheelers. " +
-    "The same holds elsewhere in Africa: in Dar es Salaam, an electric cargo tricycle cost 45.5 percent less to run than a motorcycle. " +
-    "The first step towards autonomy is for the vehicle to know where it is and what is around it. When I started, nothing on the TUKZIE did that: its dashboard showed only simulated values. " +
-    "So I applied what we have learned so far, including the micromouse. A lidar would have been too expensive on a budget of about 2,000 rand, so the trike got a simple sensing system: " +
-    "a Raspberry Pi camera to detect objects, and three time-of-flight sensors from a micromouse board, standing in until a multi-zone sensor arrived. " +
-    "The brief also asked for a windshield head-up display. But anything that takes the driver's eyes off the road is a risk; NHTSA guidance wants glances away from the road to mostly last two seconds or less. " +
-    "So, with my supervisor's agreement, the alerts go on the dashboard the trike already has. " +
+    "Why a trike, here in South Africa? Delivery here runs on motorbikes: 43,144 were sold in 2025, 70 percent for commercial use. " +
+    "That costs lives: motorcyclists' share of road deaths rose from 1.9 to 3.9 percent between 2023 and 2024, and in a Pretoria survey nearly one in five delivery riders had crashed in the past year. " +
+    "Electric trikes are a better tool for the job: GreenCape finds electric two- and three-wheelers 30 to 50 percent cheaper per kilometre to run, an electric three-wheeler carries 250 to 400 kilograms, and Spar already delivers with them. " +
+    "A trike also has room for sensors and a screen to warn its driver, and that is what this project adds. When I started, nothing on the TUKZIE did that: its dashboard showed only simulated values. " +
+    "A lidar was too expensive on a budget of about 2,000 rand, so I used what we learned on the micromouse: a Raspberry Pi camera to detect objects, and three time-of-flight sensors from a micromouse board. " +
+    "The brief also asked for a windshield head-up display, but glances away from the road should mostly last two seconds or less, so, with my supervisor's agreement, the alerts go on the dashboard the trike already has. " +
     "So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. ");
   const ph = 4.85, pw = ph * 1080 / 930;
   s.addImage({ path: A("road_test_1027.jpg"), x: M, y: 1.4, w: pw, h: ph });
   caption(s, "The TUKZIE Rev 0 on the road test in Cape Town, 27 October 2026", M, 1.4 + ph + 0.08, pw);
   const rx = M + pw + 0.45, rw = W - M - rx;
   stat(s, rx, 1.4, rw, 1.75, "30 to 50 %", "lower running cost per km for electric two- and three-wheelers than petrol delivery motorbikes in South Africa (GreenCape, 2026); Spar2U already delivers by electric trike", { bigSize: 36, size: 15 });
-  stat(s, rx, 3.45, rw, 1.75, "2 s", "glances away from the road should mostly last 2 s or less (NHTSA, 2013), so alerts must be short and safety-only", { bigSize: 36, size: 15 });
+  stat(s, rx, 3.45, rw, 1.75, "1.9 → 3.9 %", "motorcyclists' share of South African road deaths, 2023 to 2024; 18 % of Pretoria delivery riders crashed in a year (Kwange and Dube, CSIR)", { bigSize: 36, size: 15 });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: rx, y: 5.5, w: rw, h: BOTTOM - 5.5, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
   txt(s, [{ text: "The problem: ", options: { bold: true, color: C.navy } },
-          { text: "edge telemetry and sparse, safety-only alerts together on the TUKZIE, UCT's low-cost electric trike in Cape Town, with each part measured." }],
+          { text: "edge telemetry and hazard alerts the driver reads in a glance of 2 s or less (NHTSA), on the TUKZIE, UCT's low-cost electric trike in Cape Town, with each part measured." }],
     { x: rx + 0.25, y: 5.5, w: rw - 0.5, h: BOTTOM - 5.5, fontSize: 16, valign: "middle" });
 }
 
