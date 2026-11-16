@@ -103,9 +103,8 @@ function content(title, notes) {
 {
   const s = pres.addSlide();
   slideNo++;
-  const notes = "Good morning. I'm Samson Okuthe. My project gives the TUKZIE electric cargo trike embedded telemetry: " +
-    "it measures how the trike rides, warns the driver of hazards on the dashboard it already has, and keeps its data when coverage drops. " +
-    "I was supervised by Associate Professor Simon Winberg, with Sampath Jayalath as co-supervisor.";
+  const notes = "Good morning. My name is Samson, and my project is embedded telemetry with road-surface characterisation and camera-based hazard detection for the TUKZIE electric trike. " +
+    "I was supervised by Associate Professor Winberg, with Sampath Jayalath as my co-supervisor.";
   s.background = { color: C.navy };
   s.addImage({ path: A("uct_banner.jpg"), x: 0, y: 0, w: W, h: H, sizing: { type: "cover", w: W, h: H } });
   const px = M, py = 0.35, pw = W - 2 * M, ph = 3.7;

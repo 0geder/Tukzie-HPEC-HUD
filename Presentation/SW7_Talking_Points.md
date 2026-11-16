@@ -2,11 +2,11 @@
 
 Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here.
 
-13 slides, 10 minutes plus 5 minutes of questions. 1378 words in total, about 9.8 minutes at 140 words a minute.
+13 slides, 10 minutes plus 5 minutes of questions. 1363 words in total, about 9.7 minutes at 140 words a minute.
 
-## Slide 1: Title (52 words, about 22 s)
+## Slide 1: Title (37 words, about 16 s)
 
-Good morning. I'm Samson Okuthe. My project gives the TUKZIE electric cargo trike embedded telemetry: it measures how the trike rides, warns the driver of hazards on the dashboard it already has, and keeps its data when coverage drops. I was supervised by Associate Professor Simon Winberg, with Sampath Jayalath as co-supervisor.
+Good morning. My name is Samson, and my project is embedded telemetry with road-surface characterisation and camera-based hazard detection for the TUKZIE electric trike. I was supervised by Associate Professor Winberg, with Sampath Jayalath as my co-supervisor.
 
 ## Slide 2: Why this matters (107 words, about 46 s)
 
