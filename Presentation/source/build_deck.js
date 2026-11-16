@@ -128,7 +128,9 @@ function content(title, notes) {
 {
   const s = content("Why this matters",
     "A little background on the TUKZIE. It is a UCT flagship programme building an electric cargo trike for last-mile deliveries in growing cities, with autonomy as the long-term goal. " +
-    "Trikes like this make sense: in Dar es Salaam, an electric cargo tricycle cost 45.5 percent less to run than a motorcycle, and 86 percent less than a light car. " +
+    "Why a trike, here in South Africa? Delivery here runs on motorbikes: 43,144 new motorcycles were sold in 2025, 70 percent of them for commercial use, driven by on-demand grocery and e-commerce. " +
+    "GreenCape's 2026 brief finds electric two- and three-wheelers cost 30 to 50 percent less per kilometre to run than petrol motorbikes, and Spar already delivers its Spar2U orders with electric three-wheelers. " +
+    "The same holds elsewhere in Africa: in Dar es Salaam, an electric cargo tricycle cost 45.5 percent less to run than a motorcycle. " +
     "The first step towards autonomy is for the vehicle to know where it is and what is around it. When I started, nothing on the TUKZIE did that: its dashboard showed only simulated values. " +
     "So I applied what we have learned so far, including the micromouse. A lidar would have been too expensive on a budget of about 2,000 rand, so the trike got a simple sensing system: " +
     "a Raspberry Pi camera to detect objects, and three time-of-flight sensors from a micromouse board, standing in until a multi-zone sensor arrived. " +
@@ -139,7 +141,7 @@ function content(title, notes) {
   s.addImage({ path: A("road_test_1027.jpg"), x: M, y: 1.4, w: pw, h: ph });
   caption(s, "The TUKZIE Rev 0 on the road test in Cape Town, 27 October 2026", M, 1.4 + ph + 0.08, pw);
   const rx = M + pw + 0.45, rw = W - M - rx;
-  stat(s, rx, 1.4, rw, 1.75, "45.5 to 86 %", "lower running cost for an electric cargo tricycle than a motorcycle or a light car, Dar es Salaam (Sebwa et al., 2025)", { bigSize: 36, size: 15 });
+  stat(s, rx, 1.4, rw, 1.75, "30 to 50 %", "lower running cost per km for electric two- and three-wheelers than petrol delivery motorbikes in South Africa (GreenCape, 2026); Spar2U already delivers by electric trike", { bigSize: 36, size: 15 });
   stat(s, rx, 3.45, rw, 1.75, "2 s", "glances away from the road should mostly last 2 s or less (NHTSA, 2013), so alerts must be short and safety-only", { bigSize: 36, size: 15 });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: rx, y: 5.5, w: rw, h: BOTTOM - 5.5, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
   txt(s, [{ text: "The problem: ", options: { bold: true, color: C.navy } },

@@ -97,3 +97,15 @@ Report: the citation iso15008 now refers to the 2017 edition (Section 2.7 for ch
 - Source: programme description PDF attached to Sampath Jayalath's call for applications, received 27 Oct 2026; filed as References/Papers/Tukzie/Tukzie_Vacation_Work_Programme_2026-2027.pdf.
 - Checked: the two focus areas (drive-by-wire autonomous driving; evaluation and improvement of the existing sensing testbed, including calibration, fusion, logging and a digital twin) and the dates (23 Nov to 10 Dec 2026, 18 Jan to 5 Feb 2027).
 - Used for: Section 8.2.1, the programme's next step along the staged path to autonomy; cited as tukzie2026vac.
+
+## South African case for electric delivery trikes (16 Nov 2026)
+
+Asked for by the student so that slide 2 rests on South African evidence, not only Dar es Salaam.
+
+- GreenCape, "Driving down delivery costs: Electric two- and three-wheelers in South African last-mile delivery", industry brief, June 2026, https://greencape.co.za/wp-content/uploads/2026/06/CW-GreenCape-2_3-wheeler_Industry-brief_published.pdf, downloaded 16 Nov 2026. Copy: References/Papers/Urban Electric Cargo Trike/GreenCape_2026_electric_2-3_wheelers_SA_last_mile_brief.pdf.
+  Checked: p2, electric micro-mobility "already commercially viable" in last-mile delivery, operational savings "up to ~50%" against ICE motorcycles on short urban routes; p3, 43 144 new motorcycles sold in South Africa in 2025, 70% for commercial use (AMID figures), "driven by the growth of on-demand grocery and e-commerce platforms"; p4, electric three-wheelers carry 250 to 400 kg with 80 to 130 km range, local makers MellowVans and Green Scooter; p5, "total opex reductions of approximately 30-50% per kilometre compared to ICE motorcycles" (supplier data and industry case studies); the R0.78 to R0.91/km against R0.10 to R0.12/km energy figures are for two-wheelers only and are not used for trikes.
+- The SPAR Group introduces SPAR2U "green fleet", supermarket.co.za, 3 Nov 2023. Copy: Spar2U_green_fleet_supermarket.co.za_2023-11-03.html. Checked: rollout in Gauteng, KwaZulu-Natal, Western Cape, Eastern Cape and Lowveld, including 12 three-wheel motorcycles with a 200 kg load capacity.
+- M. Illidge (MyBroadband), "Spar has big plans for its electrified Checkers Sixty60 rival", supermarket.co.za, 4 Mar 2024. Copy: Spar_electrified_Sixty60_rival_MyBroadband_2024-03-04.html. Checked: 65 electric vehicles, twelve of them three-wheelers; three-wheelers up to 100 km per charge.
+- Not used: Checkers Sixty60's fleet type (Shoprite pages refused download; a second-hand claim that Sixty60 stays on petrol bikes could not be checked) and MellowVans trials with Checkers, DHL and Takealot (Engineering News, 2020, paywalled). Neither is said on the slides.
+
+Used in: deck slide 2 (stat card and speaker notes). Not yet in the report.
