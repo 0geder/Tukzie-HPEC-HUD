@@ -127,9 +127,12 @@ function content(title, notes) {
 // ---------------- 2 Why ----------------
 {
   const s = content("Why this matters",
-    "Electric cargo trikes make sense for freight in African cities: in Dar es Salaam an electric cargo tricycle cost 45.5 percent less to run than a motorcycle, and 86 percent less than a light car. " +
-    "That evidence is from Tanzania; here in Cape Town, UCT's TUKZIE Flagship Programme is building such a trike for last-mile logistics. " +
+    "How did this project come about? UCT's TUKZIE Flagship Programme is building an electric cargo trike for last-mile deliveries in growing cities. " +
+    "Trikes like this make sense: in Dar es Salaam, an electric cargo tricycle cost 45.5 percent less to run than a motorcycle, and 86 percent less than a light car. " +
+    "Here in Cape Town, the programme's testbed is the TUKZIE Rev 0. When I started, its dashboard showed only simulated values: nothing measured how it rode, read its battery or recorded a journey. " +
+    "My supervisors' brief asked for a telemetry unit and a windshield head-up display. " +
     "But anything that takes the driver's eyes off the road is a risk; NHTSA guidance wants glances away from the road to mostly last two seconds or less. " +
+    "A second display would compete for that attention, so, with my supervisor's agreement, I put the alerts on the dashboard the trike already has and added cameras to detect hazards. " +
     "So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. ");
   const ph = 4.85, pw = ph * 1080 / 930;
   s.addImage({ path: A("road_test_1027.jpg"), x: M, y: 1.4, w: pw, h: ph });
