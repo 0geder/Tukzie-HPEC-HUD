@@ -317,23 +317,24 @@ const h7 = BOTTOM - y;
 b = panel(7, "Conclusion", XR, y, COLW, h7);
 {
   const qr = 2.1;
-  txt("The unit works on the trike: its vibration score tells smooth road from rough and repeats over whole passes, not yet place by place.",
-    b.x, b.y, b.w - qr - 0.35, 1.7, { fontSize: T.body });
+  txt([
+    { text: "The unit works on the trike. ", options: { bold: true, color: C.navy } },
+    { text: "Its vibration score tells smooth road from rough and repeats over whole passes, not yet place by place. Both cameras flagged people and vehicles live on the dashboard; the alerts are not yet checked against video." },
+  ], b.x, b.y, b.w - qr - 0.35, 2.1);
   const qx = b.x + b.w - qr, qy = b.y - 0.95;
   s.addShape(pres.shapes.RECTANGLE, { x: qx, y: qy, w: qr, h: qr, fill: { color: C.white }, line: { color: C.white } });
   s.addImage({ path: A("qr_tuksense.png"), x: qx + 0.08, y: qy + 0.08, w: qr - 0.16, h: qr - 0.16, altText: "QR code to https://tuksense.site" });
-  txt([{ text: "Videos: ", options: { bold: true } }, { text: "tuksense.site" }], qx - 1.5, qy + qr + 0.05, qr + 1.5, 0.45,
-    { color: C.navy, align: "right" });
+  txt("tuksense.site", qx - 0.2, qy + qr + 0.03, qr + 0.4, 0.45, { color: C.navy, bold: true, align: "center" });
   const pairs = [
     ["One trike, short low-speed runs, no reference sensor", "Tie the score to a surveyed road section"],
     ["Pi" + NB + "4 restarted once on low voltage", "Regulated supply from the vehicle"],
     ["Warnings below ISO" + NB + "15008 size", "Enlarge them, then a glance study (R12)"],
   ];
-  const py0 = b.y + 1.6, hw = (b.w - 0.6) / 2, rh = 0.8;
+  const py0 = b.y + 2.1, hw = (b.w - 0.6) / 2, rh = 0.76;
   txt("Limited by", b.x, py0, hw, 0.42, { bold: true, color: C.accent });
   txt("Next", b.x + hw + 0.6, py0, hw, 0.42, { bold: true, color: C.green });
   pairs.forEach(([l, n], i) => {
-    const py = py0 + 0.45 + i * (rh + 0.1);
+    const py = py0 + 0.42 + i * (rh + 0.08);
     box(b.x, py, hw, rh, C.white, C.accent);
     txt(l, b.x + 0.15, py, hw - 0.25, rh, { valign: "middle" });
     s.addShape(pres.shapes.LINE, { x: b.x + hw + 0.08, y: py + rh / 2, w: 0.44, h: 0, line: { color: C.navy, width: 3, endArrowType: "triangle" } });
