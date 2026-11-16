@@ -164,8 +164,10 @@ function content(title, notes) {
 // ---------------- 3 Aim and research questions ----------------
 {
   const s = content("Aim, research questions and approach",
-    "The aim is on the slide. Four research questions follow from it: how accurately and repeatably the ride can be measured; how alerts should appear with the least distraction; what latency, loss and recovery the data chain achieves; and which features separate road from powertrain vibration. " +
-    "The approach was a V-model: thirteen requirements with criteria fixed before each test, every part tested on the bench, then on the vehicle on 19 and 27 October.");
+    "From that problem comes one aim: measure how the trike responds to the road and to its own motor, warn the driver of hazards on the dashboard it already has, and keep the data even when the network drops. " +
+    "I broke that into four research questions. One: how accurately and repeatably can a low-cost unit measure the ride? Two: how should the alerts appear on the dashboard so they distract the driver as little as possible? " +
+    "Three: how fast does data get from the sensor to the database over LTE, how much is lost, and how does it recover? Four: which features tell road vibration apart from the motor's own vibration? " +
+    "To answer them I followed a V-model. I wrote thirteen requirements, each with a pass mark fixed before its test. I tested every part on the bench first, then on the trike itself, in road sessions on 19 and 27 October.");
   card(s, M, 1.4, W - 2 * M, 0.9);
   txt(s, [{ text: "Aim: ", options: { bold: true, color: C.navy } },
           { text: "measure the trike's response to the road and its powertrain, warn of hazards on the existing dashboard, and keep the data through gaps in coverage." }],
@@ -173,7 +175,7 @@ function content(title, notes) {
   const rows = [
     ["RQ1", "How accurately and repeatably can a low-cost edge unit characterise the trike's ride?"],
     ["RQ2", "How should safety alerts appear on the existing dashboard with the least distraction?"],
-    ["RQ3", "What latency, data loss and recovery from sensor to the LTE database?"],
+    ["RQ3", "What latency, data loss and recovery can be achieved from sensor to the LTE database?"],
     ["RQ4", "Which features separate road vibration from powertrain vibration?"],
   ];
   const y0 = 2.6, rh = 0.92, gap = 0.16, lw = 8.0;
