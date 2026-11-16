@@ -69,10 +69,25 @@ function infoCard(s, x, y, w, h, head, body, o = {}) {
 }
 
 // content slide: navy numbered marker + title, footer with crest and slide number
+// A faint TUKZIE render behind each content slide, walking round the trike from slide to slide (16 Nov).
+// Renders are 1448 x 1086 on white; flipH mirrors them for the other side.
+const VIEWS = [
+  ["tukzie_side.png", false], ["tukzie_three_quarter_front.png", false], ["tukzie_front.png", false],
+  ["tukzie_three_quarter_front.png", true], ["tukzie_side.png", true],
+];
+const VIEW_ALPHA = Number(process.env.DECK_BG_ALPHA || 86);   // image transparency, percent
+function backdrop(s, i) {
+  const [file, flip] = VIEWS[i % VIEWS.length];
+  const bh = 6.2, bw = bh * 1448 / 1086;
+  s.addImage({ path: A(file), x: (W - bw) / 2, y: H - bh - 0.35, w: bw, h: bh, flipH: flip, transparency: VIEW_ALPHA,
+    altText: "TUKZIE electric trike (render)" });
+}
+
 function content(title, notes) {
   const s = pres.addSlide();
   slideNo++;
   s.background = { color: C.white };
+  backdrop(s, slideNo - 2);
   s.addShape(pres.shapes.OVAL, { x: M, y: 0.42, w: 0.62, h: 0.62, fill: { color: C.navy }, line: { color: C.navy } });
   txt(s, String(slideNo - 1), { x: M, y: 0.42, w: 0.62, h: 0.62, fontSize: 20, bold: true, color: C.white, align: "center", valign: "middle" });
   txt(s, title, { x: M + 0.85, y: 0.34, w: W - 2 * M - 0.85, h: 0.8, fontSize: 30, bold: true, color: C.navy, valign: "middle" });
@@ -114,17 +129,18 @@ function content(title, notes) {
 {
   const s = content("Why this matters",
     "Electric cargo trikes make sense for freight in African cities: in Dar es Salaam an electric cargo tricycle cost 45.5 percent less to run than a motorcycle, and 86 percent less than a light car. " +
+    "That evidence is from Tanzania; here in Cape Town, UCT's TUKZIE Flagship Programme is building such a trike for last-mile logistics. " +
     "But anything that takes the driver's eyes off the road is a risk; NHTSA guidance wants glances away from the road to mostly last two seconds or less. " +
     "So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. ");
   const ph = 4.85, pw = ph * 1080 / 930;
   s.addImage({ path: A("road_test_1027.jpg"), x: M, y: 1.4, w: pw, h: ph });
-  caption(s, "The TUKZIE Rev 0 on the road test, 27 October 2026", M, 1.4 + ph + 0.08, pw);
+  caption(s, "The TUKZIE Rev 0 on the road test in Cape Town, 27 October 2026", M, 1.4 + ph + 0.08, pw);
   const rx = M + pw + 0.45, rw = W - M - rx;
   stat(s, rx, 1.4, rw, 1.75, "45.5 to 86 %", "lower running cost for an electric cargo tricycle than a motorcycle or a light car, Dar es Salaam (Sebwa et al., 2025)", { bigSize: 36, size: 15 });
   stat(s, rx, 3.45, rw, 1.75, "2 s", "glances away from the road should mostly last 2 s or less (NHTSA, 2013), so alerts must be short and safety-only", { bigSize: 36, size: 15 });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: rx, y: 5.5, w: rw, h: BOTTOM - 5.5, rectRadius: 0.12, fill: { color: C.white }, line: { color: C.sky, width: 1.5 } });
   txt(s, [{ text: "The problem: ", options: { bold: true, color: C.navy } },
-          { text: "edge telemetry and sparse, safety-only alerts together on a low-cost electric trike, with each part measured." }],
+          { text: "edge telemetry and sparse, safety-only alerts together on the TUKZIE, UCT's low-cost electric trike in Cape Town, with each part measured." }],
     { x: rx + 0.25, y: 5.5, w: rw - 0.5, h: BOTTOM - 5.5, fontSize: 16, valign: "middle" });
 }
 
@@ -205,7 +221,7 @@ function content(title, notes) {
 
 // ---------------- 5 Deterministic acquisition ----------------
 {
-  const s = content("Deterministic acquisition: a 33 to 44 ms gap found, removed on the IMU nodes",
+  const s = content("Acquisition: a 33 to 44 ms gap, removed on the IMU nodes",
     "Ride measurement needs a fixed sample rate. Under FreeRTOS the IMU task runs at top priority on a 5 millisecond period and never blocks: if its queue is full, the sample is dropped and counted. " +
     "Counting exposed the one timing fault. Every flash write paused reading for 33 to 44 milliseconds, the spikes in this plot. Buffering made the pauses rarer, not shorter. " +
     "The fix was to take logging off the IMU nodes: on the vehicle they held 200 hertz with no interval over 5.2 milliseconds. " +

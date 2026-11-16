@@ -2,15 +2,15 @@
 
 Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here.
 
-13 slides, 10 minutes plus 5 minutes of questions. 1357 words in total, about 9.7 minutes at 140 words a minute.
+13 slides, 10 minutes plus 5 minutes of questions. 1378 words in total, about 9.8 minutes at 140 words a minute.
 
 ## Slide 1: Title (52 words, about 22 s)
 
 Good morning. I'm Samson Okuthe. My project gives the TUKZIE electric cargo trike embedded telemetry: it measures how the trike rides, warns the driver of hazards on the dashboard it already has, and keeps its data when coverage drops. I was supervised by Associate Professor Simon Winberg, with Sampath Jayalath as co-supervisor.
 
-## Slide 2: Why this matters (86 words, about 37 s)
+## Slide 2: Why this matters (107 words, about 46 s)
 
-Electric cargo trikes make sense for freight in African cities: in Dar es Salaam an electric cargo tricycle cost 45.5 percent less to run than a motorcycle, and 86 percent less than a light car. But anything that takes the driver's eyes off the road is a risk; NHTSA guidance wants glances away from the road to mostly last two seconds or less. So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. 
+Electric cargo trikes make sense for freight in African cities: in Dar es Salaam an electric cargo tricycle cost 45.5 percent less to run than a motorcycle, and 86 percent less than a light car. That evidence is from Tanzania; here in Cape Town, UCT's TUKZIE Flagship Programme is building such a trike for last-mile logistics. But anything that takes the driver's eyes off the road is a risk; NHTSA guidance wants glances away from the road to mostly last two seconds or less. So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. 
 
 ## Slide 3: Aim, research questions and approach (74 words, about 32 s)
 
@@ -20,7 +20,7 @@ The aim is on the slide. Four research questions follow from it: how accurately 
 
 This is the system as driven on 27 October. It has two sides joined by one Ethernet cable, which also shares the clock. At the front, a Raspberry Pi 5 behind the display runs the dashboard, the front camera and detector, three time-of-flight sensors and the front IMU node; a phone streams its GNSS for speed. At the rear, a Raspberry Pi 4 beside the battery runs the rear camera and reads two boards: the rear IMU node, and the telemetry unit, which reads the battery, GNSS and LTE and logs to flash. So there are three ESP32-S3 boards. Run from a portable power station, the whole system drew 27 watts at its output.
 
-## Slide 5: Deterministic acquisition: a 33 to 44 ms gap found, removed on the IMU nodes (109 words, about 47 s)
+## Slide 5: Acquisition: a 33 to 44 ms gap, removed on the IMU nodes (109 words, about 47 s)
 
 Ride measurement needs a fixed sample rate. Under FreeRTOS the IMU task runs at top priority on a 5 millisecond period and never blocks: if its queue is full, the sample is dropped and counted. Counting exposed the one timing fault. Every flash write paused reading for 33 to 44 milliseconds, the spikes in this plot. Buffering made the pauses rarer, not shorter. The fix was to take logging off the IMU nodes: on the vehicle they held 200 hertz with no interval over 5.2 milliseconds. On the road the front node lost nothing in 1.8 million samples; the rear lost 0.08 percent in transport, none at the node.
 
