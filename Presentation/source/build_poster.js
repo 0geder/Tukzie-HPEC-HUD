@@ -179,9 +179,8 @@ b = panel(3, "System on the trike", XL, y, COLW, h3);
   txt("Ethernet", ax - 0.3, ay - 0.6, aw + 0.6, 0.45, { bold: true, color: C.navy, align: "center" });
   txt("time sync", ax - 0.3, ay + 0.15, aw + 0.6, 0.45, { color: C.navy, align: "center" });
   // photos, one per subsystem
-  const py = zy + zh + 0.3, pg = 0.15, pw = (b.w - 3 * pg) / 4, ph = 2.0;
+  const py = zy + zh + 0.3, pg = 0.2, pw = (b.w - 2 * pg) / 3, ph = 2.0;
   const pics = [
-    [A("imu_board.jpg"), "IMU board", "sense", "MPU6050 IMU board, one at each end of the trike"],
     [R("road1/front_camera_1022.jpg"), "Front camera", "hazard", "Front camera in its printed housing on the frame"],
     [R("road1/rear_system_1022.jpg"), "Rear unit", "telem", "Rear unit in its printed enclosure on the cargo bed"],
     [A("road_battery_page_1027.jpg"), "Battery page", "display", "Dashboard battery page on the road at 11:37 on 27 October, live from the BMS: 55 percent, 74.0 V"],
