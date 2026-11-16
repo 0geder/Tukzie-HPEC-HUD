@@ -8,7 +8,7 @@ Generated from the speaker notes by Presentation/source/build_deck.js; edit the 
 
 Good morning. My name is Samson, and my project is embedded telemetry with road-surface characterisation and camera-based hazard detection for the TUKZIE electric trike. I was supervised by Associate Professor Winberg, with Sampath Jayalath as my co-supervisor.
 
-## Slide 2: Why this matters (186 words, about 80 s)
+## Slide 2: Background and why it matters (186 words, about 80 s)
 
 A little background on the TUKZIE. It is a UCT flagship programme building an electric cargo trike for last-mile deliveries in growing cities, with autonomy as the long-term goal. But why a trike in South Africa, when deliveries already run on motorbikes? Motorcyclists' share of road deaths rose from 1.9 to 3.9 percent between 2023 and 2024, and more riders keep joining them: over 43 thousand motorbikes were sold in 2025, and 70 percent of those went into commercial use. Electric trikes are a better tool for the job. They are more stable at low speed, and the driver sits inside a frame. GreenCape finds electric two- and three-wheelers 30 to 50 percent cheaper per kilometre to run, and an electric three-wheeler carries 250 to 400 kilograms, against 120 to 180 for a two-wheeler. Takealot already uses trikes for delivery. With this, we add road-surface characterisation and a camera-based hazard detection unit, to alert the driver and warn of nearby or fast-approaching objects. So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. 
 

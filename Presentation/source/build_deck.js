@@ -126,7 +126,7 @@ function content(title, notes) {
 
 // ---------------- 2 Why ----------------
 {
-  const s = content("Why this matters",
+  const s = content("Background and why it matters",
     // 16 Nov: the student's handwritten slide 2 script, lightly edited to match the sources
     "A little background on the TUKZIE. It is a UCT flagship programme building an electric cargo trike for last-mile deliveries in growing cities, with autonomy as the long-term goal. " +
     "But why a trike in South Africa, when deliveries already run on motorbikes? " +
