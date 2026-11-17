@@ -2,7 +2,7 @@
 
 Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here.
 
-13 slides, 10 minutes plus 5 minutes of questions. 1557 words in total, about 11.1 minutes at 140 words a minute.
+13 slides, 10 minutes plus 5 minutes of questions. 1585 words in total, about 11.3 minutes at 140 words a minute.
 
 ## Slide 1: Title (37 words, about 16 s)
 
@@ -16,7 +16,7 @@ A little background on the TUKZIE. It is a UCT flagship programme building an el
 
 From that problem comes one aim: measure how the trike responds to the road and to its own motor, warn the driver of hazards on the dashboard it already has, and keep the data even when the network drops. I broke that into four research questions. One: how accurately and repeatably can a low-cost unit measure the ride? Two: how should the alerts appear on the dashboard so they distract the driver as little as possible? Three: how fast does data get from the sensor to the database over LTE, how much is lost, and how does it recover? Four: which features tell road vibration apart from the motor's own vibration? To answer them I followed a V-model. Down the left side I defined the system: the literature review and the four questions, then thirteen requirements, each with a pass mark fixed before its test, then the design, one subsystem at a time. Up the right side I checked it at the same levels: start-up checks for each interface, bench tests for each requirement, and finally tests on the trike itself, on the road on 19 and 27 October.
 
-## Slide 4: The system as driven on 27 October (114 words, about 49 s)
+## Slide 4: The system on the trike (114 words, about 49 s)
 
 This is the system as driven on 27 October. It has two sides joined by one Ethernet cable, which also shares the clock. At the front, a Raspberry Pi 5 behind the display runs the dashboard, the front camera and detector, three time-of-flight sensors and the front IMU node; a phone streams its GNSS for speed. At the rear, a Raspberry Pi 4 beside the battery runs the rear camera and reads two boards: the rear IMU node, and the telemetry unit, which reads the battery, GNSS and LTE and logs to flash. So there are three ESP32-S3 boards. Run from a portable power station, the whole system drew 27 watts at its output.
 
@@ -40,7 +40,7 @@ This is the dashboard's own screen on the road, with the rear camera tracking a 
 
 RQ2 lands on the dashboard the team already runs, here on the vehicle. It shows only live data, never a simulated value, and an immediate hazard appears as a banner over every page. Glance time needs a participant and an ethics amendment, so it was not tested; but legibility needs neither, so I measured it at the driver's eye distance of 0.62 metres. The speed digits subtend 94 arc minutes, far above the 20 that ISO 15008 recommends. The alert banner subtends 10, below even its minimum of 12. So the hierarchy is inverted: the warnings must be enlarged before any glance study. Spoken commands work offline, 15 to 18 of 18 on the bench, but no driver was tested.
 
-## Slide 10: Road test, 27 October: repeatable per pass, not per place (118 words, about 51 s)
+## Slide 10: Road test: repeatable per pass, not per place (118 words, about 51 s)
 
 This is the main road result. On a smooth loop at 10 kilometres an hour, five passes gave a weighted acceleration, a w, that varied by 5.0 percent at the rear and 5.3 at the front, inside the 10 percent criterion. On a rougher strip it read about twice as high at the same speed, so the measurement responds to the road. But aligned by position in 8 metre cells, the passes did not agree place by place: an ICC of 0.16, at most 0.32 in the sensitivity checks, against 0.75. With one-second phone positions I cannot separate this from the line each lap took. The speed index also rose with speed, so it is not speed-invariant here.
 
@@ -52,6 +52,6 @@ RQ4 asks what is road and what is powertrain. With the drive wheel raised on sta
 
 So, honestly, each question is answered in part. RQ1: the instrument is verified on the bench, and on the road it repeats over whole passes but not yet place by place. RQ2: the alerts are built and live-only, but the warning text is too small and glance time was not measured. RQ3: on the bench every record survived a ten-minute outage; on the road the wired link carried 99.9 percent, but LTE latency rests on nine records. RQ4: at these speeds the road dominates. Of thirteen requirements, five are met on the bench, seven partly and one, glance time, was not tested. On the vehicle R1 was met at the front, R2 was not.
 
-## Slide 13: Contribution and next steps (105 words, about 45 s)
+## Slide 13: Contribution and next steps (133 words, about 57 s)
 
-The contribution is an integrated low-cost architecture, a measured account of its timing and loss, and road evidence that the ride measurement repeats over whole passes. Four steps would make it dependable. First, a regulated supply for the telemetry unit, never a Pi's USB port. Second, fix the LTE reconnection and measure latency on the road. Third, marked sections with side video and three passes per speed, for a place-by-place ICC. Fourth, validate the fusion and time to contact against a flat target, a real approaching car and labelled video. Videos of the road test are at tuksense.site. Thank you; I'm happy to take questions.
+The contribution is an integrated low-cost architecture, a measured account of its timing and loss, and road evidence that the ride measurement repeats over whole passes. Five steps would make it dependable. First, a regulated supply for the telemetry unit, never a Pi's USB port. Second, fix the LTE reconnection and measure latency on the road. Third, marked sections with side video and three passes per speed, for a place-by-place ICC. Fourth, validate the fusion and time to contact against a flat target, a real approaching car and labelled video. Fifth, the voice commands: so far tested only with synthetic voices on the bench, so they need a close microphone and a test with drivers on the road. Videos of the road test are at tuksense.site. Thank you; I'm happy to take questions.

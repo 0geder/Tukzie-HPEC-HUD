@@ -215,7 +215,7 @@ function content(title, notes) {
 
 // ---------------- 4 System as driven ----------------
 {
-  const s = content("The system as driven on 27 October",
+  const s = content("The system on the trike",
     "This is the system as driven on 27 October. It has two sides joined by one Ethernet cable, which also shares the clock. " +
     "At the front, a Raspberry Pi 5 behind the display runs the dashboard, the front camera and detector, three time-of-flight sensors and the front IMU node; a phone streams its GNSS for speed. " +
     "At the rear, a Raspberry Pi 4 beside the battery runs the rear camera and reads two boards: the rear IMU node, and the telemetry unit, which reads the battery, GNSS and LTE and logs to flash. " +
@@ -381,7 +381,7 @@ function content(title, notes) {
 
 // ---------------- 10 Road test ----------------
 {
-  const s = content("Road test, 27 October: repeatable per pass, not per place",
+  const s = content("Road test: repeatable per pass, not per place",
     "This is the main road result. On a smooth loop at 10 kilometres an hour, five passes gave a weighted acceleration, a w, that varied by 5.0 percent at the rear and 5.3 at the front, inside the 10 percent criterion. " +
     "On a rougher strip it read about twice as high at the same speed, so the measurement responds to the road. " +
     "But aligned by position in 8 metre cells, the passes did not agree place by place: an ICC of 0.16, at most 0.32 in the sensitivity checks, against 0.75. With one-second phone positions I cannot separate this from the line each lap took. " +
@@ -432,7 +432,7 @@ function content(title, notes) {
   const iy = top + 2.75 + 0.3;
   infoCard(s, x3, iy, w3, top + chH + 0.68 - iy, "Speed index I_v rose with speed",
     "Rear 1.14, 1.59, 2.44 at about 10, 13, 18 km/h: not speed-invariant.");
-  txt(s, "Laps 11:30 to 12:40; speed from the phone's GNSS; passes found from speed and current, no section markers or video. Only 2 passes at 15 km/h and 1 at 20 km/h. Battery peaked at 82.9 A.",
+  txt(s, "27 October, laps 11:30 to 12:40; speed from the phone's GNSS; passes found from speed and current, no section markers or video. Only 2 passes at 15 km/h and 1 at 20 km/h. Battery peaked at 82.9 A.",
     { x: M, y: 6.0, w: W - 2 * M, h: BOTTOM - 6.0, fontSize: 13, italic: true, color: C.muted, valign: "middle" });
 }
 
@@ -496,8 +496,9 @@ function content(title, notes) {
 {
   const s = content("Contribution and next steps",
     "The contribution is an integrated low-cost architecture, a measured account of its timing and loss, and road evidence that the ride measurement repeats over whole passes. " +
-    "Four steps would make it dependable. First, a regulated supply for the telemetry unit, never a Pi's USB port. Second, fix the LTE reconnection and measure latency on the road. " +
+    "Five steps would make it dependable. First, a regulated supply for the telemetry unit, never a Pi's USB port. Second, fix the LTE reconnection and measure latency on the road. " +
     "Third, marked sections with side video and three passes per speed, for a place-by-place ICC. Fourth, validate the fusion and time to contact against a flat target, a real approaching car and labelled video. " +
+    "Fifth, the voice commands: so far tested only with synthetic voices on the bench, so they need a close microphone and a test with drivers on the road. " +
     "Videos of the road test are at tuksense.site. Thank you; I'm happy to take questions.");
   const top = 1.4, chh = 1.3;
   card(s, M, top, W - 2 * M, chh);
@@ -508,12 +509,13 @@ function content(title, notes) {
    "Road evidence: repeats over whole passes, separates surfaces; not yet place by place"]
     .forEach((t, i) => txt(s, t, { x: M + 0.25 + i * (cw3 + 0.3), y: top + 0.5, w: cw3, h: chh - 0.6, fontSize: 15, valign: "top" }));
   const recs = [
-    ["Regulated supply", "Power the telemetry unit from a vehicle converter, never a Pi's USB port; measure each unit inline."],
+    ["Regulated supply", "Power the telemetry unit from a vehicle converter, never a Pi's USB port."],
     ["LTE reconnection", "Fix the reconnection lost from 11:51, then measure latency on the road."],
-    ["Marked sections, video", "Straight sections with side video, three passes per speed, for a place-by-place ICC."],
-    ["Fusion and time to contact", "Flat-target ranging, a car approaching the parked trike, at least 200 road alerts labelled on video."],
+    ["Marked sections", "Side video, three passes per speed, for a place-by-place ICC."],
+    ["Hazard alerts", "Flat-target ranging, a car approaching the parked trike, road alerts labelled on video."],
+    ["Voice commands", "15 to 18 of 18 synthetic commands on the bench; next a close microphone, then drivers on the road."],
   ];
-  const ry = top + chh + 0.3, g = 0.3, rw = (W - 2 * M - 3 * g) / 4, rh = 2.3;
+  const ry = top + chh + 0.3, g = 0.22, rw = (W - 2 * M - 4 * g) / 5, rh = 2.45;
   recs.forEach(([h, b], i) => {
     const x = M + i * (rw + g);
     card(s, x, ry, rw, rh, C.white, { color: C.sky, width: 1.5 });
