@@ -1,0 +1,61 @@
+n,time,side,shown_on_screen,object_real,class_right,note,frame
+1,11:56:58,front,"person 0.21 m ahead (immediate, camera+ToF); bus 4.7 m left",yes,yes,person standing at the front; bus parked far left,screens/115658.jpg
+2,11:57:23,front,bus 3.5 to 4.6 m (warning),yes,yes,"parked bus seen side-on; looks well beyond 4 m, distance likely underestimated (not measured)",screens/115723.jpg
+3,11:57:47,front,person 2.6 m right (immediate); bus 4.6 m left,yes,yes,person's legs at right edge,screens/115747.jpg
+4,12:10:23,front,bus 3.5 to 4.6 m (warning),yes,yes,"parked bus seen side-on; looks well beyond 4 m, distance likely underestimated (not measured)",screens/121023.jpg
+5,12:10:48,front,bus 3.5 to 4.6 m (warning),yes,yes,"parked bus seen side-on; looks well beyond 4 m, distance likely underestimated (not measured)",screens/121048.jpg
+6,12:11:12,front,bus 3.5 to 4.6 m (warning),yes,yes,"parked bus seen side-on; looks well beyond 4 m, distance likely underestimated (not measured)",screens/121112.jpg
+7,12:11:39,front,bus 3.5 to 4.6 m (warning),yes,yes,"parked bus seen side-on; looks well beyond 4 m, distance likely underestimated (not measured)",screens/121139.jpg
+8,12:12:03,front,bus 3.5 to 4.6 m (warning),yes,yes,"parked bus seen side-on; looks well beyond 4 m, distance likely underestimated (not measured)",screens/121203.jpg
+9,12:12:28,front,bus 3.5 to 4.6 m (warning),yes,yes,"parked bus seen side-on; looks well beyond 4 m, distance likely underestimated (not measured)",screens/121228.jpg
+10,12:12:53,front,bus 3.5 to 4.6 m (warning),yes,yes,"parked bus seen side-on; looks well beyond 4 m, distance likely underestimated (not measured)",screens/121253.jpg
+11,12:13:17,front,bus 3.5 to 4.6 m (warning),yes,yes,"parked bus seen side-on; looks well beyond 4 m, distance likely underestimated (not measured)",screens/121317.jpg
+12,12:13:42,front,bus 3.5 to 4.6 m (warning),yes,yes,"parked bus seen side-on; looks well beyond 4 m, distance likely underestimated (not measured)",screens/121342.jpg
+13,12:25:38,front,truck 6.8 to 10.8 m right (warning/monitoring),yes,yes (tractor shown as truck; COCO has no tractor),"green tractor parked right; distant person 22 to 41 m listed grey in 13, 18, 20, 21 with no person visible",screens/122538.jpg
+14,12:26:03,front,truck 6.8 to 10.8 m right (warning/monitoring),yes,yes (tractor shown as truck; COCO has no tractor),"green tractor parked right; distant person 22 to 41 m listed grey in 13, 18, 20, 21 with no person visible",screens/122603.jpg
+15,12:26:28,front,truck 6.8 to 10.8 m right (warning/monitoring),yes,yes (tractor shown as truck; COCO has no tractor),"green tractor parked right; distant person 22 to 41 m listed grey in 13, 18, 20, 21 with no person visible",screens/122628.jpg
+16,12:30:03,front,truck 6.8 to 10.8 m right (warning/monitoring),yes,yes (tractor shown as truck; COCO has no tractor),"green tractor parked right; distant person 22 to 41 m listed grey in 13, 18, 20, 21 with no person visible",screens/123003.jpg
+17,12:30:42,front,car 6.9 m right (warning),yes,no (tractor shown as car),same tractor,screens/123042.jpg
+18,12:31:06,front,truck 6.8 to 10.8 m right (warning/monitoring),yes,yes (tractor shown as truck; COCO has no tractor),"green tractor parked right; distant person 22 to 41 m listed grey in 13, 18, 20, 21 with no person visible",screens/123106.jpg
+19,12:31:33,front,truck 6.8 to 10.8 m right (warning/monitoring),yes,yes (tractor shown as truck; COCO has no tractor),"green tractor parked right; distant person 22 to 41 m listed grey in 13, 18, 20, 21 with no person visible",screens/123133.jpg
+20,12:31:58,front,truck 6.8 to 10.8 m right (warning/monitoring),yes,yes (tractor shown as truck; COCO has no tractor),"green tractor parked right; distant person 22 to 41 m listed grey in 13, 18, 20, 21 with no person visible",screens/123158.jpg
+21,12:32:22,front,truck 6.8 to 10.8 m right (warning/monitoring),yes,yes (tractor shown as truck; COCO has no tractor),"green tractor parked right; distant person 22 to 41 m listed grey in 13, 18, 20, 21 with no person visible",screens/123222.jpg
+22,12:32:47,front,"truck 0.27 m ahead (immediate, camera+ToF)",yes,yes,"tractor real but not 0.27 m away: ToF range fused to the camera box; false escalation to immediate; distant persons 22 and 39 m listed grey, none visible",screens/123247.jpg
+23,12:33:12,front,truck 6.8 to 10.8 m right (warning/monitoring),yes,yes (tractor shown as truck; COCO has no tractor),"green tractor parked right; distant person 22 to 41 m listed grey in 13, 18, 20, 21 with no person visible",screens/123312.jpg
+24,12:35:02,front,car 3.3 m ahead; person 4.9 m ahead (warning),yes,yes,person walking in front of a parked car,screens/123502.jpg
+25,11:31:24,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113124.jpg
+26,11:31:40,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113140.jpg
+27,11:31:56,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113156.jpg
+28,11:32:13,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113213.jpg
+29,11:32:29,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113229.jpg
+30,11:32:46,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113246.jpg
+31,11:33:02,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113302.jpg
+32,11:33:18,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113318.jpg
+33,11:33:35,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113335.jpg
+34,11:33:51,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113351.jpg
+35,11:34:07,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113407.jpg
+36,11:34:24,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113424.jpg
+37,11:34:40,rear,person 1.4 to 3.9 m behind (immediate/warning); car 5.2 to 5.7 m right,yes,yes,"person standing behind the trike, parked car at right",screens/113440.jpg
+38,11:58:08,rear,car 5.7 m behind; car 6.3 m left; car 29.4 m,yes,yes,parked cars,screens/115808.jpg
+39,12:09:28,rear,car 4.4 to 5.2 m right; cars 7.5 to 13.5 m left,yes,yes,parked cars,screens/120928.jpg
+40,12:09:56,rear,car 4.4 to 5.2 m right; cars 7.5 to 13.5 m left,yes,yes,parked cars,screens/120956.jpg
+41,11:31:20,front,Clear,n/a,n/a,nothing in view that the detector should report,screens/113120.jpg
+42,12:24:57,front,Clear,miss?,n/a,"tractor partly visible at the right edge, not reported (edge-cut)",screens/122457.jpg
+43,12:27:09,front,Clear,n/a,n/a,nothing in view that the detector should report,screens/122709.jpg
+44,12:28:02,front,Clear,n/a,n/a,nothing in view that the detector should report,screens/122802.jpg
+45,12:29:03,front,Clear,n/a,n/a,nothing in view that the detector should report,screens/122903.jpg
+46,12:30:30,front,Clear,n/a,n/a,nothing in view that the detector should report,screens/123030.jpg
+47,12:34:01,front,Clear,n/a,n/a,nothing in view that the detector should report,screens/123401.jpg
+48,12:35:13,front,"car 7.1 m ahead, approaching, TTC 4.3 s (warning); cars 21.7, 22.8 m",yes,yes,"parked car ahead while the trike drives toward it: approaching relative to the trike, as designed",screens/123513.jpg
+49,12:36:24,front,car 4.6 m left (warning); car 10.9 m,yes,yes,parked car at left,screens/123624.jpg
+50,12:37:20,front,Clear,n/a,n/a,nothing in view that the detector should report,screens/123720.jpg
+51,12:38:13,front,Clear,n/a,n/a,nothing in view that the detector should report,screens/123813.jpg
+52,12:39:08,front,Clear,n/a,n/a,nothing in view that the detector should report,screens/123908.jpg
+53,11:34:46,rear,person 0.51 to 2.8 m behind/right/left (immediate),yes,yes,people standing behind the trike,screens/113446.jpg
+54,11:35:05,rear,person 0.51 to 2.8 m behind/right/left (immediate),yes,yes,people standing behind the trike,screens/113505.jpg
+55,11:35:25,rear,person 0.51 to 2.8 m behind/right/left (immediate),yes,yes,people standing behind the trike,screens/113525.jpg
+56,11:35:46,rear,person 0.51 to 2.8 m behind/right/left (immediate),yes,yes,people standing behind the trike,screens/113546.jpg
+57,11:36:06,rear,person 0.51 to 2.8 m behind/right/left (immediate),yes,yes,people standing behind the trike,screens/113606.jpg
+58,12:23:48,rear,"person 22.3 m left; person 23.0 m left (grey, camera only)",no,n/a,"empty track, no person visible: false detection, shown as the headline number",screens/122348.jpg
+59,12:24:10,rear,Clear,n/a,n/a,nothing in view that the detector should report,screens/122410.jpg
+60,12:24:31,rear,Clear,n/a,n/a,nothing in view that the detector should report,screens/122431.jpg

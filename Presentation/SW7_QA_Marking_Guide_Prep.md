@@ -148,6 +148,10 @@ ICC (intraclass correlation, ICC(2,1)) = between-cell variation / (between-cell 
 
 Why both: CV averages over the lap, which cancels spot-to-spot noise; ICC does not.
 
+## Alert spot check (done 17 Nov, after submission)
+
+If asked whether the alerts were right: "Not with independent video, but after submitting I spot-checked them against the dashboard's screen record. Of 60 evenly spaced frames from the laps showing the camera page, 48 showed hazards and the object was real in 47; one was a false person about 22 m away, one tractor was called a car, and one was wrongly escalated to immediate when the distance sensor's range was fused to a tractor several metres away. Of 12 'Clear' frames, one missed a tractor at the edge of the image. It is one rater on correlated frames of mostly parked objects, so it is a sanity check, not precision and recall." Distance looks unreliable for vehicles seen side-on (a parked bus listed at about 4 m). Details: BenchTest/logs/run2_road_2026-10-27/analysis/alert_spot_check.md.
+
 ## Things to check before the talk
 
 - Cell length for the ICC: the plan (Method, Appendix J) said 5 m bins; the result was computed in 8 m cells aligned by the phone's GNSS position (Results 5.3, position_icc.py). If asked, say 8 m, and that the phone's GNSS error of several metres is one reason place-by-place agreement was poor.
