@@ -15,6 +15,7 @@ Keeping the 200 Hz sampling deterministic while the same board did slow, blockin
 Several causes produced the same symptom (the modem, MQTT publishing and flash writes all ran on the same board), the fault only appeared when all parts ran together, and "zero dropped samples" hid it, because the queue absorbed the backlog. The power fault was the same kind: each part worked alone, and only the combination failed (the modem browning out the Pi 4 through its USB port).
 
 1C. How did you solve it?
+
 - Software: each IMU has its own top-priority FreeRTOS task on a fixed 5 ms period (vTaskDelayUntil), with bounded queues that drop and count rather than block, and all blocking I/O on the other core.
 - Diagnosis: I added a command to switch logging off while publishing kept running; the gaps disappeared (worst 5.9 ms), which isolated flash.
 - System design: the inertial nodes on the vehicle keep no flash log and only stream, which removed the gap; the telemetry unit keeps the log for store-and-forward.
@@ -54,6 +55,7 @@ List the candidate causes, then design one test that separates them, changing on
 The Pi 4 kept showing under-voltage and restarting. Candidates: its own supply, the ToF board, the telemetry unit on its USB port, heat. I wrote a logger of power and temperature flags, I2C devices and USB devices every 2 s. It was clean with nothing attached; the ToF board was unplugged throughout; heat raised a separate soft-temperature flag; the telemetry unit was plugged in at 17:58:05 and 14 s later, when its modem came up, under-voltage started. Then three restarts in 20 minutes with the unit on the Pi, none in 4 hours after moving it. Cause: the modem's transmit current through the Pi's USB port. (F7)
 
 4C. What did you try that did not work?
+
 - Boot loop: adding a PSRAM setting left the same loop; the real cause was the flash access mode (DIO, not QIO). (F1)
 - Battery: I assumed the pack was absent; logging every advertiser showed none at all, so the scanner was idle. The community checksum formula was also wrong by exactly 3. (F3)
 - Camera colour: I suspected the channel order; a still taken outside the detector was also pink, so it was the missing IR-cut filter. (F5)
@@ -71,12 +73,14 @@ A fixed-period top-priority task gives a guaranteed sample instant; a loop with 
 Built-in self-tests at every boot (known sine signals through the features), sequence numbers and checksums on every sample, and offline test suites: 29 fusion tests, 22 pothole tests, 40 firmware ledger checks with 900 randomised outage simulations, 11 server tests, 40 synthetic time-to-contact tests. The W_k filter was checked against a published table (within 0.005 dB). Limit: the self-test sine had no constant offset, so it could not catch gravity in the mean square; a review did. (G14)
 
 5D. Parameters with the greatest effect on performance?
+
 - Sampling rate and anti-alias filter: they set which vibration can be seen at all; with the filter at 260 Hz, content between 100 and 260 Hz folded into the band (fixed to 94 Hz).
 - Detection confidence threshold (0.5) and the hysteresis frames (3 on, 5 off): they trade false alerts against how quickly an alert appears.
 - Thread count on the Pi detector: 4 threads gave 19.5 fps, 1 thread 7.0 fps.
 - Publish interval and retry timing for LTE: they set the backlog after an outage and how quickly it drains.
 
 5E. If you doubled or halved parameter X?
+
 - Sampling rate doubled to 400 Hz: Nyquist goes to 200 Hz, so aliasing falls, but each read takes about 0.4 to 0.5 ms of a 2.5 ms period and the stream doubles; the Pi-side link and transport loss (0.08 % at the rear) would be the first to suffer.
 - Onset frames doubled from 3 to 6: at about 19 fps the alert appears roughly 0.15 s later (about 1.3 m at 30 km/h), with fewer one-frame false alerts.
 - Confidence threshold halved to 0.25: more detections and more false alerts; raised, fewer alerts and more misses (I have not measured precision and recall, so I would expect, not claim).
@@ -90,6 +94,7 @@ Against 13 requirements, each with a pass mark fixed before its test, first on t
 
 5H. What was your ground truth?
 It depends on the quantity:
+
 - Sampling and loss: the sequence numbers and timestamps on every sample.
 - Calibration: gravity, 9.81 m/s2, at rest.
 - Position and speed: a phone's GNSS.
@@ -127,6 +132,7 @@ A regulated supply of its own for the telemetry unit, plus the LTE reconnection 
 ## 9. Reflection
 
 9A. Two things you would do differently?
+
 - Get onto the vehicle much earlier, at least a stationary powertrain run in September instead of late October.
 - Write requirements that measure the research questions directly (a repeatability criterion for RQ1 from the start), rather than only instrument checks.
 (Others: power each board separately from day one; read the IMU through its FIFO so flash pauses do not matter.)
