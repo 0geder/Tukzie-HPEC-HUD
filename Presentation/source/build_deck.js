@@ -333,9 +333,9 @@ function content(title, notes) {
   const s = content("Hazard detection on the road: front and rear",
     "This is the dashboard's own screen on the road, with the rear camera tracking a person behind the trike. " +
     "Each camera runs a pretrained 8-bit SSD-MobileNet detector. On the road the front, on the Pi 5, took a median of 68 milliseconds from readout to result at 23.3 frames per second; the rear, on the Pi 4, 103 milliseconds at 12.1. " +
-    "An alert is raised after three frames and cleared after five, and no frame is ever stored. " +
+    "An alert is raised after three frames and cleared after five, and the detector stores no frame. " +
     "Distance bands do not say whether something is closing, so the system also estimates time to contact from how fast a box grows; it is within 2 percent in 40 synthetic tests but has not met a real approach. " +
-    "No forward video was kept, so how many road alerts were correct is still unknown.");
+    "No forward video was kept. After submitting, I spot-checked 60 frames of the dashboard's screen record: the object shown was real in 47 of 48, with one false immediate warning, but a proper accuracy figure still needs independent video.");
   const iw = 6.3, ih = iw * 800 / 1280;
   s.addImage({ path: A("road_rear_person_1027.jpg"), x: M, y: 1.4, w: iw, h: ih });
   caption(s, "Dashboard on the road, 27 Oct (screen capture): rear camera tracking a person behind the trike", M, 1.4 + ih + 0.08, iw);
@@ -347,9 +347,9 @@ function content(title, notes) {
   const rx = M + iw + 0.4, rw = W - M - rx, tw = (rw - 0.3) / 2;
   stat(s, rx, 1.4, tw, 2.05, "68 ms", "front, Pi 5: median on the road, 23.3 fps (bench 51 to 54 ms)", { bigSize: 34, bigH: 0.7 });
   stat(s, rx + tw + 0.3, 1.4, tw, 2.05, "103 ms", "rear, Pi 4: median on the road, 12.1 fps (bench 118 to 122 ms)", { bigSize: 34, bigH: 0.7 });
-  infoCard(s, rx, 3.75, rw, 1.25, "Alert logic and privacy", "Raised after 3 frames, cleared after 5. No frame is ever stored.");
-  infoCard(s, rx, 5.3, rw, BOTTOM - 5.3, "Not yet checked",
-    "No forward video kept, so road precision is unknown. Fused range 0.47 m at about 0.5 m on a person (n = 43); a flat-target check is needed.", { dashed: true });
+  infoCard(s, rx, 3.75, rw, 1.25, "Alert logic and privacy", "Raised after 3 frames, cleared after 5. The detector stores no frame.");
+  infoCard(s, rx, 5.3, rw, BOTTOM - 5.3, "Spot check only",
+    "60 screen-record frames (after submission): object real in 47 of 48, one false immediate. No independent video, so precision is unknown.", { dashed: true });
 }
 
 // ---------------- 9 Dashboard ----------------

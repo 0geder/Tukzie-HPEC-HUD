@@ -2,7 +2,7 @@
 
 Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here.
 
-13 slides, 10 minutes plus 5 minutes of questions. 1585 words in total, about 11.3 minutes at 140 words a minute.
+13 slides, 10 minutes plus 5 minutes of questions. 1609 words in total, about 11.5 minutes at 140 words a minute.
 
 ## Slide 1: Title (37 words, about 16 s)
 
@@ -32,9 +32,9 @@ Because each stage was tested before the next, each fault could be traced to one
 
 Every record is written to flash whatever the coverage, then sent over LTE and replayed when the link returns. On the bench I switched the radio off for ten minutes. The unit reconnected 5.2 seconds after it came back, cleared its 60-record backlog in about 38 seconds, and the database held 112 of 112 records, none missing or doubled. On the road the wired link to the Pi carried 4,196 of 4,201 records, 99.9 percent, against 62 percent over USB on the first session. Over LTE 153 records arrived, 116 of them replays, with a median delay of 0.44 seconds; but only nine records carry that figure, and from 11:51 the link did not reconnect.
 
-## Slide 8: Hazard detection on the road: front and rear (132 words, about 57 s)
+## Slide 8: Hazard detection on the road: front and rear (156 words, about 67 s)
 
-This is the dashboard's own screen on the road, with the rear camera tracking a person behind the trike. Each camera runs a pretrained 8-bit SSD-MobileNet detector. On the road the front, on the Pi 5, took a median of 68 milliseconds from readout to result at 23.3 frames per second; the rear, on the Pi 4, 103 milliseconds at 12.1. An alert is raised after three frames and cleared after five, and no frame is ever stored. Distance bands do not say whether something is closing, so the system also estimates time to contact from how fast a box grows; it is within 2 percent in 40 synthetic tests but has not met a real approach. No forward video was kept, so how many road alerts were correct is still unknown.
+This is the dashboard's own screen on the road, with the rear camera tracking a person behind the trike. Each camera runs a pretrained 8-bit SSD-MobileNet detector. On the road the front, on the Pi 5, took a median of 68 milliseconds from readout to result at 23.3 frames per second; the rear, on the Pi 4, 103 milliseconds at 12.1. An alert is raised after three frames and cleared after five, and the detector stores no frame. Distance bands do not say whether something is closing, so the system also estimates time to contact from how fast a box grows; it is within 2 percent in 40 synthetic tests but has not met a real approach. No forward video was kept. After submitting, I spot-checked 60 frames of the dashboard's screen record: the object shown was real in 47 of 48, with one false immediate warning, but a proper accuracy figure still needs independent video.
 
 ## Slide 9: The existing dashboard: live alerts, honest legibility (120 words, about 51 s)
 
