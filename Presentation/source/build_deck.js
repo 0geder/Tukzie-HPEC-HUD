@@ -91,8 +91,8 @@ function content(title, notes) {
   // slide-number badge: the TUKZIE render on a navy disc, number on top (student's sketch, 17 Nov)
   const bd = 0.86, by = 0.31;
   s.addImage({ path: A("tukzie_badge_navy.png"), x: M - 0.06, y: by, w: bd, h: bd, altText: "" });
-  txt(s, String(slideNo - 1), { x: M - 0.06, y: by + 0.02, w: bd, h: bd, fontSize: 30, bold: true, color: C.accent, align: "center", valign: "middle",
-    outline: { size: 1, color: "FFFFFF" } });
+  txt(s, String(slideNo - 1), { x: M - 0.06, y: by + 0.02, w: bd, h: bd, fontSize: 30, bold: true, color: C.white, align: "center", valign: "middle",
+    outline: { size: 1.25, color: C.navy } });
   txt(s, title, { x: M + 0.97, y: 0.34, w: W - 2 * M - 0.97, h: 0.8, fontSize: 30, bold: true, color: C.navy, valign: "middle" });
   s.addImage({ path: A("uct_logo.png"), x: W - M - 0.42, y: H - 0.58, w: 0.42, h: 0.427 });
   txt(s, "Samson Okuthe   |   EEE4022S 2026   |   UCT", { x: M, y: H - 0.52, w: 6, h: 0.32, fontSize: 11, color: C.muted, valign: "middle" });
