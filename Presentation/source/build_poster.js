@@ -103,8 +103,8 @@ const h1 = 4.45;
 let b = panel(1, "Background", XL, y, COLW, h1);
 {
   const items = [
-    [A("road_test_1027.jpg"), "The TUKZIE: an electric cargo trike for last-mile freight", "The TUKZIE trike on the road test"],
-    [A("existing_dashboard.jpg"), "As built, nothing measured its ride or warned its driver", "The trike's own dashboard screen before this project"],
+    [A("tukzie_badge_navy.png"), "The TUKZIE: an electric cargo trike for last-mile freight", "TUKZIE electric cargo trike (render) on a navy disc"],
+    [A("dashboard_driver_ready_1019.jpg"), "Its dashboard: nothing measured its ride or warned its driver", "The trike's dashboard screen at the handlebars with the driver seated, ready to drive (19 Oct 2026)"],
     [A("project_brief.jpg"), "The brief's windshield HUD became alerts on its dashboard", "The project brief page with the windshield HUD concept"],
   ];
   const cw = b.w / 3, d = 1.65;
