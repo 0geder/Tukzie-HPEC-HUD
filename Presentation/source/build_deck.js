@@ -91,7 +91,7 @@ function content(title, notes) {
   // slide-number badge: the TUKZIE render on a navy disc, number on top (student's sketch, 17 Nov)
   const bd = 0.86, by = 0.31;
   s.addImage({ path: A("tukzie_badge_navy.png"), x: M - 0.06, y: by, w: bd, h: bd, altText: "" });
-  txt(s, String(slideNo - 1), { x: M - 0.06, y: by + 0.02, w: bd, h: bd, fontSize: 30, bold: true, color: C.white, align: "center", valign: "middle",
+  txt(s, String(slideNo - 1), { x: M - 0.06, y: by + 0.02, w: bd, h: bd, fontSize: 33, bold: true, color: C.white, align: "center", valign: "middle",
     outline: { size: 1.25, color: C.navy } });
   txt(s, title, { x: M + 0.97, y: 0.34, w: W - 2 * M - 0.97, h: 0.8, fontSize: 30, bold: true, color: C.navy, valign: "middle" });
   s.addImage({ path: A("uct_logo.png"), x: W - M - 0.42, y: H - 0.58, w: 0.42, h: 0.427 });
@@ -366,8 +366,8 @@ function content(title, notes) {
   s.addImage({ path: R("road1/vid_dash_drive.jpg"), x: M, y: 1.4, w: pw, h: ph });
   caption(s, "On the vehicle: the driving page", M, 1.4 + ph + 0.08, pw, 0.55);
   const mx = M + pw + 0.35, mw = 5.3, mh = mw * 800 / 1280;
-  s.addImage({ path: R("ui/ui_pi5_live_drive.png"), x: mx, y: 1.4, w: mw, h: mh });
-  caption(s, "Live on the Pi 5: an obstacle banner over the driving page; absent data shown as absent", mx, 1.4 + mh + 0.08, mw, 0.55);
+  s.addImage({ path: R("ui/ui_map.png"), x: mx, y: 1.4, w: mw, h: mh });
+  caption(s, "The Map page: turn banner, arrival bar and controls, on OpenStreetMap tiles", mx, 1.4 + mh + 0.08, mw, 0.55);
   const vy = 1.4 + mh + 0.75;
   infoCard(s, mx, vy, mw, BOTTOM - vy, "Voice commands, offline",
     "15 to 18 of 18 synthetic-voice commands on the bench, in 1.8 to 2.4 s; alerts and battery read out on request. No driver tested.");
