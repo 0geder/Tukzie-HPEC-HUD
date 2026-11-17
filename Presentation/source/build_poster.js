@@ -281,7 +281,7 @@ b = panel(5, "What the road test showed", XR, y, COLW, h5);
 // 6 Requirements scorecard: R1 to R13 by subsystem, coloured by verdict
 y += h5 + GAP;
 const h6 = H6;
-b = panel(6, "Requirements scorecard", XR, y, COLW, h6);
+b = panel(6, "Requirements on the bench", XR, y, COLW, h6);
 {
   const V = { m: C.green, p: C.amber, n: C.grey };
   const legend = [["m", "Met (5)"], ["p", "Partly met (7)"], ["n", "Not tested (1)"]];
@@ -292,10 +292,10 @@ b = panel(6, "Requirements scorecard", XR, y, COLW, h6);
     lx += 3.1;
   });
   const rows = [
-    ["sense", [["R1 IMU rate", "m"], ["R2 Calibration", "m"], ["R3 Features", "m"]]],
+    ["sense", [["R1 IMU rate", "m"], ["R2 Calibration*", "m"], ["R3 Features", "m"]]],
     ["hazard", [["R6 Sync pulse", "p"], ["R7 Detection", "p"], ["R8 Range", "p"]]],
-    ["telem", [["R4 Position", "p"], ["R5 Battery", "p"], ["R9 Store, send", "m"]]],
-    ["display", [["R10 Wired link", "m"], ["R11 Live data", "p"], ["R12 Glance time", "n"]]],
+    ["telem", [["R4 Position", "p"], ["R5 Battery", "p"], ["R9 Store, send*", "m"]]],
+    ["display", [["R10 Wired link*", "m"], ["R11 Live data", "p"], ["R12 Glance time", "n"]]],
     [null, [["R13 Removable", "p"]]],
   ];
   const lab = 2.55, cw = (b.w - lab - 0.2) / 3, rh = 0.56;
@@ -308,7 +308,7 @@ b = panel(6, "Requirements scorecard", XR, y, COLW, h6);
       txt(t, cx, ry, cw, rh, { color: C.white, bold: true, align: "center", valign: "middle" });
     });
   });
-  txt("On the trike, R2 was not met and R9 and R10 were partly met.",
+  txt("* On the trike: R2 not met (calibration drifted); R9 and R10 partly met.",
     b.x, b.y + 0.7 + 5 * (rh + 0.1) + 0.05, b.w, 0.8, { italic: true, color: C.muted });
 }
 
