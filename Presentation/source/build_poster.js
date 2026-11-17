@@ -263,15 +263,15 @@ b = panel(5, "What the road test showed", XR, y, COLW, h5);
   tile("sense", "about 2" + NB + "×", "more vibration on the rough strip, both ends", b.x, ry1, t3, th1);
   tile("sense", "5.0 / 5.3" + NB + "%", "pass-to-pass spread; target 10" + NB + "%: met", b.x + t3 + tg, ry1, t3, th1);
   tile("sense", "ICC 0.16", "spot-by-spot repeat; target 0.75: not met", b.x + 2 * (t3 + tg), ry1, t3, th1);
-  // cameras: the dashboard on the road with a truck and people detected
+  // cameras: the dashboard on the road, rear camera with a person and a parked car detected
   const cy = ry1 + th1 + 0.25, cw = 6.25, ch = cw * 590 / 1280;
-  photo(A("road_truck_detect_1027.jpg"), b.x, cy, cw, ch,
-    "Dashboard on the road at 12:32 on 27 October: the front camera boxes a truck 7.3 m to the right as a warning and lists three people ahead; the banner shows a person alert from the rear");
+  photo(A("road_rear_person_1027_poster.jpg"), b.x, cy, cw, ch,
+    "Dashboard on 27 October at 11:34: the rear camera, mirrored, boxes a person behind the trike and a parked car to the right, listed nearest first as warnings");
   const sx = b.x + cw + 0.18, sw = b.w - cw - 0.18;
   tile("hazard", "23.3 / 12.1", "frames/s on the road, front / rear", sx, cy, sw, 1.5, 32);
-  txt("Truck 7.3" + NB + "m right: a warning; people ahead; rear alert in the banner",
+  txt("Person 3.7" + NB + "m behind, parked car at right: both warnings",
     sx, cy + 1.6, sw, ch - 1.6, { color: C.text });
-  txt("Front camera on the dashboard, 12:32 on 27 Oct (screen capture)", b.x, cy + ch + 0.05, b.w, 0.45, { italic: true, color: C.muted });
+  txt("Rear camera on the dashboard, 11:34 on 27 Oct (screen capture)", b.x, cy + ch + 0.05, b.w, 0.45, { italic: true, color: C.muted });
   // links
   const ry3 = cy + ch + 0.6, t2 = (b.w - tg) / 2, th3 = 1.55;
   tile("telem", "112 / 112", "records kept through a 10-minute LTE outage (bench)", b.x, ry3, t2, th3);
