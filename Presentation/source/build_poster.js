@@ -40,7 +40,8 @@ s.background = { color: C.white };
 const BG_W = W * 1.05, BG_H = BG_W * 1086 / 1448;
 const BG_ALPHA = Number(process.env.POSTER_BG_ALPHA || 60);
 const PANEL_ALPHA = Number(process.env.POSTER_PANEL_ALPHA || 30);
-s.addImage({ path: A("tukzie_three_quarter_front.png"), x: (W - BG_W) / 2, y: 18.5 - BG_H / 2, w: BG_W, h: BG_H,
+// position and size set by hand in PowerPoint (poster v5 saved 17 Nov 06:53), ported here
+s.addImage({ path: A("tukzie_three_quarter_front.png"), x: -1.75, y: 7.92, w: 27.61, h: 22.25,
   transparency: BG_ALPHA, altText: "TUKZIE electric trike (render)" });
 
 // ---------------- header ----------------
@@ -62,12 +63,12 @@ s.addText([
 
 // ---------------- helpers ----------------
 const PH = 1.35;   // panel heading band
-function panel(n, title, x, y, w, h) {
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, fill: { color: C.panel, transparency: PANEL_ALPHA }, line: { color: C.line, width: 1 }, rectRadius: 0.3 });
+function panel(n, title, x, y, w, h, adj = {}) {   // adj: hand nudges of the box {dy, dw, dh} and title {ty}
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: y + (adj.dy || 0), w: w + (adj.dw || 0), h: h + (adj.dh || 0), fill: { color: C.panel, transparency: PANEL_ALPHA }, line: { color: C.line, width: 1 }, rectRadius: 0.3 });
   s.addShape(pres.shapes.OVAL, { x: x + 0.4, y: y + 0.3, w: 0.85, h: 0.85, fill: { color: C.navy }, line: { color: C.navy } });
   s.addText(String(n), { x: x + 0.4, y: y + 0.3, w: 0.85, h: 0.85, fontFace: FONT, fontSize: 34, bold: true, color: C.white,
     align: "center", valign: "middle", isTextBox: true, margin: 0 });
-  s.addText(title, { x: x + 1.45, y: y + 0.25, w: w - 1.8, h: 0.95, fontFace: FONT, fontSize: T.head, bold: true, color: C.navy,
+  s.addText(title, { x: x + 1.45, y: y + 0.25 + (adj.ty || 0), w: w - 1.8, h: 0.95, fontFace: FONT, fontSize: T.head, bold: true, color: C.navy,
     valign: "middle", isTextBox: true, margin: 0 });
   return { x: x + 0.5, y: y + PH, w: w - 1.0 };
 }
@@ -119,7 +120,7 @@ let b = panel(1, "Background", XL, y, COLW, h1);
 // 2 Scope: labelled arrows (aim, requirements, constraints)
 y += h1 + GAP;
 const h2 = 5.2;
-b = panel(2, "Scope", XL, y, COLW, h2);
+b = panel(2, "Scope", XL, y, COLW, h2, { dy: 0.15, dw: -0.12, dh: 0.05, ty: -0.03 });   // hand nudges, 17 Nov
 {
   const rows = [
     ["Aim", "IMUs measure vibration front and rear; cameras warn the driver on the trike's own dashboard; no record is lost when the network drops.", 1.62],
@@ -319,7 +320,7 @@ b = panel(7, "Conclusion", XR, y, COLW, h7);
   const qr = 2.1;
   txt([
     { text: "The unit works on the trike. ", options: { bold: true, color: C.navy } },
-    { text: "Its vibration score tells smooth road from rough and repeats over whole passes, not yet place by place. Both cameras flagged people and vehicles live on the dashboard; the alerts are not yet checked against video." },
+    { text: "Its vibration score tells smooth road from rough and repeats over whole passes, not yet place by place. Both cameras flagged people and vehicles live on the dashboard; 47 of 48 spot-checked on screen were real." },
   ], b.x, b.y, b.w - qr - 0.35, 2.1);
   const qx = b.x + b.w - qr, qy = b.y - 0.95;
   s.addShape(pres.shapes.RECTANGLE, { x: qx, y: qy, w: qr, h: qr, fill: { color: C.white }, line: { color: C.white } });
@@ -328,7 +329,7 @@ b = panel(7, "Conclusion", XR, y, COLW, h7);
   const pairs = [
     ["One trike, short low-speed runs, no reference sensor", "Tie the score to a surveyed road section"],
     ["Pi" + NB + "4 restarted once on low voltage", "Regulated supply from the vehicle"],
-    ["Warnings below ISO" + NB + "15008 size", "Enlarge them, then a glance study (R12)"],
+    ["Small warnings (ISO" + NB + "15008); voice not tried by drivers", "Enlarge them; glance and voice tests with drivers"],
   ];
   const py0 = b.y + 2.1, hw = (b.w - 0.6) / 2, rh = 0.76;
   txt("Limited by", b.x, py0, hw, 0.42, { bold: true, color: C.accent });
