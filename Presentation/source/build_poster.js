@@ -236,9 +236,9 @@ b = panel(4, "Plan and method", XL, y, COLW, h4);
   const my = gy + gh + 0.25;
   s.addText([
     ...rich("Requirements first: ", { bold: true, color: C.navy }),
-    ...rich("each pass mark set before its test. "),
+    ...rich("pass marks set before each test. "),
     ...rich("Road test: ", { bold: true, color: C.navy }),
-    ...rich("smooth loop (5 passes) and rough strip (4 passes) at 10" + NB + "km/h; one vibration score per pass, a_w (ISO" + NB + "2631-1)."),
+    ...rich("5 smooth and 4 rough passes at 10" + NB + "km/h, one a_w each (ISO" + NB + "2631-1)."),
   ], { x: b.x, y: my, w: b.w, h: h4 - PH - (my - b.y) - 0.25, fontFace: FONT, fontSize: T.small, color: C.text, valign: "top", isTextBox: true, margin: 0 });
 }
 
