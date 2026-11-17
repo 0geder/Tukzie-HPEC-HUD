@@ -134,6 +134,14 @@ A regulated supply of its own for the telemetry unit, plus the LTE reconnection 
 9B. Biggest technical mistake?
 The anti-aliasing filter left at 260 Hz with 200 Hz sampling: any vibration between 100 and 260 Hz folded into the measured band (150 Hz appears at 50 Hz). Fixed by setting it to 94 Hz. [Alternatives: soldering wires to the SEN55's test pads, which lifted the supply pad and killed the sensor; or powering the modem from the Pi's USB port.]
 
+## Two terms to explain cleanly
+
+CV (coefficient of variation) = standard deviation / mean x 100 %. One whole-pass a_w per lap, five laps of the smooth loop at 10 km/h: rear mean 1.78 m/s2, CV 5.0 % (bootstrap 95 % interval 1.9 to 6.2 %), front 1.16, CV 5.3 %, against a limit of 10 %. Dividing by the mean lets nodes that read at different levels be compared. Viva line: "Five laps gave the same whole-lap reading within about 5 percent, half the 10 percent allowed."
+
+ICC (intraclass correlation, ICC(2,1)) = between-cell variation / (between-cell + between-pass + noise). The loop is cut into 8 m cells; it asks whether each spot reads the same every pass. 1 = a map of the road, 0 = noise; 0.75 was the pass mark. Rear 0.16 (at most 0.32 in sensitivity checks), front 0.00 to 0.02, because the same spot varied about 30 % between passes while real spot-to-spot differences were about 18 %. Causes: phone GNSS error of several metres, a different line each lap, a smooth loop with little real variation. Viva line: "Repeatable over a whole pass, CV 5 percent, but not yet spot by spot, ICC 0.16 against 0.75."
+
+Why both: CV averages over the lap, which cancels spot-to-spot noise; ICC does not.
+
 ## Things to check before the talk
 
 - Cell length for the ICC: the plan (Method, Appendix J) said 5 m bins; the result was computed in 8 m cells aligned by the phone's GNSS position (Results 5.3, position_icc.py). If asked, say 8 m, and that the phone's GNSS error of several metres is one reason place-by-place agreement was poor.
