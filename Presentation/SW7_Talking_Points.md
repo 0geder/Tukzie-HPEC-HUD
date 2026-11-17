@@ -2,7 +2,7 @@
 
 Generated from the speaker notes by Presentation/source/build_deck.js; edit the notes there, not here.
 
-13 slides, 10 minutes plus 5 minutes of questions. 1552 words in total, about 11.1 minutes at 140 words a minute.
+13 slides, 10 minutes plus 5 minutes of questions. 1557 words in total, about 11.1 minutes at 140 words a minute.
 
 ## Slide 1: Title (37 words, about 16 s)
 
@@ -12,9 +12,9 @@ Good morning. My name is Samson, and my project is embedded telemetry with road-
 
 A little background on the TUKZIE. It is a UCT flagship programme building an electric cargo trike for last-mile deliveries in growing cities, with autonomy as the long-term goal. But why a trike in South Africa, when deliveries already run on motorbikes? Motorcyclists' share of road deaths rose from 1.9 to 3.9 percent between 2023 and 2024, and more riders keep joining them: over 43 thousand motorbikes were sold in 2025, and 70 percent of those went into commercial use. Electric trikes are a better tool for the job. They are more stable at low speed, and the driver sits inside a frame. GreenCape finds electric two- and three-wheelers 30 to 50 percent cheaper per kilometre to run, and an electric three-wheeler carries 250 to 400 kilograms, against 120 to 180 for a two-wheeler. Takealot already uses trikes for delivery. With this, we add road-surface characterisation and a camera-based hazard detection unit, to alert the driver and warn of nearby or fast-approaching objects. So the problem is to put edge telemetry and short, safety-only alerts on a low-cost trike, and to measure whether each part works. 
 
-## Slide 3: Aim, research questions and approach (184 words, about 79 s)
+## Slide 3: Aim, research questions and approach (189 words, about 81 s)
 
-From that problem comes one aim: measure how the trike responds to the road and to its own motor, warn the driver of hazards on the dashboard it already has, and keep the data even when the network drops. I broke that into four research questions. One: how accurately and repeatably can a low-cost unit measure the ride? Two: how should the alerts appear on the dashboard so they distract the driver as little as possible? Three: how fast does data get from the sensor to the database over LTE, how much is lost, and how does it recover? Four: which features tell road vibration apart from the motor's own vibration? To answer them I followed a V-model. Down the left side I defined the system: the questions, then thirteen requirements, each with a pass mark fixed before its test, then the design, one subsystem at a time. Up the right side I checked it at the same levels: start-up checks for each interface, bench tests for each requirement, and finally tests on the trike itself, on the road on 19 and 27 October.
+From that problem comes one aim: measure how the trike responds to the road and to its own motor, warn the driver of hazards on the dashboard it already has, and keep the data even when the network drops. I broke that into four research questions. One: how accurately and repeatably can a low-cost unit measure the ride? Two: how should the alerts appear on the dashboard so they distract the driver as little as possible? Three: how fast does data get from the sensor to the database over LTE, how much is lost, and how does it recover? Four: which features tell road vibration apart from the motor's own vibration? To answer them I followed a V-model. Down the left side I defined the system: the literature review and the four questions, then thirteen requirements, each with a pass mark fixed before its test, then the design, one subsystem at a time. Up the right side I checked it at the same levels: start-up checks for each interface, bench tests for each requirement, and finally tests on the trike itself, on the road on 19 and 27 October.
 
 ## Slide 4: The system as driven on 27 October (114 words, about 49 s)
 

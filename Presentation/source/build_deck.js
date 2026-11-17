@@ -167,7 +167,7 @@ function content(title, notes) {
     "From that problem comes one aim: measure how the trike responds to the road and to its own motor, warn the driver of hazards on the dashboard it already has, and keep the data even when the network drops. " +
     "I broke that into four research questions. One: how accurately and repeatably can a low-cost unit measure the ride? Two: how should the alerts appear on the dashboard so they distract the driver as little as possible? " +
     "Three: how fast does data get from the sensor to the database over LTE, how much is lost, and how does it recover? Four: which features tell road vibration apart from the motor's own vibration? " +
-    "To answer them I followed a V-model. Down the left side I defined the system: the questions, then thirteen requirements, each with a pass mark fixed before its test, then the design, one subsystem at a time. Up the right side I checked it at the same levels: start-up checks for each interface, bench tests for each requirement, and finally tests on the trike itself, on the road on 19 and 27 October.");
+    "To answer them I followed a V-model. Down the left side I defined the system: the literature review and the four questions, then thirteen requirements, each with a pass mark fixed before its test, then the design, one subsystem at a time. Up the right side I checked it at the same levels: start-up checks for each interface, bench tests for each requirement, and finally tests on the trike itself, on the road on 19 and 27 October.");
   card(s, M, 1.4, W - 2 * M, 0.9);
   txt(s, [{ text: "Aim: ", options: { bold: true, color: C.navy } },
           { text: "measure the trike's response to the road and its powertrain, warn of hazards on the existing dashboard, and keep the data through gaps in coverage." }],
@@ -190,7 +190,7 @@ function content(title, notes) {
   const ax = M + lw + 0.35, aw = W - M - ax;
   txt(s, "Approach: a V-model", { x: ax, y: y0 - 0.05, w: aw, h: 0.4, fontSize: 18, bold: true, color: C.navy });
   const bw = 1.8, bh = 0.92, inset = [0, 0.47, 0.94], ly = [3.1, 4.3, 5.5];
-  const L = [["1  Questions", "four, from the aim"], ["2  13 requirements", "pass mark fixed first"], ["3  Design and build", "each subsystem"]];
+  const L = [["1  Review", "gap and 4 questions"], ["2  13 requirements", "pass mark fixed first"], ["3  Design and build", "each subsystem"]];
   const R = [["6  Vehicle tests", "road, 19 and 27 Oct"], ["5  Bench tests", "each requirement"], ["4  Start-up checks", "each interface"]];
   const box = (x, y, [h, b], dark) => {
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: bw, h: bh, rectRadius: 0.1, fill: { color: dark ? C.navy : C.white }, line: { color: C.navy, width: 1.5 } });
