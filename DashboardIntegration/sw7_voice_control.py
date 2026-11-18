@@ -4,6 +4,7 @@ Spoken commands change what the dashboard shows; nothing controls the vehicle. R
 English model) so it works without coverage, and audio is processed in memory and never stored.
 
   "home", "speed", "driving"              -> Driving page
+  "battery", "charging"                   -> Charging page
   "map", "navigation"                     -> Map page
   "reverse", "rear camera", "back camera" -> Surroundings, rear side (reverse mode)
   "front camera", "front view"            -> Surroundings, front side
@@ -50,7 +51,7 @@ HOME = {"home", "speed", "driving", "drive", "drive page", "dashboard", "main pa
 MAP = {"map", "navigation", "the map", "maps"}
 PAGES = {"analytics": {"analytics", "stats", "statistics", "trip", "trip stats"},
          "diagnostics": {"diagnostics", "health", "system health", "status"},
-         "charging": {"charging", "charge", "charging page"},
+         "charging": {"charging", "charge", "charging page", "battery", "batteries", "battery page"},   # "battery" opens Charging (18 Nov)
          "settings": {"settings", "setting"},
          "sensors": {"surroundings", "sensors", "camera", "cameras", "around"}}
 GREETING = {"hello", "hi", "hey", "good morning", "good afternoon", "good evening", "hey dashboard", "hello dashboard"}
@@ -123,7 +124,8 @@ def parse_intent(text, wake=""):
     if not t:
         return None
     m = DESTINATION.match(t)
-    if m and m.group(1).strip() not in MAP | HOME | REAR | FRONT:   # "go to map" is a page, not a place
+    page_words = MAP | HOME | REAR | FRONT | set().union(*PAGES.values())
+    if m and m.group(1).strip().removeprefix("the ").removesuffix(" page") not in page_words:   # "go to map" or "go to battery" is a page, not a place
         return ("destination", m.group(1).strip())
     m = CHOICE.match(t)
     if m:

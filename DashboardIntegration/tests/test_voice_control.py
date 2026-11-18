@@ -34,6 +34,8 @@ CASES = [
     ("hey map please", ("map", None)),
     ("drive", ("home", None)), ("analytics", ("page", "analytics")), ("open diagnostics", ("page", "diagnostics")),
     ("show the charging page", ("page", "charging")), ("settings", ("page", "settings")), ("surroundings", ("page", "sensors")),
+    ("battery", ("page", "charging")), ("show battery", ("page", "charging")), ("go to battery", ("page", "charging")),
+    ("go to charging", ("page", "charging")), ("how much battery", ("battery", None)),
     ("hello", ("greet", None)), ("good morning", ("greet", None)), ("whats the weather", ("weather", None)),
     ("any alerts", ("alerts", None)), ("battery level", ("battery", None)), ("what can you do", ("help", None)),
     ("go to menzies building", ("destination", "menzies building")),
