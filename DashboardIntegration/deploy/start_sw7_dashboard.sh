@@ -24,6 +24,9 @@ unset TUKZIE_CAMERA_URL TUKZIE_TELEMETRY_URL
 # :8080, bridge :8081). Nothing to export for it. TUKZIE_SW7_DUAL_CAM=0 goes back to one camera page; then, as
 # before, it shows the Pi 5 camera when the local detector answers and the Pi 4 camera otherwise.
 export TUKZIE_SW7_DUAL_CAM=1
+# Voice commands (sw7_voice_control.py), offline with Vosk; on since 18 Nov 2026 at the student's request.
+# Uses the default PulseAudio input (set it with: pactl set-default-source <name>). Set to 0 to switch voice off.
+export TUKZIE_SW7_VOICE=1
 if [ "$TUKZIE_SW7_DUAL_CAM" = "0" ]; then
     for _i in 1 2 3 4 5 6 7 8 9 10; do
         if curl -s -m 1 -o /dev/null http://127.0.0.1:8080/alerts; then
