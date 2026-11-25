@@ -100,3 +100,13 @@ Presentation/media/SW7_Final_Presentation_narrated.mp4
 
 # Trial reels, 50 to 80 MB each, kept local
 Presentation/media/reels/*.mp4
+
+# ---- Private: kept on this laptop, never published (decided 25 Nov 2026) ----
+# Signed forms, admin and feedback documents, lab notes and the AI prompts and instructions.
+# .githooks/pre-commit blocks these even with "git add -f". To publish one again, remove its line here.
+Planning/
+PROJECT_LOG.md
+GA Tracking Form/
+CLAUDE.md
+.claude/
+*-prompt.md

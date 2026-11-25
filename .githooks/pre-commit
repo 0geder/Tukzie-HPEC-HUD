@@ -1,0 +1,30 @@
+#!/bin/sh
+# Blocks a commit that would publish a private file or a secret.
+# Turn on once per clone:  git config core.hooksPath .githooks
+# Skip once, only if sure:  git commit --no-verify
+
+fail=0
+
+# 1. Private or ignored paths (the .gitignore list), even when added with "git add -f".
+git diff --cached --name-only --diff-filter=ACMR -z |
+  xargs -0 -r git check-ignore --no-index -- > .git/private-hits 2>/dev/null
+if [ -s .git/private-hits ]; then
+  echo "Blocked: these files are on the private list in .gitignore:"
+  sed 's/^/  /' .git/private-hits
+  echo "Unstage them with: git restore --staged <file>"
+  fail=1
+fi
+rm -f .git/private-hits
+
+# 2. Secrets in the added lines (keys, tokens, hard-coded passwords).
+pattern='BEGIN [A-Z ]*PRIVATE KEY|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9]{20,}|eyJ[A-Za-z0-9_-]{30,}\.[A-Za-z0-9_-]{20,}|(password|passwd|psk|api_?key|secret|token|service_role)["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"'[:space:]]{6,}["'"'"']'
+hits=$(git diff --cached -U0 --diff-filter=ACMR -- . ':!*.pdf' ':!*.png' ':!*.jpg' ':!*.ipynb' |
+  grep -E '^\+[^+]' | grep -iE "$pattern" | grep -viE 'example|placeholder|your_|changeme|environ|getenv')
+if [ -n "$hits" ]; then
+  echo "Blocked: these added lines look like secrets:"
+  echo "$hits" | cut -c1-160 | sed 's/^/  /'
+  echo "Move the value into an ignored file (like mqtt_secrets.h) or an environment variable."
+  fail=1
+fi
+
+exit $fail
